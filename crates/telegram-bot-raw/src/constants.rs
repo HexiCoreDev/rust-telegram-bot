@@ -31,48 +31,233 @@ pub struct AccentColorEntry {
 /// Accent color palette for `ChatFullInfo.accent_color_id`.
 pub mod accent_color {
     use super::AccentColorEntry;
-    pub const COLOR_000: AccentColorEntry = AccentColorEntry { identifier: 0, name: Some("red"),          light_colors: &[], dark_colors: &[] };
-    pub const COLOR_001: AccentColorEntry = AccentColorEntry { identifier: 1, name: Some("orange"),       light_colors: &[], dark_colors: &[] };
-    pub const COLOR_002: AccentColorEntry = AccentColorEntry { identifier: 2, name: Some("purple/violet"),light_colors: &[], dark_colors: &[] };
-    pub const COLOR_003: AccentColorEntry = AccentColorEntry { identifier: 3, name: Some("green"),        light_colors: &[], dark_colors: &[] };
-    pub const COLOR_004: AccentColorEntry = AccentColorEntry { identifier: 4, name: Some("cyan"),         light_colors: &[], dark_colors: &[] };
-    pub const COLOR_005: AccentColorEntry = AccentColorEntry { identifier: 5, name: Some("blue"),         light_colors: &[], dark_colors: &[] };
-    pub const COLOR_006: AccentColorEntry = AccentColorEntry { identifier: 6, name: Some("pink"),         light_colors: &[], dark_colors: &[] };
-    pub const COLOR_007: AccentColorEntry = AccentColorEntry { identifier: 7, name: None, light_colors: &[0xE15052, 0xF9AE63], dark_colors: &[0xFF9380, 0x992F37] };
-    pub const COLOR_008: AccentColorEntry = AccentColorEntry { identifier: 8, name: None, light_colors: &[0xE0802B, 0xFAC534], dark_colors: &[0xECB04E, 0xC35714] };
-    pub const COLOR_009: AccentColorEntry = AccentColorEntry { identifier: 9, name: None, light_colors: &[0xA05FF3, 0xF48FFF], dark_colors: &[0xC697FF, 0x5E31C8] };
-    pub const COLOR_010: AccentColorEntry = AccentColorEntry { identifier: 10, name: None, light_colors: &[0x27A910, 0xA7DC57], dark_colors: &[0xA7EB6E, 0x167E2D] };
-    pub const COLOR_011: AccentColorEntry = AccentColorEntry { identifier: 11, name: None, light_colors: &[0x27ACCE, 0x82E8D6], dark_colors: &[0x40D8D0, 0x045C7F] };
-    pub const COLOR_012: AccentColorEntry = AccentColorEntry { identifier: 12, name: None, light_colors: &[0x3391D4, 0x7DD3F0], dark_colors: &[0x52BFFF, 0x0B5494] };
-    pub const COLOR_013: AccentColorEntry = AccentColorEntry { identifier: 13, name: None, light_colors: &[0xDD4371, 0xFFBE9F], dark_colors: &[0xFF86A6, 0x8E366E] };
-    pub const COLOR_014: AccentColorEntry = AccentColorEntry { identifier: 14, name: None, light_colors: &[0x247BED, 0xF04856, 0xFFFFFF], dark_colors: &[0x3FA2FE, 0xE5424F, 0xFFFFFF] };
-    pub const COLOR_015: AccentColorEntry = AccentColorEntry { identifier: 15, name: None, light_colors: &[0xD67722, 0x1EA011, 0xFFFFFF], dark_colors: &[0xFF905E, 0x32A527, 0xFFFFFF] };
-    pub const COLOR_016: AccentColorEntry = AccentColorEntry { identifier: 16, name: None, light_colors: &[0x179E42, 0xE84A3F, 0xFFFFFF], dark_colors: &[0x66D364, 0xD5444F, 0xFFFFFF] };
-    pub const COLOR_017: AccentColorEntry = AccentColorEntry { identifier: 17, name: None, light_colors: &[0x2894AF, 0x6FC456, 0xFFFFFF], dark_colors: &[0x22BCE2, 0x3DA240, 0xFFFFFF] };
-    pub const COLOR_018: AccentColorEntry = AccentColorEntry { identifier: 18, name: None, light_colors: &[0x0C9AB3, 0xFFAD95, 0xFFE6B5], dark_colors: &[0x22BCE2, 0xFF9778, 0xFFDA6B] };
-    pub const COLOR_019: AccentColorEntry = AccentColorEntry { identifier: 19, name: None, light_colors: &[0x7757D6, 0xF79610, 0xFFDE8E], dark_colors: &[0x9791FF, 0xF2731D, 0xFFDB59] };
-    pub const COLOR_020: AccentColorEntry = AccentColorEntry { identifier: 20, name: None, light_colors: &[0x1585CF, 0xF2AB1D, 0xFFFFFF], dark_colors: &[0x3DA6EB, 0xEEA51D, 0xFFFFFF] };
+    pub const COLOR_000: AccentColorEntry = AccentColorEntry {
+        identifier: 0,
+        name: Some("red"),
+        light_colors: &[],
+        dark_colors: &[],
+    };
+    pub const COLOR_001: AccentColorEntry = AccentColorEntry {
+        identifier: 1,
+        name: Some("orange"),
+        light_colors: &[],
+        dark_colors: &[],
+    };
+    pub const COLOR_002: AccentColorEntry = AccentColorEntry {
+        identifier: 2,
+        name: Some("purple/violet"),
+        light_colors: &[],
+        dark_colors: &[],
+    };
+    pub const COLOR_003: AccentColorEntry = AccentColorEntry {
+        identifier: 3,
+        name: Some("green"),
+        light_colors: &[],
+        dark_colors: &[],
+    };
+    pub const COLOR_004: AccentColorEntry = AccentColorEntry {
+        identifier: 4,
+        name: Some("cyan"),
+        light_colors: &[],
+        dark_colors: &[],
+    };
+    pub const COLOR_005: AccentColorEntry = AccentColorEntry {
+        identifier: 5,
+        name: Some("blue"),
+        light_colors: &[],
+        dark_colors: &[],
+    };
+    pub const COLOR_006: AccentColorEntry = AccentColorEntry {
+        identifier: 6,
+        name: Some("pink"),
+        light_colors: &[],
+        dark_colors: &[],
+    };
+    pub const COLOR_007: AccentColorEntry = AccentColorEntry {
+        identifier: 7,
+        name: None,
+        light_colors: &[0xE15052, 0xF9AE63],
+        dark_colors: &[0xFF9380, 0x992F37],
+    };
+    pub const COLOR_008: AccentColorEntry = AccentColorEntry {
+        identifier: 8,
+        name: None,
+        light_colors: &[0xE0802B, 0xFAC534],
+        dark_colors: &[0xECB04E, 0xC35714],
+    };
+    pub const COLOR_009: AccentColorEntry = AccentColorEntry {
+        identifier: 9,
+        name: None,
+        light_colors: &[0xA05FF3, 0xF48FFF],
+        dark_colors: &[0xC697FF, 0x5E31C8],
+    };
+    pub const COLOR_010: AccentColorEntry = AccentColorEntry {
+        identifier: 10,
+        name: None,
+        light_colors: &[0x27A910, 0xA7DC57],
+        dark_colors: &[0xA7EB6E, 0x167E2D],
+    };
+    pub const COLOR_011: AccentColorEntry = AccentColorEntry {
+        identifier: 11,
+        name: None,
+        light_colors: &[0x27ACCE, 0x82E8D6],
+        dark_colors: &[0x40D8D0, 0x045C7F],
+    };
+    pub const COLOR_012: AccentColorEntry = AccentColorEntry {
+        identifier: 12,
+        name: None,
+        light_colors: &[0x3391D4, 0x7DD3F0],
+        dark_colors: &[0x52BFFF, 0x0B5494],
+    };
+    pub const COLOR_013: AccentColorEntry = AccentColorEntry {
+        identifier: 13,
+        name: None,
+        light_colors: &[0xDD4371, 0xFFBE9F],
+        dark_colors: &[0xFF86A6, 0x8E366E],
+    };
+    pub const COLOR_014: AccentColorEntry = AccentColorEntry {
+        identifier: 14,
+        name: None,
+        light_colors: &[0x247BED, 0xF04856, 0xFFFFFF],
+        dark_colors: &[0x3FA2FE, 0xE5424F, 0xFFFFFF],
+    };
+    pub const COLOR_015: AccentColorEntry = AccentColorEntry {
+        identifier: 15,
+        name: None,
+        light_colors: &[0xD67722, 0x1EA011, 0xFFFFFF],
+        dark_colors: &[0xFF905E, 0x32A527, 0xFFFFFF],
+    };
+    pub const COLOR_016: AccentColorEntry = AccentColorEntry {
+        identifier: 16,
+        name: None,
+        light_colors: &[0x179E42, 0xE84A3F, 0xFFFFFF],
+        dark_colors: &[0x66D364, 0xD5444F, 0xFFFFFF],
+    };
+    pub const COLOR_017: AccentColorEntry = AccentColorEntry {
+        identifier: 17,
+        name: None,
+        light_colors: &[0x2894AF, 0x6FC456, 0xFFFFFF],
+        dark_colors: &[0x22BCE2, 0x3DA240, 0xFFFFFF],
+    };
+    pub const COLOR_018: AccentColorEntry = AccentColorEntry {
+        identifier: 18,
+        name: None,
+        light_colors: &[0x0C9AB3, 0xFFAD95, 0xFFE6B5],
+        dark_colors: &[0x22BCE2, 0xFF9778, 0xFFDA6B],
+    };
+    pub const COLOR_019: AccentColorEntry = AccentColorEntry {
+        identifier: 19,
+        name: None,
+        light_colors: &[0x7757D6, 0xF79610, 0xFFDE8E],
+        dark_colors: &[0x9791FF, 0xF2731D, 0xFFDB59],
+    };
+    pub const COLOR_020: AccentColorEntry = AccentColorEntry {
+        identifier: 20,
+        name: None,
+        light_colors: &[0x1585CF, 0xF2AB1D, 0xFFFFFF],
+        dark_colors: &[0x3DA6EB, 0xEEA51D, 0xFFFFFF],
+    };
 }
 
 /// Profile accent color palette for `ChatFullInfo.profile_accent_color_id`.
 pub mod profile_accent_color {
     use super::AccentColorEntry;
-    pub const COLOR_000: AccentColorEntry = AccentColorEntry { identifier: 0, name: None, light_colors: &[0xBA5650], dark_colors: &[0x9C4540] };
-    pub const COLOR_001: AccentColorEntry = AccentColorEntry { identifier: 1, name: None, light_colors: &[0xC27C3E], dark_colors: &[0x945E2C] };
-    pub const COLOR_002: AccentColorEntry = AccentColorEntry { identifier: 2, name: None, light_colors: &[0x956AC8], dark_colors: &[0x715099] };
-    pub const COLOR_003: AccentColorEntry = AccentColorEntry { identifier: 3, name: None, light_colors: &[0x49A355], dark_colors: &[0x33713B] };
-    pub const COLOR_004: AccentColorEntry = AccentColorEntry { identifier: 4, name: None, light_colors: &[0x3E97AD], dark_colors: &[0x387E87] };
-    pub const COLOR_005: AccentColorEntry = AccentColorEntry { identifier: 5, name: None, light_colors: &[0x5A8FBB], dark_colors: &[0x477194] };
-    pub const COLOR_006: AccentColorEntry = AccentColorEntry { identifier: 6, name: None, light_colors: &[0xB85378], dark_colors: &[0x944763] };
-    pub const COLOR_007: AccentColorEntry = AccentColorEntry { identifier: 7, name: None, light_colors: &[0x7F8B95], dark_colors: &[0x435261] };
-    pub const COLOR_008: AccentColorEntry = AccentColorEntry { identifier: 8, name: None, light_colors: &[0xC9565D, 0xD97C57], dark_colors: &[0x994343, 0xAC583E] };
-    pub const COLOR_009: AccentColorEntry = AccentColorEntry { identifier: 9, name: None, light_colors: &[0xCF7244, 0xCC9433], dark_colors: &[0x8F552F, 0xA17232] };
-    pub const COLOR_010: AccentColorEntry = AccentColorEntry { identifier: 10, name: None, light_colors: &[0x9662D4, 0xB966B6], dark_colors: &[0x634691, 0x9250A2] };
-    pub const COLOR_011: AccentColorEntry = AccentColorEntry { identifier: 11, name: None, light_colors: &[0x3D9755, 0x89A650], dark_colors: &[0x296A43, 0x5F8F44] };
-    pub const COLOR_012: AccentColorEntry = AccentColorEntry { identifier: 12, name: None, light_colors: &[0x3D95BA, 0x50AD98], dark_colors: &[0x306C7C, 0x3E987E] };
-    pub const COLOR_013: AccentColorEntry = AccentColorEntry { identifier: 13, name: None, light_colors: &[0x538BC2, 0x4DA8BD], dark_colors: &[0x38618C, 0x458BA1] };
-    pub const COLOR_014: AccentColorEntry = AccentColorEntry { identifier: 14, name: None, light_colors: &[0xB04F74, 0xD1666D], dark_colors: &[0x884160, 0xA65259] };
-    pub const COLOR_015: AccentColorEntry = AccentColorEntry { identifier: 15, name: None, light_colors: &[0x637482, 0x7B8A97], dark_colors: &[0x53606E, 0x384654] };
+    pub const COLOR_000: AccentColorEntry = AccentColorEntry {
+        identifier: 0,
+        name: None,
+        light_colors: &[0xBA5650],
+        dark_colors: &[0x9C4540],
+    };
+    pub const COLOR_001: AccentColorEntry = AccentColorEntry {
+        identifier: 1,
+        name: None,
+        light_colors: &[0xC27C3E],
+        dark_colors: &[0x945E2C],
+    };
+    pub const COLOR_002: AccentColorEntry = AccentColorEntry {
+        identifier: 2,
+        name: None,
+        light_colors: &[0x956AC8],
+        dark_colors: &[0x715099],
+    };
+    pub const COLOR_003: AccentColorEntry = AccentColorEntry {
+        identifier: 3,
+        name: None,
+        light_colors: &[0x49A355],
+        dark_colors: &[0x33713B],
+    };
+    pub const COLOR_004: AccentColorEntry = AccentColorEntry {
+        identifier: 4,
+        name: None,
+        light_colors: &[0x3E97AD],
+        dark_colors: &[0x387E87],
+    };
+    pub const COLOR_005: AccentColorEntry = AccentColorEntry {
+        identifier: 5,
+        name: None,
+        light_colors: &[0x5A8FBB],
+        dark_colors: &[0x477194],
+    };
+    pub const COLOR_006: AccentColorEntry = AccentColorEntry {
+        identifier: 6,
+        name: None,
+        light_colors: &[0xB85378],
+        dark_colors: &[0x944763],
+    };
+    pub const COLOR_007: AccentColorEntry = AccentColorEntry {
+        identifier: 7,
+        name: None,
+        light_colors: &[0x7F8B95],
+        dark_colors: &[0x435261],
+    };
+    pub const COLOR_008: AccentColorEntry = AccentColorEntry {
+        identifier: 8,
+        name: None,
+        light_colors: &[0xC9565D, 0xD97C57],
+        dark_colors: &[0x994343, 0xAC583E],
+    };
+    pub const COLOR_009: AccentColorEntry = AccentColorEntry {
+        identifier: 9,
+        name: None,
+        light_colors: &[0xCF7244, 0xCC9433],
+        dark_colors: &[0x8F552F, 0xA17232],
+    };
+    pub const COLOR_010: AccentColorEntry = AccentColorEntry {
+        identifier: 10,
+        name: None,
+        light_colors: &[0x9662D4, 0xB966B6],
+        dark_colors: &[0x634691, 0x9250A2],
+    };
+    pub const COLOR_011: AccentColorEntry = AccentColorEntry {
+        identifier: 11,
+        name: None,
+        light_colors: &[0x3D9755, 0x89A650],
+        dark_colors: &[0x296A43, 0x5F8F44],
+    };
+    pub const COLOR_012: AccentColorEntry = AccentColorEntry {
+        identifier: 12,
+        name: None,
+        light_colors: &[0x3D95BA, 0x50AD98],
+        dark_colors: &[0x306C7C, 0x3E987E],
+    };
+    pub const COLOR_013: AccentColorEntry = AccentColorEntry {
+        identifier: 13,
+        name: None,
+        light_colors: &[0x538BC2, 0x4DA8BD],
+        dark_colors: &[0x38618C, 0x458BA1],
+    };
+    pub const COLOR_014: AccentColorEntry = AccentColorEntry {
+        identifier: 14,
+        name: None,
+        light_colors: &[0xB04F74, 0xD1666D],
+        dark_colors: &[0x884160, 0xA65259],
+    };
+    pub const COLOR_015: AccentColorEntry = AccentColorEntry {
+        identifier: 15,
+        name: None,
+        light_colors: &[0x637482, 0x7B8A97],
+        dark_colors: &[0x53606E, 0x384654],
+    };
 }
 
 // ── String enums ─────────────────────────────────────────────────────────────
@@ -791,7 +976,6 @@ pub enum ReactionEmoji {
     PoutingFace,
 }
 
-
 // ── Display / From / PartialEq implementations ─────────────────────────────
 //
 // These trait implementations let the typed constant enums interoperate
@@ -805,36 +989,44 @@ pub enum ReactionEmoji {
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 
-/// Generate `Display`, `From<$Enum> for String`, `PartialEq<$Enum> for String`,
-/// `PartialEq<$Enum> for &str`, `PartialEq<String> for $Enum`, and
-/// `PartialEq<&str> for $Enum` for a `snake_case` serde enum.
+/// Generate `as_str()`, `Display`, `From<$Enum> for String`,
+/// `PartialEq<$Enum> for String`, `PartialEq<$Enum> for str`,
+/// `PartialEq<String> for $Enum`, and `PartialEq<&str> for $Enum`
+/// for a `snake_case` serde enum.
 macro_rules! impl_str_traits_snake {
     ($Enum:ident { $( $Variant:ident => $wire:expr ),+ $(,)? }) => {
+        impl $Enum {
+            pub fn as_str(&self) -> &'static str {
+                match self {
+                    $( Self::$Variant => $wire, )+
+                }
+            }
+        }
+
         impl fmt::Display for $Enum {
             fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-                let s = match self { $( $Enum::$Variant => $wire, )+ };
-                f.write_str(s)
+                f.write_str(self.as_str())
             }
         }
 
         impl From<$Enum> for String {
-            fn from(val: $Enum) -> Self { val.to_string() }
+            fn from(val: $Enum) -> Self { val.as_str().to_owned() }
         }
 
         impl PartialEq<$Enum> for String {
-            fn eq(&self, other: &$Enum) -> bool { self.as_str() == other.to_string() }
+            fn eq(&self, other: &$Enum) -> bool { self.as_str() == other.as_str() }
         }
 
-        impl PartialEq<$Enum> for &str {
-            fn eq(&self, other: &$Enum) -> bool { *self == other.to_string() }
+        impl PartialEq<$Enum> for str {
+            fn eq(&self, other: &$Enum) -> bool { self == other.as_str() }
         }
 
         impl PartialEq<String> for $Enum {
-            fn eq(&self, other: &String) -> bool { self.to_string() == other.as_str() }
+            fn eq(&self, other: &String) -> bool { self.as_str() == other.as_str() }
         }
 
         impl PartialEq<&str> for $Enum {
-            fn eq(&self, other: &&str) -> bool { self.to_string() == *other }
+            fn eq(&self, other: &&str) -> bool { self.as_str() == *other }
         }
     };
 }

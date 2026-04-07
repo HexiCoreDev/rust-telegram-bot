@@ -90,9 +90,10 @@ impl TokenBucket {
     async fn acquire(&self) {
         let permit = self.semaphore.acquire().await;
         // Forget the permit so it is only returned by the replenish task.
-        match permit {
-            Ok(p) => p.forget(),
-            Err(_) => {} // Semaphore closed -- should not happen.
+        if let Ok(permit) = permit {
+            permit.forget();
+        } else {
+            // Semaphore closed -- should not happen.
         }
     }
 }
@@ -176,8 +177,7 @@ impl AioRateLimiter {
         // Evict stale limiters when the map grows large.
         if map.len() > 512 {
             map.retain(|k, bucket| {
-                k == &group_id
-                    || bucket.semaphore.available_permits() < bucket.max_rate as usize
+                k == &group_id || bucket.semaphore.available_permits() < bucket.max_rate as usize
             });
         }
 
@@ -343,13 +343,8 @@ mod tests {
 
     #[tokio::test]
     async fn aio_rate_limiter_basic() {
-        let limiter = AioRateLimiter::new(
-            10,
-            Duration::from_secs(1),
-            5,
-            Duration::from_secs(60),
-            0,
-        );
+        let limiter =
+            AioRateLimiter::new(10, Duration::from_secs(1), 5, Duration::from_secs(60), 0);
         limiter.initialize().await;
 
         let result = limiter
@@ -368,13 +363,8 @@ mod tests {
 
     #[tokio::test]
     async fn aio_rate_limiter_group_detection() {
-        let limiter = AioRateLimiter::new(
-            100,
-            Duration::from_secs(1),
-            100,
-            Duration::from_secs(60),
-            0,
-        );
+        let limiter =
+            AioRateLimiter::new(100, Duration::from_secs(1), 100, Duration::from_secs(60), 0);
         limiter.initialize().await;
 
         let mut data = HashMap::new();

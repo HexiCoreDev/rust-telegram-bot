@@ -1,10 +1,18 @@
 [package]
 name = "telegram-bot-ext"
-description = "Application framework for Telegram bots — handlers, filters, persistence, job queue"
+description = "Application framework for Telegram bots -- handlers, filters, persistence, job queue"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
+repository.workspace = true
+authors = ["Jude Etuka <judechinedu122@gmail.com>"]
+keywords = ["telegram", "bot", "framework", "async", "handler"]
+categories = ["api-bindings", "asynchronous", "web-programming"]
+documentation = "https://docs.rs/telegram-bot-ext"
+homepage = "https://github.com/HexiCoreDev/rust-telegram-bot"
+readme = "../../README.md"
+exclude = ["target/", ".github/", "docs/", "examples/"]
 
 [dependencies]
 telegram-bot-raw = { path = "../telegram-bot-raw" }

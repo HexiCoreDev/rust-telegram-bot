@@ -47,8 +47,7 @@ fn next_job_id() -> u64 {
 ///
 /// The Application wires this to call `update_persistence()`, mirroring
 /// Python's `application._mark_for_persistence_update(job=self)`.
-pub type PostJobHook =
-    Arc<dyn Fn() -> Pin<Box<dyn Future<Output = ()> + Send>> + Send + Sync>;
+pub type PostJobHook = Arc<dyn Fn() -> Pin<Box<dyn Future<Output = ()> + Send>> + Send + Sync>;
 
 /// Hook invoked when a job callback returns an error.
 ///
@@ -69,8 +68,11 @@ pub type JobErrorHook = Arc<
 /// Returning `Err` routes the error through the Application's error handlers,
 /// matching Python-Telegram-Bot's exception handling in `Job._run()`.
 pub type JobCallbackFn = Arc<
-    dyn Fn(JobContext) -> Pin<Box<dyn Future<Output = Result<(), Box<dyn std::error::Error + Send + Sync>>> + Send>>
-        + Send
+    dyn Fn(
+            JobContext,
+        ) -> Pin<
+            Box<dyn Future<Output = Result<(), Box<dyn std::error::Error + Send + Sync>>> + Send>,
+        > + Send
         + Sync,
 >;
 
@@ -171,7 +173,10 @@ impl Job {
             if let Some(ref hook) = on_job_error {
                 hook(err).await;
             } else {
-                error!("Job '{}' raised an error with no error hook set: {}", self.name, err);
+                error!(
+                    "Job '{}' raised an error with no error hook set: {}",
+                    self.name, err
+                );
             }
         }
 
@@ -233,6 +238,37 @@ impl fmt::Debug for JobQueue {
             .field("running", &self.running.load(Ordering::Relaxed))
             .finish()
     }
+}
+
+struct RepeatingJobSpec {
+    name: String,
+    interval: Duration,
+    first: Option<Duration>,
+    last: Option<Duration>,
+    callback: JobCallbackFn,
+    chat_id: Option<i64>,
+    user_id: Option<i64>,
+    data: Option<serde_json::Value>,
+}
+
+struct DailyJobSpec {
+    name: String,
+    time: NaiveTime,
+    days: Vec<u8>,
+    callback: JobCallbackFn,
+    chat_id: Option<i64>,
+    user_id: Option<i64>,
+    data: Option<serde_json::Value>,
+}
+
+struct MonthlyJobSpec {
+    name: String,
+    time: NaiveTime,
+    day: i32,
+    callback: JobCallbackFn,
+    chat_id: Option<i64>,
+    user_id: Option<i64>,
+    data: Option<serde_json::Value>,
 }
 
 impl Default for JobQueue {
@@ -369,7 +405,11 @@ impl JobQueue {
     ///     .start()
     ///     .await;
     /// ```
-    pub fn repeating(&self, callback: JobCallbackFn, interval: Duration) -> RunRepeatingBuilder<'_> {
+    pub fn repeating(
+        &self,
+        callback: JobCallbackFn,
+        interval: Duration,
+    ) -> RunRepeatingBuilder<'_> {
         RunRepeatingBuilder {
             queue: self,
             name: "repeating_job".to_owned(),
@@ -394,7 +434,12 @@ impl JobQueue {
     ///     .start()
     ///     .await;
     /// ```
-    pub fn daily<'a>(&'a self, callback: JobCallbackFn, time: NaiveTime, days: &[u8]) -> RunDailyBuilder<'a> {
+    pub fn daily<'a>(
+        &'a self,
+        callback: JobCallbackFn,
+        time: NaiveTime,
+        days: &[u8],
+    ) -> RunDailyBuilder<'a> {
         RunDailyBuilder {
             queue: self,
             name: "daily_job".to_owned(),
@@ -417,7 +462,12 @@ impl JobQueue {
     ///     .start()
     ///     .await;
     /// ```
-    pub fn monthly(&self, callback: JobCallbackFn, time: NaiveTime, day: i32) -> RunMonthlyBuilder<'_> {
+    pub fn monthly(
+        &self,
+        callback: JobCallbackFn,
+        time: NaiveTime,
+        day: i32,
+    ) -> RunMonthlyBuilder<'_> {
         RunMonthlyBuilder {
             queue: self,
             name: "monthly_job".to_owned(),
@@ -440,7 +490,11 @@ impl JobQueue {
     ///     .data(serde_json::json!({"key": "val"}))
     ///     .start();
     /// ```
-    pub fn custom(self: &Arc<Self>, callback: JobCallbackFn, trigger: Duration) -> RunCustomBuilder {
+    pub fn custom(
+        self: &Arc<Self>,
+        callback: JobCallbackFn,
+        trigger: Duration,
+    ) -> RunCustomBuilder {
         RunCustomBuilder {
             queue: Arc::clone(self),
             name: "custom_job".to_owned(),
@@ -493,18 +547,18 @@ impl JobQueue {
     ///
     /// - `first`: optional initial delay before the first run.
     /// - `last`: optional deadline after which the job stops.
-    pub(crate) async fn run_repeating(
-        &self,
-        name: impl Into<String>,
-        interval: Duration,
-        first: Option<Duration>,
-        last: Option<Duration>,
-        callback: JobCallbackFn,
-        chat_id: Option<i64>,
-        user_id: Option<i64>,
-        data: Option<serde_json::Value>,
-    ) -> Job {
-        let job = Job::new(name.into(), callback, chat_id, user_id, data);
+    async fn run_repeating(&self, spec: RepeatingJobSpec) -> Job {
+        let RepeatingJobSpec {
+            name,
+            interval,
+            first,
+            last,
+            callback,
+            chat_id,
+            user_id,
+            data,
+        } = spec;
+        let job = Job::new(name, callback, chat_id, user_id, data);
         let handle = job.clone();
         self.register(job.clone()).await;
 
@@ -552,23 +606,23 @@ impl JobQueue {
     /// of the week.
     ///
     /// `days`: 0 = Sunday .. 6 = Saturday (matching PTB convention).
-    pub(crate) async fn run_daily(
-        &self,
-        name: impl Into<String>,
-        time: NaiveTime,
-        days: &[u8],
-        callback: JobCallbackFn,
-        chat_id: Option<i64>,
-        user_id: Option<i64>,
-        data: Option<serde_json::Value>,
-    ) -> Job {
-        let job = Job::new(name.into(), callback, chat_id, user_id, data);
+    async fn run_daily(&self, spec: DailyJobSpec) -> Job {
+        let DailyJobSpec {
+            name,
+            time,
+            days,
+            callback,
+            chat_id,
+            user_id,
+            data,
+        } = spec;
+        let job = Job::new(name, callback, chat_id, user_id, data);
         let handle = job.clone();
         self.register(job.clone()).await;
 
         let mut cancel_rx = job.cancel_rx();
         let mut shutdown_rx = self.shutdown_tx.subscribe();
-        let allowed_days: Vec<u8> = days.to_vec();
+        let allowed_days = days;
         let (hook_complete, hook_error) = self.snapshot_hooks().await;
 
         tokio::spawn(async move {
@@ -592,17 +646,17 @@ impl JobQueue {
     ///
     /// If `day == -1`, runs on the last day of each month.
     /// If a month has fewer days than `day`, the job is skipped that month.
-    pub(crate) async fn run_monthly(
-        &self,
-        name: impl Into<String>,
-        time: NaiveTime,
-        day: i32,
-        callback: JobCallbackFn,
-        chat_id: Option<i64>,
-        user_id: Option<i64>,
-        data: Option<serde_json::Value>,
-    ) -> Job {
-        let job = Job::new(name.into(), callback, chat_id, user_id, data);
+    async fn run_monthly(&self, spec: MonthlyJobSpec) -> Job {
+        let MonthlyJobSpec {
+            name,
+            time,
+            day,
+            callback,
+            chat_id,
+            user_id,
+            data,
+        } = spec;
+        let job = Job::new(name, callback, chat_id, user_id, data);
         let handle = job.clone();
         self.register(job.clone()).await;
 
@@ -691,7 +745,10 @@ pub struct RunOnceBuilder<'a> {
 
 impl<'a> fmt::Debug for RunOnceBuilder<'a> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("RunOnceBuilder").field("name", &self.name).field("delay", &self.delay).finish()
+        f.debug_struct("RunOnceBuilder")
+            .field("name", &self.name)
+            .field("delay", &self.delay)
+            .finish()
     }
 }
 
@@ -726,14 +783,16 @@ impl<'a> RunOnceBuilder<'a> {
 
     /// Schedules the job and returns a handle.
     pub async fn start(self) -> Job {
-        self.queue.run_once(
-            self.name,
-            self.delay,
-            self.callback,
-            self.chat_id,
-            self.user_id,
-            self.data,
-        ).await
+        self.queue
+            .run_once(
+                self.name,
+                self.delay,
+                self.callback,
+                self.chat_id,
+                self.user_id,
+                self.data,
+            )
+            .await
     }
 }
 
@@ -752,7 +811,10 @@ pub struct RunRepeatingBuilder<'a> {
 
 impl<'a> fmt::Debug for RunRepeatingBuilder<'a> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("RunRepeatingBuilder").field("name", &self.name).field("interval", &self.interval).finish()
+        f.debug_struct("RunRepeatingBuilder")
+            .field("name", &self.name)
+            .field("interval", &self.interval)
+            .finish()
     }
 }
 
@@ -801,16 +863,18 @@ impl<'a> RunRepeatingBuilder<'a> {
 
     /// Schedules the job and returns a handle.
     pub async fn start(self) -> Job {
-        self.queue.run_repeating(
-            self.name,
-            self.interval,
-            self.first,
-            self.last,
-            self.callback,
-            self.chat_id,
-            self.user_id,
-            self.data,
-        ).await
+        self.queue
+            .run_repeating(RepeatingJobSpec {
+                name: self.name,
+                interval: self.interval,
+                first: self.first,
+                last: self.last,
+                callback: self.callback,
+                chat_id: self.chat_id,
+                user_id: self.user_id,
+                data: self.data,
+            })
+            .await
     }
 }
 
@@ -828,7 +892,10 @@ pub struct RunDailyBuilder<'a> {
 
 impl<'a> fmt::Debug for RunDailyBuilder<'a> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("RunDailyBuilder").field("name", &self.name).field("time", &self.time).finish()
+        f.debug_struct("RunDailyBuilder")
+            .field("name", &self.name)
+            .field("time", &self.time)
+            .finish()
     }
 }
 
@@ -863,15 +930,17 @@ impl<'a> RunDailyBuilder<'a> {
 
     /// Schedules the job and returns a handle.
     pub async fn start(self) -> Job {
-        self.queue.run_daily(
-            self.name,
-            self.time,
-            &self.days,
-            self.callback,
-            self.chat_id,
-            self.user_id,
-            self.data,
-        ).await
+        self.queue
+            .run_daily(DailyJobSpec {
+                name: self.name,
+                time: self.time,
+                days: self.days,
+                callback: self.callback,
+                chat_id: self.chat_id,
+                user_id: self.user_id,
+                data: self.data,
+            })
+            .await
     }
 }
 
@@ -889,7 +958,10 @@ pub struct RunMonthlyBuilder<'a> {
 
 impl<'a> fmt::Debug for RunMonthlyBuilder<'a> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("RunMonthlyBuilder").field("name", &self.name).field("day", &self.day).finish()
+        f.debug_struct("RunMonthlyBuilder")
+            .field("name", &self.name)
+            .field("day", &self.day)
+            .finish()
     }
 }
 
@@ -924,15 +996,17 @@ impl<'a> RunMonthlyBuilder<'a> {
 
     /// Schedules the job and returns a handle.
     pub async fn start(self) -> Job {
-        self.queue.run_monthly(
-            self.name,
-            self.time,
-            self.day,
-            self.callback,
-            self.chat_id,
-            self.user_id,
-            self.data,
-        ).await
+        self.queue
+            .run_monthly(MonthlyJobSpec {
+                name: self.name,
+                time: self.time,
+                day: self.day,
+                callback: self.callback,
+                chat_id: self.chat_id,
+                user_id: self.user_id,
+                data: self.data,
+            })
+            .await
     }
 }
 
@@ -952,7 +1026,10 @@ pub struct RunCustomBuilder {
 
 impl fmt::Debug for RunCustomBuilder {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("RunCustomBuilder").field("name", &self.name).field("trigger", &self.trigger).finish()
+        f.debug_struct("RunCustomBuilder")
+            .field("name", &self.name)
+            .field("trigger", &self.trigger)
+            .finish()
     }
 }
 
@@ -1223,7 +1300,8 @@ mod tests {
         jq.start().await;
 
         let counter = Arc::new(AtomicU32::new(0));
-        let _job = jq.custom(make_callback(counter.clone()), Duration::from_millis(50))
+        let _job = jq
+            .custom(make_callback(counter.clone()), Duration::from_millis(50))
             .name("custom")
             .start();
 
@@ -1246,7 +1324,8 @@ mod tests {
             })
         });
 
-        let _job = jq.once(cb, Duration::from_millis(10))
+        let _job = jq
+            .once(cb, Duration::from_millis(10))
             .name("chat-test")
             .chat_id(42)
             .start()
@@ -1269,7 +1348,8 @@ mod tests {
             Box::pin(async move {
                 hc.fetch_add(1, Ordering::Relaxed);
             })
-        })).await;
+        }))
+        .await;
 
         let counter = Arc::new(AtomicU32::new(0));
         let _job = jq
@@ -1295,7 +1375,8 @@ mod tests {
             Box::pin(async move {
                 *es.lock().await = err.to_string();
             })
-        })).await;
+        }))
+        .await;
 
         let complete_called = Arc::new(AtomicU32::new(0));
         let cc = complete_called.clone();
@@ -1304,15 +1385,16 @@ mod tests {
             Box::pin(async move {
                 cc.fetch_add(1, Ordering::Relaxed);
             })
-        })).await;
+        }))
+        .await;
 
         // A callback that always fails.
         let failing_cb: JobCallbackFn = Arc::new(|_ctx| {
             Box::pin(async {
-                Err(Box::new(std::io::Error::new(
-                    std::io::ErrorKind::Other,
-                    "job failed",
-                )) as Box<dyn std::error::Error + Send + Sync>)
+                Err(
+                    Box::new(std::io::Error::new(std::io::ErrorKind::Other, "job failed"))
+                        as Box<dyn std::error::Error + Send + Sync>,
+                )
             })
         });
 
@@ -1341,7 +1423,8 @@ mod tests {
             Box::pin(async move {
                 hc.fetch_add(1, Ordering::Relaxed);
             })
-        })).await;
+        }))
+        .await;
 
         let counter = Arc::new(AtomicU32::new(0));
         let job = jq
@@ -1356,7 +1439,10 @@ mod tests {
         let runs = counter.load(Ordering::Relaxed);
         let hooks = hook_called.load(Ordering::Relaxed);
         // Hook should be called once per run.
-        assert_eq!(runs, hooks, "hook calls ({hooks}) should match job runs ({runs})");
+        assert_eq!(
+            runs, hooks,
+            "hook calls ({hooks}) should match job runs ({runs})"
+        );
         jq.stop().await;
     }
 

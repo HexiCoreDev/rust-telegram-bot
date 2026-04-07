@@ -72,7 +72,6 @@ pub struct Defaults {
     pub quote: Option<bool>,
 }
 
-
 // ---------------------------------------------------------------------------
 // Bot struct
 // ---------------------------------------------------------------------------
@@ -142,7 +141,9 @@ fn input_file_param(name: &'static str, file: files::input_file::InputFile) -> R
             };
             RequestParameter {
                 name: std::borrow::Cow::Borrowed(name),
-                value: Some(serde_json::Value::String(format!("__filepath__:{path_str}"))),
+                value: Some(serde_json::Value::String(format!(
+                    "__filepath__:{path_str}"
+                ))),
                 input_files: Some(vec![file_ref]),
             }
         }
@@ -181,27 +182,64 @@ fn push_opt_file(
     }
 }
 
+// These raw request methods intentionally mirror the Bot API surface even
+// when the preferred public entry points are the builder helpers in
+// `bot_builders.rs`.
+#[allow(dead_code)]
 impl Bot {
     pub fn new(token: impl Into<String>, request: Arc<dyn BaseRequest>) -> Self {
         let token = token.into();
         let base_url = format!("https://api.telegram.org/bot{token}");
         let base_file_url = format!("https://api.telegram.org/file/bot{token}");
-        Self { token, base_url, base_file_url, request_for_updates: Arc::clone(&request), request, defaults: None, cached_bot_data: Arc::new(RwLock::new(None)), local_mode: false }
+        Self {
+            token,
+            base_url,
+            base_file_url,
+            request_for_updates: Arc::clone(&request),
+            request,
+            defaults: None,
+            cached_bot_data: Arc::new(RwLock::new(None)),
+            local_mode: false,
+        }
     }
 
-    pub fn with_options(token: impl Into<String>, request: Arc<dyn BaseRequest>, request_for_updates: Option<Arc<dyn BaseRequest>>, defaults: Option<Defaults>) -> Self {
+    pub fn with_options(
+        token: impl Into<String>,
+        request: Arc<dyn BaseRequest>,
+        request_for_updates: Option<Arc<dyn BaseRequest>>,
+        defaults: Option<Defaults>,
+    ) -> Self {
         let token = token.into();
         let base_url = format!("https://api.telegram.org/bot{token}");
         let base_file_url = format!("https://api.telegram.org/file/bot{token}");
         let request_for_updates = request_for_updates.unwrap_or_else(|| Arc::clone(&request));
-        Self { token, base_url, base_file_url, request_for_updates, request, defaults, cached_bot_data: Arc::new(RwLock::new(None)), local_mode: false }
+        Self {
+            token,
+            base_url,
+            base_file_url,
+            request_for_updates,
+            request,
+            defaults,
+            cached_bot_data: Arc::new(RwLock::new(None)),
+            local_mode: false,
+        }
     }
 
-    pub fn token(&self) -> &str { &self.token }
-    pub fn base_url(&self) -> &str { &self.base_url }
-    pub fn base_file_url(&self) -> &str { &self.base_file_url }
-    pub fn defaults(&self) -> Option<&Defaults> { self.defaults.as_ref() }
-    pub async fn bot_data(&self) -> Option<user::User> { self.cached_bot_data.read().await.clone() }
+    pub fn token(&self) -> &str {
+        &self.token
+    }
+    pub fn base_url(&self) -> &str {
+        &self.base_url
+    }
+    pub fn base_file_url(&self) -> &str {
+        &self.base_file_url
+    }
+    pub fn defaults(&self) -> Option<&Defaults> {
+        self.defaults.as_ref()
+    }
+    pub async fn bot_data(&self) -> Option<user::User> {
+        self.cached_bot_data.read().await.clone()
+    }
 
     /// Returns `true` if the bot is operating in local mode.
     pub fn local_mode(&self) -> bool {
@@ -218,9 +256,11 @@ impl Bot {
         self
     }
 
-    fn api_url(&self, method: &str) -> String { format!("{}/{method}", self.base_url) }
+    fn api_url(&self, method: &str) -> String {
+        format!("{}/{method}", self.base_url)
+    }
 
-    async fn resolve_file_paths(&self, params: &mut Vec<RequestParameter>) -> Result<()> {
+    async fn resolve_file_paths(&self, params: &mut [RequestParameter]) -> Result<()> {
         for param in params.iter_mut() {
             let path_str = param
                 .value
@@ -237,7 +277,11 @@ impl Bot {
                     let data = tokio::fs::read(&path_str).await?;
                     param.value = None;
                     if let Some(ref mut files) = param.input_files {
-                        for f in files.iter_mut() { if f.bytes.is_empty() { f.bytes = data.clone(); } }
+                        for f in files.iter_mut() {
+                            if f.bytes.is_empty() {
+                                f.bytes = data.clone();
+                            }
+                        }
                     }
                 }
             }
@@ -246,33 +290,69 @@ impl Bot {
     }
 
     fn apply_defaults(&self, params: &mut Vec<RequestParameter>) {
-        let defaults = match &self.defaults { Some(d) => d, None => return };
-        let existing: std::collections::HashSet<String> = params.iter().map(|p| p.name.as_ref().to_owned()).collect();
+        let defaults = match &self.defaults {
+            Some(d) => d,
+            None => return,
+        };
+        let existing: std::collections::HashSet<String> =
+            params.iter().map(|p| p.name.as_ref().to_owned()).collect();
         if let Some(ref pm) = defaults.parse_mode {
-            if !existing.contains("parse_mode") { params.push(RequestParameter::new("parse_mode", serde_json::Value::String(pm.clone()))); }
+            if !existing.contains("parse_mode") {
+                params.push(RequestParameter::new(
+                    "parse_mode",
+                    serde_json::Value::String(pm.clone()),
+                ));
+            }
         }
         if let Some(dn) = defaults.disable_notification {
-            if !existing.contains("disable_notification") { params.push(RequestParameter::new("disable_notification", serde_json::Value::Bool(dn))); }
+            if !existing.contains("disable_notification") {
+                params.push(RequestParameter::new(
+                    "disable_notification",
+                    serde_json::Value::Bool(dn),
+                ));
+            }
         }
         if let Some(pc) = defaults.protect_content {
-            if !existing.contains("protect_content") { params.push(RequestParameter::new("protect_content", serde_json::Value::Bool(pc))); }
+            if !existing.contains("protect_content") {
+                params.push(RequestParameter::new(
+                    "protect_content",
+                    serde_json::Value::Bool(pc),
+                ));
+            }
         }
         if let Some(aswr) = defaults.allow_sending_without_reply {
-            if !existing.contains("allow_sending_without_reply") { params.push(RequestParameter::new("allow_sending_without_reply", serde_json::Value::Bool(aswr))); }
+            if !existing.contains("allow_sending_without_reply") {
+                params.push(RequestParameter::new(
+                    "allow_sending_without_reply",
+                    serde_json::Value::Bool(aswr),
+                ));
+            }
         }
         if let Some(ref lpo) = defaults.link_preview_options {
             if !existing.contains("link_preview_options") {
-                if let Ok(v) = serde_json::to_value(lpo) { params.push(RequestParameter::new("link_preview_options", v)); }
+                if let Ok(v) = serde_json::to_value(lpo) {
+                    params.push(RequestParameter::new("link_preview_options", v));
+                }
             }
         }
     }
 
-    async fn do_post<T: serde::de::DeserializeOwned>(&self, method: &str, params: Vec<RequestParameter>) -> Result<T> {
-        self.do_post_inner(method, params, TimeoutOverride::default_none(), None).await
+    async fn do_post<T: serde::de::DeserializeOwned>(
+        &self,
+        method: &str,
+        params: Vec<RequestParameter>,
+    ) -> Result<T> {
+        self.do_post_inner(method, params, TimeoutOverride::default_none(), None)
+            .await
     }
 
     #[allow(dead_code)]
-    async fn do_post_with_timeouts<T: serde::de::DeserializeOwned>(&self, method: &str, params: Vec<RequestParameter>, timeouts: TimeoutOverride) -> Result<T> {
+    async fn do_post_with_timeouts<T: serde::de::DeserializeOwned>(
+        &self,
+        method: &str,
+        params: Vec<RequestParameter>,
+        timeouts: TimeoutOverride,
+    ) -> Result<T> {
         self.do_post_inner(method, params, timeouts, None).await
     }
 
@@ -288,8 +368,13 @@ impl Bot {
         Box::pin(async move {
             self.apply_defaults(&mut params);
             if let Some(kwargs) = api_kwargs {
-                let existing: std::collections::HashSet<String> = params.iter().map(|p| p.name.as_ref().to_owned()).collect();
-                for (key, value) in kwargs { if !existing.contains(key.as_str()) { params.push(RequestParameter::new(key, value)); } }
+                let existing: std::collections::HashSet<String> =
+                    params.iter().map(|p| p.name.as_ref().to_owned()).collect();
+                for (key, value) in kwargs {
+                    if !existing.contains(key.as_str()) {
+                        params.push(RequestParameter::new(key, value));
+                    }
+                }
             }
             self.resolve_file_paths(&mut params).await?;
             let url = self.api_url(method);
@@ -301,13 +386,18 @@ impl Bot {
 
     pub async fn download_file(&self, file_path: &str) -> Result<Vec<u8>> {
         let url = format!("{}/{file_path}", self.base_file_url);
-        let bytes = self.request.retrieve(&url, TimeoutOverride::default_none()).await?;
+        let bytes = self
+            .request
+            .retrieve(&url, TimeoutOverride::default_none())
+            .await?;
         Ok(bytes.to_vec())
     }
 
     pub async fn initialize(&mut self) -> Result<()> {
         self.request.initialize().await?;
-        if !Arc::ptr_eq(&self.request, &self.request_for_updates) { self.request_for_updates.initialize().await?; }
+        if !Arc::ptr_eq(&self.request, &self.request_for_updates) {
+            self.request_for_updates.initialize().await?;
+        }
         let me = self.get_me().await?;
         *self.cached_bot_data.write().await = Some(me);
         Ok(())
@@ -315,23 +405,41 @@ impl Bot {
 
     pub async fn shutdown(&self) -> Result<()> {
         self.request.shutdown().await?;
-        if !Arc::ptr_eq(&self.request, &self.request_for_updates) { self.request_for_updates.shutdown().await?; }
+        if !Arc::ptr_eq(&self.request, &self.request_for_updates) {
+            self.request_for_updates.shutdown().await?;
+        }
         Ok(())
     }
 
-    pub async fn do_api_request<T: serde::de::DeserializeOwned>(&self, method: &str, params: Vec<RequestParameter>) -> Result<T> {
+    pub async fn do_api_request<T: serde::de::DeserializeOwned>(
+        &self,
+        method: &str,
+        params: Vec<RequestParameter>,
+    ) -> Result<T> {
         self.do_post(method, params).await
     }
 
-    pub async fn do_api_request_with_kwargs<T: serde::de::DeserializeOwned>(&self, method: &str, params: Vec<RequestParameter>, api_kwargs: Option<HashMap<String, serde_json::Value>>) -> Result<T> {
-        self.do_post_inner(method, params, TimeoutOverride::default_none(), api_kwargs).await
+    pub async fn do_api_request_with_kwargs<T: serde::de::DeserializeOwned>(
+        &self,
+        method: &str,
+        params: Vec<RequestParameter>,
+        api_kwargs: Option<HashMap<String, serde_json::Value>>,
+    ) -> Result<T> {
+        self.do_post_inner(method, params, TimeoutOverride::default_none(), api_kwargs)
+            .await
     }
 
     // ======================================================================
     // Getting updates
     // ======================================================================
 
-    pub async fn get_updates(&self, offset: Option<i64>, limit: Option<i32>, timeout: Option<i32>, allowed_updates: Option<Vec<String>>) -> Result<Vec<update::Update>> {
+    pub async fn get_updates(
+        &self,
+        offset: Option<i64>,
+        limit: Option<i32>,
+        timeout: Option<i32>,
+        allowed_updates: Option<Vec<String>>,
+    ) -> Result<Vec<update::Update>> {
         let mut params = Vec::new();
         push_opt(&mut params, "offset", &offset)?;
         push_opt(&mut params, "limit", &limit)?;
@@ -340,14 +448,21 @@ impl Bot {
         self.apply_defaults(&mut params);
         let timeouts = if let Some(t) = timeout {
             let effective = Duration::from_secs(t as u64 + 2);
-            TimeoutOverride { read: Some(Some(effective)), ..TimeoutOverride::default_none() }
-        } else { TimeoutOverride::default_none() };
+            TimeoutOverride {
+                read: Some(Some(effective)),
+                ..TimeoutOverride::default_none()
+            }
+        } else {
+            TimeoutOverride::default_none()
+        };
         let url = self.api_url("getUpdates");
         let data = RequestData::from_parameters(params);
-        let result = self.request_for_updates.post(&url, Some(&data), timeouts).await?;
+        let result = self
+            .request_for_updates
+            .post(&url, Some(&data), timeouts)
+            .await?;
         serde_json::from_value(result).map_err(Into::into)
     }
-
 
     pub(crate) async fn set_webhook_raw(
         &self,
@@ -435,11 +550,23 @@ impl Bot {
         push_opt(&mut params, "reply_parameters", &reply_parameters)?;
         push_opt(&mut params, "reply_markup", &reply_markup)?;
         push_opt(&mut params, "message_thread_id", &message_thread_id)?;
-        push_opt_str(&mut params, "business_connection_id", business_connection_id);
+        push_opt_str(
+            &mut params,
+            "business_connection_id",
+            business_connection_id,
+        );
         push_opt_str(&mut params, "message_effect_id", message_effect_id);
         push_opt(&mut params, "allow_paid_broadcast", &allow_paid_broadcast)?;
-        push_opt(&mut params, "direct_messages_topic_id", &direct_messages_topic_id)?;
-        push_opt(&mut params, "suggested_post_parameters", &suggested_post_parameters)?;
+        push_opt(
+            &mut params,
+            "direct_messages_topic_id",
+            &direct_messages_topic_id,
+        )?;
+        push_opt(
+            &mut params,
+            "suggested_post_parameters",
+            &suggested_post_parameters,
+        )?;
         self.do_post("sendMessage", params).await
     }
 
@@ -485,8 +612,16 @@ impl Bot {
         push_opt(&mut params, "protect_content", &protect_content)?;
         push_opt(&mut params, "message_thread_id", &message_thread_id)?;
         push_opt(&mut params, "video_start_timestamp", &video_start_timestamp)?;
-        push_opt(&mut params, "direct_messages_topic_id", &direct_messages_topic_id)?;
-        push_opt(&mut params, "suggested_post_parameters", &suggested_post_parameters)?;
+        push_opt(
+            &mut params,
+            "direct_messages_topic_id",
+            &direct_messages_topic_id,
+        )?;
+        push_opt(
+            &mut params,
+            "suggested_post_parameters",
+            &suggested_post_parameters,
+        )?;
         push_opt_str(&mut params, "message_effect_id", message_effect_id);
         self.do_post("forwardMessage", params).await
     }
@@ -509,7 +644,11 @@ impl Bot {
         push_opt(&mut params, "disable_notification", &disable_notification)?;
         push_opt(&mut params, "protect_content", &protect_content)?;
         push_opt(&mut params, "message_thread_id", &message_thread_id)?;
-        push_opt(&mut params, "direct_messages_topic_id", &direct_messages_topic_id)?;
+        push_opt(
+            &mut params,
+            "direct_messages_topic_id",
+            &direct_messages_topic_id,
+        )?;
         self.do_post("forwardMessages", params).await
     }
 
@@ -546,11 +685,23 @@ impl Bot {
         push_opt(&mut params, "reply_parameters", &reply_parameters)?;
         push_opt(&mut params, "reply_markup", &reply_markup)?;
         push_opt(&mut params, "message_thread_id", &message_thread_id)?;
-        push_opt(&mut params, "show_caption_above_media", &show_caption_above_media)?;
+        push_opt(
+            &mut params,
+            "show_caption_above_media",
+            &show_caption_above_media,
+        )?;
         push_opt(&mut params, "allow_paid_broadcast", &allow_paid_broadcast)?;
         push_opt(&mut params, "video_start_timestamp", &video_start_timestamp)?;
-        push_opt(&mut params, "direct_messages_topic_id", &direct_messages_topic_id)?;
-        push_opt(&mut params, "suggested_post_parameters", &suggested_post_parameters)?;
+        push_opt(
+            &mut params,
+            "direct_messages_topic_id",
+            &direct_messages_topic_id,
+        )?;
+        push_opt(
+            &mut params,
+            "suggested_post_parameters",
+            &suggested_post_parameters,
+        )?;
         push_opt_str(&mut params, "message_effect_id", message_effect_id);
         self.do_post("copyMessage", params).await
     }
@@ -575,15 +726,15 @@ impl Bot {
         push_opt(&mut params, "protect_content", &protect_content)?;
         push_opt(&mut params, "message_thread_id", &message_thread_id)?;
         push_opt(&mut params, "remove_caption", &remove_caption)?;
-        push_opt(&mut params, "direct_messages_topic_id", &direct_messages_topic_id)?;
+        push_opt(
+            &mut params,
+            "direct_messages_topic_id",
+            &direct_messages_topic_id,
+        )?;
         self.do_post("copyMessages", params).await
     }
 
-    pub async fn delete_message(
-        &self,
-        chat_id: ChatId,
-        message_id: i64,
-    ) -> Result<bool> {
+    pub async fn delete_message(&self, chat_id: ChatId, message_id: i64) -> Result<bool> {
         let params = vec![
             RequestParameter::new("chat_id", serde_json::to_value(&chat_id)?),
             RequestParameter::new("message_id", serde_json::to_value(message_id)?),
@@ -591,11 +742,7 @@ impl Bot {
         self.do_post("deleteMessage", params).await
     }
 
-    pub async fn delete_messages(
-        &self,
-        chat_id: ChatId,
-        message_ids: Vec<i64>,
-    ) -> Result<bool> {
+    pub async fn delete_messages(&self, chat_id: ChatId, message_ids: Vec<i64>) -> Result<bool> {
         let params = vec![
             RequestParameter::new("chat_id", serde_json::to_value(&chat_id)?),
             RequestParameter::new("message_ids", serde_json::to_value(&message_ids)?),
@@ -640,12 +787,28 @@ impl Bot {
         push_opt(&mut params, "reply_markup", &reply_markup)?;
         push_opt(&mut params, "message_thread_id", &message_thread_id)?;
         push_opt(&mut params, "has_spoiler", &has_spoiler)?;
-        push_opt_str(&mut params, "business_connection_id", business_connection_id);
+        push_opt_str(
+            &mut params,
+            "business_connection_id",
+            business_connection_id,
+        );
         push_opt_str(&mut params, "message_effect_id", message_effect_id);
         push_opt(&mut params, "allow_paid_broadcast", &allow_paid_broadcast)?;
-        push_opt(&mut params, "show_caption_above_media", &show_caption_above_media)?;
-        push_opt(&mut params, "direct_messages_topic_id", &direct_messages_topic_id)?;
-        push_opt(&mut params, "suggested_post_parameters", &suggested_post_parameters)?;
+        push_opt(
+            &mut params,
+            "show_caption_above_media",
+            &show_caption_above_media,
+        )?;
+        push_opt(
+            &mut params,
+            "direct_messages_topic_id",
+            &direct_messages_topic_id,
+        )?;
+        push_opt(
+            &mut params,
+            "suggested_post_parameters",
+            &suggested_post_parameters,
+        )?;
         self.do_post("sendPhoto", params).await
     }
 
@@ -687,11 +850,23 @@ impl Bot {
         push_opt(&mut params, "reply_parameters", &reply_parameters)?;
         push_opt(&mut params, "reply_markup", &reply_markup)?;
         push_opt(&mut params, "message_thread_id", &message_thread_id)?;
-        push_opt_str(&mut params, "business_connection_id", business_connection_id);
+        push_opt_str(
+            &mut params,
+            "business_connection_id",
+            business_connection_id,
+        );
         push_opt_str(&mut params, "message_effect_id", message_effect_id);
         push_opt(&mut params, "allow_paid_broadcast", &allow_paid_broadcast)?;
-        push_opt(&mut params, "direct_messages_topic_id", &direct_messages_topic_id)?;
-        push_opt(&mut params, "suggested_post_parameters", &suggested_post_parameters)?;
+        push_opt(
+            &mut params,
+            "direct_messages_topic_id",
+            &direct_messages_topic_id,
+        )?;
+        push_opt(
+            &mut params,
+            "suggested_post_parameters",
+            &suggested_post_parameters,
+        )?;
         self.do_post("sendAudio", params).await
     }
 
@@ -733,11 +908,23 @@ impl Bot {
         push_opt(&mut params, "reply_parameters", &reply_parameters)?;
         push_opt(&mut params, "reply_markup", &reply_markup)?;
         push_opt(&mut params, "message_thread_id", &message_thread_id)?;
-        push_opt_str(&mut params, "business_connection_id", business_connection_id);
+        push_opt_str(
+            &mut params,
+            "business_connection_id",
+            business_connection_id,
+        );
         push_opt_str(&mut params, "message_effect_id", message_effect_id);
         push_opt(&mut params, "allow_paid_broadcast", &allow_paid_broadcast)?;
-        push_opt(&mut params, "direct_messages_topic_id", &direct_messages_topic_id)?;
-        push_opt(&mut params, "suggested_post_parameters", &suggested_post_parameters)?;
+        push_opt(
+            &mut params,
+            "direct_messages_topic_id",
+            &direct_messages_topic_id,
+        )?;
+        push_opt(
+            &mut params,
+            "suggested_post_parameters",
+            &suggested_post_parameters,
+        )?;
         self.do_post("sendDocument", params).await
     }
 
@@ -781,7 +968,11 @@ impl Bot {
         push_opt(&mut params, "supports_streaming", &supports_streaming)?;
         push_opt_file(&mut params, "thumbnail", thumbnail);
         push_opt(&mut params, "has_spoiler", &has_spoiler)?;
-        push_opt(&mut params, "show_caption_above_media", &show_caption_above_media)?;
+        push_opt(
+            &mut params,
+            "show_caption_above_media",
+            &show_caption_above_media,
+        )?;
         push_opt_file(&mut params, "cover", cover);
         push_opt(&mut params, "start_timestamp", &start_timestamp)?;
         push_opt(&mut params, "disable_notification", &disable_notification)?;
@@ -789,11 +980,23 @@ impl Bot {
         push_opt(&mut params, "reply_parameters", &reply_parameters)?;
         push_opt(&mut params, "reply_markup", &reply_markup)?;
         push_opt(&mut params, "message_thread_id", &message_thread_id)?;
-        push_opt_str(&mut params, "business_connection_id", business_connection_id);
+        push_opt_str(
+            &mut params,
+            "business_connection_id",
+            business_connection_id,
+        );
         push_opt_str(&mut params, "message_effect_id", message_effect_id);
         push_opt(&mut params, "allow_paid_broadcast", &allow_paid_broadcast)?;
-        push_opt(&mut params, "direct_messages_topic_id", &direct_messages_topic_id)?;
-        push_opt(&mut params, "suggested_post_parameters", &suggested_post_parameters)?;
+        push_opt(
+            &mut params,
+            "direct_messages_topic_id",
+            &direct_messages_topic_id,
+        )?;
+        push_opt(
+            &mut params,
+            "suggested_post_parameters",
+            &suggested_post_parameters,
+        )?;
         self.do_post("sendVideo", params).await
     }
 
@@ -833,17 +1036,33 @@ impl Bot {
         push_opt(&mut params, "caption_entities", &caption_entities)?;
         push_opt_file(&mut params, "thumbnail", thumbnail);
         push_opt(&mut params, "has_spoiler", &has_spoiler)?;
-        push_opt(&mut params, "show_caption_above_media", &show_caption_above_media)?;
+        push_opt(
+            &mut params,
+            "show_caption_above_media",
+            &show_caption_above_media,
+        )?;
         push_opt(&mut params, "disable_notification", &disable_notification)?;
         push_opt(&mut params, "protect_content", &protect_content)?;
         push_opt(&mut params, "reply_parameters", &reply_parameters)?;
         push_opt(&mut params, "reply_markup", &reply_markup)?;
         push_opt(&mut params, "message_thread_id", &message_thread_id)?;
-        push_opt_str(&mut params, "business_connection_id", business_connection_id);
+        push_opt_str(
+            &mut params,
+            "business_connection_id",
+            business_connection_id,
+        );
         push_opt_str(&mut params, "message_effect_id", message_effect_id);
         push_opt(&mut params, "allow_paid_broadcast", &allow_paid_broadcast)?;
-        push_opt(&mut params, "direct_messages_topic_id", &direct_messages_topic_id)?;
-        push_opt(&mut params, "suggested_post_parameters", &suggested_post_parameters)?;
+        push_opt(
+            &mut params,
+            "direct_messages_topic_id",
+            &direct_messages_topic_id,
+        )?;
+        push_opt(
+            &mut params,
+            "suggested_post_parameters",
+            &suggested_post_parameters,
+        )?;
         self.do_post("sendAnimation", params).await
     }
 
@@ -879,11 +1098,23 @@ impl Bot {
         push_opt(&mut params, "reply_parameters", &reply_parameters)?;
         push_opt(&mut params, "reply_markup", &reply_markup)?;
         push_opt(&mut params, "message_thread_id", &message_thread_id)?;
-        push_opt_str(&mut params, "business_connection_id", business_connection_id);
+        push_opt_str(
+            &mut params,
+            "business_connection_id",
+            business_connection_id,
+        );
         push_opt_str(&mut params, "message_effect_id", message_effect_id);
         push_opt(&mut params, "allow_paid_broadcast", &allow_paid_broadcast)?;
-        push_opt(&mut params, "direct_messages_topic_id", &direct_messages_topic_id)?;
-        push_opt(&mut params, "suggested_post_parameters", &suggested_post_parameters)?;
+        push_opt(
+            &mut params,
+            "direct_messages_topic_id",
+            &direct_messages_topic_id,
+        )?;
+        push_opt(
+            &mut params,
+            "suggested_post_parameters",
+            &suggested_post_parameters,
+        )?;
         self.do_post("sendVoice", params).await
     }
 
@@ -917,15 +1148,40 @@ impl Bot {
         push_opt(&mut params, "reply_parameters", &reply_parameters)?;
         push_opt(&mut params, "reply_markup", &reply_markup)?;
         push_opt(&mut params, "message_thread_id", &message_thread_id)?;
-        push_opt_str(&mut params, "business_connection_id", business_connection_id);
+        push_opt_str(
+            &mut params,
+            "business_connection_id",
+            business_connection_id,
+        );
         push_opt_str(&mut params, "message_effect_id", message_effect_id);
         push_opt(&mut params, "allow_paid_broadcast", &allow_paid_broadcast)?;
-        push_opt(&mut params, "direct_messages_topic_id", &direct_messages_topic_id)?;
-        push_opt(&mut params, "suggested_post_parameters", &suggested_post_parameters)?;
+        push_opt(
+            &mut params,
+            "direct_messages_topic_id",
+            &direct_messages_topic_id,
+        )?;
+        push_opt(
+            &mut params,
+            "suggested_post_parameters",
+            &suggested_post_parameters,
+        )?;
         self.do_post("sendVideoNote", params).await
     }
 
-    pub async fn send_media_group(&self, chat_id: ChatId, media: Vec<serde_json::Value>, disable_notification: Option<bool>, protect_content: Option<bool>, message_thread_id: Option<i64>, reply_parameters: Option<reply::ReplyParameters>, business_connection_id: Option<&str>, message_effect_id: Option<&str>, allow_paid_broadcast: Option<bool>, direct_messages_topic_id: Option<i64>, suggested_post_parameters: Option<suggested_post::SuggestedPostParameters>) -> Result<Vec<message::Message>> {
+    pub async fn send_media_group(
+        &self,
+        chat_id: ChatId,
+        media: Vec<serde_json::Value>,
+        disable_notification: Option<bool>,
+        protect_content: Option<bool>,
+        message_thread_id: Option<i64>,
+        reply_parameters: Option<reply::ReplyParameters>,
+        business_connection_id: Option<&str>,
+        message_effect_id: Option<&str>,
+        allow_paid_broadcast: Option<bool>,
+        direct_messages_topic_id: Option<i64>,
+        suggested_post_parameters: Option<suggested_post::SuggestedPostParameters>,
+    ) -> Result<Vec<message::Message>> {
         let mut params = vec![
             RequestParameter::new("chat_id", serde_json::to_value(&chat_id)?),
             RequestParameter::new("media", serde_json::to_value(&media)?),
@@ -934,14 +1190,25 @@ impl Bot {
         push_opt(&mut params, "protect_content", &protect_content)?;
         push_opt(&mut params, "message_thread_id", &message_thread_id)?;
         push_opt(&mut params, "reply_parameters", &reply_parameters)?;
-        push_opt_str(&mut params, "business_connection_id", business_connection_id);
+        push_opt_str(
+            &mut params,
+            "business_connection_id",
+            business_connection_id,
+        );
         push_opt_str(&mut params, "message_effect_id", message_effect_id);
         push_opt(&mut params, "allow_paid_broadcast", &allow_paid_broadcast)?;
-        push_opt(&mut params, "direct_messages_topic_id", &direct_messages_topic_id)?;
-        push_opt(&mut params, "suggested_post_parameters", &suggested_post_parameters)?;
+        push_opt(
+            &mut params,
+            "direct_messages_topic_id",
+            &direct_messages_topic_id,
+        )?;
+        push_opt(
+            &mut params,
+            "suggested_post_parameters",
+            &suggested_post_parameters,
+        )?;
         self.do_post("sendMediaGroup", params).await
     }
-
 
     pub async fn send_paid_media(
         &self,
@@ -971,16 +1238,32 @@ impl Bot {
         push_opt_str(&mut params, "caption", caption);
         push_opt_str(&mut params, "parse_mode", parse_mode);
         push_opt(&mut params, "caption_entities", &caption_entities)?;
-        push_opt(&mut params, "show_caption_above_media", &show_caption_above_media)?;
+        push_opt(
+            &mut params,
+            "show_caption_above_media",
+            &show_caption_above_media,
+        )?;
         push_opt(&mut params, "disable_notification", &disable_notification)?;
         push_opt(&mut params, "protect_content", &protect_content)?;
         push_opt(&mut params, "reply_parameters", &reply_parameters)?;
         push_opt(&mut params, "reply_markup", &reply_markup)?;
-        push_opt_str(&mut params, "business_connection_id", business_connection_id);
+        push_opt_str(
+            &mut params,
+            "business_connection_id",
+            business_connection_id,
+        );
         push_opt_str(&mut params, "payload", payload);
         push_opt(&mut params, "allow_paid_broadcast", &allow_paid_broadcast)?;
-        push_opt(&mut params, "direct_messages_topic_id", &direct_messages_topic_id)?;
-        push_opt(&mut params, "suggested_post_parameters", &suggested_post_parameters)?;
+        push_opt(
+            &mut params,
+            "direct_messages_topic_id",
+            &direct_messages_topic_id,
+        )?;
+        push_opt(
+            &mut params,
+            "suggested_post_parameters",
+            &suggested_post_parameters,
+        )?;
         push_opt(&mut params, "message_thread_id", &message_thread_id)?;
         self.do_post("sendPaidMedia", params).await
     }
@@ -1017,17 +1300,33 @@ impl Bot {
         push_opt(&mut params, "horizontal_accuracy", &horizontal_accuracy)?;
         push_opt(&mut params, "live_period", &live_period)?;
         push_opt(&mut params, "heading", &heading)?;
-        push_opt(&mut params, "proximity_alert_radius", &proximity_alert_radius)?;
+        push_opt(
+            &mut params,
+            "proximity_alert_radius",
+            &proximity_alert_radius,
+        )?;
         push_opt(&mut params, "disable_notification", &disable_notification)?;
         push_opt(&mut params, "protect_content", &protect_content)?;
         push_opt(&mut params, "reply_parameters", &reply_parameters)?;
         push_opt(&mut params, "reply_markup", &reply_markup)?;
         push_opt(&mut params, "message_thread_id", &message_thread_id)?;
-        push_opt_str(&mut params, "business_connection_id", business_connection_id);
+        push_opt_str(
+            &mut params,
+            "business_connection_id",
+            business_connection_id,
+        );
         push_opt_str(&mut params, "message_effect_id", message_effect_id);
         push_opt(&mut params, "allow_paid_broadcast", &allow_paid_broadcast)?;
-        push_opt(&mut params, "direct_messages_topic_id", &direct_messages_topic_id)?;
-        push_opt(&mut params, "suggested_post_parameters", &suggested_post_parameters)?;
+        push_opt(
+            &mut params,
+            "direct_messages_topic_id",
+            &direct_messages_topic_id,
+        )?;
+        push_opt(
+            &mut params,
+            "suggested_post_parameters",
+            &suggested_post_parameters,
+        )?;
         self.do_post("sendLocation", params).await
     }
 
@@ -1069,11 +1368,23 @@ impl Bot {
         push_opt(&mut params, "reply_parameters", &reply_parameters)?;
         push_opt(&mut params, "reply_markup", &reply_markup)?;
         push_opt(&mut params, "message_thread_id", &message_thread_id)?;
-        push_opt_str(&mut params, "business_connection_id", business_connection_id);
+        push_opt_str(
+            &mut params,
+            "business_connection_id",
+            business_connection_id,
+        );
         push_opt_str(&mut params, "message_effect_id", message_effect_id);
         push_opt(&mut params, "allow_paid_broadcast", &allow_paid_broadcast)?;
-        push_opt(&mut params, "direct_messages_topic_id", &direct_messages_topic_id)?;
-        push_opt(&mut params, "suggested_post_parameters", &suggested_post_parameters)?;
+        push_opt(
+            &mut params,
+            "direct_messages_topic_id",
+            &direct_messages_topic_id,
+        )?;
+        push_opt(
+            &mut params,
+            "suggested_post_parameters",
+            &suggested_post_parameters,
+        )?;
         self.do_post("sendVenue", params).await
     }
 
@@ -1113,15 +1424,54 @@ impl Bot {
         push_opt(&mut params, "reply_parameters", &reply_parameters)?;
         push_opt(&mut params, "reply_markup", &reply_markup)?;
         push_opt(&mut params, "message_thread_id", &message_thread_id)?;
-        push_opt_str(&mut params, "business_connection_id", business_connection_id);
+        push_opt_str(
+            &mut params,
+            "business_connection_id",
+            business_connection_id,
+        );
         push_opt_str(&mut params, "message_effect_id", message_effect_id);
         push_opt(&mut params, "allow_paid_broadcast", &allow_paid_broadcast)?;
-        push_opt(&mut params, "direct_messages_topic_id", &direct_messages_topic_id)?;
-        push_opt(&mut params, "suggested_post_parameters", &suggested_post_parameters)?;
+        push_opt(
+            &mut params,
+            "direct_messages_topic_id",
+            &direct_messages_topic_id,
+        )?;
+        push_opt(
+            &mut params,
+            "suggested_post_parameters",
+            &suggested_post_parameters,
+        )?;
         self.do_post("sendContact", params).await
     }
 
-    pub(crate) async fn send_poll_raw(&self, chat_id: ChatId, question: &str, options: Vec<serde_json::Value>, is_anonymous: Option<bool>, poll_type: Option<&str>, allows_multiple_answers: Option<bool>, correct_option_id: Option<i64>, explanation: Option<&str>, explanation_parse_mode: Option<&str>, explanation_entities: Option<Vec<message_entity::MessageEntity>>, open_period: Option<i64>, close_date: Option<i64>, is_closed: Option<bool>, disable_notification: Option<bool>, protect_content: Option<bool>, reply_parameters: Option<reply::ReplyParameters>, reply_markup: Option<serde_json::Value>, message_thread_id: Option<i64>, business_connection_id: Option<&str>, question_parse_mode: Option<&str>, question_entities: Option<Vec<message_entity::MessageEntity>>, message_effect_id: Option<&str>, allow_paid_broadcast: Option<bool>, direct_messages_topic_id: Option<i64>, suggested_post_parameters: Option<suggested_post::SuggestedPostParameters>) -> Result<message::Message> {
+    pub(crate) async fn send_poll_raw(
+        &self,
+        chat_id: ChatId,
+        question: &str,
+        options: Vec<serde_json::Value>,
+        is_anonymous: Option<bool>,
+        poll_type: Option<&str>,
+        allows_multiple_answers: Option<bool>,
+        correct_option_id: Option<i64>,
+        explanation: Option<&str>,
+        explanation_parse_mode: Option<&str>,
+        explanation_entities: Option<Vec<message_entity::MessageEntity>>,
+        open_period: Option<i64>,
+        close_date: Option<i64>,
+        is_closed: Option<bool>,
+        disable_notification: Option<bool>,
+        protect_content: Option<bool>,
+        reply_parameters: Option<reply::ReplyParameters>,
+        reply_markup: Option<serde_json::Value>,
+        message_thread_id: Option<i64>,
+        business_connection_id: Option<&str>,
+        question_parse_mode: Option<&str>,
+        question_entities: Option<Vec<message_entity::MessageEntity>>,
+        message_effect_id: Option<&str>,
+        allow_paid_broadcast: Option<bool>,
+        direct_messages_topic_id: Option<i64>,
+        suggested_post_parameters: Option<suggested_post::SuggestedPostParameters>,
+    ) -> Result<message::Message> {
         let mut params = vec![
             RequestParameter::new("chat_id", serde_json::to_value(&chat_id)?),
             RequestParameter::new("question", serde_json::Value::String(question.to_owned())),
@@ -1129,10 +1479,18 @@ impl Bot {
         ];
         push_opt(&mut params, "is_anonymous", &is_anonymous)?;
         push_opt_str(&mut params, "type", poll_type);
-        push_opt(&mut params, "allows_multiple_answers", &allows_multiple_answers)?;
+        push_opt(
+            &mut params,
+            "allows_multiple_answers",
+            &allows_multiple_answers,
+        )?;
         push_opt(&mut params, "correct_option_id", &correct_option_id)?;
         push_opt_str(&mut params, "explanation", explanation);
-        push_opt_str(&mut params, "explanation_parse_mode", explanation_parse_mode);
+        push_opt_str(
+            &mut params,
+            "explanation_parse_mode",
+            explanation_parse_mode,
+        );
         push_opt(&mut params, "explanation_entities", &explanation_entities)?;
         push_opt(&mut params, "open_period", &open_period)?;
         push_opt(&mut params, "close_date", &close_date)?;
@@ -1142,16 +1500,27 @@ impl Bot {
         push_opt(&mut params, "reply_parameters", &reply_parameters)?;
         push_opt(&mut params, "reply_markup", &reply_markup)?;
         push_opt(&mut params, "message_thread_id", &message_thread_id)?;
-        push_opt_str(&mut params, "business_connection_id", business_connection_id);
+        push_opt_str(
+            &mut params,
+            "business_connection_id",
+            business_connection_id,
+        );
         push_opt_str(&mut params, "question_parse_mode", question_parse_mode);
         push_opt(&mut params, "question_entities", &question_entities)?;
         push_opt_str(&mut params, "message_effect_id", message_effect_id);
         push_opt(&mut params, "allow_paid_broadcast", &allow_paid_broadcast)?;
-        push_opt(&mut params, "direct_messages_topic_id", &direct_messages_topic_id)?;
-        push_opt(&mut params, "suggested_post_parameters", &suggested_post_parameters)?;
+        push_opt(
+            &mut params,
+            "direct_messages_topic_id",
+            &direct_messages_topic_id,
+        )?;
+        push_opt(
+            &mut params,
+            "suggested_post_parameters",
+            &suggested_post_parameters,
+        )?;
         self.do_post("sendPoll", params).await
     }
-
 
     pub(crate) async fn send_dice_raw(
         &self,
@@ -1178,11 +1547,23 @@ impl Bot {
         push_opt(&mut params, "reply_parameters", &reply_parameters)?;
         push_opt(&mut params, "reply_markup", &reply_markup)?;
         push_opt(&mut params, "message_thread_id", &message_thread_id)?;
-        push_opt_str(&mut params, "business_connection_id", business_connection_id);
+        push_opt_str(
+            &mut params,
+            "business_connection_id",
+            business_connection_id,
+        );
         push_opt_str(&mut params, "message_effect_id", message_effect_id);
         push_opt(&mut params, "allow_paid_broadcast", &allow_paid_broadcast)?;
-        push_opt(&mut params, "direct_messages_topic_id", &direct_messages_topic_id)?;
-        push_opt(&mut params, "suggested_post_parameters", &suggested_post_parameters)?;
+        push_opt(
+            &mut params,
+            "direct_messages_topic_id",
+            &direct_messages_topic_id,
+        )?;
+        push_opt(
+            &mut params,
+            "suggested_post_parameters",
+            &suggested_post_parameters,
+        )?;
         self.do_post("sendDice", params).await
     }
 
@@ -1198,7 +1579,11 @@ impl Bot {
             RequestParameter::new("action", serde_json::Value::String(action.to_owned())),
         ];
         push_opt(&mut params, "message_thread_id", &message_thread_id)?;
-        push_opt_str(&mut params, "business_connection_id", business_connection_id);
+        push_opt_str(
+            &mut params,
+            "business_connection_id",
+            business_connection_id,
+        );
         self.do_post("sendChatAction", params).await
     }
 
@@ -1259,11 +1644,23 @@ impl Bot {
         push_opt(&mut params, "reply_parameters", &reply_parameters)?;
         push_opt(&mut params, "reply_markup", &reply_markup)?;
         push_opt(&mut params, "message_thread_id", &message_thread_id)?;
-        push_opt_str(&mut params, "business_connection_id", business_connection_id);
+        push_opt_str(
+            &mut params,
+            "business_connection_id",
+            business_connection_id,
+        );
         push_opt_str(&mut params, "message_effect_id", message_effect_id);
         push_opt(&mut params, "allow_paid_broadcast", &allow_paid_broadcast)?;
-        push_opt(&mut params, "direct_messages_topic_id", &direct_messages_topic_id)?;
-        push_opt(&mut params, "suggested_post_parameters", &suggested_post_parameters)?;
+        push_opt(
+            &mut params,
+            "direct_messages_topic_id",
+            &direct_messages_topic_id,
+        )?;
+        push_opt(
+            &mut params,
+            "suggested_post_parameters",
+            &suggested_post_parameters,
+        )?;
         self.do_post("sendSticker", params).await
     }
 
@@ -1337,16 +1734,9 @@ impl Bot {
         self.do_post("addStickerToSet", params).await
     }
 
-    pub async fn set_sticker_position_in_set(
-        &self,
-        sticker: &str,
-        position: i64,
-    ) -> Result<bool> {
+    pub async fn set_sticker_position_in_set(&self, sticker: &str, position: i64) -> Result<bool> {
         let params = vec![
-            RequestParameter::new(
-                "sticker",
-                serde_json::Value::String(sticker.to_owned()),
-            ),
+            RequestParameter::new("sticker", serde_json::Value::String(sticker.to_owned())),
             RequestParameter::new("position", serde_json::to_value(position)?),
         ];
         self.do_post("setStickerPositionInSet", params).await
@@ -1385,10 +1775,7 @@ impl Bot {
         emoji_list: Vec<String>,
     ) -> Result<bool> {
         let params = vec![
-            RequestParameter::new(
-                "sticker",
-                serde_json::Value::String(sticker.to_owned()),
-            ),
+            RequestParameter::new("sticker", serde_json::Value::String(sticker.to_owned())),
             RequestParameter::new("emoji_list", serde_json::to_value(&emoji_list)?),
         ];
         self.do_post("setStickerEmojiList", params).await
@@ -1497,7 +1884,11 @@ impl Bot {
         push_opt(&mut params, "entities", &entities)?;
         push_opt(&mut params, "link_preview_options", &link_preview_options)?;
         push_opt(&mut params, "reply_markup", &reply_markup)?;
-        push_opt_str(&mut params, "business_connection_id", business_connection_id);
+        push_opt_str(
+            &mut params,
+            "business_connection_id",
+            business_connection_id,
+        );
         self.do_post("editMessageText", params).await
     }
 
@@ -1521,8 +1912,16 @@ impl Bot {
         push_opt_str(&mut params, "parse_mode", parse_mode);
         push_opt(&mut params, "caption_entities", &caption_entities)?;
         push_opt(&mut params, "reply_markup", &reply_markup)?;
-        push_opt(&mut params, "show_caption_above_media", &show_caption_above_media)?;
-        push_opt_str(&mut params, "business_connection_id", business_connection_id);
+        push_opt(
+            &mut params,
+            "show_caption_above_media",
+            &show_caption_above_media,
+        )?;
+        push_opt_str(
+            &mut params,
+            "business_connection_id",
+            business_connection_id,
+        );
         self.do_post("editMessageCaption", params).await
     }
 
@@ -1540,7 +1939,11 @@ impl Bot {
         push_opt(&mut params, "message_id", &message_id)?;
         push_opt_str(&mut params, "inline_message_id", inline_message_id);
         push_opt(&mut params, "reply_markup", &reply_markup)?;
-        push_opt_str(&mut params, "business_connection_id", business_connection_id);
+        push_opt_str(
+            &mut params,
+            "business_connection_id",
+            business_connection_id,
+        );
         self.do_post("editMessageMedia", params).await
     }
 
@@ -1557,7 +1960,11 @@ impl Bot {
         push_opt(&mut params, "message_id", &message_id)?;
         push_opt_str(&mut params, "inline_message_id", inline_message_id);
         push_opt(&mut params, "reply_markup", &reply_markup)?;
-        push_opt_str(&mut params, "business_connection_id", business_connection_id);
+        push_opt_str(
+            &mut params,
+            "business_connection_id",
+            business_connection_id,
+        );
         self.do_post("editMessageReplyMarkup", params).await
     }
 
@@ -1584,10 +1991,18 @@ impl Bot {
         push_opt_str(&mut params, "inline_message_id", inline_message_id);
         push_opt(&mut params, "horizontal_accuracy", &horizontal_accuracy)?;
         push_opt(&mut params, "heading", &heading)?;
-        push_opt(&mut params, "proximity_alert_radius", &proximity_alert_radius)?;
+        push_opt(
+            &mut params,
+            "proximity_alert_radius",
+            &proximity_alert_radius,
+        )?;
         push_opt(&mut params, "reply_markup", &reply_markup)?;
         push_opt(&mut params, "live_period", &live_period)?;
-        push_opt_str(&mut params, "business_connection_id", business_connection_id);
+        push_opt_str(
+            &mut params,
+            "business_connection_id",
+            business_connection_id,
+        );
         self.do_post("editMessageLiveLocation", params).await
     }
 
@@ -1604,7 +2019,11 @@ impl Bot {
         push_opt(&mut params, "message_id", &message_id)?;
         push_opt_str(&mut params, "inline_message_id", inline_message_id);
         push_opt(&mut params, "reply_markup", &reply_markup)?;
-        push_opt_str(&mut params, "business_connection_id", business_connection_id);
+        push_opt_str(
+            &mut params,
+            "business_connection_id",
+            business_connection_id,
+        );
         self.do_post("stopMessageLiveLocation", params).await
     }
 
@@ -1641,7 +2060,11 @@ impl Bot {
             RequestParameter::new("message_id", serde_json::to_value(message_id)?),
         ];
         push_opt(&mut params, "reply_markup", &reply_markup)?;
-        push_opt_str(&mut params, "business_connection_id", business_connection_id);
+        push_opt_str(
+            &mut params,
+            "business_connection_id",
+            business_connection_id,
+        );
         self.do_post("stopPoll", params).await
     }
 
@@ -1804,11 +2227,7 @@ impl Bot {
         self.do_post("unbanChatMember", params).await
     }
 
-    pub async fn ban_chat_sender_chat(
-        &self,
-        chat_id: ChatId,
-        sender_chat_id: i64,
-    ) -> Result<bool> {
+    pub async fn ban_chat_sender_chat(&self, chat_id: ChatId, sender_chat_id: i64) -> Result<bool> {
         let params = vec![
             RequestParameter::new("chat_id", serde_json::to_value(&chat_id)?),
             RequestParameter::new("sender_chat_id", serde_json::to_value(sender_chat_id)?),
@@ -1881,7 +2300,11 @@ impl Bot {
         push_opt(&mut params, "can_post_messages", &can_post_messages)?;
         push_opt(&mut params, "can_edit_messages", &can_edit_messages)?;
         push_opt(&mut params, "can_delete_messages", &can_delete_messages)?;
-        push_opt(&mut params, "can_manage_video_chats", &can_manage_video_chats)?;
+        push_opt(
+            &mut params,
+            "can_manage_video_chats",
+            &can_manage_video_chats,
+        )?;
         push_opt(&mut params, "can_restrict_members", &can_restrict_members)?;
         push_opt(&mut params, "can_promote_members", &can_promote_members)?;
         push_opt(&mut params, "can_change_info", &can_change_info)?;
@@ -1891,7 +2314,11 @@ impl Bot {
         push_opt(&mut params, "can_post_stories", &can_post_stories)?;
         push_opt(&mut params, "can_edit_stories", &can_edit_stories)?;
         push_opt(&mut params, "can_delete_stories", &can_delete_stories)?;
-        push_opt(&mut params, "can_manage_direct_messages", &can_manage_direct_messages)?;
+        push_opt(
+            &mut params,
+            "can_manage_direct_messages",
+            &can_manage_direct_messages,
+        )?;
         push_opt(&mut params, "can_manage_tags", &can_manage_tags)?;
         self.do_post("promoteChatMember", params).await
     }
@@ -2026,7 +2453,11 @@ impl Bot {
             RequestParameter::new("message_id", serde_json::to_value(message_id)?),
         ];
         push_opt(&mut params, "disable_notification", &disable_notification)?;
-        push_opt_str(&mut params, "business_connection_id", business_connection_id);
+        push_opt_str(
+            &mut params,
+            "business_connection_id",
+            business_connection_id,
+        );
         self.do_post("pinChatMessage", params).await
     }
 
@@ -2041,7 +2472,11 @@ impl Bot {
             serde_json::to_value(&chat_id)?,
         )];
         push_opt(&mut params, "message_id", &message_id)?;
-        push_opt_str(&mut params, "business_connection_id", business_connection_id);
+        push_opt_str(
+            &mut params,
+            "business_connection_id",
+            business_connection_id,
+        );
         self.do_post("unpinChatMessage", params).await
     }
 
@@ -2159,15 +2594,10 @@ impl Bot {
             ),
         ];
         push_opt_str(&mut params, "name", name);
-        self.do_post("editChatSubscriptionInviteLink", params)
-            .await
+        self.do_post("editChatSubscriptionInviteLink", params).await
     }
 
-    pub async fn approve_chat_join_request(
-        &self,
-        chat_id: ChatId,
-        user_id: i64,
-    ) -> Result<bool> {
+    pub async fn approve_chat_join_request(&self, chat_id: ChatId, user_id: i64) -> Result<bool> {
         let params = vec![
             RequestParameter::new("chat_id", serde_json::to_value(&chat_id)?),
             RequestParameter::new("user_id", serde_json::to_value(user_id)?),
@@ -2175,11 +2605,7 @@ impl Bot {
         self.do_post("approveChatJoinRequest", params).await
     }
 
-    pub async fn decline_chat_join_request(
-        &self,
-        chat_id: ChatId,
-        user_id: i64,
-    ) -> Result<bool> {
+    pub async fn decline_chat_join_request(&self, chat_id: ChatId, user_id: i64) -> Result<bool> {
         let params = vec![
             RequestParameter::new("chat_id", serde_json::to_value(&chat_id)?),
             RequestParameter::new("user_id", serde_json::to_value(user_id)?),
@@ -2406,10 +2832,7 @@ impl Bot {
         self.do_post("setMyName", params).await
     }
 
-    pub async fn get_my_name(
-        &self,
-        language_code: Option<&str>,
-    ) -> Result<bot_name::BotName> {
+    pub async fn get_my_name(&self, language_code: Option<&str>) -> Result<bot_name::BotName> {
         let mut params = Vec::new();
         push_opt_str(&mut params, "language_code", language_code);
         self.do_post("getMyName", params).await
@@ -2476,7 +2899,11 @@ impl Bot {
         push_opt(&mut params, "reply_parameters", &reply_parameters)?;
         push_opt(&mut params, "reply_markup", &reply_markup)?;
         push_opt(&mut params, "message_thread_id", &message_thread_id)?;
-        push_opt_str(&mut params, "business_connection_id", business_connection_id);
+        push_opt_str(
+            &mut params,
+            "business_connection_id",
+            business_connection_id,
+        );
         push_opt_str(&mut params, "message_effect_id", message_effect_id);
         push_opt(&mut params, "allow_paid_broadcast", &allow_paid_broadcast)?;
         self.do_post("sendGame", params).await
@@ -2588,7 +3015,11 @@ impl Bot {
             "send_phone_number_to_provider",
             &send_phone_number_to_provider,
         )?;
-        push_opt(&mut params, "send_email_to_provider", &send_email_to_provider)?;
+        push_opt(
+            &mut params,
+            "send_email_to_provider",
+            &send_email_to_provider,
+        )?;
         push_opt(&mut params, "is_flexible", &is_flexible)?;
         push_opt(&mut params, "disable_notification", &disable_notification)?;
         push_opt(&mut params, "protect_content", &protect_content)?;
@@ -2597,8 +3028,16 @@ impl Bot {
         push_opt(&mut params, "message_thread_id", &message_thread_id)?;
         push_opt_str(&mut params, "message_effect_id", message_effect_id);
         push_opt(&mut params, "allow_paid_broadcast", &allow_paid_broadcast)?;
-        push_opt(&mut params, "direct_messages_topic_id", &direct_messages_topic_id)?;
-        push_opt(&mut params, "suggested_post_parameters", &suggested_post_parameters)?;
+        push_opt(
+            &mut params,
+            "direct_messages_topic_id",
+            &direct_messages_topic_id,
+        )?;
+        push_opt(
+            &mut params,
+            "suggested_post_parameters",
+            &suggested_post_parameters,
+        )?;
         self.do_post("sendInvoice", params).await
     }
 
@@ -2654,10 +3093,18 @@ impl Bot {
             "send_phone_number_to_provider",
             &send_phone_number_to_provider,
         )?;
-        push_opt(&mut params, "send_email_to_provider", &send_email_to_provider)?;
+        push_opt(
+            &mut params,
+            "send_email_to_provider",
+            &send_email_to_provider,
+        )?;
         push_opt(&mut params, "is_flexible", &is_flexible)?;
         push_opt(&mut params, "subscription_period", &subscription_period)?;
-        push_opt_str(&mut params, "business_connection_id", business_connection_id);
+        push_opt_str(
+            &mut params,
+            "business_connection_id",
+            business_connection_id,
+        );
         self.do_post("createInvoiceLink", params).await
     }
 
@@ -2773,7 +3220,10 @@ impl Bot {
     ) -> Result<bool> {
         let mut params = vec![
             RequestParameter::new("chat_id", serde_json::to_value(&chat_id)?),
-            RequestParameter::new("message_thread_id", serde_json::to_value(message_thread_id)?),
+            RequestParameter::new(
+                "message_thread_id",
+                serde_json::to_value(message_thread_id)?,
+            ),
         ];
         push_opt_str(&mut params, "name", name);
         push_opt_str(&mut params, "icon_custom_emoji_id", icon_custom_emoji_id);
@@ -2783,23 +3233,40 @@ impl Bot {
     pub async fn close_forum_topic(&self, chat_id: ChatId, message_thread_id: i64) -> Result<bool> {
         let params = vec![
             RequestParameter::new("chat_id", serde_json::to_value(&chat_id)?),
-            RequestParameter::new("message_thread_id", serde_json::to_value(message_thread_id)?),
+            RequestParameter::new(
+                "message_thread_id",
+                serde_json::to_value(message_thread_id)?,
+            ),
         ];
         self.do_post("closeForumTopic", params).await
     }
 
-    pub async fn reopen_forum_topic(&self, chat_id: ChatId, message_thread_id: i64) -> Result<bool> {
+    pub async fn reopen_forum_topic(
+        &self,
+        chat_id: ChatId,
+        message_thread_id: i64,
+    ) -> Result<bool> {
         let params = vec![
             RequestParameter::new("chat_id", serde_json::to_value(&chat_id)?),
-            RequestParameter::new("message_thread_id", serde_json::to_value(message_thread_id)?),
+            RequestParameter::new(
+                "message_thread_id",
+                serde_json::to_value(message_thread_id)?,
+            ),
         ];
         self.do_post("reopenForumTopic", params).await
     }
 
-    pub async fn delete_forum_topic(&self, chat_id: ChatId, message_thread_id: i64) -> Result<bool> {
+    pub async fn delete_forum_topic(
+        &self,
+        chat_id: ChatId,
+        message_thread_id: i64,
+    ) -> Result<bool> {
         let params = vec![
             RequestParameter::new("chat_id", serde_json::to_value(&chat_id)?),
-            RequestParameter::new("message_thread_id", serde_json::to_value(message_thread_id)?),
+            RequestParameter::new(
+                "message_thread_id",
+                serde_json::to_value(message_thread_id)?,
+            ),
         ];
         self.do_post("deleteForumTopic", params).await
     }
@@ -2811,7 +3278,10 @@ impl Bot {
     ) -> Result<bool> {
         let params = vec![
             RequestParameter::new("chat_id", serde_json::to_value(&chat_id)?),
-            RequestParameter::new("message_thread_id", serde_json::to_value(message_thread_id)?),
+            RequestParameter::new(
+                "message_thread_id",
+                serde_json::to_value(message_thread_id)?,
+            ),
         ];
         self.do_post("unpinAllForumTopicMessages", params).await
     }
@@ -2949,13 +3419,21 @@ impl Bot {
             serde_json::to_value(user_id)?,
         )];
         push_opt(&mut params, "exclude_unlimited", &exclude_unlimited)?;
-        push_opt(&mut params, "exclude_limited_upgradable", &exclude_limited_upgradable)?;
+        push_opt(
+            &mut params,
+            "exclude_limited_upgradable",
+            &exclude_limited_upgradable,
+        )?;
         push_opt(
             &mut params,
             "exclude_limited_non_upgradable",
             &exclude_limited_non_upgradable,
         )?;
-        push_opt(&mut params, "exclude_from_blockchain", &exclude_from_blockchain)?;
+        push_opt(
+            &mut params,
+            "exclude_from_blockchain",
+            &exclude_from_blockchain,
+        )?;
         push_opt(&mut params, "exclude_unique", &exclude_unique)?;
         push_opt(&mut params, "sort_by_price", &sort_by_price)?;
         push_opt_str(&mut params, "offset", offset);
@@ -2984,13 +3462,21 @@ impl Bot {
         push_opt(&mut params, "exclude_unsaved", &exclude_unsaved)?;
         push_opt(&mut params, "exclude_saved", &exclude_saved)?;
         push_opt(&mut params, "exclude_unlimited", &exclude_unlimited)?;
-        push_opt(&mut params, "exclude_limited_upgradable", &exclude_limited_upgradable)?;
+        push_opt(
+            &mut params,
+            "exclude_limited_upgradable",
+            &exclude_limited_upgradable,
+        )?;
         push_opt(
             &mut params,
             "exclude_limited_non_upgradable",
             &exclude_limited_non_upgradable,
         )?;
-        push_opt(&mut params, "exclude_from_blockchain", &exclude_from_blockchain)?;
+        push_opt(
+            &mut params,
+            "exclude_from_blockchain",
+            &exclude_from_blockchain,
+        )?;
         push_opt(&mut params, "exclude_unique", &exclude_unique)?;
         push_opt(&mut params, "sort_by_price", &sort_by_price)?;
         push_opt_str(&mut params, "offset", offset);
@@ -3038,13 +3524,21 @@ impl Bot {
         push_opt(&mut params, "sort_by_price", &sort_by_price)?;
         push_opt_str(&mut params, "offset", offset);
         push_opt(&mut params, "limit", &limit)?;
-        push_opt(&mut params, "exclude_limited_upgradable", &exclude_limited_upgradable)?;
+        push_opt(
+            &mut params,
+            "exclude_limited_upgradable",
+            &exclude_limited_upgradable,
+        )?;
         push_opt(
             &mut params,
             "exclude_limited_non_upgradable",
             &exclude_limited_non_upgradable,
         )?;
-        push_opt(&mut params, "exclude_from_blockchain", &exclude_from_blockchain)?;
+        push_opt(
+            &mut params,
+            "exclude_from_blockchain",
+            &exclude_from_blockchain,
+        )?;
         self.do_post("getBusinessAccountGifts", params).await
     }
 
@@ -3154,8 +3648,7 @@ impl Bot {
                 serde_json::to_value(&accepted_gift_types)?,
             ),
         ];
-        self.do_post("setBusinessAccountGiftSettings", params)
-            .await
+        self.do_post("setBusinessAccountGiftSettings", params).await
     }
 
     pub async fn set_business_account_profile_photo(
@@ -3172,8 +3665,7 @@ impl Bot {
             RequestParameter::new("photo", photo),
         ];
         push_opt(&mut params, "is_public", &is_public)?;
-        self.do_post("setBusinessAccountProfilePhoto", params)
-            .await
+        self.do_post("setBusinessAccountProfilePhoto", params).await
     }
 
     pub async fn remove_business_account_profile_photo(
@@ -3246,7 +3738,10 @@ impl Bot {
                 "owned_gift_id",
                 serde_json::Value::String(owned_gift_id.to_owned()),
             ),
-            RequestParameter::new("new_owner_chat_id", serde_json::to_value(new_owner_chat_id)?),
+            RequestParameter::new(
+                "new_owner_chat_id",
+                serde_json::to_value(new_owner_chat_id)?,
+            ),
         ];
         push_opt(&mut params, "star_count", &star_count)?;
         self.do_post("transferGift", params).await
@@ -3325,11 +3820,7 @@ impl Bot {
         self.do_post("editStory", params).await
     }
 
-    pub async fn delete_story(
-        &self,
-        business_connection_id: &str,
-        story_id: i64,
-    ) -> Result<bool> {
+    pub async fn delete_story(&self, business_connection_id: &str, story_id: i64) -> Result<bool> {
         let params = vec![
             RequestParameter::new(
                 "business_connection_id",
@@ -3444,6 +3935,7 @@ impl Bot {
 
 // Second impl block – additional methods separated from the main one to avoid
 // merge conflicts in the large primary impl block.
+#[allow(dead_code)]
 impl Bot {
     // ======================================================================
     // Managed bot methods (Bot API 9.6)

@@ -38,7 +38,7 @@ impl CommandFilter {
 }
 
 impl Filter for CommandFilter {
-    fn check_update(&self, update: &Update) -> FilterResult { let __v = to_value(update);
+    fn check_update(&self, update: &Update) -> FilterResult {
         let v = to_value(update);
         let msg = match effective_message_val(&v) {
             Some(m) => m,
@@ -51,14 +51,14 @@ impl Filter for CommandFilter {
 
         let matched = if self.only_start {
             // Only the first entity matters; it must be a bot_command at offset 0.
-            entities.first().map_or(false, |e| {
+            entities.first().is_some_and(|e| {
                 e.get("type").and_then(|v| v.as_str()) == Some("bot_command")
                     && e.get("offset").and_then(|v| v.as_u64()) == Some(0)
             })
         } else {
-            entities.iter().any(|e| {
-                e.get("type").and_then(|v| v.as_str()) == Some("bot_command")
-            })
+            entities
+                .iter()
+                .any(|e| e.get("type").and_then(|v| v.as_str()) == Some("bot_command"))
         };
 
         if matched {

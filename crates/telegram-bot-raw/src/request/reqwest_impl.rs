@@ -367,7 +367,7 @@ impl BaseRequest for ReqwestRequest {
         request_data: Option<&RequestData>,
         timeouts: TimeoutOverride,
     ) -> Result<(u16, Bytes)> {
-        let has_files = request_data.map_or(false, RequestData::contains_files);
+        let has_files = request_data.is_some_and(RequestData::contains_files);
         let resolved = self.defaults.resolve(timeouts, has_files);
 
         // Select the correct client: file downloads go through file_client to
@@ -409,9 +409,10 @@ impl BaseRequest for ReqwestRequest {
         let response = req_builder.send().await.map_err(map_reqwest_error)?;
 
         let status = response.status().as_u16();
-        let body = response.bytes().await.map_err(|e| {
-            TelegramError::Network(format!("Failed to read response body: {e}"))
-        })?;
+        let body = response
+            .bytes()
+            .await
+            .map_err(|e| TelegramError::Network(format!("Failed to read response body: {e}")))?;
 
         Ok((status, body))
     }
@@ -497,7 +498,6 @@ fn max_duration(a: Option<Duration>, b: Option<Duration>) -> Option<Duration> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::request::base::BaseRequest as _;
 
     // ------------------------------------------------------------------
     // Builder / construction
@@ -672,6 +672,9 @@ mod tests {
             ..TimeoutOverride::default_none()
         };
         let resolved = defaults.resolve(overrides, true);
-        assert_eq!(resolved.write, None, "explicit None must win over media_write");
+        assert_eq!(
+            resolved.write, None,
+            "explicit None must win over media_write"
+        );
     }
 }

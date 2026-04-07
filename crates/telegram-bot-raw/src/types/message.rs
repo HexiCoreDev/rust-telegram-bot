@@ -75,7 +75,6 @@ use super::write_access_allowed::WriteAccessAllowed;
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Message {
     // ── Required fields ───────────────────────────────────────────────────────
-
     /// Unique message identifier inside this chat.
     pub message_id: i64,
 
@@ -86,7 +85,6 @@ pub struct Message {
     pub chat: Chat,
 
     // ── Sender info ───────────────────────────────────────────────────────────
-
     /// Sender of the message; empty for messages sent to channels. For backward
     /// compatibility, the field contains a fake sender user in non-channel chats,
     /// if the message was sent on behalf of a chat.
@@ -112,7 +110,6 @@ pub struct Message {
     pub business_connection_id: Option<String>,
 
     // ── Thread / topic ────────────────────────────────────────────────────────
-
     /// Unique identifier of a message thread to which the message belongs; for supergroups only.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub message_thread_id: Option<i64>,
@@ -122,7 +119,6 @@ pub struct Message {
     pub is_topic_message: Option<bool>,
 
     // ── Forward info ──────────────────────────────────────────────────────────
-
     /// Information about the original message for forwarded messages.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub forward_origin: Option<MessageOrigin>,
@@ -133,7 +129,6 @@ pub struct Message {
     pub is_automatic_forward: Option<bool>,
 
     // ── Reply info ────────────────────────────────────────────────────────────
-
     /// For replies in the same chat and message thread, the original message.
     /// Note: The Message object in this field will not contain further `reply_to_message`
     /// fields even if it itself is a reply.
@@ -158,13 +153,11 @@ pub struct Message {
     pub via_bot: Option<User>,
 
     // ── Edit date ─────────────────────────────────────────────────────────────
-
     /// Date the message was last edited in Unix time.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub edit_date: Option<i64>,
 
     // ── Flags ─────────────────────────────────────────────────────────────────
-
     /// `true` if the message can't be forwarded.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub has_protected_content: Option<bool>,
@@ -179,13 +172,11 @@ pub struct Message {
     pub is_paid_post: Option<bool>,
 
     // ── Media group ───────────────────────────────────────────────────────────
-
     /// The unique identifier of a media message group this message belongs to.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub media_group_id: Option<String>,
 
     // ── Signature / author ────────────────────────────────────────────────────
-
     /// Signature of the post author for messages in channels, or the custom title of an
     /// anonymous group administrator.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -196,7 +187,6 @@ pub struct Message {
     pub sender_tag: Option<String>,
 
     // ── Text & entities ───────────────────────────────────────────────────────
-
     /// For text messages, the actual UTF-8 text of the message.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub text: Option<String>,
@@ -216,7 +206,6 @@ pub struct Message {
     pub effect_id: Option<String>,
 
     // ── Media attachments ─────────────────────────────────────────────────────
-
     /// Message is an animation, information about the animation.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub animation: Option<Animation>,
@@ -258,7 +247,6 @@ pub struct Message {
     pub voice: Option<Voice>,
 
     // ── Caption ───────────────────────────────────────────────────────────────
-
     /// Caption for the animation, audio, document, paid media, photo, video or voice.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub caption: Option<String>,
@@ -277,7 +265,6 @@ pub struct Message {
     pub has_media_spoiler: Option<bool>,
 
     // ── Contact / location / venue ────────────────────────────────────────────
-
     /// Message is a shared contact, information about the contact.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub contact: Option<Contact>,
@@ -303,7 +290,6 @@ pub struct Message {
     pub location: Option<Location>,
 
     // ── Service messages — members ────────────────────────────────────────────
-
     /// New members that were added to the group or supergroup.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub new_chat_members: Option<Vec<User>>,
@@ -349,7 +335,6 @@ pub struct Message {
     pub migrate_from_chat_id: Option<i64>,
 
     // ── Pinned / invoice / payment ────────────────────────────────────────────
-
     /// Specified message was pinned.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub pinned_message: Option<Box<Message>>,
@@ -375,7 +360,6 @@ pub struct Message {
     pub paid_star_count: Option<i32>,
 
     // ── Website / Passport / connected ────────────────────────────────────────
-
     /// Service message: the user is connected to a website via the connected website feature.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub connected_website: Option<String>,
@@ -389,26 +373,22 @@ pub struct Message {
     pub passport_data: Option<PassportData>,
 
     // ── Proximity alert ───────────────────────────────────────────────────────
-
     /// Service message: a user in the chat triggered another user's proximity alert
     /// while sharing Live Location.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub proximity_alert_triggered: Option<ProximityAlertTriggered>,
 
     // ── Boost ─────────────────────────────────────────────────────────────────
-
     /// Service message: user boosted the chat.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub boost_added: Option<ChatBoostAdded>,
 
     // ── Chat background ───────────────────────────────────────────────────────
-
     /// Service message: chat background set.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub chat_background_set: Option<ChatBackground>,
 
     // ── Forum topic service messages ──────────────────────────────────────────
-
     /// Service message: forum topic created.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub forum_topic_created: Option<ForumTopicCreated>,
@@ -434,7 +414,6 @@ pub struct Message {
     pub general_forum_topic_unhidden: Option<GeneralForumTopicUnhidden>,
 
     // ── Giveaway ──────────────────────────────────────────────────────────────
-
     /// Service message: a scheduled giveaway was created.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub giveaway_created: Option<GiveawayCreated>,
@@ -452,7 +431,6 @@ pub struct Message {
     pub giveaway_completed: Option<GiveawayCompleted>,
 
     // ── Video chat ────────────────────────────────────────────────────────────
-
     /// Service message: video chat scheduled.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub video_chat_scheduled: Option<VideoChatScheduled>,
@@ -470,19 +448,16 @@ pub struct Message {
     pub video_chat_participants_invited: Option<VideoChatParticipantsInvited>,
 
     // ── Web app ───────────────────────────────────────────────────────────────
-
     /// Service message: data sent by a Web App.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub web_app_data: Option<WebAppData>,
 
     // ── Reply markup ──────────────────────────────────────────────────────────
-
     /// Inline keyboard attached to the message.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub reply_markup: Option<InlineKeyboardMarkup>,
 
     // ── Shared resources ──────────────────────────────────────────────────────
-
     /// Service message: users were shared with the bot.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub users_shared: Option<UsersShared>,
@@ -492,7 +467,6 @@ pub struct Message {
     pub chat_shared: Option<ChatShared>,
 
     // ── Gifts ─────────────────────────────────────────────────────────────────
-
     /// Message is a gift.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub gift: Option<GiftInfo>,
@@ -506,7 +480,6 @@ pub struct Message {
     pub gift_upgrade_sent: Option<GiftInfo>,
 
     // ── Checklists ────────────────────────────────────────────────────────────
-
     /// Message contains a checklist.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub checklist: Option<Checklist>,
@@ -524,7 +497,6 @@ pub struct Message {
     pub reply_to_checklist_task_id: Option<i64>,
 
     // ── Direct messages ───────────────────────────────────────────────────────
-
     /// Service message: direct message price changed.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub direct_message_price_changed: Option<DirectMessagePriceChanged>,
@@ -534,7 +506,6 @@ pub struct Message {
     pub direct_messages_topic: Option<DirectMessagesTopic>,
 
     // ── Suggested posts ───────────────────────────────────────────────────────
-
     /// Service message: a suggested post was declined.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub suggested_post_declined: Option<SuggestedPostDeclined>,
@@ -560,7 +531,6 @@ pub struct Message {
     pub suggested_post_approval_failed: Option<SuggestedPostApprovalFailed>,
 
     // ── Chat ownership changes ────────────────────────────────────────────────
-
     /// Service message: chat owner changed.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub chat_owner_changed: Option<ChatOwnerChanged>,
@@ -570,7 +540,6 @@ pub struct Message {
     pub chat_owner_left: Option<ChatOwnerLeft>,
 
     // ── Managed bots (Bot API 9.6) ───────────────────────────────────────────
-
     /// Service message: user created a bot that will be managed by the current bot.
     ///
     /// Added in Bot API 9.6.
@@ -578,7 +547,6 @@ pub struct Message {
     pub managed_bot_created: Option<ManagedBotCreated>,
 
     // ── Poll options (Bot API 9.6) ───────────────────────────────────────────
-
     /// Service message: answer option was added to a poll.
     ///
     /// Added in Bot API 9.6.
@@ -598,7 +566,6 @@ pub struct Message {
     pub reply_to_poll_option_id: Option<String>,
 
     // ── Catch-all ─────────────────────────────────────────────────────────────
-
     /// Catch-all for any extra fields returned by the Bot API not yet modelled here.
     #[serde(flatten)]
     pub extra: HashMap<String, Value>,
@@ -642,9 +609,9 @@ pub struct InaccessibleMessage {
 #[serde(untagged)]
 pub enum MaybeInaccessibleMessage {
     /// A regular, accessible message (`date != 0`).
-    Message(Message),
+    Message(Box<Message>),
     /// A deleted or otherwise inaccessible message (`date == 0`).
-    Inaccessible(InaccessibleMessage),
+    Inaccessible(Box<InaccessibleMessage>),
 }
 
 impl MaybeInaccessibleMessage {
@@ -670,7 +637,7 @@ impl MaybeInaccessibleMessage {
     #[must_use]
     pub fn as_message(&self) -> Option<&Message> {
         match self {
-            Self::Message(m) => Some(m),
+            Self::Message(m) => Some(m.as_ref()),
             Self::Inaccessible(_) => None,
         }
     }

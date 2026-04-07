@@ -75,7 +75,7 @@ pub enum PaidMedia {
     Photo(PaidMediaPhoto),
 
     /// A video.
-    Video(PaidMediaVideo),
+    Video(Box<PaidMediaVideo>),
 }
 
 // ---------------------------------------------------------------------------

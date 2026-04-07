@@ -5,6 +5,14 @@ version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
+repository.workspace = true
+authors = ["Jude Etuka <judechinedu122@gmail.com>"]
+keywords = ["telegram", "bot", "api", "async", "framework"]
+categories = ["api-bindings", "asynchronous", "web-programming"]
+documentation = "https://docs.rs/telegram-bot"
+homepage = "https://github.com/HexiCoreDev/rust-telegram-bot"
+readme = "../../README.md"
+exclude = ["target/", ".github/", "docs/", "examples/"]
 
 [dependencies]
 telegram-bot-raw = { path = "../telegram-bot-raw" }

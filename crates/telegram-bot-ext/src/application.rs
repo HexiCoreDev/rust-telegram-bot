@@ -39,7 +39,10 @@ use crate::utils::types::JsonMap;
 
 /// A boxed, type-erased async handler callback.
 pub type HandlerCallback = Arc<
-    dyn Fn(Update, CallbackContext) -> Pin<Box<dyn Future<Output = Result<(), HandlerError>> + Send>>
+    dyn Fn(
+            Update,
+            CallbackContext,
+        ) -> Pin<Box<dyn Future<Output = Result<(), HandlerError>> + Send>>
         + Send
         + Sync,
 >;
@@ -56,6 +59,9 @@ pub type ErrorHandlerCallback = Arc<
 /// Post-lifecycle hook signature.
 pub type LifecycleHook =
     Arc<dyn Fn(Arc<Application>) -> Pin<Box<dyn Future<Output = ()> + Send>> + Send + Sync>;
+
+type PersistenceDataMap = HashMap<i64, JsonMap>;
+type PersistenceFuture<'a, T> = Pin<Box<dyn Future<Output = PersistenceResult<T>> + Send + 'a>>;
 
 // ---------------------------------------------------------------------------
 // Errors
@@ -107,19 +113,19 @@ pub enum ApplicationError {
 /// trait object inside [`Application`].
 pub trait DynPersistence: Send + Sync + std::fmt::Debug {
     /// Load all user data.
-    fn get_user_data(&self) -> Pin<Box<dyn Future<Output = PersistenceResult<HashMap<i64, JsonMap>>> + Send + '_>>;
+    fn get_user_data(&self) -> PersistenceFuture<'_, PersistenceDataMap>;
     /// Load all chat data.
-    fn get_chat_data(&self) -> Pin<Box<dyn Future<Output = PersistenceResult<HashMap<i64, JsonMap>>> + Send + '_>>;
+    fn get_chat_data(&self) -> PersistenceFuture<'_, PersistenceDataMap>;
     /// Load bot-wide data.
-    fn get_bot_data(&self) -> Pin<Box<dyn Future<Output = PersistenceResult<JsonMap>> + Send + '_>>;
+    fn get_bot_data(&self) -> PersistenceFuture<'_, JsonMap>;
     /// Persist user data for a single user.
-    fn update_user_data(&self, user_id: i64, data: JsonMap) -> Pin<Box<dyn Future<Output = PersistenceResult<()>> + Send + '_>>;
+    fn update_user_data(&self, user_id: i64, data: JsonMap) -> PersistenceFuture<'_, ()>;
     /// Persist chat data for a single chat.
-    fn update_chat_data(&self, chat_id: i64, data: JsonMap) -> Pin<Box<dyn Future<Output = PersistenceResult<()>> + Send + '_>>;
+    fn update_chat_data(&self, chat_id: i64, data: JsonMap) -> PersistenceFuture<'_, ()>;
     /// Persist bot-wide data.
-    fn update_bot_data(&self, data: JsonMap) -> Pin<Box<dyn Future<Output = PersistenceResult<()>> + Send + '_>>;
+    fn update_bot_data(&self, data: JsonMap) -> PersistenceFuture<'_, ()>;
     /// Flush all pending writes.
-    fn flush(&self) -> Pin<Box<dyn Future<Output = PersistenceResult<()>> + Send + '_>>;
+    fn flush(&self) -> PersistenceFuture<'_, ()>;
     /// Update interval in seconds.
     fn update_interval(&self) -> f64;
     /// Which data categories to persist.
@@ -127,33 +133,39 @@ pub trait DynPersistence: Send + Sync + std::fmt::Debug {
 }
 
 impl<T: BasePersistence + std::fmt::Debug> DynPersistence for T {
-    fn get_user_data(&self) -> Pin<Box<dyn Future<Output = PersistenceResult<HashMap<i64, JsonMap>>> + Send + '_>> {
+    fn get_user_data(&self) -> PersistenceFuture<'_, PersistenceDataMap> {
         Box::pin(BasePersistence::get_user_data(self))
     }
-    fn get_chat_data(&self) -> Pin<Box<dyn Future<Output = PersistenceResult<HashMap<i64, JsonMap>>> + Send + '_>> {
+    fn get_chat_data(&self) -> PersistenceFuture<'_, PersistenceDataMap> {
         Box::pin(BasePersistence::get_chat_data(self))
     }
-    fn get_bot_data(&self) -> Pin<Box<dyn Future<Output = PersistenceResult<JsonMap>> + Send + '_>> {
+    fn get_bot_data(&self) -> PersistenceFuture<'_, JsonMap> {
         Box::pin(BasePersistence::get_bot_data(self))
     }
-    fn update_user_data(&self, user_id: i64, data: JsonMap) -> Pin<Box<dyn Future<Output = PersistenceResult<()>> + Send + '_>> {
+    fn update_user_data(&self, user_id: i64, data: JsonMap) -> PersistenceFuture<'_, ()> {
         Box::pin(async move { BasePersistence::update_user_data(self, user_id, &data).await })
     }
-    fn update_chat_data(&self, chat_id: i64, data: JsonMap) -> Pin<Box<dyn Future<Output = PersistenceResult<()>> + Send + '_>> {
+    fn update_chat_data(&self, chat_id: i64, data: JsonMap) -> PersistenceFuture<'_, ()> {
         Box::pin(async move { BasePersistence::update_chat_data(self, chat_id, &data).await })
     }
-    fn update_bot_data(&self, data: JsonMap) -> Pin<Box<dyn Future<Output = PersistenceResult<()>> + Send + '_>> {
+    fn update_bot_data(&self, data: JsonMap) -> PersistenceFuture<'_, ()> {
         Box::pin(async move { BasePersistence::update_bot_data(self, &data).await })
     }
-    fn flush(&self) -> Pin<Box<dyn Future<Output = PersistenceResult<()>> + Send + '_>> {
+    fn flush(&self) -> PersistenceFuture<'_, ()> {
         Box::pin(BasePersistence::flush(self))
     }
-    fn update_interval(&self) -> f64 { BasePersistence::update_interval(self) }
-    fn store_data(&self) -> PersistenceInput { BasePersistence::store_data(self) }
+    fn update_interval(&self) -> f64 {
+        BasePersistence::update_interval(self)
+    }
+    fn store_data(&self) -> PersistenceInput {
+        BasePersistence::store_data(self)
+    }
 }
 
 /// Wrap any `BasePersistence` implementor into a boxed `DynPersistence`.
-pub fn boxed_persistence<T: BasePersistence + std::fmt::Debug + 'static>(p: T) -> Box<dyn DynPersistence> {
+pub fn boxed_persistence<T: BasePersistence + std::fmt::Debug + 'static>(
+    p: T,
+) -> Box<dyn DynPersistence> {
     Box::new(p)
 }
 
@@ -170,7 +182,9 @@ pub struct Handler {
 
 impl std::fmt::Debug for Handler {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("Handler").field("block", &self.block).finish()
+        f.debug_struct("Handler")
+            .field("block", &self.block)
+            .finish()
     }
 }
 
@@ -210,11 +224,43 @@ pub struct Application {
 
 impl std::fmt::Debug for Application {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("Application").field("bot_token", &self.bot.token()).finish()
+        f.debug_struct("Application")
+            .field("bot_token", &self.bot.token())
+            .finish()
     }
 }
 
 pub const DEFAULT_GROUP: i32 = 0;
+
+pub(crate) struct ApplicationConfig {
+    pub(crate) bot: Arc<ExtBot>,
+    pub(crate) context_types: ContextTypes,
+    pub(crate) update_processor: Arc<BaseUpdateProcessor>,
+    pub(crate) post_init: Option<LifecycleHook>,
+    pub(crate) post_stop: Option<LifecycleHook>,
+    pub(crate) post_shutdown: Option<LifecycleHook>,
+    pub(crate) persistence: Option<Box<dyn DynPersistence>>,
+    pub(crate) job_queue: Option<Arc<JobQueue>>,
+}
+
+impl ApplicationConfig {
+    pub(crate) fn new(
+        bot: Arc<ExtBot>,
+        context_types: ContextTypes,
+        update_processor: Arc<BaseUpdateProcessor>,
+    ) -> Self {
+        Self {
+            bot,
+            context_types,
+            update_processor,
+            post_init: None,
+            post_stop: None,
+            post_shutdown: None,
+            persistence: None,
+            job_queue: None,
+        }
+    }
+}
 
 impl Application {
     /// Creates a new `Application`.
@@ -222,51 +268,85 @@ impl Application {
     /// Prefer [`ApplicationBuilder`](crate::builder::ApplicationBuilder) for public
     /// construction -- this avoids long positional argument lists.
     #[must_use]
-    pub(crate) fn new(
-        bot: Arc<ExtBot>,
-        context_types: ContextTypes,
-        update_processor: Arc<BaseUpdateProcessor>,
-        post_init: Option<LifecycleHook>,
-        post_stop: Option<LifecycleHook>,
-        post_shutdown: Option<LifecycleHook>,
-        persistence: Option<Box<dyn DynPersistence>>,
-        job_queue: Option<Arc<JobQueue>>,
-    ) -> Arc<Self> {
+    pub(crate) fn new(config: ApplicationConfig) -> Arc<Self> {
+        let ApplicationConfig {
+            bot,
+            context_types,
+            update_processor,
+            post_init,
+            post_stop,
+            post_shutdown,
+            persistence,
+            job_queue,
+        } = config;
         let (tx, rx) = mpsc::unbounded_channel();
         let bot_data_initial = context_types.bot_data();
         Arc::new(Self {
-            bot, context_types, update_processor,
+            bot,
+            context_types,
+            update_processor,
             handlers: RwLock::new(BTreeMap::new()),
             error_handlers: RwLock::new(Vec::new()),
             user_data: Arc::new(RwLock::new(HashMap::new())),
             chat_data: Arc::new(RwLock::new(HashMap::new())),
             bot_data: Arc::new(RwLock::new(bot_data_initial)),
-            persistence, job_queue,
+            persistence,
+            job_queue,
             pending_tasks: Arc::new(RwLock::new(Vec::new())),
             initialized: RwLock::new(false),
             running: RwLock::new(false),
             update_tx: tx,
             update_rx: RwLock::new(Some(rx)),
             stop_notify: Arc::new(Notify::new()),
-            post_init, post_stop, post_shutdown,
+            post_init,
+            post_stop,
+            post_shutdown,
         })
     }
 
     // -- Accessors --
-    #[must_use] pub fn bot(&self) -> &Arc<ExtBot> { &self.bot }
-    pub async fn is_initialized(&self) -> bool { *self.initialized.read().await }
-    pub async fn is_running(&self) -> bool { *self.running.read().await }
-    #[must_use] pub fn concurrent_updates(&self) -> usize { self.update_processor.max_concurrent_updates() }
-    #[must_use] pub fn user_data(&self) -> &Arc<RwLock<HashMap<i64, DefaultData>>> { &self.user_data }
-    #[must_use] pub fn chat_data(&self) -> &Arc<RwLock<HashMap<i64, DefaultData>>> { &self.chat_data }
-    #[must_use] pub fn bot_data(&self) -> &Arc<RwLock<DefaultData>> { &self.bot_data }
-    #[must_use] pub fn update_sender(&self) -> mpsc::UnboundedSender<Update> { self.update_tx.clone() }
-    #[must_use] pub fn job_queue(&self) -> Option<&Arc<JobQueue>> { self.job_queue.as_ref() }
+    #[must_use]
+    pub fn bot(&self) -> &Arc<ExtBot> {
+        &self.bot
+    }
+    pub async fn is_initialized(&self) -> bool {
+        *self.initialized.read().await
+    }
+    pub async fn is_running(&self) -> bool {
+        *self.running.read().await
+    }
+    #[must_use]
+    pub fn concurrent_updates(&self) -> usize {
+        self.update_processor.max_concurrent_updates()
+    }
+    #[must_use]
+    pub fn user_data(&self) -> &Arc<RwLock<HashMap<i64, DefaultData>>> {
+        &self.user_data
+    }
+    #[must_use]
+    pub fn chat_data(&self) -> &Arc<RwLock<HashMap<i64, DefaultData>>> {
+        &self.chat_data
+    }
+    #[must_use]
+    pub fn bot_data(&self) -> &Arc<RwLock<DefaultData>> {
+        &self.bot_data
+    }
+    #[must_use]
+    pub fn update_sender(&self) -> mpsc::UnboundedSender<Update> {
+        self.update_tx.clone()
+    }
+    #[must_use]
+    pub fn job_queue(&self) -> Option<&Arc<JobQueue>> {
+        self.job_queue.as_ref()
+    }
 
     // -- Lifecycle: initialize --
     pub async fn initialize(&self) -> Result<(), ApplicationError> {
         let mut init = self.initialized.write().await;
-        if *init { debug!("This Application is already initialized."); return Ok(()); }
+        if *init {
+            debug!("This Application is already initialized.");
+            return Ok(());
+        }
 
         self.bot.initialize().await?;
         self.update_processor.initialize().await;
@@ -275,18 +355,26 @@ impl Application {
         if let Some(ref persistence) = self.persistence {
             let sd = persistence.store_data();
             if sd.user_data {
-                if let Ok(data) = persistence.get_user_data().await { *self.user_data.write().await = data; }
+                if let Ok(data) = persistence.get_user_data().await {
+                    *self.user_data.write().await = data;
+                }
             }
             if sd.chat_data {
-                if let Ok(data) = persistence.get_chat_data().await { *self.chat_data.write().await = data; }
+                if let Ok(data) = persistence.get_chat_data().await {
+                    *self.chat_data.write().await = data;
+                }
             }
             if sd.bot_data {
-                if let Ok(data) = persistence.get_bot_data().await { *self.bot_data.write().await = data; }
+                if let Ok(data) = persistence.get_bot_data().await {
+                    *self.bot_data.write().await = data;
+                }
             }
         }
 
         // M14: Start the job queue
-        if let Some(ref jq) = self.job_queue { jq.start().await; }
+        if let Some(ref jq) = self.job_queue {
+            jq.start().await;
+        }
 
         *init = true;
         Ok(())
@@ -294,13 +382,20 @@ impl Application {
 
     // -- Lifecycle: shutdown --
     pub async fn shutdown(&self) -> Result<(), ApplicationError> {
-        if *self.running.read().await { return Err(ApplicationError::StillRunning); }
+        if *self.running.read().await {
+            return Err(ApplicationError::StillRunning);
+        }
         let mut init = self.initialized.write().await;
-        if !*init { debug!("This Application is already shut down."); return Ok(()); }
+        if !*init {
+            debug!("This Application is already shut down.");
+            return Ok(());
+        }
 
         // C8: Flush persistence
         if let Some(ref persistence) = self.persistence {
-            if let Err(e) = persistence.flush().await { error!("Failed to flush persistence: {e}"); }
+            if let Err(e) = persistence.flush().await {
+                error!("Failed to flush persistence: {e}");
+            }
         }
 
         self.bot.shutdown().await?;
@@ -311,9 +406,13 @@ impl Application {
 
     // -- Lifecycle: start / stop --
     pub async fn start(self: &Arc<Self>) -> Result<(), ApplicationError> {
-        if *self.running.read().await { return Err(ApplicationError::AlreadyRunning); }
+        if *self.running.read().await {
+            return Err(ApplicationError::AlreadyRunning);
+        }
         self.check_initialized().await?;
-        { *self.running.write().await = true; }
+        {
+            *self.running.write().await = true;
+        }
 
         // Wire job queue hooks so that job runs trigger persistence
         // flushes (GAP 1) and route errors to error handlers (GAP 2),
@@ -330,18 +429,22 @@ impl Application {
                         app.update_persistence().await;
                     }
                 })
-            })).await;
+            }))
+            .await;
 
             // GAP 2: When a job callback errors, route through process_error.
             let weak_error = app_weak;
-            jq.set_on_job_error(Arc::new(move |err: Box<dyn std::error::Error + Send + Sync>| {
-                let weak = weak_error.clone();
-                Box::pin(async move {
-                    if let Some(app) = weak.upgrade() {
-                        app.process_error(None, err).await;
-                    }
-                })
-            })).await;
+            jq.set_on_job_error(Arc::new(
+                move |err: Box<dyn std::error::Error + Send + Sync>| {
+                    let weak = weak_error.clone();
+                    Box::pin(async move {
+                        if let Some(app) = weak.upgrade() {
+                            app.process_error(None, err).await;
+                        }
+                    })
+                },
+            ))
+            .await;
         }
 
         let rx = { self.update_rx.write().await.take() };
@@ -375,11 +478,15 @@ impl Application {
     }
 
     pub async fn stop(&self) -> Result<(), ApplicationError> {
-        if !*self.running.read().await { return Err(ApplicationError::NotRunning); }
+        if !*self.running.read().await {
+            return Err(ApplicationError::NotRunning);
+        }
         info!("Application is stopping. This might take a moment.");
         self.stop_notify.notify_waiters();
 
-        if let Some(ref jq) = self.job_queue { jq.stop().await; }
+        if let Some(ref jq) = self.job_queue {
+            jq.stop().await;
+        }
 
         // M10: Await pending tasks with timeout
         {
@@ -388,16 +495,24 @@ impl Application {
             drop(tasks);
             if !handles.is_empty() {
                 debug!("Waiting for {} pending tasks", handles.len());
-                let _ = tokio::time::timeout(std::time::Duration::from_secs(5), futures_join_all(handles)).await;
+                let _ = tokio::time::timeout(
+                    std::time::Duration::from_secs(5),
+                    futures_join_all(handles),
+                )
+                .await;
             }
         }
 
-        { *self.running.write().await = false; }
+        {
+            *self.running.write().await = false;
+        }
         info!("Application.stop() complete");
         Ok(())
     }
 
-    pub fn stop_running(&self) { self.stop_notify.notify_waiters(); }
+    pub fn stop_running(&self) {
+        self.stop_notify.notify_waiters();
+    }
 
     /// Spawn a background task and track its [`JoinHandle`](tokio::task::JoinHandle)
     /// in `pending_tasks`.
@@ -413,7 +528,10 @@ impl Application {
 
     // -- C8: Persistence update --
     pub async fn update_persistence(&self) {
-        let persistence = match self.persistence.as_ref() { Some(p) => p, None => return };
+        let persistence = match self.persistence.as_ref() {
+            Some(p) => p,
+            None => return,
+        };
         let sd = persistence.store_data();
         if sd.user_data {
             for (uid, data) in self.user_data.read().await.iter() {
@@ -426,7 +544,9 @@ impl Application {
             }
         }
         if sd.bot_data {
-            let _ = persistence.update_bot_data(self.bot_data.read().await.clone()).await;
+            let _ = persistence
+                .update_bot_data(self.bot_data.read().await.clone())
+                .await;
         }
     }
 
@@ -441,7 +561,8 @@ impl Application {
             std::time::Duration::from_secs(10),
             None,
             false,
-        ).await
+        )
+        .await
     }
 
     /// Returns a [`PollingBuilder`] for configuring and starting polling.
@@ -471,20 +592,26 @@ impl Application {
         drop_pending_updates: bool,
     ) -> Result<(), ApplicationError> {
         self.initialize().await?;
-        if let Some(ref hook) = self.post_init { hook(Arc::clone(&self)).await; }
+        if let Some(ref hook) = self.post_init {
+            hook(Arc::clone(&self)).await;
+        }
         self.start().await?;
 
         // C8: periodic persistence
-        let persistence_handle = if self.persistence.is_some() {
-            let secs = self.persistence.as_ref().unwrap().update_interval();
+        let persistence_handle = if let Some(persistence) = self.persistence.as_ref() {
+            let secs = persistence.update_interval();
             let app = Arc::clone(&self);
             let stop = Arc::clone(&self.stop_notify);
             Some(tokio::spawn(async move {
                 let mut iv = tokio::time::interval(std::time::Duration::from_secs_f64(secs));
                 iv.tick().await;
-                loop { tokio::select! { _ = iv.tick() => { app.update_persistence().await; } _ = stop.notified() => { break; } } }
+                loop {
+                    tokio::select! { _ = iv.tick() => { app.update_persistence().await; } _ = stop.notified() => { break; } }
+                }
             }))
-        } else { None };
+        } else {
+            None
+        };
 
         let bot = Arc::clone(&self.bot);
         let tx = self.update_tx.clone();
@@ -494,8 +621,14 @@ impl Application {
         let poll_handle = tokio::spawn(async move {
             let mut offset: Option<i64> = None;
             if drop_pending_updates {
-                if let Ok(updates) = bot.inner().get_updates(Some(-1), Some(1), Some(0), None).await {
-                    if let Some(last) = updates.last() { offset = Some(last.update_id + 1); }
+                if let Ok(updates) = bot
+                    .inner()
+                    .get_updates(Some(-1), Some(1), Some(0), None)
+                    .await
+                {
+                    if let Some(last) = updates.last() {
+                        offset = Some(last.update_id + 1);
+                    }
                 }
             }
             let timeout_secs = timeout.as_secs().max(1) as i32;
@@ -509,7 +642,9 @@ impl Application {
                     }
                     _ = stop.notified() => { return; }
                 }
-                if !poll_interval.is_zero() { tokio::time::sleep(poll_interval).await; }
+                if !poll_interval.is_zero() {
+                    tokio::time::sleep(poll_interval).await;
+                }
             }
         });
 
@@ -521,21 +656,34 @@ impl Application {
 
         self.stop_notify.notify_waiters();
         let _ = poll_handle.await;
-        if let Some(ph) = persistence_handle { let _ = ph.await; }
-        if *self.running.read().await { self.stop().await?; }
-        if let Some(ref hook) = self.post_stop { hook(Arc::clone(&self)).await; }
+        if let Some(ph) = persistence_handle {
+            let _ = ph.await;
+        }
+        if *self.running.read().await {
+            self.stop().await?;
+        }
+        if let Some(ref hook) = self.post_stop {
+            hook(Arc::clone(&self)).await;
+        }
         self.shutdown().await?;
-        if let Some(ref hook) = self.post_shutdown { hook(Arc::clone(&self)).await; }
+        if let Some(ref hook) = self.post_shutdown {
+            hook(Arc::clone(&self)).await;
+        }
         Ok(())
     }
 
     // -- M8: run_webhook --
     #[cfg(feature = "webhooks")]
-    pub async fn run_webhook(self: Arc<Self>, config: crate::updater::WebhookConfig) -> Result<(), ApplicationError> {
+    pub async fn run_webhook(
+        self: Arc<Self>,
+        config: crate::updater::WebhookConfig,
+    ) -> Result<(), ApplicationError> {
         use crate::utils::webhook_handler::WebhookServer;
 
         self.initialize().await?;
-        if let Some(ref hook) = self.post_init { hook(Arc::clone(&self)).await; }
+        if let Some(ref hook) = self.post_init {
+            hook(Arc::clone(&self)).await;
+        }
         self.start().await?;
 
         let persistence_handle = if self.persistence.is_some() {
@@ -545,21 +693,44 @@ impl Application {
             Some(tokio::spawn(async move {
                 let mut iv = tokio::time::interval(std::time::Duration::from_secs_f64(secs));
                 iv.tick().await;
-                loop { tokio::select! { _ = iv.tick() => { app.update_persistence().await; } _ = stop.notified() => { break; } } }
+                loop {
+                    tokio::select! { _ = iv.tick() => { app.update_persistence().await; } _ = stop.notified() => { break; } }
+                }
             }))
-        } else { None };
+        } else {
+            None
+        };
 
         let (bounded_tx, mut bounded_rx) = mpsc::channel::<Update>(256);
         let unbounded_tx = self.update_tx.clone();
-        let bridge = tokio::spawn(async move { while let Some(u) = bounded_rx.recv().await { if unbounded_tx.send(u).is_err() { break; } } });
+        let bridge = tokio::spawn(async move {
+            while let Some(u) = bounded_rx.recv().await {
+                if unbounded_tx.send(u).is_err() {
+                    break;
+                }
+            }
+        });
 
-        let server = Arc::new(WebhookServer::new(&config.listen, config.port, &config.url_path, bounded_tx, config.secret_token.clone()));
+        let server = Arc::new(WebhookServer::new(
+            &config.listen,
+            config.port,
+            &config.url_path,
+            bounded_tx,
+            config.secret_token.clone(),
+        ));
         let ready = Arc::new(Notify::new());
         let rc = ready.clone();
         let srv = server.clone();
-        let wh = tokio::spawn(async move { if let Err(e) = srv.serve_forever(Some(rc)).await { error!("Webhook server error: {e}"); } });
+        let wh = tokio::spawn(async move {
+            if let Err(e) = srv.serve_forever(Some(rc)).await {
+                error!("Webhook server error: {e}");
+            }
+        });
         ready.notified().await;
-        info!("Webhook server started on {}:{}", config.listen, config.port);
+        info!(
+            "Webhook server started on {}:{}",
+            config.listen, config.port
+        );
 
         info!("Application is running via webhook. Press Ctrl+C to stop.");
         tokio::select! {
@@ -571,27 +742,47 @@ impl Application {
         server.shutdown();
         let _ = wh.await;
         bridge.abort();
-        if let Some(ph) = persistence_handle { let _ = ph.await; }
-        if *self.running.read().await { self.stop().await?; }
-        if let Some(ref hook) = self.post_stop { hook(Arc::clone(&self)).await; }
+        if let Some(ph) = persistence_handle {
+            let _ = ph.await;
+        }
+        if *self.running.read().await {
+            self.stop().await?;
+        }
+        if let Some(ref hook) = self.post_stop {
+            hook(Arc::clone(&self)).await;
+        }
         self.shutdown().await?;
-        if let Some(ref hook) = self.post_shutdown { hook(Arc::clone(&self)).await; }
+        if let Some(ref hook) = self.post_shutdown {
+            hook(Arc::clone(&self)).await;
+        }
         Ok(())
     }
 
     // -- Handler registration --
     pub async fn add_handler(&self, handler: Handler, group: i32) {
-        self.handlers.write().await.entry(group).or_default().push(handler);
+        self.handlers
+            .write()
+            .await
+            .entry(group)
+            .or_default()
+            .push(handler);
     }
     pub async fn add_handlers(&self, new_handlers: Vec<Handler>, group: i32) {
-        self.handlers.write().await.entry(group).or_default().extend(new_handlers);
+        self.handlers
+            .write()
+            .await
+            .entry(group)
+            .or_default()
+            .extend(new_handlers);
     }
     pub async fn remove_handler(&self, group: i32, index: usize) -> Option<Handler> {
         let mut handlers = self.handlers.write().await;
         if let Some(gh) = handlers.get_mut(&group) {
             if index < gh.len() {
                 let removed = gh.remove(index);
-                if gh.is_empty() { handlers.remove(&group); }
+                if gh.is_empty() {
+                    handlers.remove(&group);
+                }
                 return Some(removed);
             }
         }
@@ -621,7 +812,11 @@ impl Application {
     ///
     /// app.add_typed_handler(CommandHandler::new("start", start), 0).await;
     /// ```
-    pub async fn add_typed_handler(&self, handler: impl crate::handlers::base::Handler + 'static, group: i32) {
+    pub async fn add_typed_handler(
+        &self,
+        handler: impl crate::handlers::base::Handler + 'static,
+        group: i32,
+    ) {
         use crate::handlers::base::HandlerResult as TraitHandlerResult;
 
         let handler = Arc::new(handler);
@@ -646,7 +841,9 @@ impl Application {
                 let bd = Arc::clone(&bot_data_ref);
                 let jq = job_queue.clone();
                 Box::pin(async move {
-                    let match_result = h.check_update(&update).unwrap_or(crate::handlers::base::MatchResult::Empty);
+                    let match_result = h
+                        .check_update(&update)
+                        .unwrap_or(crate::handlers::base::MatchResult::Empty);
 
                     // Create a proper CallbackContext from the typed update.
                     let mut ctx = CallbackContext::from_update(&update, bot, ud, cd, bd);
@@ -658,7 +855,10 @@ impl Application {
                     h.collect_additional_context(&mut ctx, &match_result);
 
                     // Call the context-aware handler.
-                    match h.handle_update_with_context(update, match_result, ctx).await {
+                    match h
+                        .handle_update_with_context(update, match_result, ctx)
+                        .await
+                    {
                         TraitHandlerResult::Continue => Ok(()),
                         TraitHandlerResult::Stop => Err(HandlerError::HandlerStop { state: None }),
                         TraitHandlerResult::Error(e) => Err(HandlerError::Other(e)),
@@ -677,17 +877,35 @@ impl Application {
         let mut context: Option<CallbackContext> = None;
         let groups: Vec<(i32, Vec<usize>)> = {
             let h = self.handlers.read().await;
-            h.iter().map(|(g, hs)| (*g, (0..hs.len()).collect())).collect()
+            h.iter()
+                .map(|(g, hs)| (*g, (0..hs.len()).collect()))
+                .collect()
         };
         for (gid, indices) in &groups {
             let guard = self.handlers.read().await;
-            let group = match guard.get(gid) { Some(g) => g, None => continue };
+            let group = match guard.get(gid) {
+                Some(g) => g,
+                None => continue,
+            };
             for &idx in indices {
-                let handler = match group.get(idx) { Some(h) => h, None => continue };
-                if !(handler.check_update)(&update) { continue; }
+                let handler = match group.get(idx) {
+                    Some(h) => h,
+                    None => continue,
+                };
+                if !(handler.check_update)(&update) {
+                    continue;
+                }
                 if context.is_none() {
-                    let mut ctx = CallbackContext::from_update(&update, Arc::clone(&self.bot), Arc::clone(&self.user_data), Arc::clone(&self.chat_data), Arc::clone(&self.bot_data));
-                    if let Some(ref jq) = self.job_queue { ctx = ctx.with_job_queue(Arc::clone(jq)); }
+                    let mut ctx = CallbackContext::from_update(
+                        &update,
+                        Arc::clone(&self.bot),
+                        Arc::clone(&self.user_data),
+                        Arc::clone(&self.chat_data),
+                        Arc::clone(&self.bot_data),
+                    );
+                    if let Some(ref jq) = self.job_queue {
+                        ctx = ctx.with_job_queue(Arc::clone(jq));
+                    }
                     context = Some(ctx);
                 }
                 let ctx = context.clone().unwrap();
@@ -696,14 +914,22 @@ impl Application {
                 if handler.block {
                     match cb(uc, ctx).await {
                         Ok(()) => {}
-                        Err(HandlerError::HandlerStop { .. }) => { return Ok(()); }
+                        Err(HandlerError::HandlerStop { .. }) => {
+                            return Ok(());
+                        }
                         Err(HandlerError::Other(e)) => {
-                            if self.process_error(Some(update.clone()), e).await { return Ok(()); }
+                            if self.process_error(Some(update.clone()), e).await {
+                                return Ok(());
+                            }
                         }
                     }
                 } else {
                     let tasks = Arc::clone(&self.pending_tasks);
-                    let handle = tokio::spawn(async move { if let Err(e) = cb(uc, ctx).await { warn!("Non-blocking handler error: {e}"); } });
+                    let handle = tokio::spawn(async move {
+                        if let Err(e) = cb(uc, ctx).await {
+                            warn!("Non-blocking handler error: {e}");
+                        }
+                    });
                     tasks.write().await.push(handle);
                 }
                 break;
@@ -714,33 +940,62 @@ impl Application {
     }
 
     /// M9: error handlers can signal stop by returning `true`.
-    pub async fn process_error(&self, update: Option<Update>, error: Box<dyn std::error::Error + Send + Sync>) -> bool {
+    pub async fn process_error(
+        &self,
+        update: Option<Update>,
+        error: Box<dyn std::error::Error + Send + Sync>,
+    ) -> bool {
         let handlers = self.error_handlers.read().await;
-        if handlers.is_empty() { error!("No error handlers registered: {error}"); return false; }
+        if handlers.is_empty() {
+            error!("No error handlers registered: {error}");
+            return false;
+        }
         let error_arc: Arc<dyn std::error::Error + Send + Sync> = Arc::from(error);
         for (callback, block) in handlers.iter() {
-            let mut ctx = CallbackContext::from_error(update.as_ref(), Arc::clone(&error_arc), Arc::clone(&self.bot), Arc::clone(&self.user_data), Arc::clone(&self.chat_data), Arc::clone(&self.bot_data));
-            if let Some(ref jq) = self.job_queue { ctx = ctx.with_job_queue(Arc::clone(jq)); }
+            let mut ctx = CallbackContext::from_error(
+                update.as_ref(),
+                Arc::clone(&error_arc),
+                Arc::clone(&self.bot),
+                Arc::clone(&self.user_data),
+                Arc::clone(&self.chat_data),
+                Arc::clone(&self.bot_data),
+            );
+            if let Some(ref jq) = self.job_queue {
+                ctx = ctx.with_job_queue(Arc::clone(jq));
+            }
             if *block {
-                if callback(update.clone(), ctx).await { return true; }
+                if callback(update.clone(), ctx).await {
+                    return true;
+                }
             } else {
-                let cb = Arc::clone(callback); let upd = update.clone();
-                tokio::spawn(async move { cb(upd, ctx).await; });
+                let cb = Arc::clone(callback);
+                let upd = update.clone();
+                tokio::spawn(async move {
+                    cb(upd, ctx).await;
+                });
             }
         }
         false
     }
 
     // -- Data management --
-    pub async fn drop_chat_data(&self, chat_id: i64) { self.chat_data.write().await.remove(&chat_id); }
-    pub async fn drop_user_data(&self, user_id: i64) { self.user_data.write().await.remove(&user_id); }
+    pub async fn drop_chat_data(&self, chat_id: i64) {
+        self.chat_data.write().await.remove(&chat_id);
+    }
+    pub async fn drop_user_data(&self, user_id: i64) {
+        self.user_data.write().await.remove(&user_id);
+    }
     pub async fn migrate_chat_data(&self, old: i64, new: i64) {
         let mut s = self.chat_data.write().await;
-        if let Some(d) = s.remove(&old) { s.insert(new, d); }
+        if let Some(d) = s.remove(&old) {
+            s.insert(new, d);
+        }
     }
 
     async fn check_initialized(&self) -> Result<(), ApplicationError> {
-        if !*self.initialized.read().await { return Err(ApplicationError::NotInitialized); }
+        if !*self.initialized.read().await {
+            return Err(ApplicationError::NotInitialized);
+        }
         Ok(())
     }
 }
@@ -821,17 +1076,21 @@ impl PollingBuilder {
 
     /// Starts the polling loop with the configured parameters.
     pub async fn start(self) -> Result<(), ApplicationError> {
-        self.app.run_polling_configured(
-            self.poll_interval,
-            self.timeout,
-            self.allowed_updates,
-            self.drop_pending_updates,
-        ).await
+        self.app
+            .run_polling_configured(
+                self.poll_interval,
+                self.timeout,
+                self.allowed_updates,
+                self.drop_pending_updates,
+            )
+            .await
     }
 }
 
 async fn futures_join_all(handles: Vec<tokio::task::JoinHandle<()>>) {
-    for h in handles { let _ = h.await; }
+    for h in handles {
+        let _ = h.await;
+    }
 }
 
 #[cfg(test)]
@@ -844,7 +1103,11 @@ mod tests {
         let bot = Bot::new("test_token", mock_request());
         let ext_bot = Arc::new(ExtBot::from_bot(bot));
         let processor = Arc::new(crate::update_processor::simple_processor(1).unwrap());
-        Application::new(ext_bot, ContextTypes::default(), processor, None, None, None, None, None)
+        Application::new(ApplicationConfig::new(
+            ext_bot,
+            ContextTypes::default(),
+            processor,
+        ))
     }
 
     fn make_update(json_val: serde_json::Value) -> Update {
@@ -878,11 +1141,21 @@ mod tests {
         app.initialize().await.unwrap();
         let called = Arc::new(std::sync::atomic::AtomicBool::new(false));
         let c2 = called.clone();
-        app.add_handler(Handler {
-            check_update: Arc::new(|u| u.message.is_some()),
-            callback: Arc::new(move |_, _| { let c = c2.clone(); Box::pin(async move { c.store(true, std::sync::atomic::Ordering::SeqCst); Ok(()) }) }),
-            block: true,
-        }, DEFAULT_GROUP).await;
+        app.add_handler(
+            Handler {
+                check_update: Arc::new(|u| u.message.is_some()),
+                callback: Arc::new(move |_, _| {
+                    let c = c2.clone();
+                    Box::pin(async move {
+                        c.store(true, std::sync::atomic::Ordering::SeqCst);
+                        Ok(())
+                    })
+                }),
+                block: true,
+            },
+            DEFAULT_GROUP,
+        )
+        .await;
         app.process_update(make_update(serde_json::json!({"update_id":1,"message":{"message_id":1,"date":0,"chat":{"id":1,"type":"private"},"text":"hello"}}))).await.unwrap();
         assert!(called.load(std::sync::atomic::Ordering::SeqCst));
     }
@@ -893,9 +1166,37 @@ mod tests {
         app.initialize().await.unwrap();
         let order = Arc::new(RwLock::new(Vec::new()));
         let o1 = order.clone();
-        app.add_handler(Handler { check_update: Arc::new(|_| true), callback: Arc::new(move |_, _| { let o = o1.clone(); Box::pin(async move { o.write().await.push(1); Ok(()) }) }), block: true }, 1).await;
+        app.add_handler(
+            Handler {
+                check_update: Arc::new(|_| true),
+                callback: Arc::new(move |_, _| {
+                    let o = o1.clone();
+                    Box::pin(async move {
+                        o.write().await.push(1);
+                        Ok(())
+                    })
+                }),
+                block: true,
+            },
+            1,
+        )
+        .await;
         let o0 = order.clone();
-        app.add_handler(Handler { check_update: Arc::new(|_| true), callback: Arc::new(move |_, _| { let o = o0.clone(); Box::pin(async move { o.write().await.push(0); Ok(()) }) }), block: true }, 0).await;
+        app.add_handler(
+            Handler {
+                check_update: Arc::new(|_| true),
+                callback: Arc::new(move |_, _| {
+                    let o = o0.clone();
+                    Box::pin(async move {
+                        o.write().await.push(0);
+                        Ok(())
+                    })
+                }),
+                block: true,
+            },
+            0,
+        )
+        .await;
         app.process_update(make_update(serde_json::json!({"update_id":1,"message":{"message_id":1,"date":0,"chat":{"id":1,"type":"private"}}}))).await.unwrap();
         assert_eq!(*order.read().await, vec![0, 1]);
     }
@@ -905,10 +1206,36 @@ mod tests {
         let app = make_app();
         app.initialize().await.unwrap();
         let reached = Arc::new(std::sync::atomic::AtomicBool::new(false));
-        app.add_handler(Handler { check_update: Arc::new(|_| true), callback: Arc::new(|_, _| Box::pin(async { Err(HandlerError::HandlerStop { state: None }) })), block: true }, 0).await;
+        app.add_handler(
+            Handler {
+                check_update: Arc::new(|_| true),
+                callback: Arc::new(|_, _| {
+                    Box::pin(async { Err(HandlerError::HandlerStop { state: None }) })
+                }),
+                block: true,
+            },
+            0,
+        )
+        .await;
         let r = reached.clone();
-        app.add_handler(Handler { check_update: Arc::new(|_| true), callback: Arc::new(move |_, _| { let r = r.clone(); Box::pin(async move { r.store(true, std::sync::atomic::Ordering::SeqCst); Ok(()) }) }), block: true }, 1).await;
-        app.process_update(make_update(serde_json::json!({"update_id":1}))).await.unwrap();
+        app.add_handler(
+            Handler {
+                check_update: Arc::new(|_| true),
+                callback: Arc::new(move |_, _| {
+                    let r = r.clone();
+                    Box::pin(async move {
+                        r.store(true, std::sync::atomic::Ordering::SeqCst);
+                        Ok(())
+                    })
+                }),
+                block: true,
+            },
+            1,
+        )
+        .await;
+        app.process_update(make_update(serde_json::json!({"update_id":1})))
+            .await
+            .unwrap();
         assert!(!reached.load(std::sync::atomic::Ordering::SeqCst));
     }
 
@@ -919,10 +1246,40 @@ mod tests {
         let first = Arc::new(std::sync::atomic::AtomicBool::new(false));
         let second = Arc::new(std::sync::atomic::AtomicBool::new(false));
         let f = first.clone();
-        app.add_handler(Handler { check_update: Arc::new(|_| true), callback: Arc::new(move |_, _| { let f = f.clone(); Box::pin(async move { f.store(true, std::sync::atomic::Ordering::SeqCst); Ok(()) }) }), block: true }, 0).await;
+        app.add_handler(
+            Handler {
+                check_update: Arc::new(|_| true),
+                callback: Arc::new(move |_, _| {
+                    let f = f.clone();
+                    Box::pin(async move {
+                        f.store(true, std::sync::atomic::Ordering::SeqCst);
+                        Ok(())
+                    })
+                }),
+                block: true,
+            },
+            0,
+        )
+        .await;
         let s = second.clone();
-        app.add_handler(Handler { check_update: Arc::new(|_| true), callback: Arc::new(move |_, _| { let s = s.clone(); Box::pin(async move { s.store(true, std::sync::atomic::Ordering::SeqCst); Ok(()) }) }), block: true }, 0).await;
-        app.process_update(make_update(serde_json::json!({"update_id":1}))).await.unwrap();
+        app.add_handler(
+            Handler {
+                check_update: Arc::new(|_| true),
+                callback: Arc::new(move |_, _| {
+                    let s = s.clone();
+                    Box::pin(async move {
+                        s.store(true, std::sync::atomic::Ordering::SeqCst);
+                        Ok(())
+                    })
+                }),
+                block: true,
+            },
+            0,
+        )
+        .await;
+        app.process_update(make_update(serde_json::json!({"update_id":1})))
+            .await
+            .unwrap();
         assert!(first.load(std::sync::atomic::Ordering::SeqCst));
         assert!(!second.load(std::sync::atomic::Ordering::SeqCst));
     }
@@ -931,12 +1288,36 @@ mod tests {
     async fn error_handler_called_on_failure() {
         let app = make_app();
         app.initialize().await.unwrap();
-        app.add_handler(Handler { check_update: Arc::new(|_| true), callback: Arc::new(|_, _| Box::pin(async { Err(HandlerError::Other(Box::new(std::io::Error::new(std::io::ErrorKind::Other, "test")))) })), block: true }, 0).await;
+        app.add_handler(
+            Handler {
+                check_update: Arc::new(|_| true),
+                callback: Arc::new(|_, _| {
+                    Box::pin(async {
+                        Err(HandlerError::Other(Box::new(std::io::Error::new(
+                            std::io::ErrorKind::Other,
+                            "test",
+                        ))))
+                    })
+                }),
+                block: true,
+            },
+            0,
+        )
+        .await;
         let seen = Arc::new(std::sync::atomic::AtomicBool::new(false));
         let s = seen.clone();
-        let eh: ErrorHandlerCallback = Arc::new(move |_, ctx| { let s = s.clone(); Box::pin(async move { s.store(true, std::sync::atomic::Ordering::SeqCst); assert!(ctx.error.is_some()); false }) });
+        let eh: ErrorHandlerCallback = Arc::new(move |_, ctx| {
+            let s = s.clone();
+            Box::pin(async move {
+                s.store(true, std::sync::atomic::Ordering::SeqCst);
+                assert!(ctx.error.is_some());
+                false
+            })
+        });
         app.add_error_handler(eh, true).await;
-        app.process_update(make_update(serde_json::json!({"update_id":1}))).await.unwrap();
+        app.process_update(make_update(serde_json::json!({"update_id":1})))
+            .await
+            .unwrap();
         assert!(seen.load(std::sync::atomic::Ordering::SeqCst));
     }
 
@@ -944,27 +1325,65 @@ mod tests {
     async fn error_handler_can_signal_stop() {
         let app = make_app();
         app.initialize().await.unwrap();
-        app.add_handler(Handler { check_update: Arc::new(|_| true), callback: Arc::new(|_, _| Box::pin(async { Err(HandlerError::Other(Box::new(std::io::Error::new(std::io::ErrorKind::Other, "e")))) })), block: true }, 0).await;
+        app.add_handler(
+            Handler {
+                check_update: Arc::new(|_| true),
+                callback: Arc::new(|_, _| {
+                    Box::pin(async {
+                        Err(HandlerError::Other(Box::new(std::io::Error::new(
+                            std::io::ErrorKind::Other,
+                            "e",
+                        ))))
+                    })
+                }),
+                block: true,
+            },
+            0,
+        )
+        .await;
         let eh: ErrorHandlerCallback = Arc::new(|_, _| Box::pin(async { true }));
         let reached = Arc::new(std::sync::atomic::AtomicBool::new(false));
         let r = reached.clone();
-        app.add_handler(Handler { check_update: Arc::new(|_| true), callback: Arc::new(move |_, _| { let r = r.clone(); Box::pin(async move { r.store(true, std::sync::atomic::Ordering::SeqCst); Ok(()) }) }), block: true }, 1).await;
+        app.add_handler(
+            Handler {
+                check_update: Arc::new(|_| true),
+                callback: Arc::new(move |_, _| {
+                    let r = r.clone();
+                    Box::pin(async move {
+                        r.store(true, std::sync::atomic::Ordering::SeqCst);
+                        Ok(())
+                    })
+                }),
+                block: true,
+            },
+            1,
+        )
+        .await;
         app.add_error_handler(eh, true).await;
-        app.process_update(make_update(serde_json::json!({"update_id":1}))).await.unwrap();
+        app.process_update(make_update(serde_json::json!({"update_id":1})))
+            .await
+            .unwrap();
         assert!(!reached.load(std::sync::atomic::Ordering::SeqCst));
     }
 
     #[tokio::test]
     async fn process_update_before_initialize_fails() {
         let app = make_app();
-        assert!(app.process_update(make_update(serde_json::json!({"update_id": 0}))).await.is_err());
+        assert!(app
+            .process_update(make_update(serde_json::json!({"update_id": 0})))
+            .await
+            .is_err());
     }
 
     #[tokio::test]
     async fn drop_chat_and_user_data() {
         let app = make_app();
-        { app.chat_data.write().await.insert(42, HashMap::new()); }
-        { app.user_data.write().await.insert(7, HashMap::new()); }
+        {
+            app.chat_data.write().await.insert(42, HashMap::new());
+        }
+        {
+            app.user_data.write().await.insert(7, HashMap::new());
+        }
         app.drop_chat_data(42).await;
         app.drop_user_data(7).await;
         assert!(app.chat_data.read().await.get(&42).is_none());
@@ -974,17 +1393,28 @@ mod tests {
     #[tokio::test]
     async fn migrate_chat_data() {
         let app = make_app();
-        { let mut s = app.chat_data.write().await; let mut d = HashMap::new(); d.insert("key".into(), Value::String("val".into())); s.insert(100, d); }
+        {
+            let mut s = app.chat_data.write().await;
+            let mut d = HashMap::new();
+            d.insert("key".into(), Value::String("val".into()));
+            s.insert(100, d);
+        }
         app.migrate_chat_data(100, 200).await;
         let s = app.chat_data.read().await;
         assert!(s.get(&100).is_none());
-        assert_eq!(s.get(&200).unwrap().get("key"), Some(&Value::String("val".into())));
+        assert_eq!(
+            s.get(&200).unwrap().get("key"),
+            Some(&Value::String("val".into()))
+        );
     }
 
     #[tokio::test]
     async fn update_sender_works() {
         let app = make_app();
-        assert!(app.update_sender().send(make_update(serde_json::json!({"update_id":1}))).is_ok());
+        assert!(app
+            .update_sender()
+            .send(make_update(serde_json::json!({"update_id":1})))
+            .is_ok());
     }
 
     #[tokio::test]
@@ -1000,7 +1430,8 @@ mod tests {
         let f = flag.clone();
         app.create_task(async move {
             f.store(true, std::sync::atomic::Ordering::SeqCst);
-        }).await;
+        })
+        .await;
         // Give the spawned task a moment to run.
         tokio::task::yield_now().await;
         assert!(flag.load(std::sync::atomic::Ordering::SeqCst));

@@ -137,13 +137,13 @@ pub enum TransactionPartner {
     AffiliateProgram(TransactionPartnerAffiliateProgram),
 
     /// Transaction with a chat.
-    Chat(TransactionPartnerChat),
+    Chat(Box<TransactionPartnerChat>),
 
     /// Withdrawal transaction with Fragment.
     Fragment(TransactionPartnerFragment),
 
     /// Transaction with a user.
-    User(TransactionPartnerUser),
+    User(Box<TransactionPartnerUser>),
 
     /// Transaction with an unknown partner.
     Other(TransactionPartnerOther),

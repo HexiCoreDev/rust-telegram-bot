@@ -6,7 +6,7 @@ use std::sync::Arc;
 use telegram_bot_raw::bot::Bot;
 use telegram_bot_raw::request::base::BaseRequest;
 
-use crate::application::{Application, DynPersistence, LifecycleHook};
+use crate::application::{Application, ApplicationConfig, DynPersistence, LifecycleHook};
 use crate::context_types::ContextTypes;
 use crate::defaults::Defaults;
 use crate::ext_bot::ExtBot;
@@ -206,16 +206,14 @@ impl ApplicationBuilder<HasToken> {
                 .expect("concurrent_updates validated by builder"),
         );
 
-        Application::new(
-            ext_bot,
-            context_types,
-            update_processor,
-            self.post_init,
-            self.post_stop,
-            self.post_shutdown,
-            self.persistence,
-            self.job_queue,
-        )
+        let mut config = ApplicationConfig::new(ext_bot, context_types, update_processor);
+        config.post_init = self.post_init;
+        config.post_stop = self.post_stop;
+        config.post_shutdown = self.post_shutdown;
+        config.persistence = self.persistence;
+        config.job_queue = self.job_queue;
+
+        Application::new(config)
     }
 }
 

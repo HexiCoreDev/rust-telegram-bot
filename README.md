@@ -31,8 +31,8 @@ We acknowledge and thank the python-telegram-bot maintainers and community for o
 | **Performance** | GIL-limited concurrency, interpreted | True parallelism, compiled to native code |
 | **Memory safety** | Runtime GC, potential leaks in long-running bots | Ownership system prevents leaks at compile time |
 | **Type safety** | Optional type hints, runtime errors | Enforced at compile time, no `AttributeError` at 3 AM |
-| **Deployment** | Requires Python runtime + virtualenv | Single static binary, < 10 MB |
-| **Resource usage** | ~50-100 MB baseline memory | ~5-15 MB baseline memory |
+| **Deployment** | Requires Python runtime + virtualenv | Single static binary, ~10 MB stripped |
+| **Resource usage** | ~50-100 MB baseline memory | ~15-27 MB RSS (release mode, measured) |
 | **Concurrency** | asyncio (single-threaded) | tokio (multi-threaded work-stealing) |
 
 For bots that handle high volumes of updates, run on constrained hardware (VPS, Raspberry Pi, containers), or need to be deployed without a runtime, Rust is the right tool.
@@ -41,7 +41,7 @@ For bots that handle high volumes of updates, run on constrained hardware (VPS, 
 
 The library is organized as a Cargo workspace with three crates:
 
-```
+```text
 rust-telegram-bot/
   crates/
     telegram-bot-raw/     # Pure API types and methods (like Python's `telegram` module)
@@ -71,7 +71,7 @@ tracing-subscriber = "0.3"
 
 ### 3. Write your bot
 
-```rust
+```rust,no_run
 use telegram_bot::ext::prelude::*;
 
 async fn start(update: Update, context: Context) -> HandlerResult {
@@ -132,7 +132,7 @@ TELEGRAM_BOT_TOKEN="123456:ABC-DEF" cargo run
 
 Filters use Rust's bitwise operators for composition -- the same mental model as python-telegram-bot, but enforced at compile time:
 
-```rust
+```rust,ignore
 use telegram_bot::ext::prelude::*;
 
 // Text messages that are NOT commands
@@ -151,7 +151,7 @@ Over 50 built-in filters are available: `TEXT`, `COMMAND`, `PHOTO`, `VIDEO`, `AU
 
 Handlers use strongly-typed constructors and are registered via `add_typed_handler`:
 
-```rust
+```rust,ignore
 use telegram_bot::ext::prelude::*;
 
 // Command handler -- matches /start
@@ -177,7 +177,7 @@ app.add_typed_handler(FnHandler::on_any(track_users), -1).await;
 
 Every Bot API method returns a builder with optional parameters as chainable setters. Builders implement `IntoFuture`, so you can use `.await` directly, or call `.send().await` explicitly:
 
-```rust
+```rust,ignore
 // Simple -- .await directly
 context.bot().send_message(chat_id, "Hello!").await?;
 
@@ -211,7 +211,7 @@ context
 
 No more magic strings. All enums are strongly typed:
 
-```rust
+```rust,ignore
 use telegram_bot::ext::prelude::*;
 
 // Parse modes
@@ -231,7 +231,7 @@ if chat.chat_type != ChatType::Private { /* ... */ }
 
 Handlers are organized into numbered groups. Within a group, the first matching handler wins. Across groups, processing continues unless a handler returns `HandlerResult::Stop`:
 
-```rust
+```rust,ignore
 // Group -1: always runs first (e.g., user tracking)
 app.add_typed_handler(FnHandler::on_any(track_users), -1).await;
 
@@ -250,7 +250,7 @@ app.add_typed_handler(
 
 The `Context` provides typed read and write guards for bot-wide, per-user, and per-chat data:
 
-```rust
+```rust,ignore
 async fn handle(update: Update, context: Context) -> HandlerResult {
     // Read bot-wide data
     let bd = context.bot_data().await;
@@ -271,7 +271,7 @@ async fn handle(update: Update, context: Context) -> HandlerResult {
 
 Multi-step conversations with automatic state tracking, timeouts, nested conversations, and persistence:
 
-```rust
+```rust,ignore
 use telegram_bot::ext::handlers::conversation::*;
 
 #[derive(Clone, Hash, Eq, PartialEq)]
@@ -301,7 +301,7 @@ Features ported from python-telegram-bot:
 
 Schedule one-shot, repeating, daily, and monthly jobs using tokio timers and a builder pattern:
 
-```rust
+```rust,ignore
 use telegram_bot::ext::job_queue::{JobQueue, JobCallbackFn, JobContext};
 
 let jq = Arc::new(JobQueue::new());
@@ -342,7 +342,7 @@ Swap between backends without changing application code:
 
 **JSON file** (human-readable, great for development):
 
-```rust
+```rust,ignore
 use telegram_bot::ext::persistence::json_file::JsonFilePersistence;
 
 let persistence = JsonFilePersistence::new("bot_data", true, false);
@@ -354,7 +354,7 @@ let app = ApplicationBuilder::new()
 
 **SQLite** (production-ready, WAL mode, atomic writes):
 
-```rust
+```rust,ignore
 use telegram_bot::ext::persistence::sqlite::SqlitePersistence;
 
 let persistence = SqlitePersistence::open("bot.db").unwrap();
@@ -366,7 +366,7 @@ let app = ApplicationBuilder::new()
 
 **Custom backend** -- implement the `BasePersistence` trait:
 
-```rust
+```rust,ignore
 use telegram_bot::ext::persistence::base::BasePersistence;
 
 #[derive(Debug)]
