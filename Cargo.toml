@@ -11,7 +11,7 @@ version = "0.1.0"
 edition = "2021"
 rust-version = "1.75"
 license = "LGPL-3.0-only"
-repository = "https://github.com/nicegram/rust-telegram-bot"
+repository = "https://github.com/HexiCoreDev/rust-telegram-bot"
 
 [workspace.dependencies]
 # Serialization

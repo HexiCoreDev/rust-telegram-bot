@@ -47,7 +47,7 @@ rust-telegram-bot/
 
 **`telegram-bot-raw`** contains every type and method from Bot API 9.6: `Message`, `Update`, `User`, `Chat`, inline types, payments, passport, games, stickers, and all API methods on the `Bot` struct. It depends only on `serde`, `reqwest`, and `tokio`.
 
-**`telegram-bot-ext`** provides the application framework: `ApplicationBuilder`, 21 handler types, composable filters, `ConversationHandler`, `JobQueue`, persistence backends (JSON file, SQLite), rate limiting, webhook support, and callback data caching.
+**`telegram-bot-ext`** provides the application framework: `ApplicationBuilder`, typed handler system, composable filters, `ConversationHandler`, `JobQueue`, persistence backends (JSON file, SQLite), rate limiting, webhook support, and callback data caching.
 
 **`telegram-bot`** is the facade crate you add to `Cargo.toml`. It re-exports everything from both crates under `telegram_bot::raw` and `telegram_bot::ext`.
 
@@ -61,76 +61,58 @@ Open Telegram, message `@BotFather`, send `/newbot`, and follow the prompts. Cop
 
 ```toml
 [dependencies]
-telegram-bot = { git = "https://github.com/nicegram/rust-telegram-bot" }
-tokio = { version = "1", features = ["full"] }
+telegram-bot = { git = "https://github.com/HexiCoreDev/rust-telegram-bot" }
 tracing-subscriber = "0.3"
-serde_json = "1"
 ```
 
 ### 3. Write your bot
 
 ```rust
-use std::sync::Arc;
-use std::time::Duration;
-use serde_json::Value;
+use telegram_bot::ext::prelude::*;
 
-use telegram_bot::ext::application::{self, Application, HandlerError};
-use telegram_bot::ext::builder::ApplicationBuilder;
-use telegram_bot::ext::context::CallbackContext;
-use telegram_bot::ext::filters::base::Filter;
-use telegram_bot::ext::filters::command::COMMAND;
-use telegram_bot::ext::filters::text::TEXT;
-
-async fn start(update: Value, context: CallbackContext) -> Result<(), HandlerError> {
-    let chat_id = update["message"]["chat"]["id"].as_i64().unwrap();
-    context.bot().inner()
-        .send_message(chat_id.into(), "Hello! Send me a message and I'll echo it back.",
-            None, None, None, None, None, None, None, None, None, None, None, None, None)
-        .await
-        .map_err(|e| HandlerError::Other(Box::new(e)))?;
+async fn start(update: Update, context: Context) -> HandlerResult {
+    let name = update
+        .effective_user()
+        .map(|u| u.first_name.as_str())
+        .unwrap_or("there");
+    context
+        .reply_text(&update, &format!("Hi {name}! Send me any text and I will echo it back."))
+        .await?;
     Ok(())
 }
 
-async fn echo(update: Value, context: CallbackContext) -> Result<(), HandlerError> {
-    let chat_id = update["message"]["chat"]["id"].as_i64().unwrap();
-    let text = update["message"]["text"].as_str().unwrap_or("");
-    context.bot().inner()
-        .send_message(chat_id.into(), text,
-            None, None, None, None, None, None, None, None, None, None, None, None, None)
-        .await
-        .map_err(|e| HandlerError::Other(Box::new(e)))?;
+async fn echo(update: Update, context: Context) -> HandlerResult {
+    let text = update
+        .effective_message()
+        .and_then(|m| m.text.as_deref())
+        .unwrap_or("");
+    if !text.is_empty() {
+        context.reply_text(&update, text).await?;
+    }
     Ok(())
 }
 
-fn is_start(u: &Value) -> bool {
-    u["message"]["text"].as_str().map_or(false, |t| t.starts_with("/start"))
-}
+fn main() {
+    telegram_bot::run(async {
+        tracing_subscriber::fmt::init();
 
-fn is_text_not_command(u: &Value) -> bool {
-    TEXT.check_update(u).is_match() && !COMMAND.check_update(u).is_match()
-}
+        let token = std::env::var("TELEGRAM_BOT_TOKEN")
+            .expect("TELEGRAM_BOT_TOKEN environment variable must be set");
 
-#[tokio::main]
-async fn main() {
-    tracing_subscriber::fmt::init();
-    let token = std::env::var("TELEGRAM_BOT_TOKEN").expect("Set TELEGRAM_BOT_TOKEN");
+        let app = ApplicationBuilder::new().token(token).build();
 
-    let app: Arc<Application> = ApplicationBuilder::new().token(token).build();
+        app.add_typed_handler(CommandHandler::new("start", start), 0).await;
+        app.add_typed_handler(
+            MessageHandler::new(TEXT() & !COMMAND(), echo),
+            0,
+        ).await;
 
-    app.add_handler(application::Handler {
-        check_update: Arc::new(is_start),
-        callback: Arc::new(|u, ctx| Box::pin(start(u, ctx))),
-        block: true,
-    }, 0).await;
+        println!("Echo bot is running. Press Ctrl+C to stop.");
 
-    app.add_handler(application::Handler {
-        check_update: Arc::new(is_text_not_command),
-        callback: Arc::new(|u, ctx| Box::pin(echo(u, ctx))),
-        block: true,
-    }, 0).await;
-
-    println!("Bot running. Press Ctrl+C to stop.");
-    app.run_polling(Duration::from_secs(0), None, false).await.unwrap();
+        if let Err(e) = app.run_polling().await {
+            eprintln!("Error running bot: {e}");
+        }
+    });
 }
 ```
 
@@ -147,42 +129,138 @@ TELEGRAM_BOT_TOKEN="123456:ABC-DEF" cargo run
 Filters use Rust's bitwise operators for composition -- the same mental model as python-telegram-bot, but enforced at compile time:
 
 ```rust
-use telegram_bot::ext::filters::base::{F, Filter};
-use telegram_bot::ext::filters::text::TEXT;
-use telegram_bot::ext::filters::command::COMMAND;
+use telegram_bot::ext::prelude::*;
 
 // Text messages that are NOT commands
-let text_only = F::new(TEXT) & !F::new(COMMAND);
+let text_only = TEXT() & !COMMAND();
 
-// Photos or videos
-use telegram_bot::ext::filters::base::{PHOTO, VIDEO};
-let media = F::new(PHOTO) | F::new(VIDEO);
-
-// Custom closure filter
-use telegram_bot::ext::filters::base::FnFilter;
-let premium_only = FnFilter::new("premium_users", |update| {
-    update["message"]["from"]["is_premium"]
-        .as_bool()
-        .unwrap_or(false)
-});
+// Use it with a handler
+app.add_typed_handler(
+    MessageHandler::new(text_only, my_callback),
+    0,
+).await;
 ```
 
 Over 50 built-in filters are available: `TEXT`, `COMMAND`, `PHOTO`, `VIDEO`, `AUDIO`, `VOICE`, `DOCUMENT`, `LOCATION`, `CONTACT`, `ANIMATION`, `STICKER`, `POLL`, `VENUE`, `GAME`, `INVOICE`, `FORWARDED`, `REPLY`, `PREMIUM_USER`, `FORUM`, chat type filters, entity filters, regex filters, and more.
+
+### Typed Handler Registration
+
+Handlers use strongly-typed constructors and are registered via `add_typed_handler`:
+
+```rust
+use telegram_bot::ext::prelude::*;
+
+// Command handler -- matches /start
+app.add_typed_handler(CommandHandler::new("start", start), 0).await;
+
+// Message handler -- matches text that is not a command
+app.add_typed_handler(MessageHandler::new(TEXT() & !COMMAND(), echo), 0).await;
+
+// Callback query handler -- matches inline keyboard button presses
+app.add_typed_handler(FnHandler::on_callback_query(button), 0).await;
+
+// Generic function handler with custom predicate
+app.add_typed_handler(
+    FnHandler::new(|u| u.callback_query.is_some(), my_handler),
+    0,
+).await;
+
+// Catch-all handler (e.g., for logging)
+app.add_typed_handler(FnHandler::on_any(track_users), -1).await;
+```
+
+### Builder-based Bot API
+
+Every Bot API method returns a builder with optional parameters as chainable setters. Builders implement `IntoFuture`, so you can use `.await` directly, or call `.send().await` explicitly:
+
+```rust
+// Simple -- .await directly
+context.bot().send_message(chat_id, "Hello!").await?;
+
+// With optional parameters
+context
+    .bot()
+    .send_message(chat_id, "<b>Bold</b> text")
+    .parse_mode(ParseMode::Html)
+    .send()
+    .await?;
+
+// Inline keyboard
+context
+    .bot()
+    .send_message(chat_id, "Choose:")
+    .reply_markup(keyboard_json)
+    .send()
+    .await?;
+
+// Edit a message
+context
+    .bot()
+    .edit_message_text("Updated text")
+    .chat_id(chat_id)
+    .message_id(msg_id)
+    .send()
+    .await?;
+```
+
+### Typed Constants
+
+No more magic strings. All enums are strongly typed:
+
+```rust
+use telegram_bot::ext::prelude::*;
+
+// Parse modes
+context.bot().send_message(chat_id, text)
+    .parse_mode(ParseMode::Html)
+    .send()
+    .await?;
+
+// Entity types
+if entity.entity_type == MessageEntityType::BotCommand { /* ... */ }
+
+// Chat types
+if chat.chat_type != ChatType::Private { /* ... */ }
+```
 
 ### Handler Groups
 
 Handlers are organized into numbered groups. Within a group, the first matching handler wins. Across groups, processing continues unless a handler returns `HandlerResult::Stop`:
 
 ```rust
-// Group 0: command handlers (checked first)
-app.add_handler(start_handler, 0).await;
-app.add_handler(help_handler, 0).await;
+// Group -1: always runs first (e.g., user tracking)
+app.add_typed_handler(FnHandler::on_any(track_users), -1).await;
 
-// Group 1: message handlers (checked if no command matched)
-app.add_handler(echo_handler, 1).await;
+// Group 0: command handlers
+app.add_typed_handler(CommandHandler::new("start", start), 0).await;
+app.add_typed_handler(CommandHandler::new("help", help), 0).await;
 
-// Group 2: logging handler (always runs)
-app.add_handler(log_handler, 2).await;
+// Group 1: message handlers
+app.add_typed_handler(
+    MessageHandler::new(TEXT() & !COMMAND(), echo),
+    1,
+).await;
+```
+
+### Typed Data Access
+
+The `Context` provides typed read and write guards for bot-wide, per-user, and per-chat data:
+
+```rust
+async fn handle(update: Update, context: Context) -> HandlerResult {
+    // Read bot-wide data
+    let bd = context.bot_data().await;
+    let name = bd.get_str("bot_name");
+    let count = bd.get_i64("total_messages");
+
+    // Write bot-wide data with typed setters
+    let mut bd = context.bot_data_mut().await;
+    bd.set_str("last_user", "Alice");
+    bd.set_i64("total_messages", count.unwrap_or(0) + 1);
+    bd.add_to_id_set("user_ids", user_id);
+
+    Ok(())
+}
 ```
 
 ### ConversationHandler State Machine
@@ -217,27 +295,39 @@ Features ported from python-telegram-bot:
 
 ### Job Queue Scheduling
 
-Schedule one-shot, repeating, daily, and monthly jobs using tokio timers:
+Schedule one-shot, repeating, daily, and monthly jobs using tokio timers and a builder pattern:
 
 ```rust
 use telegram_bot::ext::job_queue::{JobQueue, JobCallbackFn, JobContext};
 
 let jq = Arc::new(JobQueue::new());
-jq.start().await;
 
 // One-shot: fire after 30 seconds
-jq.run_once("reminder", Duration::from_secs(30), callback, None, None, None).await;
+jq.once(callback, Duration::from_secs(30))
+    .name("reminder")
+    .chat_id(chat_id)
+    .start()
+    .await;
 
 // Repeating: every 60 seconds
-jq.run_repeating("heartbeat", Duration::from_secs(60), None, None, callback, None, None, None).await;
+jq.repeating(callback, Duration::from_secs(60))
+    .name("heartbeat")
+    .start()
+    .await;
 
 // Daily at 09:00 UTC on weekdays
 use chrono::NaiveTime;
 let time = NaiveTime::from_hms_opt(9, 0, 0).unwrap();
-jq.run_daily("morning_report", time, &[1, 2, 3, 4, 5], callback, None, None, None).await;
+jq.daily(callback, time, &[1, 2, 3, 4, 5])
+    .name("morning_report")
+    .start()
+    .await;
 
 // Monthly on the 1st at midnight
-jq.run_monthly("monthly_summary", time, 1, callback, None, None, None).await;
+jq.monthly(callback, time, 1)
+    .name("monthly_summary")
+    .start()
+    .await;
 ```
 
 Every job returns a `Job` handle for cancellation, status checking, and enable/disable toggling.
@@ -290,13 +380,13 @@ impl BasePersistence for RedisPersistence {
 ```toml
 [dependencies]
 # Default: polling support only
-telegram-bot = { git = "https://github.com/nicegram/rust-telegram-bot" }
+telegram-bot = { git = "https://github.com/HexiCoreDev/rust-telegram-bot" }
 
 # Everything
-telegram-bot = { git = "https://github.com/nicegram/rust-telegram-bot", features = ["full"] }
+telegram-bot = { git = "https://github.com/HexiCoreDev/rust-telegram-bot", features = ["full"] }
 
 # Pick what you need
-telegram-bot = { git = "https://github.com/nicegram/rust-telegram-bot", features = [
+telegram-bot = { git = "https://github.com/HexiCoreDev/rust-telegram-bot", features = [
     "webhooks",           # axum-based webhook server
     "job-queue",          # Scheduled job execution
     "persistence-json",   # JSON file persistence
@@ -312,7 +402,7 @@ telegram-bot = { git = "https://github.com/nicegram/rust-telegram-bot", features
 | Bot API version | 9.6 | 9.5 | 7.x |
 | Language | Rust | Python | Rust |
 | Async runtime | tokio | asyncio | tokio |
-| Handler system | 21 handler types | 20+ handler types | Dispatcher + handler chains |
+| Handler system | Typed handlers + FnHandler | 20+ handler types | Dispatcher + handler chains |
 | Filter composition | `&`, `\|`, `^`, `!` operators | Same operators | Predicate combinators |
 | ConversationHandler | Full port with timeouts + nesting | Full | dialogue macro |
 | Job queue | Built-in (tokio timers) | APScheduler | External |
@@ -334,6 +424,7 @@ The `crates/telegram-bot/examples/` directory contains complete, runnable exampl
 | [`timer_bot`](crates/telegram-bot/examples/timer_bot.rs) | Job queue: delayed messages, cancellation | `timerbot.py` |
 | [`conversation_bot`](crates/telegram-bot/examples/conversation_bot.rs) | Multi-step conversation with state machine | `conversationbot.py` |
 | [`raw_api_bot`](crates/telegram-bot/examples/raw_api_bot.rs) | Direct Bot API usage without the ext framework | N/A |
+| [`context_types_bot`](crates/telegram-bot/examples/context_types_bot.rs) | Typed data access: bot_data, chat_data, user tracking | `contexttypesbot.py` |
 
 Run any example:
 
@@ -349,15 +440,17 @@ What is implemented:
 
 - All Bot API 9.6 types and methods
 - `ApplicationBuilder` with typestate pattern
-- 21 handler types (command, message, callback query, inline query, conversation, and more)
+- Typed handler system (`CommandHandler`, `MessageHandler`, `FnHandler`, and more)
 - 50+ composable filters with `&`, `|`, `^`, `!` operators
 - `ConversationHandler` with full state machine, timeouts, nesting, and persistence
-- `JobQueue` with one-shot, repeating, daily, and monthly scheduling
+- `JobQueue` with one-shot, repeating, daily, and monthly scheduling (builder pattern)
 - JSON file and SQLite persistence backends
+- Typed data access guards (`DataReadGuard`, `DataWriteGuard`)
 - Polling and webhook (axum) update delivery
 - Callback data caching
 - Rate limiter
 - Defaults system for parse mode, link preview, etc.
+- `telegram_bot::run()` for safe async entry point with proper stack sizing
 
 ### Roadmap
 
@@ -375,7 +468,7 @@ What is implemented:
 
 - [Getting Started](docs/getting-started.md) -- Installation, token setup, first bot
 - [Architecture](docs/architecture.md) -- Crate structure, design decisions
-- [Handlers](docs/handlers.md) -- All 21 handlers with usage examples
+- [Handlers](docs/handlers.md) -- Handler types with usage examples
 - [Filters](docs/filters.md) -- Filter system, composition, all filter types
 - [Persistence](docs/persistence.md) -- JSON, SQLite, custom backends
 - [Job Queue](docs/job-queue.md) -- Scheduling, cancellation, daily/monthly triggers
@@ -396,5 +489,5 @@ You may copy, distribute, and modify the software provided that modifications ar
 
 - [Telegram Bot API Documentation](https://core.telegram.org/bots/api)
 - [python-telegram-bot](https://github.com/python-telegram-bot/python-telegram-bot) -- the project that started it all
-- [Repository](https://github.com/nicegram/rust-telegram-bot)
+- [Repository](https://github.com/HexiCoreDev/rust-telegram-bot)
 - [@BotFather](https://t.me/BotFather) -- create your bot token here

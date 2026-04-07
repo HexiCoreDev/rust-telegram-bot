@@ -12,153 +12,188 @@ vocabulary, so most concepts map directly.
 |----------------|-----------------|
 | `telegram` package | `telegram-bot-raw` crate |
 | `telegram.ext` package | `telegram-bot-ext` crate |
+| `from telegram.ext import *` | `use telegram_bot::ext::prelude::*` |
 | `Application` class | `Arc<Application>` struct |
 | `ApplicationBuilder` | `ApplicationBuilder<State>` (typestate) |
 | `BaseHandler` | `Handler` trait |
 | `handler.check_update(update)` | `handler.check_update(&update) -> Option<MatchResult>` |
-| `CallbackContext` dataclass | `CallbackContext` struct |
-| `context.bot` | `context.bot()` (returns `Arc<ExtBot>`) |
-| `context.user_data` | `context.user_data()` (returns `Arc<RwLock<HashMap<...>>>`) |
-| `context.chat_data` | `context.chat_data()` |
-| `context.bot_data` | `context.bot_data()` |
-| `context.args` | `context.args` (Option<Vec<String>>, set by CommandHandler) |
-| `context.matches` | `context.matches` (Option<Vec<String>>, set by regex handlers) |
-| `context.job_queue` | `context.job_queue()` |
-| `message.reply_text(...)` | `context.bot().inner().build_send_message(chat_id, text).send().await` |
-| `filters.TEXT` | `TEXT` (from `filters::text`) |
-| `filters.ALL` | `ALL` (from `filters::base`) |
-| `f1 & f2` | `F::new(f1) & F::new(f2)` |
-| `~f` | `!F::new(f)` |
+| `CallbackContext` dataclass | `Context` (alias for `CallbackContext`) |
+| `context.bot` | `context.bot()` (returns `&Arc<ExtBot>`, which `Deref`s to `Bot`) |
+| `context.bot_data` | `context.bot_data().await` / `context.bot_data_mut().await` (typed guards) |
+| `context.user_data` | `context.user_data().await` (returns cloned snapshot) |
+| `context.chat_data` | `context.chat_data().await` (returns cloned snapshot) |
+| `context.args` | `context.args` (`Option<Vec<String>>`, set by `CommandHandler`) |
+| `context.matches` | `context.matches` (`Option<Vec<String>>`, set by regex handlers) |
+| `context.job_queue` | `context.job_queue` (`Option<Arc<JobQueue>>`) |
+| `message.reply_text(...)` | `context.reply_text(&update, text).await?` |
+| `bot.send_message(chat_id, text)` | `context.bot().send_message(chat_id, text).send().await?` |
+| `filters.TEXT` | `TEXT()` (from prelude) |
+| `filters.ALL` | `F::new(ALL)` |
+| `f1 & f2` | `f1 & f2` (both `F` values) |
+| `~f` | `!f` |
+| `ParseMode.HTML` | `ParseMode::Html` |
+| `MessageEntity.BOT_COMMAND` | `MessageEntityType::BotCommand` |
+| `Chat.PRIVATE` | `ChatType::Private` |
 | `PicklePersistence` | `JsonFilePersistence` or `SqlitePersistence` |
-| `APScheduler` jobs | `JobQueue` (tokio timers) |
+| `APScheduler` jobs | `JobQueue` (tokio timers, builder pattern) |
 | `ConversationHandler.END` | `ConversationResult::End` |
-| `ConversationHandler.WAITING` | implicit WAITING state (non-blocking callbacks) |
 
 ---
 
 ## Key Differences
 
-### No bot methods on types
-
-In Python:
-
-```python
-async def handle(update, context):
-    await update.message.reply_text("Hello!")
-    await update.effective_user.send_message("Direct DM")
-```
-
-In Rust, `Message`, `User`, and `Chat` are plain data structs with no bot reference.
-You always call methods through the context using the builder API:
-
-```rust
-async fn handle(update: Value, context: CallbackContext) -> Result<(), HandlerError> {
-    let chat_id = update["message"]["chat"]["id"].as_i64().unwrap();
-    context
-        .bot()
-        .inner()
-        .build_send_message(chat_id.into(), "Hello!")
-        .send()
-        .await
-        .map_err(|e| HandlerError::Other(Box::new(e)))?;
-    Ok(())
-}
-```
-
-This is more verbose but keeps type definitions clean and avoids circular references.
-
-### FilterResult instead of bool
-
-Python filters return `True | False | DataDict`. Rust uses an enum:
-
-```rust
-pub enum FilterResult {
-    NoMatch,
-    Match,
-    MatchWithData(HashMap<String, Vec<String>>),
-}
-```
-
-Check if a filter matched with `.is_match()`. For data filters (regex, caption-regex),
-the extracted data is in the `MatchWithData` variant.
-
-### Filter wrapping with F
-
-Python filters compose directly:
-
-```python
-text_not_command = filters.TEXT & ~filters.COMMAND
-```
-
-In Rust, wrap in `F` first:
-
-```rust
-use telegram_bot_ext::filters::base::{F, Filter};
-use telegram_bot_ext::filters::text::TEXT;
-use telegram_bot_ext::filters::command::COMMAND;
-
-let text_not_command = F::new(TEXT) & !F::new(COMMAND);
-```
-
-After wrapping, the operator syntax is the same (except `~` becomes `!`).
-
-### Async is explicit
-
-Python async functions are called with `await`:
-
-```python
-async def start(update, context):
-    await context.bot.send_message(...)
-```
-
-Rust async functions are the same, but the function signature and error type are
-explicit:
-
-```rust
-async fn start(update: Value, context: CallbackContext) -> Result<(), HandlerError> {
-    context.bot().inner()
-        .build_send_message(chat_id.into(), "Hello!")
-        .send()
-        .await
-        .map_err(|e| HandlerError::Other(Box::new(e)))?;
-    Ok(())
-}
-```
-
-### Handler registration returns a future
+### Typed handler registration
 
 In Python:
 
 ```python
 app.add_handler(CommandHandler("start", start))
+app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, echo))
+app.add_handler(CallbackQueryHandler(button))
 ```
 
-In Rust, `add_handler` is async (it acquires a write lock on the handler list):
+In Rust:
 
 ```rust
-app.add_handler(handler, group).await;
+use telegram_bot::ext::prelude::*;
+
+app.add_typed_handler(CommandHandler::new("start", start), 0).await;
+app.add_typed_handler(MessageHandler::new(TEXT() & !COMMAND(), echo), 0).await;
+app.add_typed_handler(FnHandler::on_callback_query(button), 0).await;
 ```
 
-Call it in an async context (inside `main` or another async function).
+The handler constructors are ergonomic -- `CommandHandler::new` takes the command name
+and callback directly. `FnHandler` provides convenience methods like `on_callback_query`,
+`on_inline_query`, `on_any`, etc.
 
-### Errors must be boxed
+### Handler callback signatures
 
-Python handlers can raise any exception. In Rust, the error type in `HandlerResult` is:
+In Python:
 
-```rust
-Error(Box<dyn std::error::Error + Send + Sync>)
+```python
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text("Hello!")
 ```
 
-And handler callbacks return:
+In Rust:
 
 ```rust
-type HandlerCallback = Arc<dyn Fn(Value, CallbackContext) -> Pin<Box<dyn Future<Output = Result<(), HandlerError>> + Send>> + Send + Sync>;
+async fn start(update: Update, context: Context) -> HandlerResult {
+    context.reply_text(&update, "Hello!").await?;
+    Ok(())
+}
 ```
 
-Where `HandlerError::Other` wraps any error:
+The return type is explicit: `HandlerResult` is `Result<(), HandlerError>`. Use `?` for
+error propagation.
+
+### Bot API calls use builders
+
+In Python:
+
+```python
+await context.bot.send_message(chat_id=chat_id, text="Hello!", parse_mode=ParseMode.HTML)
+```
+
+In Rust, every API method returns a builder. Optional parameters are chainable setters.
+Builders implement `IntoFuture`, so you can `.await` directly or call `.send().await`:
 
 ```rust
-.map_err(|e| HandlerError::Other(Box::new(e)))?
+// Simple (IntoFuture)
+context.bot().send_message(chat_id, "Hello!").await?;
+
+// With optional parameters
+context
+    .bot()
+    .send_message(chat_id, "Hello!")
+    .parse_mode(ParseMode::Html)
+    .send()
+    .await?;
+```
+
+No more `None, None, None` for unused parameters.
+
+### Typed constants instead of strings
+
+In Python:
+
+```python
+parse_mode=ParseMode.HTML
+entity.type == MessageEntity.BOT_COMMAND
+chat.type != Chat.PRIVATE
+```
+
+In Rust:
+
+```rust
+.parse_mode(ParseMode::Html)
+entity.entity_type == MessageEntityType::BotCommand
+chat.chat_type != ChatType::Private
+```
+
+### Typed data access
+
+In Python:
+
+```python
+context.bot_data["key"] = "value"
+count = context.bot_data.get("count", 0)
+```
+
+In Rust, the context provides typed read/write guards with convenience methods:
+
+```rust
+// Write
+let mut bd = context.bot_data_mut().await;
+bd.set_str("key", "value");
+bd.set_i64("count", 42);
+bd.add_to_id_set("user_ids", user_id);
+
+// Read
+let bd = context.bot_data().await;
+let key = bd.get_str("key");       // Option<&str>
+let count = bd.get_i64("count");   // Option<i64>
+let ids = bd.get_id_set("user_ids"); // HashSet<i64>
+```
+
+### Entry point
+
+In Python:
+
+```python
+if __name__ == "__main__":
+    app = ApplicationBuilder().token(TOKEN).build()
+    app.run_polling()
+```
+
+In Rust:
+
+```rust
+fn main() {
+    telegram_bot::run(async {
+        let app = ApplicationBuilder::new().token(token).build();
+        app.add_typed_handler(CommandHandler::new("start", start), 0).await;
+        app.run_polling().await.unwrap();
+    });
+}
+```
+
+`telegram_bot::run()` sets up a multi-threaded tokio runtime with proper stack sizing.
+No `#[tokio::main]` needed.
+
+### Imports
+
+In Python:
+
+```python
+from telegram import Update
+from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes
+```
+
+In Rust, a single prelude import covers everything:
+
+```rust
+use telegram_bot::ext::prelude::*;
 ```
 
 ---
@@ -177,24 +212,21 @@ app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, echo))
 
 Rust:
 ```rust
-async fn echo(update: Value, context: CallbackContext) -> Result<(), HandlerError> {
-    let chat_id = update["message"]["chat"]["id"].as_i64().unwrap();
-    let text = update["message"]["text"].as_str().unwrap_or("");
-    context.bot().inner()
-        .build_send_message(chat_id.into(), text)
-        .send()
-        .await
-        .map_err(|e| HandlerError::Other(Box::new(e)))?;
+async fn echo(update: Update, context: Context) -> HandlerResult {
+    let text = update
+        .effective_message()
+        .and_then(|m| m.text.as_deref())
+        .unwrap_or("");
+    if !text.is_empty() {
+        context.reply_text(&update, text).await?;
+    }
     Ok(())
 }
 
-let text_not_cmd = F::new(TEXT) & !F::new(COMMAND);
-
-app.add_handler(MessageHandler::new(
-    Some(text_not_cmd),
-    Arc::new(|u, ctx| Box::pin(echo(u, ctx))),
-    true,
-), 0).await;
+app.add_typed_handler(
+    MessageHandler::new(TEXT() & !COMMAND(), echo),
+    0,
+).await;
 ```
 
 ### Command with arguments
@@ -213,35 +245,36 @@ app.add_handler(CommandHandler("ban", ban))
 
 Rust:
 ```rust
-async fn ban(update: Value, context: CallbackContext) -> Result<(), HandlerError> {
-    let chat_id = update["message"]["chat"]["id"].as_i64().unwrap();
-    match context.args.as_deref() {
-        None | Some([]) => {
-            context.bot().inner()
-                .build_send_message(chat_id.into(), "Usage: /ban <username>")
-                .send()
-                .await
-                .map_err(|e| HandlerError::Other(Box::new(e)))?;
-        }
-        Some([target, ..]) => {
-            println!("Banning: {}", target);
-        }
+async fn ban(update: Update, context: Context) -> HandlerResult {
+    let chat_id = update.effective_chat().expect("must have a chat").id;
+    let text = update
+        .effective_message()
+        .and_then(|m| m.text.as_deref())
+        .unwrap_or("");
+
+    let args: Vec<&str> = text.split_whitespace().skip(1).collect();
+
+    if args.is_empty() {
+        context.reply_text(&update, "Usage: /ban <username>").await?;
+        return Ok(());
     }
+
+    let target = args[0];
+    println!("Banning: {target}");
     Ok(())
 }
 
-app.add_handler(CommandHandler::new(
-    vec!["ban".into()],
-    Arc::new(|u, ctx| Box::pin(ban(u, ctx))),
-    None,
-    true,
-), 0).await;
+app.add_typed_handler(CommandHandler::new("ban", ban), 0).await;
 ```
 
 ### Inline keyboard with callback query
 
 Python:
 ```python
+async def start(update, context):
+    keyboard = [[InlineKeyboardButton("Option 1", callback_data="1")]]
+    await update.message.reply_text("Choose:", reply_markup=InlineKeyboardMarkup(keyboard))
+
 async def button(update, context):
     query = update.callback_query
     await query.answer()
@@ -250,70 +283,94 @@ async def button(update, context):
 
 Rust:
 ```rust
-async fn button(update: Value, context: CallbackContext) -> Result<(), HandlerError> {
-    let cq_id = update["callback_query"]["id"].as_str().unwrap();
-    let data = update["callback_query"]["data"].as_str().unwrap_or("?");
-    let message_id = update["callback_query"]["message"]["message_id"].as_i64().unwrap();
-    let chat_id = update["callback_query"]["message"]["chat"]["id"].as_i64().unwrap();
+use serde_json::json;
 
-    context.bot().inner()
-        .build_answer_callback_query(cq_id)
+async fn start(update: Update, context: Context) -> HandlerResult {
+    let chat_id = update.effective_chat().expect("must have a chat").id;
+    let keyboard = json!({
+        "inline_keyboard": [[
+            {"text": "Option 1", "callback_data": "1"}
+        ]]
+    });
+
+    context
+        .bot()
+        .send_message(chat_id, "Choose:")
+        .reply_markup(keyboard)
         .send()
-        .await
-        .map_err(|e| HandlerError::Other(Box::new(e)))?;
-
-    context.bot().inner()
-        .build_edit_message_text(chat_id.into(), message_id, &format!("Selected: {}", data))
-        .send()
-        .await
-        .map_err(|e| HandlerError::Other(Box::new(e)))?;
-
+        .await?;
     Ok(())
 }
 
-app.add_handler(CallbackQueryHandler::new(
-    Arc::new(|u, mr| Box::pin(button(u, mr))),
-    None,
-    true,
-), 0).await;
+async fn button(update: Update, context: Context) -> HandlerResult {
+    let cq = update.callback_query.as_ref().expect("must have callback_query");
+    let data = cq.data.as_deref().unwrap_or("?");
+
+    context.bot().answer_callback_query(&cq.id).send().await?;
+
+    if let Some(ref msg) = cq.message {
+        context
+            .bot()
+            .edit_message_text(&format!("Selected: {data}"))
+            .chat_id(msg.chat().id)
+            .message_id(msg.message_id())
+            .send()
+            .await?;
+    }
+    Ok(())
+}
+
+app.add_typed_handler(CommandHandler::new("start", start), 0).await;
+app.add_typed_handler(FnHandler::on_callback_query(button), 0).await;
 ```
 
-### Storing user data
+### Storing bot-wide data
 
 Python:
 ```python
 async def count(update, context):
-    context.user_data["count"] = context.user_data.get("count", 0) + 1
-    await update.message.reply_text(f"You sent {context.user_data['count']} messages.")
+    context.bot_data["count"] = context.bot_data.get("count", 0) + 1
+    await update.message.reply_text(f"Total messages: {context.bot_data['count']}")
 ```
 
 Rust:
 ```rust
-async fn count(update: Value, context: CallbackContext) -> Result<(), HandlerError> {
-    let user_id = update["message"]["from"]["id"].as_i64().unwrap();
-    let chat_id = update["message"]["chat"]["id"].as_i64().unwrap();
-
-    let current = {
-        let user_data = context.user_data().read().await;
-        user_data.get(&user_id)
-            .and_then(|d| d.get("count"))
-            .and_then(|v| v.as_u64())
-            .unwrap_or(0)
-    };
+async fn count(update: Update, context: Context) -> HandlerResult {
+    let current = context.bot_data().await.get_i64("count").unwrap_or(0);
 
     {
-        let mut user_data = context.user_data().write().await;
-        user_data.entry(user_id).or_default()
-            .insert("count".into(), serde_json::json!(current + 1));
+        let mut bd = context.bot_data_mut().await;
+        bd.set_i64("count", current + 1);
     }
 
-    context.bot().inner()
-        .build_send_message(chat_id.into(), &format!("You sent {} messages.", current + 1))
-        .send()
-        .await
-        .map_err(|e| HandlerError::Other(Box::new(e)))?;
+    context
+        .reply_text(&update, &format!("Total messages: {}", current + 1))
+        .await?;
     Ok(())
 }
+```
+
+### User tracking
+
+Python:
+```python
+async def track_users(update, context):
+    if update.effective_user:
+        context.bot_data.setdefault("user_ids", set()).add(update.effective_user.id)
+```
+
+Rust:
+```rust
+async fn track_users(update: Update, context: Context) -> HandlerResult {
+    if let Some(user) = update.effective_user() {
+        let mut bd = context.bot_data_mut().await;
+        bd.add_to_id_set("user_ids", user.id);
+    }
+    Ok(())
+}
+
+// Register in group -1 so it runs before other handlers
+app.add_typed_handler(FnHandler::on_any(track_users), -1).await;
 ```
 
 ### Scheduling a reminder
@@ -329,16 +386,25 @@ async def set_timer(update, context):
 
 Rust:
 ```rust
-async fn set_timer(update: Value, context: CallbackContext) -> Result<(), HandlerError> {
-    let chat_id = update["message"]["chat"]["id"].as_i64().unwrap();
+use telegram_bot::ext::job_queue::{JobCallbackFn, JobContext};
 
-    let jq = context.job_queue()
-        .ok_or_else(|| HandlerError::Other("no job queue configured".into()))?;
+async fn set_timer(update: Update, context: Context) -> HandlerResult {
+    let chat_id = update.effective_chat().expect("must have a chat").id;
 
-    let callback: JobCallbackFn = Arc::new(|ctx| Box::pin(async move {
-        // In a real bot, you'd hold a reference to the bot here
-        println!("Reminder for chat_id {}", ctx.chat_id.unwrap_or(0));
-    }));
+    let jq = context.job_queue.as_ref().expect("job_queue should be set");
+
+    let bot = Arc::clone(context.bot());
+    let callback: JobCallbackFn = Arc::new(move |ctx: JobContext| {
+        let bot = Arc::clone(&bot);
+        Box::pin(async move {
+            let target = ctx.chat_id.unwrap_or(0);
+            if target != 0 {
+                bot.send_message(target, "Reminder!").send().await
+                    .map_err(|e| Box::new(e) as Box<dyn std::error::Error + Send + Sync>)?;
+            }
+            Ok(())
+        })
+    });
 
     jq.once(callback, Duration::from_secs(30))
         .name("reminder")
@@ -346,6 +412,7 @@ async fn set_timer(update: Value, context: CallbackContext) -> Result<(), Handle
         .start()
         .await;
 
+    context.reply_text(&update, "Timer set for 30 seconds!").await?;
     Ok(())
 }
 ```
@@ -379,39 +446,73 @@ conv_handler = ConversationHandler(
 )
 ```
 
-Rust:
+Rust (using manual state tracking, the most common pattern):
 ```rust
-#[derive(Clone, Hash, Eq, PartialEq)]
-enum State { AskingName, AskingAge }
+use std::collections::HashMap;
+use std::sync::Arc;
+use tokio::sync::RwLock;
+use telegram_bot::ext::prelude::*;
 
-// start: called by /start command, transitions to AskingName
-// got_name: called when in AskingName state, transitions to AskingAge
-// got_age: called when in AskingAge state, ends the conversation
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum ConvState { AskingName, AskingAge }
 
-// Each handler is wrapped in ConversationStepHandler:
-//   handler: the underlying Handler (for check_update)
-//   conv_callback: returns (HandlerResult, ConversationResult<State>)
+type ConvStore = Arc<RwLock<HashMap<i64, ConvState>>>;
+type UserDataStore = Arc<RwLock<HashMap<i64, String>>>;
 
-let conv = ConversationHandler::builder()
-    .entry_point(ConversationStepHandler {
-        handler: Box::new(CommandHandler::new(vec!["start".into()], noop_cb, None, true)),
-        conv_callback: Arc::new(|_u, _mr| Box::pin(async {
-            (HandlerResult::Continue, ConversationResult::NextState(State::AskingName))
-        })),
-    })
-    .state(State::AskingName, vec![ConversationStepHandler {
-        handler: Box::new(MessageHandler::new(Some(F::new(TEXT)), noop_cb, true)),
-        conv_callback: Arc::new(|_u, _mr| Box::pin(async {
-            (HandlerResult::Continue, ConversationResult::NextState(State::AskingAge))
-        })),
-    }])
-    .state(State::AskingAge, vec![ConversationStepHandler {
-        handler: Box::new(MessageHandler::new(Some(F::new(TEXT)), noop_cb, true)),
-        conv_callback: Arc::new(|_u, _mr| Box::pin(async {
-            (HandlerResult::Continue, ConversationResult::End)
-        })),
-    }])
-    .build();
+async fn start_conv(
+    update: Update,
+    context: Context,
+    conv_store: ConvStore,
+) -> HandlerResult {
+    let chat_id = update.effective_chat().expect("must have a chat").id;
+    conv_store.write().await.insert(chat_id, ConvState::AskingName);
+    context
+        .bot()
+        .send_message(chat_id, "What's your name?")
+        .send()
+        .await?;
+    Ok(())
+}
+
+async fn got_name(
+    update: Update,
+    context: Context,
+    conv_store: ConvStore,
+    user_data: UserDataStore,
+) -> HandlerResult {
+    let chat_id = update.effective_chat().expect("must have a chat").id;
+    let text = update
+        .effective_message()
+        .and_then(|m| m.text.as_deref())
+        .unwrap_or_default()
+        .to_string();
+
+    user_data.write().await.insert(chat_id, text.clone());
+    conv_store.write().await.insert(chat_id, ConvState::AskingAge);
+    context
+        .bot()
+        .send_message(chat_id, &format!("Nice to meet you, {text}! How old are you?"))
+        .send()
+        .await?;
+    Ok(())
+}
+```
+
+Register the state handlers with `FnHandler` and predicates that check the current state:
+
+```rust
+let cs = Arc::clone(&conv_store);
+app.add_typed_handler(
+    FnHandler::new(
+        move |u| is_text_in_state(u, &cs, ConvState::AskingName),
+        move |update, ctx| {
+            let cs = Arc::clone(&conv_store);
+            let ud = Arc::clone(&user_data);
+            async move { got_name(update, ctx, cs, ud).await }
+        },
+    ),
+    1,
+).await;
 ```
 
 ---
@@ -431,11 +532,14 @@ let conv = ConversationHandler::builder()
 
 ## What Is Different
 
-- **Bot on types**: Python -- `message.reply_text(...)`. Rust -- `context.bot().inner().build_send_message(chat_id, text).send().await`.
-- **Filter wrapping**: Python -- compose directly. Rust -- wrap in `F(...)` first.
+- **Bot API calls**: Python -- `bot.send_message(chat_id, text, parse_mode="HTML")`. Rust -- `bot.send_message(chat_id, text).parse_mode(ParseMode::Html).send().await?`. Builder pattern eliminates positional arguments.
+- **Reply shorthand**: Python -- `message.reply_text(...)`. Rust -- `context.reply_text(&update, ...)`.
+- **Filter composition**: Python -- compose directly. Rust -- `TEXT()` and `COMMAND()` from prelude are pre-wrapped; other filters need `F::new(...)`.
 - **FilterResult vs bool**: Python returns `bool | DataDict`. Rust returns an enum variant.
-- **Error handling**: Python raises exceptions. Rust returns `Result<(), HandlerError>`.
+- **Error handling**: Python raises exceptions. Rust returns `Result<(), HandlerError>` and uses `?` for propagation.
 - **Persistence backend**: Python has `PicklePersistence`. Rust provides JSON file and SQLite.
+- **Data access**: Python -- `context.bot_data["key"]`. Rust -- `context.bot_data().await.get_str("key")` with typed guards.
+- **Constants**: Python -- `ParseMode.HTML` (string). Rust -- `ParseMode::Html` (enum).
 - **Job context**: Python job callbacks receive `ContextTypes`. Rust callbacks receive `JobContext` (a lightweight struct with name, chat_id, user_id, data).
 - **ConversationResult**: Python callbacks return an integer state or `END`. Rust callbacks return `ConversationResult<S>` with your state type.
 - **check_update return**: Python returns `bool`. Rust returns `Option<MatchResult>` so handlers can pass extracted data to callbacks without recomputing.
@@ -446,21 +550,27 @@ let conv = ConversationHandler::builder()
 
 **Ownership means no shared mutable state by default.** Use `Arc<RwLock<T>>` or
 `Arc<Mutex<T>>` for data shared across handler closures and job callbacks. The
-`context.user_data()` method returns an `Arc<RwLock<...>>` you can clone.
+`context.bot_data_mut()` method provides a typed write guard.
 
 **Closures must own their captures** when passed across async tasks. If a callback
-captures a variable, you may need `move` and `Arc::clone`:
+captures a variable, you need `move` and `Arc::clone`:
 
 ```rust
-let chat_id = update["message"]["chat"]["id"].as_i64().unwrap();
-let callback: JobCallbackFn = Arc::new(move |_ctx| Box::pin(async move {
-    println!("chat_id = {}", chat_id); // chat_id moved into closure
-}));
+let store = Arc::clone(&store);
+app.add_typed_handler(
+    FnHandler::new(
+        |u| check_command(u, "set"),
+        move |update, ctx| {
+            let s = Arc::clone(&store);
+            async move { set_timer(update, ctx, s).await }
+        },
+    ),
+    0,
+).await;
 ```
 
-**`?` does not work in closures that return `()`.** Job callbacks return `()`, so use
-`if let Err(e) = ... { ... }` or `.unwrap_or_else(|e| ...)` for error handling inside
-them.
+**`?` does not work in closures that return `()`.** Job callbacks return `Result`, so use
+`?` there. But if a closure returns `()`, use `if let Err(e) = ... { ... }` instead.
 
 **Trait objects require `Send + Sync`.** All callbacks, filters, and persistence backends
 must be `Send + Sync` because they are used in async tasks. If you store non-`Send` data,

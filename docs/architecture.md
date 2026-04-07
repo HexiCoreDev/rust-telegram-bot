@@ -23,8 +23,8 @@ Contains every type defined by Bot API 9.6 and the `Bot` struct that calls the A
 
 Responsibilities:
 - All API types: `Message`, `Update`, `User`, `Chat`, `CallbackQuery`, etc.
-- All API methods on `Bot`: `send_message`, `get_updates`, `answer_callback_query`, etc.
-- Builder variants for common methods: `build_send_message`, `build_edit_message_text`, etc.
+- All API methods on `Bot` via builder pattern: `send_message`, `get_updates`, `answer_callback_query`, etc.
+- Typed constant enums: `ParseMode`, `ChatType`, `MessageEntityType`, `ChatAction`, `ChatMemberStatus`
 - `ChatId` enum (numeric ID or `@username`)
 - `Defaults` struct for bot-wide default parameters
 - HTTP transport abstraction (`BaseRequest` trait, `reqwest` implementation)
@@ -43,22 +43,27 @@ Provides the application framework.
 Responsibilities:
 - `ApplicationBuilder` -- typestate builder that produces an `Application`
 - `Application` -- the central dispatcher (handler groups, polling, webhooks)
-- 21 handler types
+- Typed handler system: `CommandHandler`, `MessageHandler`, `FnHandler`, `CallbackQueryHandler`, and more
 - 50+ composable filters
 - `ConversationHandler` state machine
-- `JobQueue` with tokio-based scheduling
+- `JobQueue` with tokio-based scheduling (builder pattern)
 - `BasePersistence` trait and JSON/SQLite backends
-- `ExtBot` -- wraps `Bot` with defaults, callback data caching, and rate limiting
+- `ExtBot` -- wraps `Bot` with defaults, callback data caching, and rate limiting (implements `Deref<Target = Bot>`)
 - `CallbackContext` -- context object passed to every handler callback
+- Typed data guards: `DataReadGuard` and `DataWriteGuard` for ergonomic data access
+- `prelude` module re-exporting all common types
 
 ### telegram-bot (facade)
 
 Re-exports both crates so users only add one dependency:
 
 ```rust
-use telegram_bot::ext::application::Application;    // from telegram-bot-ext
-use telegram_bot::raw::types::message::Message;     // from telegram-bot-raw
+use telegram_bot::ext::prelude::*;       // everything you need for bot code
+use telegram_bot::raw::types::user::User; // if you need specific raw types
 ```
+
+Also provides `telegram_bot::run()`, a convenience function that builds a multi-threaded
+tokio runtime with proper stack sizing for deeply nested async state machines.
 
 ---
 
@@ -100,12 +105,15 @@ Telegram servers
       │
       ├─ Persistence refresh (refresh_user_data, refresh_chat_data)
       │
-      ├─ Group 0  ──>  check_update on each Handler
-      │                  first match wins  ──>  handle_update
+      ├─ Group -1  ──>  check_update on each Handler
+      │                  first match wins  ──>  handle_update_with_context
+      │
+      ├─ Group 0   ──>  check_update on each Handler
+      │                  first match wins  ──>  handle_update_with_context
       │                  if block=true: await the future
       │                  if HandlerResult::Stop: stop here
       │
-      ├─ Group 1  (skipped if group 0 returned Stop)
+      ├─ Group 1   (skipped if earlier group returned Stop)
       │
       ├─ Group N ...
       │
@@ -145,15 +153,25 @@ pub trait Handler: Send + Sync {
         context: &mut CallbackContext,
         match_result: &MatchResult,
     ) {}
+
+    fn handle_update_with_context(
+        &self,
+        update: Update,
+        match_result: MatchResult,
+        context: CallbackContext,
+    ) -> Pin<Box<dyn Future<Output = HandlerResult> + Send>> {
+        self.handle_update(update, match_result)
+    }
 }
 ```
 
 `check_update` is synchronous and cheap -- it tests a filter, checks a regex, or inspects
 a field. It returns `None` (skip) or `Some(MatchResult)` (handle).
 
-`handle_update` is async. It receives the update and the `MatchResult` produced by
-`check_update`. The match result carries handler-specific data: argument lists for
-`CommandHandler`, regex captures for `CallbackQueryHandler`, etc.
+`handle_update_with_context` is the primary dispatch method. It receives the update, the
+`MatchResult` produced by `check_update`, and a `CallbackContext` populated by the
+application. Handlers created with ergonomic constructors (like `CommandHandler::new`)
+override this to pass the context to the user's callback function.
 
 `collect_additional_context` runs between `check_update` and the callback invocation. It
 injects handler-specific data into the `CallbackContext` (e.g., `context.args` for
@@ -161,9 +179,9 @@ command handlers, `context.matches` for regex handlers).
 
 ---
 
-## ExtBot vs Bot
+## ExtBot and Deref
 
-User-facing code works with `ExtBot`, not `Bot` directly. `ExtBot` wraps `Bot` and adds:
+`ExtBot` wraps `Bot` and adds:
 
 - **Defaults**: bot-wide parse mode, notification settings, link preview options. When
   set, these are merged into every outgoing API call where the caller has not supplied an
@@ -173,7 +191,18 @@ User-facing code works with `ExtBot`, not `Bot` directly. `ExtBot` wraps `Bot` a
 - **Rate limiter**: pluggable rate-limiting middleware (implementation is currently
   a stub; the hook point is present).
 
-Access the underlying `Bot` via `ext_bot.inner()`.
+`ExtBot` implements `Deref<Target = Bot>`, so all `Bot` methods (including builder-based
+API methods like `send_message`) are accessible directly:
+
+```rust
+// These are equivalent:
+context.bot().send_message(chat_id, "Hi").send().await?;
+context.bot().send_message(chat_id, "Hi").await?;
+```
+
+The builder pattern eliminates all positional `None` parameters from API calls. Every
+builder implements `IntoFuture`, so you can either call `.send().await` or just `.await`
+directly.
 
 ---
 
@@ -183,32 +212,40 @@ Access the underlying `Bot` via `ext_bot.inner()`.
 |---------|---------------------|-------------------|
 | Raw types + HTTP | `telegram` package | `telegram-bot-raw` crate |
 | Application framework | `telegram.ext` package | `telegram-bot-ext` crate |
-| Main entry point | `Application` class | `Application` struct (`Arc<Application>`) |
+| Main entry point | `Application` class | `Arc<Application>` struct |
 | Builder | `ApplicationBuilder` class | `ApplicationBuilder<State>` (typestate) |
 | Handler base class | `BaseHandler` | `Handler` trait |
 | Handler check | `check_update(update) -> bool` | `check_update(update) -> Option<MatchResult>` |
-| Context | `CallbackContext` dataclass | `CallbackContext` struct |
-| Bot on types | `message.reply_text(...)` | Not on types; use builder API (see below) |
+| Context | `CallbackContext` dataclass | `CallbackContext` struct (aliased as `Context`) |
+| Bot on types | `message.reply_text(...)` | `context.reply_text(&update, ...)` or builder API |
+| Data access | `context.bot_data["key"]` | `context.bot_data().await.get_str("key")` |
 | Persistence | `PicklePersistence`, custom | `JsonFilePersistence`, `SqlitePersistence`, custom trait |
-| Job queue | APScheduler | tokio timers |
+| Job queue | APScheduler | tokio timers with builder pattern |
 | Update delivery | asyncio + requests | tokio + reqwest |
+| Import style | `from telegram.ext import ...` | `use telegram_bot::ext::prelude::*` |
 
 ---
 
 ## Design Decisions
 
-### Why no `Bot` on types?
+### Why `context.reply_text()` instead of `message.reply_text()`?
 
 In python-telegram-bot, `Message`, `User`, and `Chat` objects carry a reference to the
 `Bot` instance, allowing you to call `message.reply_text("hi")`. This is convenient but
 creates a circular reference problem and complicates serialisation and cloning.
 
 In the Rust port, types are plain data structures (serialisable, cloneable, `Send + Sync`).
-The bot is accessed through the `CallbackContext` that handlers receive:
+The bot is accessed through the `Context` that handlers receive:
 
 ```rust
-context.bot().inner()
-    .build_send_message(chat_id.into(), "hi")
+// Convenience method -- extracts chat_id from the update automatically
+context.reply_text(&update, "Hello!").await?;
+
+// Full builder control when you need optional parameters
+context
+    .bot()
+    .send_message(chat_id, "<b>Hello!</b>")
+    .parse_mode(ParseMode::Html)
     .send()
     .await?;
 ```
@@ -251,3 +288,10 @@ let app = ApplicationBuilder::new().token("...").build();
 `Application` is wrapped in `Arc` so it can be shared safely across tokio tasks: the
 polling loop, handler callbacks, and the job queue all need a handle to the application
 to look up bot credentials and dispatch updates.
+
+### Why `telegram_bot::run()` instead of `#[tokio::main]`?
+
+The Telegram Bot API call chain produces deeply nested async state machines. The
+`telegram_bot::run()` function builds a multi-threaded tokio runtime with 8 MB thread
+stacks, preventing stack overflows that can occur with the default 2 MB stacks. You can
+still use `#[tokio::main]` if you configure the stack size yourself.

@@ -6,6 +6,28 @@ python-telegram-bot, but enforced by the Rust compiler.
 
 ---
 
+## Quick Start
+
+The prelude provides `TEXT()` and `COMMAND()` as ready-to-compose filter functions:
+
+```rust
+use telegram_bot::ext::prelude::*;
+
+// Text messages that are NOT commands
+let text_only = TEXT() & !COMMAND();
+
+// Use it directly in a handler
+app.add_typed_handler(
+    MessageHandler::new(TEXT() & !COMMAND(), echo),
+    0,
+).await;
+```
+
+`TEXT()` and `COMMAND()` return `F` values (the composable filter wrapper), so you can
+use `&`, `|`, `^`, and `!` operators directly without additional wrapping.
+
+---
+
 ## The Filter Trait
 
 ```rust
@@ -14,9 +36,6 @@ pub trait Filter: Send + Sync + 'static {
     fn name(&self) -> &str { std::any::type_name::<Self>() }
 }
 ```
-
-`update` here is `serde_json::Value`, not the strongly-typed `Update` struct. This allows
-filters to work without knowing the full type schema and makes them easy to test.
 
 ---
 
@@ -59,24 +78,29 @@ impl F {
 Wrap any concrete filter to get composition operators:
 
 ```rust
-use telegram_bot_ext::filters::base::{F, All};
-use telegram_bot_ext::filters::text::TEXT;
-use telegram_bot_ext::filters::command::COMMAND;
+use telegram_bot::ext::filters::base::F;
+use telegram_bot::ext::filters::text::TextAny;
+use telegram_bot::ext::filters::command::CommandFilter;
 
-// Text messages that are not commands
-let f = F::new(TEXT) & !F::new(COMMAND);
+// Manual wrapping (when not using prelude helpers)
+let f = F::new(TextAny) & !F::new(CommandFilter::starts());
+```
 
-// Photos or documents
-let f = F::new(PHOTO) | F::new(DOCUMENT);
+In practice, use the prelude functions `TEXT()` and `COMMAND()` which return pre-wrapped
+`F` values:
 
-// Exactly one of two filters (XOR)
-let f = F::new(PHOTO) ^ F::new(VIDEO);
+```rust
+use telegram_bot::ext::prelude::*;
+
+let f = TEXT() & !COMMAND();
 ```
 
 Operators return a new `F`, so you can chain arbitrarily:
 
 ```rust
-let f = F::new(TEXT) & !F::new(COMMAND) & F::new(PREMIUM_USER);
+let f = TEXT() & !COMMAND();
+// Additional composition with custom filters
+let f = f & F::new(my_custom_filter);
 ```
 
 ---
@@ -171,51 +195,51 @@ Import from `telegram_bot_ext::filters::base` or `telegram_bot_ext::filters::pho
 ### Command filter (configurable)
 
 ```rust
-use telegram_bot_ext::filters::command::CommandFilter;
+use telegram_bot::ext::filters::command::CommandFilter;
 
-// Default: command must be at offset 0 (same as COMMAND constant)
-let f = CommandFilter::starts();
+// Default: command must be at offset 0 (same as COMMAND() prelude helper)
+let f = F::new(CommandFilter::starts());
 
 // Also match commands that appear mid-text
-let f = CommandFilter::anywhere();
+let f = F::new(CommandFilter::anywhere());
 ```
 
 ### Text filters
 
 ```rust
-use telegram_bot_ext::filters::text::{TextFilter, CaptionFilter, CaptionRegexFilter,
+use telegram_bot::ext::filters::text::{TextFilter, CaptionFilter, CaptionRegexFilter,
                                        LanguageFilter, SuccessfulPaymentFilter, DiceFilter};
 
 // Match messages whose text is exactly "Yes" or "No"
-let f = TextFilter::new(["Yes", "No"]);
+let f = F::new(TextFilter::new(["Yes", "No"]));
 
 // Match messages with captions
-let f = CaptionFilter::new(["Help me!"]);
+let f = F::new(CaptionFilter::new(["Help me!"]));
 
 // Regex search on caption (returns MatchWithData)
-let f = CaptionRegexFilter::new(r"order #(\d+)");
+let f = F::new(CaptionRegexFilter::new(r"order #(\d+)"));
 
 // Filter by sender language code (prefix match: "en" matches "en_US")
-let f = LanguageFilter::new(["en", "de"]);
+let f = F::new(LanguageFilter::new(["en", "de"]));
 
 // Successful payment filter
-let f = SuccessfulPaymentFilter::any();
-let f = SuccessfulPaymentFilter::with_payloads(["premium_monthly"]);
+let f = F::new(SuccessfulPaymentFilter::any());
+let f = F::new(SuccessfulPaymentFilter::with_payloads(["premium_monthly"]));
 ```
 
 ### Dice filters
 
 ```rust
-use telegram_bot_ext::filters::text::{DiceFilter, dice_emoji};
+use telegram_bot::ext::filters::text::{DiceFilter, dice_emoji};
 
-let f = DiceFilter::all();                                     // any dice
-let f = DiceFilter::with_values([6]);                          // any emoji, value 6
-let f = DiceFilter::with_emoji(dice_emoji::DARTS);             // darts, any value
-let f = DiceFilter::with_emoji_values(dice_emoji::DICE, [3]);  // dice cube, value 3
+let f = F::new(DiceFilter::all());                                     // any dice
+let f = F::new(DiceFilter::with_values([6]));                          // any emoji, value 6
+let f = F::new(DiceFilter::with_emoji(dice_emoji::DARTS));             // darts, any value
+let f = F::new(DiceFilter::with_emoji_values(dice_emoji::DICE, [3])); // dice cube, value 3
 
 // Shorthand constructors
-let f = DiceFilter::basketball(Some(vec![5, 6]));  // top scores only
-let f = DiceFilter::slot_machine(None);             // any slot machine result
+let f = F::new(DiceFilter::basketball(Some(vec![5, 6])));  // top scores only
+let f = F::new(DiceFilter::slot_machine(None));             // any slot machine result
 ```
 
 Available emoji constants: `dice_emoji::BASKETBALL`, `BOWLING`, `DARTS`, `DICE`,
@@ -224,128 +248,109 @@ Available emoji constants: `dice_emoji::BASKETBALL`, `BOWLING`, `DARTS`, `DICE`,
 ### Mention filter
 
 ```rust
-use telegram_bot_ext::filters::text::MentionFilter;
+use telegram_bot::ext::filters::text::MentionFilter;
 
-let f = MentionFilter::from_ids([42, 99]);              // by user ID
-let f = MentionFilter::from_usernames(["alice", "bob"]); // by @username (@ stripped)
-let f = MentionFilter::new([42], ["alice"]);             // combined
+let f = F::new(MentionFilter::from_ids([42, 99]));              // by user ID
+let f = F::new(MentionFilter::from_usernames(["alice", "bob"])); // by @username (@ stripped)
+let f = F::new(MentionFilter::new([42], ["alice"]));             // combined
 ```
 
 ### Regex filter (message text)
 
 ```rust
-use telegram_bot_ext::filters::regex::RegexFilter;
+use telegram_bot::ext::filters::regex::RegexFilter;
 use regex::Regex;
 
 // Returns MatchWithData with captures under "matches"
-let f = RegexFilter::new(Regex::new(r"order #(\d+)").unwrap());
+let f = F::new(RegexFilter::new(Regex::new(r"order #(\d+)").unwrap()));
 ```
 
 ### Entity filter
 
 ```rust
-use telegram_bot_ext::filters::entity::EntityFilter;
+use telegram_bot::ext::filters::entity::EntityFilter;
 
 // Messages with any URL entity
-let f = EntityFilter::new("url");
+let f = F::new(EntityFilter::new("url"));
 
 // Messages with a bold entity
-let f = EntityFilter::new("bold");
+let f = F::new(EntityFilter::new("bold"));
 ```
 
 ### User filter
 
 ```rust
-use telegram_bot_ext::filters::user::UserFilter;
+use telegram_bot::ext::filters::user::UserFilter;
 
 // Only handle messages from specific users
-let f = UserFilter::from_ids([42, 99]);
-let f = UserFilter::from_usernames(["alice", "bob"]);
+let f = F::new(UserFilter::from_ids([42, 99]));
+let f = F::new(UserFilter::from_usernames(["alice", "bob"]));
 ```
 
 ### Chat filter
 
 ```rust
-use telegram_bot_ext::filters::chat::ChatFilter;
+use telegram_bot::ext::filters::chat::ChatFilter;
 
 // Only handle messages from specific chats
-let f = ChatFilter::from_ids([-100123456789]);
-let f = ChatFilter::from_usernames(["mychannel"]);
+let f = F::new(ChatFilter::from_ids([-100123456789]));
+let f = F::new(ChatFilter::from_usernames(["mychannel"]));
 
 // By chat type
-let f = ChatFilter::private();
-let f = ChatFilter::group();
-let f = ChatFilter::supergroup();
-let f = ChatFilter::channel();
+let f = F::new(ChatFilter::private());
+let f = F::new(ChatFilter::group());
+let f = F::new(ChatFilter::supergroup());
+let f = F::new(ChatFilter::channel());
 ```
 
 ### Document filter (by MIME type)
 
 ```rust
-use telegram_bot_ext::filters::document::DocumentFilter;
+use telegram_bot::ext::filters::document::DocumentFilter;
 
 // Match documents with a specific MIME type
-let f = DocumentFilter::mime_type("application/pdf");
+let f = F::new(DocumentFilter::mime_type("application/pdf"));
 
 // Match by file extension
-let f = DocumentFilter::file_extension("csv");
+let f = F::new(DocumentFilter::file_extension("csv"));
 ```
 
 ### StatusUpdate sub-filters
 
 ```rust
-use telegram_bot_ext::filters::status_update::*;
+use telegram_bot::ext::filters::status_update::*;
 
-// New chat members joined
-let f = NEW_CHAT_MEMBERS;
-
-// Members left
-let f = LEFT_CHAT_MEMBER;
-
-// Title changed
-let f = NEW_CHAT_TITLE;
-
-// Chat photo changed
-let f = NEW_CHAT_PHOTO;
-
-// Chat photo deleted
-let f = DELETE_CHAT_PHOTO;
-
-// Group created
-let f = GROUP_CHAT_CREATED;
-
-// Supergroup created
-let f = SUPERGROUP_CHAT_CREATED;
-
-// Channel created
-let f = CHANNEL_CHAT_CREATED;
-
-// Message pinned
-let f = PINNED_MESSAGE;
-
-// The StatusUpdate wrapper: any of the above
-let f = STATUS_UPDATE;
+let f = F::new(NEW_CHAT_MEMBERS);       // New chat members joined
+let f = F::new(LEFT_CHAT_MEMBER);       // Members left
+let f = F::new(NEW_CHAT_TITLE);         // Title changed
+let f = F::new(NEW_CHAT_PHOTO);         // Chat photo changed
+let f = F::new(DELETE_CHAT_PHOTO);       // Chat photo deleted
+let f = F::new(GROUP_CHAT_CREATED);      // Group created
+let f = F::new(SUPERGROUP_CHAT_CREATED); // Supergroup created
+let f = F::new(CHANNEL_CHAT_CREATED);    // Channel created
+let f = F::new(PINNED_MESSAGE);          // Message pinned
+let f = F::new(STATUS_UPDATE);           // Any of the above
 ```
 
 ### Via-bot filter
 
 ```rust
-use telegram_bot_ext::filters::via_bot::ViaBotFilter;
+use telegram_bot::ext::filters::via_bot::ViaBotFilter;
 
 // Only messages sent via a specific bot username
-let f = ViaBotFilter::from_username("inlinebot");
+let f = F::new(ViaBotFilter::from_username("inlinebot"));
 ```
 
 ### Forwarded filter
 
 ```rust
-use telegram_bot_ext::filters::forwarded::ForwardedFilter;
+use telegram_bot::ext::filters::forwarded::ForwardedFilter;
 
 // Forwarded from a user
-let f = ForwardedFilter::from_user();
+let f = F::new(ForwardedFilter::from_user());
 
 // Forwarded from a channel
-let f = ForwardedFilter::from_channel();
+let f = F::new(ForwardedFilter::from_channel());
 ```
 
 ---
@@ -357,20 +362,20 @@ let f = ForwardedFilter::from_channel();
 The simplest approach for one-off filters:
 
 ```rust
-use telegram_bot_ext::filters::base::FnFilter;
+use telegram_bot::ext::filters::base::FnFilter;
 
 let premium_private = FnFilter::new("premium_private", |update| {
-    let is_premium = update["message"]["from"]["is_premium"]
-        .as_bool()
-        .unwrap_or(false);
-    let is_private = update["message"]["chat"]["type"]
-        .as_str()
-        .map_or(false, |t| t == "private");
+    let msg = match &update.message {
+        Some(m) => m,
+        None => return false,
+    };
+    let is_premium = msg.from_user.as_ref().map_or(false, |u| u.is_premium.unwrap_or(false));
+    let is_private = msg.chat.chat_type == ChatType::Private;
     is_premium && is_private
 });
 
 // Wrap and compose
-let f = F::new(premium_private) & F::new(TEXT);
+let f = F::new(premium_private) & TEXT();
 ```
 
 ### Option 2: Implement the Filter trait
@@ -378,7 +383,8 @@ let f = F::new(premium_private) & F::new(TEXT);
 For reusable filters or ones that carry configuration:
 
 ```rust
-use telegram_bot_ext::filters::base::{Filter, FilterResult, Update};
+use telegram_bot::ext::filters::base::{Filter, FilterResult};
+use telegram_bot::raw::types::update::Update;
 
 pub struct AdminFilter {
     admin_ids: Vec<i64>,
@@ -392,7 +398,7 @@ impl AdminFilter {
 
 impl Filter for AdminFilter {
     fn check_update(&self, update: &Update) -> FilterResult {
-        let user_id = update["message"]["from"]["id"].as_i64();
+        let user_id = update.effective_user().map(|u| u.id);
         match user_id {
             Some(id) if self.admin_ids.contains(&id) => FilterResult::Match,
             _ => FilterResult::NoMatch,
@@ -414,19 +420,23 @@ For filters that extract data (like regex filters):
 
 ```rust
 use std::collections::HashMap;
-use telegram_bot_ext::filters::base::{Filter, FilterResult, Update};
+use telegram_bot::ext::filters::base::{Filter, FilterResult};
+use telegram_bot::raw::types::update::Update;
 
 pub struct OrderIdFilter;
 
 impl Filter for OrderIdFilter {
     fn check_update(&self, update: &Update) -> FilterResult {
-        let text = update["message"]["text"].as_str()?;
-        // Simple manual parse
+        let text = match update.effective_message().and_then(|m| m.text.as_deref()) {
+            Some(t) => t,
+            None => return FilterResult::NoMatch,
+        };
         if let Some(rest) = text.strip_prefix("order #") {
-            let order_id = rest.split_whitespace().next()?.to_owned();
-            let mut data = HashMap::new();
-            data.insert("order_id".to_owned(), vec![order_id]);
-            return FilterResult::MatchWithData(data);
+            if let Some(order_id) = rest.split_whitespace().next() {
+                let mut data = HashMap::new();
+                data.insert("order_id".to_owned(), vec![order_id.to_owned()]);
+                return FilterResult::MatchWithData(data);
+            }
         }
         FilterResult::NoMatch
     }
@@ -437,32 +447,28 @@ impl Filter for OrderIdFilter {
 }
 ```
 
-Note: `check_update` takes `&Update` (a `serde_json::Value`), so use `?` with `Option`
-via an inline closure or rework the logic to return `FilterResult::NoMatch` explicitly.
-
 ---
 
 ## Migration from Python Filters
 
 | Python | Rust |
 |--------|------|
-| `filters.TEXT` | `TEXT` (from `filters::text`) |
-| `filters.COMMAND` | `COMMAND` (from `filters::command`) |
-| `filters.PHOTO` | `PHOTO` (from `filters::base`) |
-| `filters.VIDEO` | `VIDEO` (from `filters::base`) |
-| `filters.AUDIO` | `AUDIO` (from `filters::base`) |
-| `filters.Document.FileExtension("csv")` | `DocumentFilter::file_extension("csv")` |
-| `filters.Regex(r"...")` | `RegexFilter::new(Regex::new(r"...").unwrap())` |
-| `filters.User(user_id=42)` | `UserFilter::from_ids([42])` |
-| `filters.Chat(chat_id=-100...)` | `ChatFilter::from_ids([-100...])` |
-| `filters.Text(["Yes", "No"])` | `TextFilter::new(["Yes", "No"])` |
-| `filters.FORWARDED` | `FORWARDED` |
-| `filters.PREMIUM_USER` | `PREMIUM_USER` |
-| `filters.ALL` | `ALL` |
-| `f1 & f2` | `F::new(f1) & F::new(f2)` |
-| `f1 \| f2` | `F::new(f1) \| F::new(f2)` |
-| `~f` | `!F::new(f)` |
+| `filters.TEXT` | `TEXT()` (from prelude) |
+| `filters.COMMAND` | `COMMAND()` (from prelude) |
+| `filters.PHOTO` | `F::new(PHOTO)` (from `filters::base`) |
+| `filters.VIDEO` | `F::new(VIDEO)` (from `filters::base`) |
+| `filters.AUDIO` | `F::new(AUDIO)` (from `filters::base`) |
+| `filters.Document.FileExtension("csv")` | `F::new(DocumentFilter::file_extension("csv"))` |
+| `filters.Regex(r"...")` | `F::new(RegexFilter::new(Regex::new(r"...").unwrap()))` |
+| `filters.User(user_id=42)` | `F::new(UserFilter::from_ids([42]))` |
+| `filters.Chat(chat_id=-100...)` | `F::new(ChatFilter::from_ids([-100...]))` |
+| `filters.Text(["Yes", "No"])` | `F::new(TextFilter::new(["Yes", "No"]))` |
+| `filters.FORWARDED` | `F::new(FORWARDED)` |
+| `filters.PREMIUM_USER` | `F::new(PREMIUM_USER)` |
+| `filters.ALL` | `F::new(ALL)` |
+| `f1 & f2` | `f1 & f2` (both must be `F`) |
+| `f1 \| f2` | `f1 \| f2` |
+| `~f` | `!f` |
 
-The key difference: Python filters are instances that support operators directly.
-In Rust, you must wrap concrete filters in `F` to get the operators. Once wrapped,
-the operator syntax is identical.
+The key difference: in the prelude, `TEXT()` and `COMMAND()` return `F` directly so they
+compose without wrapping. For other constant filters, wrap them in `F::new(...)` first.

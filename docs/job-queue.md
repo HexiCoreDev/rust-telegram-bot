@@ -13,30 +13,28 @@ Cancellation is handled via `tokio::sync::watch` channels.
 
 ```rust
 use std::sync::Arc;
-use telegram_bot_ext::job_queue::JobQueue;
+use telegram_bot::ext::job_queue::JobQueue;
 
 let jq = Arc::new(JobQueue::new());
-jq.start().await;
 ```
 
-`start()` marks the queue as running. Jobs can be registered before `start()` is called,
-but they will not fire until after it is.
+Jobs can be registered before the application starts polling. They will not fire until
+the polling loop is active.
 
 ---
 
 ## Wiring to Application
 
-Pass the queue to the builder so that handlers can access it via `context.job_queue()`:
+Pass the queue to the builder so that handlers can access it via `context.job_queue`:
 
 ```rust
-use telegram_bot_ext::builder::ApplicationBuilder;
-use telegram_bot_ext::job_queue::JobQueue;
+use telegram_bot::ext::prelude::*;
+use telegram_bot::ext::job_queue::JobQueue;
 use std::sync::Arc;
 
 let jq = Arc::new(JobQueue::new());
-jq.start().await;
 
-let app = ApplicationBuilder::new()
+let app: Arc<Application> = ApplicationBuilder::new()
     .token(token)
     .job_queue(Arc::clone(&jq))
     .build();
@@ -52,7 +50,7 @@ All scheduling methods accept a `JobCallbackFn`:
 
 ```rust
 pub type JobCallbackFn =
-    Arc<dyn Fn(JobContext) -> Pin<Box<dyn Future<Output = ()> + Send>> + Send + Sync>;
+    Arc<dyn Fn(JobContext) -> Pin<Box<dyn Future<Output = Result<(), Box<dyn Error + Send + Sync>>> + Send>> + Send + Sync>;
 ```
 
 The callback receives a `JobContext`:
@@ -80,12 +78,23 @@ Schedule a job to run once after a delay. Uses a builder pattern for optional fi
 use std::sync::Arc;
 use std::time::Duration;
 use serde_json::json;
+use telegram_bot::ext::job_queue::{JobCallbackFn, JobContext};
 
-let callback: JobCallbackFn = Arc::new(|ctx| Box::pin(async move {
-    println!("Reminder for user {}", ctx.user_id.unwrap_or(0));
-}));
+let bot = Arc::clone(context.bot());
+let callback: JobCallbackFn = Arc::new(move |ctx: JobContext| {
+    let bot = Arc::clone(&bot);
+    Box::pin(async move {
+        let chat_id = ctx.chat_id.unwrap_or(0);
+        if chat_id != 0 {
+            bot.send_message(chat_id, "Reminder!").send().await
+                .map_err(|e| Box::new(e) as Box<dyn std::error::Error + Send + Sync>)?;
+        }
+        Ok(())
+    })
+});
 
-let job = jq.once(callback, Duration::from_secs(30))
+let job = jq
+    .once(callback, Duration::from_secs(30))
     .name("reminder")
     .chat_id(chat_id)
     .user_id(user_id)
@@ -103,7 +112,8 @@ Returns a `Job` handle for cancellation.
 Schedule a job to run at a fixed interval.
 
 ```rust
-let job = jq.repeating(callback, Duration::from_secs(60))
+let job = jq
+    .repeating(callback, Duration::from_secs(60))
     .name("heartbeat")
     .first(Duration::from_secs(5))    // initial delay (omit to fire immediately)
     .last(Duration::from_secs(3600))  // stop after this duration (omit for forever)
@@ -129,7 +139,8 @@ use chrono::NaiveTime;
 
 let time = NaiveTime::from_hms_opt(9, 0, 0).unwrap(); // 09:00 UTC
 
-let job = jq.daily(callback, time, &[1, 2, 3, 4, 5])
+let job = jq
+    .daily(callback, time, &[1, 2, 3, 4, 5])
     .name("morning_report")
     .chat_id(chat_id)
     .start()
@@ -142,7 +153,8 @@ Day numbering follows the python-telegram-bot convention: 0 = Sunday, 1 = Monday
 To run every day, pass all seven days:
 
 ```rust
-let job = jq.daily(callback, time, &[0, 1, 2, 3, 4, 5, 6])
+let job = jq
+    .daily(callback, time, &[0, 1, 2, 3, 4, 5, 6])
     .name("daily_task")
     .start()
     .await;
@@ -160,13 +172,15 @@ use chrono::NaiveTime;
 let time = NaiveTime::from_hms_opt(0, 0, 0).unwrap(); // midnight UTC
 
 // Run on the 1st of every month
-let job = jq.monthly(callback, time, 1)
+let job = jq
+    .monthly(callback, time, 1)
     .name("monthly_summary")
     .start()
     .await;
 
 // Run on the last day of every month (pass -1)
-let job = jq.monthly(callback, time, -1)
+let job = jq
+    .monthly(callback, time, -1)
     .name("end_of_month")
     .start()
     .await;
@@ -185,18 +199,14 @@ the timer started in a background task; the `Job` handle is returned immediately
 ```rust
 let job = jq.run_custom(
     callback,
-    Duration::from_secs(10),          // trigger: delay before firing
-    Some("custom_job".to_string()),    // optional name
-    Some(json!({ "key": "value" })),   // optional data
-    Some(chat_id),                     // optional chat_id
-    Some(user_id),                     // optional user_id
+    Duration::from_secs(10),
+    Some("custom_job".to_string()),
+    Some(json!({ "key": "value" })),
+    Some(chat_id),
+    Some(user_id),
 );
 // Note: run_custom is not async; it returns immediately
 ```
-
-Unlike `once`, `run_custom` takes `&Arc<Self>` so it can register the job from
-inside the spawned future. This is useful when you want to schedule work from within
-a non-async context.
 
 ---
 
@@ -215,18 +225,19 @@ pub struct Job {
 }
 
 impl Job {
-    pub fn schedule_removal(&self);   // cancel: will not fire again
+    pub fn schedule_removal(&self);        // cancel: will not fire again
     pub fn is_removed(&self) -> bool;
     pub fn is_enabled(&self) -> bool;
     pub fn set_enabled(&self, enabled: bool);  // pause / resume
-    pub async fn run(&self);          // fire the callback immediately (bypass schedule)
+    pub async fn run(&self);               // fire the callback immediately (bypass schedule)
 }
 ```
 
 Cancel a job:
 
 ```rust
-let job = jq.repeating(callback, Duration::from_secs(30))
+let job = jq
+    .repeating(callback, Duration::from_secs(30))
     .name("ping")
     .start()
     .await;
@@ -269,7 +280,7 @@ per-user reminder jobs where you want to cancel all reminders for a given user:
 ```rust
 // Schedule a per-user reminder
 jq.once(callback, Duration::from_secs(300))
-    .name(&format!("reminder_{}", user_id))
+    .name(format!("reminder_{}", user_id))
     .chat_id(chat_id)
     .user_id(user_id)
     .start()
@@ -299,26 +310,37 @@ timer loops. When wired to an `Application`, this is called automatically on shu
 If you passed the queue to the `ApplicationBuilder`, retrieve it from the context:
 
 ```rust
-async fn set_reminder(update: Value, context: CallbackContext) -> Result<(), HandlerError> {
-    let chat_id = update["message"]["chat"]["id"].as_i64().unwrap();
-    let user_id = update["message"]["from"]["id"].as_i64().unwrap();
+use telegram_bot::ext::prelude::*;
+use telegram_bot::ext::job_queue::{JobCallbackFn, JobContext};
+
+async fn set_reminder(update: Update, context: Context) -> HandlerResult {
+    let chat_id = update.effective_chat().expect("update must have a chat").id;
 
     let jq = context
-        .job_queue()
-        .ok_or_else(|| HandlerError::Other("no job queue".into()))?;
+        .job_queue
+        .as_ref()
+        .expect("job_queue should be set on context");
 
-    let callback: JobCallbackFn = Arc::new(move |ctx| Box::pin(async move {
-        // Send a message using a bot handle you've stored in ctx.data
-        println!("Reminder fired for chat {}", ctx.chat_id.unwrap_or(0));
-    }));
+    let bot = Arc::clone(context.bot());
+    let callback: JobCallbackFn = Arc::new(move |ctx: JobContext| {
+        let bot = Arc::clone(&bot);
+        Box::pin(async move {
+            let target_chat_id = ctx.chat_id.unwrap_or(0);
+            if target_chat_id != 0 {
+                bot.send_message(target_chat_id, "Reminder!").send().await
+                    .map_err(|e| Box::new(e) as Box<dyn std::error::Error + Send + Sync>)?;
+            }
+            Ok(())
+        })
+    });
 
     jq.once(callback, Duration::from_secs(60))
         .name("user_reminder")
         .chat_id(chat_id)
-        .user_id(user_id)
         .start()
         .await;
 
+    context.reply_text(&update, "Reminder set for 60 seconds!").await?;
     Ok(())
 }
 ```

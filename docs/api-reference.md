@@ -34,13 +34,16 @@ namespaces:
 
 - `telegram_bot::raw` -- all types and methods from `telegram-bot-raw`
 - `telegram_bot::ext` -- application framework from `telegram-bot-ext`
+- `telegram_bot::ext::prelude` -- convenient re-exports for typical bot code
+- `telegram_bot::run(future)` -- tokio runtime entry point with proper stack sizing
 
 ### telegram_bot_raw
 
 | Module | Key items |
 |--------|-----------|
 | `bot` | `Bot`, `ChatId`, `MessageOrBool`, `Defaults` |
-| `bot_builders` | `SendMessageBuilder`, `EditMessageTextBuilder`, `AnswerCallbackQueryBuilder`, etc. |
+| `bot_builders` | `SendMessageBuilder`, `SendPhotoBuilder`, `EditMessageTextBuilder`, `AnswerCallbackQueryBuilder`, etc. |
+| `constants` | `ParseMode`, `ChatType`, `MessageEntityType`, `ChatAction`, `ChatMemberStatus` |
 | `types::update` | `Update` |
 | `types::message` | `Message`, `MessageEntity` |
 | `types::user` | `User` |
@@ -55,20 +58,21 @@ namespaces:
 
 | Module | Key items |
 |--------|-----------|
-| `application` | `Application`, `HandlerError`, `ApplicationError`, `HandlerCallback` |
+| `prelude` | `Update`, `Context`, `HandlerResult`, `ApplicationBuilder`, `CommandHandler`, `MessageHandler`, `FnHandler`, `TEXT()`, `COMMAND()`, `ParseMode`, `ChatType`, `MessageEntityType`, `F`, `Filter` |
+| `application` | `Application`, `HandlerError`, `ApplicationError` |
 | `builder` | `ApplicationBuilder`, `NoToken`, `HasToken` |
-| `context` | `CallbackContext` |
-| `ext_bot` | `ExtBot` |
+| `context` | `CallbackContext`, `DataReadGuard`, `DataWriteGuard` |
+| `ext_bot` | `ExtBot` (implements `Deref<Target = Bot>`) |
 | `defaults` | `Defaults`, `DefaultsBuilder` |
-| `handlers::base` | `Handler` (trait), `HandlerResult`, `MatchResult` |
+| `handlers::base` | `Handler` (trait), `HandlerResult`, `MatchResult`, `FnHandler` |
 | `handlers::command` | `CommandHandler`, `HasArgs` |
 | `handlers::message` | `MessageHandler` |
 | `handlers::callback_query` | `CallbackQueryHandler`, `CallbackPattern` |
 | `handlers::conversation` | `ConversationHandler`, `ConversationResult`, `ConversationKey` |
 | `handlers::inline_query` | `InlineQueryHandler` |
 | `filters::base` | `Filter` (trait), `FilterResult`, `F`, `FnFilter`, `ALL` |
-| `filters::text` | `TEXT`, `CAPTION`, `TextFilter`, `CaptionFilter`, `DiceFilter`, etc. |
-| `filters::command` | `COMMAND`, `CommandFilter` |
+| `filters::text` | `TextAny`, `CAPTION`, `TextFilter`, `CaptionFilter`, `DiceFilter`, etc. |
+| `filters::command` | `CommandFilter` |
 | `filters::photo` | `PHOTO`, `STICKER`, `DOCUMENT`, `AUDIO`, `VOICE`, `VIDEO` |
 | `filters::status_update` | `STATUS_UPDATE`, `NEW_CHAT_MEMBERS`, etc. |
 | `filters::regex` | `RegexFilter` |
@@ -88,33 +92,32 @@ namespaces:
 
 ### Bot
 
-The raw HTTP client. Wraps the Telegram Bot API. Every method has both a positional-args
-variant and a builder variant (prefixed with `build_`).
+The raw HTTP client. Wraps the Telegram Bot API. Every method returns a builder with
+chainable setters for optional parameters. Builders implement `IntoFuture`.
 
 ```
 Bot::new(token, request) -> Bot
 Bot::get_me() -> Result<User>
 
-// Positional-args (all optional params explicit):
-Bot::send_message(chat_id, text, parse_mode, ...) -> Result<Message>
-
-// Builder (preferred):
-Bot::build_send_message(chat_id, text) -> SendMessageBuilder
-Bot::build_send_photo(chat_id, photo) -> SendPhotoBuilder
-Bot::build_edit_message_text(chat_id, message_id, text) -> EditMessageTextBuilder
-Bot::build_answer_callback_query(id) -> AnswerCallbackQueryBuilder
+// Builder pattern (preferred):
+Bot::send_message(chat_id, text) -> SendMessageBuilder
+Bot::send_photo(chat_id, photo) -> SendPhotoBuilder
+Bot::edit_message_text(text) -> EditMessageTextBuilder
+Bot::answer_callback_query(id) -> AnswerCallbackQueryBuilder
 // ... builders for all major methods
 ```
 
-Access via `context.bot().inner()` in handler callbacks.
+Access via `context.bot()` in handler callbacks. `ExtBot` implements `Deref<Target = Bot>`,
+so all `Bot` methods are callable directly.
 
 ### ExtBot
 
-Wraps `Bot` with defaults, callback data caching, and rate limiting.
+Wraps `Bot` with defaults, callback data caching, and rate limiting. Implements
+`Deref<Target = Bot>` for zero-cost access to all `Bot` methods.
 
 ```
-ExtBot::new(bot, defaults, arbitrary_callback_data, rate_limiter) -> ExtBot
-ExtBot::inner() -> &Bot
+ExtBot::from_bot(bot) -> ExtBot
+ExtBot::builder(token, request) -> ExtBotBuilder
 ExtBot::defaults() -> Option<&Defaults>
 ExtBot::token() -> &str
 ExtBot::has_callback_data_cache() -> bool
@@ -126,7 +129,7 @@ Bot-wide default parameter values. Constructed via builder:
 
 ```rust
 let defaults = Defaults::builder()
-    .parse_mode("HTML")
+    .parse_mode(ParseMode::Html)
     .disable_notification(true)
     .build();
 ```
@@ -137,8 +140,7 @@ The central dispatcher.
 
 ```
 Application::new(...) -> Arc<Application>
-app.add_handler(handler, group) -> impl Future
-app.remove_handler(handler_id, group) -> impl Future
+app.add_typed_handler(handler, group) -> impl Future
 app.run_polling() -> impl Future<Output = Result<()>>
 app.polling() -> PollingBuilder  // configurable polling
 app.initialize() -> impl Future<Output = Result<()>>
@@ -170,19 +172,59 @@ builder.base_url(url) -> Self
 builder.build() -> Arc<Application>  // HasToken only
 ```
 
-### CallbackContext
+### Context (CallbackContext)
 
-Passed to every handler callback.
+Passed to every handler callback. Aliased as `Context` in the prelude.
 
 ```
 context.bot() -> &Arc<ExtBot>
-context.user_data() -> Arc<RwLock<HashMap<i64, JsonMap>>>
-context.chat_data() -> Arc<RwLock<HashMap<i64, JsonMap>>>
-context.bot_data() -> Arc<RwLock<JsonMap>>
-context.job_queue() -> Option<Arc<JobQueue>>
+context.bot_data().await -> DataReadGuard        // typed read guard
+context.bot_data_mut().await -> DataWriteGuard   // typed write guard
+context.user_data().await -> Option<DefaultData> // cloned snapshot
+context.chat_data().await -> Option<DefaultData> // cloned snapshot
+context.set_user_data(key, value).await -> bool
+context.set_chat_data(key, value).await -> bool
+context.reply_text(&update, text).await -> Result<Message, TelegramError>
+context.chat_id() -> Option<i64>
+context.user_id() -> Option<i64>
 context.args        -- Option<Vec<String>>   (set by CommandHandler)
 context.matches     -- Option<Vec<String>>   (set by regex handlers)
 context.named_matches -- Option<HashMap<String, String>>  (named regex groups)
+context.job_queue   -- Option<Arc<JobQueue>>
+context.error       -- Option<Arc<dyn Error + Send + Sync>>
+```
+
+### DataReadGuard
+
+Typed read access to a `HashMap<String, Value>`:
+
+```
+guard.get_str(key) -> Option<&str>
+guard.get_i64(key) -> Option<i64>
+guard.get_f64(key) -> Option<f64>
+guard.get_bool(key) -> Option<bool>
+guard.get(key) -> Option<&Value>
+guard.get_id_set(key) -> HashSet<i64>
+guard.raw() -> &HashMap<String, Value>
+guard.len() -> usize
+guard.is_empty() -> bool
+```
+
+### DataWriteGuard
+
+Typed write access to a `HashMap<String, Value>`:
+
+```
+guard.set_str(key, value)
+guard.set_i64(key, value)
+guard.set_bool(key, value)
+guard.insert(key, value) -> Option<Value>
+guard.add_to_id_set(key, id)
+guard.remove_from_id_set(key, id)
+guard.remove(key) -> Option<Value>
+guard.entry(key) -> Entry
+guard.get_mut(key) -> Option<&mut Value>
+// Plus all DataReadGuard methods
 ```
 
 ### Handler trait
@@ -190,6 +232,7 @@ context.named_matches -- Option<HashMap<String, String>>  (named regex groups)
 ```
 check_update(&self, update: &Update) -> Option<MatchResult>
 handle_update(&self, update, match_result) -> Pin<Box<dyn Future<Output = HandlerResult> + Send>>
+handle_update_with_context(&self, update, match_result, context) -> Pin<Box<...>>
 block(&self) -> bool
 collect_additional_context(&self, context: &mut CallbackContext, match_result: &MatchResult)
 ```
@@ -238,5 +281,5 @@ jq.stop() -> impl Future
 
 ```toml
 [dependencies]
-telegram-bot = { git = "...", features = ["full"] }
+telegram-bot = { git = "https://github.com/HexiCoreDev/rust-telegram-bot", features = ["full"] }
 ```

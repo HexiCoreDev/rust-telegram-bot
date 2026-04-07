@@ -10,7 +10,6 @@ This guide walks you from zero to a running Telegram bot using rust-telegram-bot
   Check your version with `rustc --version`. Install or update via [rustup](https://rustup.rs/).
 - **A Telegram bot token.** Open Telegram, message [@BotFather](https://t.me/BotFather), send
   `/newbot`, and follow the prompts. Copy the token (looks like `123456:ABC-DEF...`).
-- **tokio runtime.** The library is fully async and runs on tokio.
 
 ---
 
@@ -20,18 +19,16 @@ Add dependencies to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-telegram-bot = { git = "https://github.com/nicegram/rust-telegram-bot" }
-tokio = { version = "1", features = ["full"] }
+telegram-bot = { git = "https://github.com/HexiCoreDev/rust-telegram-bot" }
 tracing-subscriber = "0.3"
-serde_json = "1"
 ```
 
 If you need optional features, pick what you need:
 
 ```toml
 [dependencies]
-telegram-bot = { git = "https://github.com/nicegram/rust-telegram-bot", features = [
-    "job-queue",          # Scheduled jobs (run_once, run_repeating, etc.)
+telegram-bot = { git = "https://github.com/HexiCoreDev/rust-telegram-bot", features = [
+    "job-queue",          # Scheduled jobs (once, repeating, etc.)
     "persistence-json",   # JSON file persistence
     "persistence-sqlite", # SQLite persistence
     "webhooks",           # axum-based webhook server
@@ -41,7 +38,7 @@ telegram-bot = { git = "https://github.com/nicegram/rust-telegram-bot", features
 Or enable everything at once:
 
 ```toml
-telegram-bot = { git = "https://github.com/nicegram/rust-telegram-bot", features = ["full"] }
+telegram-bot = { git = "https://github.com/HexiCoreDev/rust-telegram-bot", features = ["full"] }
 ```
 
 ---
@@ -54,109 +51,131 @@ echoes back any plain text message.
 Create `src/main.rs`:
 
 ```rust
-use std::sync::Arc;
+use telegram_bot::ext::prelude::*;
 
-use serde_json::Value;
-
-use telegram_bot::ext::application::{Application, HandlerError};
-use telegram_bot::ext::builder::ApplicationBuilder;
-use telegram_bot::ext::context::CallbackContext;
-use telegram_bot::ext::filters::base::Filter;
-use telegram_bot::ext::filters::command::COMMAND;
-use telegram_bot::ext::filters::text::TEXT;
-
-// Sends a greeting when the user types /start.
-async fn start(update: Value, context: CallbackContext) -> Result<(), HandlerError> {
-    let chat_id = update["message"]["chat"]["id"]
-        .as_i64()
-        .ok_or_else(|| HandlerError::Other("missing chat id".into()))?;
-
+/// Respond to `/start` with a greeting.
+async fn start(update: Update, context: Context) -> HandlerResult {
+    let name = update
+        .effective_user()
+        .map(|u| u.first_name.as_str())
+        .unwrap_or("there");
     context
-        .bot()
-        .inner()
-        .build_send_message(chat_id.into(), "Hello! Send me any text and I will echo it back.")
-        .send()
-        .await
-        .map_err(|e| HandlerError::Other(Box::new(e)))?;
-
+        .reply_text(
+            &update,
+            &format!(
+                "Hi {name}! I am an echo bot. Send me any message and I will repeat it back.\n\n\
+                 Use /help to see available commands."
+            ),
+        )
+        .await?;
     Ok(())
 }
 
-// Echoes the text back to the sender.
-async fn echo(update: Value, context: CallbackContext) -> Result<(), HandlerError> {
-    let chat_id = update["message"]["chat"]["id"]
-        .as_i64()
-        .ok_or_else(|| HandlerError::Other("missing chat id".into()))?;
-
-    let text = update["message"]["text"]
-        .as_str()
-        .unwrap_or("(empty)");
-
+/// Respond to `/help` with usage instructions.
+async fn help(update: Update, context: Context) -> HandlerResult {
     context
-        .bot()
-        .inner()
-        .build_send_message(chat_id.into(), text)
-        .send()
-        .await
-        .map_err(|e| HandlerError::Other(Box::new(e)))?;
-
+        .reply_text(
+            &update,
+            "Available commands:\n\
+             /start - Start the bot\n\
+             /help - Show this help message\n\n\
+             Send any text message and I will echo it back!",
+        )
+        .await?;
     Ok(())
 }
 
-// Check functions decide whether a handler runs for a given update.
-fn is_start(u: &Value) -> bool {
-    u["message"]["text"]
-        .as_str()
-        .map_or(false, |t| t.starts_with("/start"))
+/// Echo back whatever text the user sends.
+async fn echo(update: Update, context: Context) -> HandlerResult {
+    let text = update
+        .effective_message()
+        .and_then(|m| m.text.as_deref())
+        .unwrap_or("");
+    if !text.is_empty() {
+        context.reply_text(&update, text).await?;
+    }
+    Ok(())
 }
 
-fn is_plain_text(u: &Value) -> bool {
-    TEXT.check_update(u).is_match() && !COMMAND.check_update(u).is_match()
+fn main() {
+    telegram_bot::run(async {
+        tracing_subscriber::fmt::init();
+
+        let token = std::env::var("TELEGRAM_BOT_TOKEN")
+            .expect("TELEGRAM_BOT_TOKEN environment variable must be set");
+
+        let app = ApplicationBuilder::new().token(token).build();
+
+        app.add_typed_handler(CommandHandler::new("start", start), 0).await;
+        app.add_typed_handler(CommandHandler::new("help", help), 0).await;
+        app.add_typed_handler(
+            MessageHandler::new(TEXT() & !COMMAND(), echo),
+            0,
+        ).await;
+
+        println!("Echo bot is running. Press Ctrl+C to stop.");
+
+        if let Err(e) = app.run_polling().await {
+            eprintln!("Error running bot: {e}");
+        }
+    });
 }
+```
 
-#[tokio::main]
-async fn main() {
-    // Set up structured logging.
-    tracing_subscriber::fmt::init();
+---
 
-    let token = std::env::var("TELEGRAM_BOT_TOKEN")
-        .expect("TELEGRAM_BOT_TOKEN environment variable not set");
+## Understanding the Code
 
-    // Build the Application. The typestate builder enforces that token()
-    // is called before build().
-    let app: Arc<Application> = ApplicationBuilder::new()
-        .token(token)
-        .build();
+### Entry point
 
-    // Register handlers. Group 0 is checked first.
-    // Within a group, the first matching handler wins.
-    app.add_handler(
-        telegram_bot::ext::application::Handler {
-            check_update: Arc::new(is_start),
-            callback: Arc::new(|u, ctx| Box::pin(start(u, ctx))),
-            block: true,
-        },
-        0,
-    )
-    .await;
+`telegram_bot::run()` builds a multi-threaded tokio runtime with an 8 MB thread stack
+(needed for deeply nested async state machines) and blocks on the provided future. You
+do not need to add `#[tokio::main]` or configure the runtime yourself.
 
-    app.add_handler(
-        telegram_bot::ext::application::Handler {
-            check_update: Arc::new(is_plain_text),
-            callback: Arc::new(|u, ctx| Box::pin(echo(u, ctx))),
-            block: true,
-        },
-        0,
-    )
-    .await;
+### Prelude import
 
-    println!("Bot is running. Press Ctrl+C to stop.");
+`use telegram_bot::ext::prelude::*` brings in everything you need for typical bot code:
 
-    // Start long-polling with sensible defaults.
-    app.run_polling()
-        .await
-        .unwrap();
-}
+- `Update`, `Message` -- strongly-typed API types
+- `Context` (alias for `CallbackContext`) -- passed to every handler
+- `HandlerResult` -- `Result<(), HandlerError>`
+- `ApplicationBuilder`, `Application` -- framework entry points
+- `CommandHandler`, `MessageHandler`, `FnHandler` -- handler types
+- `TEXT()`, `COMMAND()` -- filter constructors
+- `ParseMode`, `ChatType`, `MessageEntityType` -- typed constants
+- `F`, `Filter`, `FilterResult` -- filter composition
+
+### Handler registration
+
+`app.add_typed_handler(handler, group)` registers a handler in a numbered group.
+Within a group, the first matching handler wins. Across groups, processing continues
+unless a handler returns `HandlerResult::Stop`.
+
+### Handler signatures
+
+All handler callbacks have the signature:
+
+```rust
+async fn my_handler(update: Update, context: Context) -> HandlerResult
+```
+
+The `Update` is a strongly-typed struct with methods like `effective_user()`,
+`effective_chat()`, and `effective_message()`. The `Context` provides access to
+the bot, data stores, and the job queue.
+
+### Convenience methods
+
+`context.reply_text(&update, text)` is a shorthand that extracts the chat ID from the
+update and calls `context.bot().send_message(chat_id, text).await`. For more control,
+use the builder directly:
+
+```rust
+context
+    .bot()
+    .send_message(chat_id, "<b>Hello!</b>")
+    .parse_mode(ParseMode::Html)
+    .send()
+    .await?;
 ```
 
 ---
@@ -170,9 +189,7 @@ TELEGRAM_BOT_TOKEN="123456:ABC-DEF..." cargo run
 Expected output:
 
 ```
-2024-01-15T10:00:00.000Z  INFO telegram_bot_ext: Application initialized
-2024-01-15T10:00:00.100Z  INFO telegram_bot_ext: Bot running. Polling for updates.
-Bot is running. Press Ctrl+C to stop.
+Echo bot is running. Press Ctrl+C to stop.
 ```
 
 Open Telegram, find your bot (the username you gave @BotFather), and send `/start`.
@@ -219,6 +236,9 @@ TELEGRAM_BOT_TOKEN="..." cargo run -p telegram-bot --example timer_bot
 
 # Multi-step conversation state machine
 TELEGRAM_BOT_TOKEN="..." cargo run -p telegram-bot --example conversation_bot
+
+# Typed data access: bot_data, chat_data, user tracking
+TELEGRAM_BOT_TOKEN="..." cargo run -p telegram-bot --example context_types_bot
 ```
 
 ---
@@ -226,7 +246,7 @@ TELEGRAM_BOT_TOKEN="..." cargo run -p telegram-bot --example conversation_bot
 ## Next Steps
 
 - [Architecture](architecture.md) -- how the two-crate design works and why
-- [Handlers](handlers.md) -- all 21 handler types with usage examples
+- [Handlers](handlers.md) -- handler types with usage examples
 - [Filters](filters.md) -- composable filters and the `&`, `|`, `!` operators
 - [Persistence](persistence.md) -- saving user/chat data across restarts
 - [Job Queue](job-queue.md) -- scheduled and recurring tasks
