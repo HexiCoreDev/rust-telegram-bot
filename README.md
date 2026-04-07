@@ -31,8 +31,8 @@ We acknowledge and thank the python-telegram-bot maintainers and community for o
 | **Performance** | GIL-limited concurrency, interpreted | True parallelism, compiled to native code |
 | **Memory safety** | Runtime GC, potential leaks in long-running bots | Ownership system prevents leaks at compile time |
 | **Type safety** | Optional type hints, runtime errors | Enforced at compile time, no `AttributeError` at 3 AM |
-| **Deployment** | Requires Python runtime + virtualenv | Single static binary, ~10 MB stripped |
-| **Resource usage** | ~50-100 MB baseline memory | ~15-27 MB RSS (release mode, measured) |
+| **Deployment** | Requires Python runtime + virtualenv | Single static binary, 10-11 MB stripped |
+| **Resource usage** | ~50-100 MB baseline | 20-30 MB RSS under load (release, measured) |
 | **Concurrency** | asyncio (single-threaded) | tokio (multi-threaded work-stealing) |
 
 For bots that handle high volumes of updates, run on constrained hardware (VPS, Raspberry Pi, containers), or need to be deployed without a runtime, Rust is the right tool.
@@ -403,19 +403,22 @@ telegram-bot = { git = "https://github.com/HexiCoreDev/rust-telegram-bot", featu
 
 | Feature | rust-telegram-bot | python-telegram-bot | teloxide |
 |---|:---:|:---:|:---:|
-| Bot API version | 9.6 | 9.5 | 7.x |
+| Bot API version | **9.6** | 9.5 | 9.2 |
 | Language | Rust | Python | Rust |
 | Async runtime | tokio | asyncio | tokio |
-| Handler system | Typed handlers + FnHandler | 20+ handler types | Dispatcher + handler chains |
+| Handler system | 22 typed handlers + FnHandler | 22 handler types | Dispatcher + handler chains |
 | Filter composition | `&`, `\|`, `^`, `!` operators | Same operators | Predicate combinators |
-| ConversationHandler | Full port with timeouts + nesting | Full | dialogue macro |
-| Job queue | Built-in (tokio timers) | APScheduler | External |
-| Persistence | JSON, SQLite, custom trait | Pickle, custom | Redis (community) |
-| Webhook support | axum | tornado | axum / warp |
+| ConversationHandler | Full port (timeouts, nesting, persistence) | Full | `dialogue` macro |
+| Job queue | Built-in (tokio timers) | APScheduler wrapper | External |
+| Persistence | JSON file, SQLite, custom trait | Pickle, Dict, custom | Community crates |
+| Webhook support | axum | tornado / starlette | axum / warp |
 | Type safety | Compile-time | Runtime (optional hints) | Compile-time |
-| Memory footprint | ~5-15 MB | ~50-100 MB | ~10-20 MB |
-| Binary size | Single static binary | Requires runtime | Single static binary |
+| Memory (release, measured) | **20-30 MB RSS** | ~50-100 MB | ~15-25 MB (estimated) |
+| Binary size (stripped) | **10-11 MB** | Requires Python runtime | ~8-12 MB |
 | Minimum version | Rust 1.75 | Python 3.10 | Rust 1.68 |
+| Builder pattern | IntoFuture (directly awaitable) | Keyword args | Method chains |
+| Typed constants | `ParseMode::Html` | `ParseMode.HTML` | String-based |
+| Maturity | **v1.0.0-beta** (new) | Mature (10+ years) | Mature (3+ years) |
 
 ## Examples
 
@@ -456,17 +459,24 @@ What is implemented:
 - Defaults system for parse mode, link preview, etc.
 - `telegram_bot::run()` for safe async entry point with proper stack sizing
 
+### Project Status
+
+- 357 tests passing, zero clippy warnings
+- GitHub Actions CI: check, test, clippy, format, examples, docs (stable + MSRV 1.75)
+- Release pipeline: cross-compile binaries + crates.io publish
+- Measured performance: 10-11 MB binary (stripped), 20-30 MB RSS under load (release)
+
 ### Roadmap
 
 - [ ] Publish to crates.io
-- [ ] Comprehensive `cargo doc` documentation on all public items
+- [ ] Comprehensive `cargo doc` documentation with `#[deny(missing_docs)]`
+- [ ] Property-based testing with `proptest` for filter composition
+- [ ] Integration tests against real Bot API payloads
+- [ ] Benchmarks with `criterion` (throughput, memory, latency)
 - [ ] Webhook TLS auto-configuration
-- [ ] Proxy support (SOCKS5, HTTP)
 - [ ] Passport decryption utilities
 - [ ] Payment flow helpers
-- [ ] Bot API forward-compatibility layer
-- [ ] Property-based testing with proptest
-- [ ] Benchmarks with criterion
+- [ ] Bot API forward-compatibility layer (auto-update from spec)
 
 ## Documentation
 
