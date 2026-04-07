@@ -1,0 +1,11 @@
+[package]
+name = "teloxide-bench"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+teloxide = { version = "0.17", features = ["webhooks-axum", "macros"] }
+tokio = { version = "1", features = ["full"] }
+axum = "0.8"
+serde_json = "1"
+tracing-subscriber = "0.3"

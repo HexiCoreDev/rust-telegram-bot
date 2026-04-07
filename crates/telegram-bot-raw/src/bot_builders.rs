@@ -2287,4 +2287,47 @@ impl Bot {
             allow_channel_chats: None,
         }
     }
+
+    pub fn send_chat_action(
+        &self,
+        chat_id: impl Into<ChatId>,
+        action: impl Into<String>,
+    ) -> SendChatActionBuilder<'_> {
+        SendChatActionBuilder {
+            bot: self,
+            chat_id: chat_id.into(),
+            action: action.into(),
+            message_thread_id: None,
+            business_connection_id: None,
+        }
+    }
 }
+
+// ---------------------------------------------------------------------------
+// SendChatActionBuilder
+// ---------------------------------------------------------------------------
+
+pub struct SendChatActionBuilder<'a> {
+    bot: &'a Bot,
+    chat_id: ChatId,
+    action: String,
+    message_thread_id: Option<i64>,
+    business_connection_id: Option<String>,
+}
+
+impl<'a> SendChatActionBuilder<'a> {
+    pub fn message_thread_id(mut self, id: i64) -> Self { self.message_thread_id = Some(id); self }
+    pub fn business_connection_id(mut self, id: impl Into<String>) -> Self { self.business_connection_id = Some(id.into()); self }
+
+    pub async fn send(self) -> Result<bool> {
+        let mut params = vec![
+            RequestParameter::new("chat_id", serde_json::to_value(&self.chat_id)?),
+            RequestParameter::new("action", serde_json::Value::String(self.action)),
+        ];
+        push_opt(&mut params, "message_thread_id", &self.message_thread_id);
+        push_opt_str(&mut params, "business_connection_id", &self.business_connection_id);
+        self.bot.do_api_request("sendChatAction", params).await
+    }
+}
+
+impl_into_future!(SendChatActionBuilder, bool);

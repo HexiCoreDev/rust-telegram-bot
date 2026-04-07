@@ -1567,7 +1567,7 @@ impl Bot {
         self.do_post("sendDice", params).await
     }
 
-    pub async fn send_chat_action(
+    pub(crate) async fn send_chat_action_raw(
         &self,
         chat_id: ChatId,
         action: &str,

@@ -15,6 +15,7 @@ If you discover a security vulnerability in rust-telegram-bot, please report it 
 Instead, email: **[judechinedu122@gmail.com](mailto:judechinedu122@gmail.com)**
 
 Include:
+
 - Description of the vulnerability
 - Steps to reproduce
 - Potential impact
@@ -29,6 +30,7 @@ Include:
 ## Scope
 
 This policy covers:
+
 - The `telegram-bot-raw`, `telegram-bot-ext`, and `telegram-bot` crates
 - Security issues in request handling, token management, webhook validation
 - Dependency vulnerabilities that affect this project

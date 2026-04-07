@@ -117,3 +117,8 @@ path = "examples/arbitrary_callback_data_bot.rs"
 name = "custom_webhook_bot"
 path = "examples/custom_webhook_bot.rs"
 required-features = ["webhooks"]
+
+[[example]]
+name = "bench_bot"
+path = "examples/bench_bot.rs"
+required-features = ["webhooks"]

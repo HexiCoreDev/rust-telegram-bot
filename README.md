@@ -31,8 +31,8 @@ We acknowledge and thank the python-telegram-bot maintainers and community for o
 | **Performance** | GIL-limited concurrency, interpreted | True parallelism, compiled to native code |
 | **Memory safety** | Runtime GC, potential leaks in long-running bots | Ownership system prevents leaks at compile time |
 | **Type safety** | Optional type hints, runtime errors | Enforced at compile time, no `AttributeError` at 3 AM |
-| **Deployment** | Requires Python runtime + virtualenv | Single static binary, 10-11 MB stripped |
-| **Resource usage** | ~50-100 MB baseline | 20-30 MB RSS under load (release, measured) |
+| **Deployment** | Requires Python runtime + virtualenv | Single static binary, 12 MB stripped |
+| **Resource usage** | 57 MB RSS (measured) | 20-32 MB RSS (measured, see [benchmarks](benchmarks/)) |
 | **Concurrency** | asyncio (single-threaded) | tokio (multi-threaded work-stealing) |
 
 For bots that handle high volumes of updates, run on constrained hardware (VPS, Raspberry Pi, containers), or need to be deployed without a runtime, Rust is the right tool.
@@ -413,8 +413,9 @@ telegram-bot = { git = "https://github.com/HexiCoreDev/rust-telegram-bot", featu
 | Persistence | JSON file, SQLite, custom trait | Pickle, Dict, custom | Community crates |
 | Webhook support | axum | tornado / starlette | axum / warp |
 | Type safety | Compile-time | Runtime (optional hints) | Compile-time |
-| Memory (release, measured) | **20-30 MB RSS** | ~50-100 MB | ~15-25 MB (estimated) |
-| Binary size (stripped) | **10-11 MB** | Requires Python runtime | ~8-12 MB |
+| Memory idle (measured) | 20 MB | 57 MB | **15 MB** |
+| Memory under load (measured) | 32 MB | 57 MB | **17 MB** |
+| Binary size (stripped) | 12 MB | Requires Python runtime | **6.6 MB** |
 | Minimum version | Rust 1.75 | Python 3.10 | Rust 1.68 |
 | Builder pattern | IntoFuture (directly awaitable) | Keyword args | Method chains |
 | Typed constants | `ParseMode::Html` | `ParseMode.HTML` | String-based |

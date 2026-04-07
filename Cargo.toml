@@ -5,6 +5,9 @@ members = [
     "crates/telegram-bot-ext",
     "crates/telegram-bot",
 ]
+exclude = [
+    "benchmarks/teloxide",
+]
 
 [workspace.package]
 version = "1.0.0-beta"
