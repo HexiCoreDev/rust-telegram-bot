@@ -1,0 +1,20 @@
+[package]
+name = "telegram-bot-raw"
+description = "Pure Telegram Bot API types and methods for Rust — a faithful port of python-telegram-bot's core layer"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dependencies]
+serde.workspace = true
+serde_json.workspace = true
+reqwest.workspace = true
+tokio.workspace = true
+chrono.workspace = true
+thiserror.workspace = true
+tracing.workspace = true
+url.workspace = true
+bytes.workspace = true
+async-trait.workspace = true
+regex.workspace = true

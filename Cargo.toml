@@ -1,0 +1,53 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/telegram-bot-raw",
+    "crates/telegram-bot-ext",
+    "crates/telegram-bot",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.75"
+license = "LGPL-3.0-only"
+repository = "https://github.com/nicegram/rust-telegram-bot"
+
+[workspace.dependencies]
+# Serialization
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# Async runtime
+tokio = { version = "1", features = ["full"] }
+
+# HTTP
+reqwest = { version = "0.12", features = ["json", "multipart", "stream"] }
+
+# Byte buffers (re-exported by reqwest but declared explicitly for clarity)
+bytes = "1"
+
+# Async trait support
+async-trait = "0.1"
+
+# Time
+chrono = { version = "0.4", features = ["serde"] }
+
+# Error handling
+thiserror = "2"
+
+# Logging
+tracing = "0.1"
+tracing-subscriber = "0.3"
+
+# Regex
+regex = "1"
+
+# URL handling
+url = { version = "2", features = ["serde"] }
+
+# Web framework (for webhooks)
+axum = "0.8"
+
+# SQLite (for persistence)
+rusqlite = { version = "0.32", features = ["bundled"] }

@@ -1,0 +1,46 @@
+# Rust build artifacts
+/target/
+**/target/
+
+# Cargo lock is committed for reproducibility (binary crate / workspace)
+# Uncomment the next line if this were a library-only crate published to crates.io
+# Cargo.lock
+
+# Editor and IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Environment and secrets
+.env
+.env.*
+*.pem
+*.key
+
+# Persistence data (generated at runtime)
+*.db
+*.db-shm
+*.db-wal
+*_user_data.json
+*_chat_data.json
+*_bot_data.json
+*_callback_data.json
+*_conversations.json
+bot_data.json
+
+# OS files
+Thumbs.db
+.DS_Store
+
+# Coverage and profiling
+*.profraw
+*.profdata
+tarpaulin-report.html
+lcov.info
+coverage/
+
+# Documentation build output (cargo doc)
+# The generated docs are not checked in; run `cargo doc` locally.

@@ -1,0 +1,111 @@
+[package]
+name = "telegram-bot"
+description = "Complete Telegram Bot API framework for Rust, inspired by python-telegram-bot"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dependencies]
+telegram-bot-raw = { path = "../telegram-bot-raw" }
+telegram-bot-ext = { path = "../telegram-bot-ext" }
+tokio = { workspace = true }
+
+[dev-dependencies]
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+axum = { workspace = true }
+
+[features]
+default = ["telegram-bot-ext/default"]
+full = ["telegram-bot-ext/full"]
+webhooks = ["telegram-bot-ext/webhooks"]
+job-queue = ["telegram-bot-ext/job-queue"]
+persistence-json = ["telegram-bot-ext/persistence-json"]
+persistence-sqlite = ["telegram-bot-ext/persistence-sqlite"]
+rate-limiter = ["telegram-bot-ext/rate-limiter"]
+
+[[example]]
+name = "echo_bot"
+path = "examples/echo_bot.rs"
+
+[[example]]
+name = "inline_keyboard"
+path = "examples/inline_keyboard.rs"
+
+[[example]]
+name = "timer_bot"
+path = "examples/timer_bot.rs"
+
+[[example]]
+name = "conversation_bot"
+path = "examples/conversation_bot.rs"
+
+[[example]]
+name = "raw_api_bot"
+path = "examples/raw_api_bot.rs"
+
+[[example]]
+name = "error_handler_bot"
+path = "examples/error_handler_bot.rs"
+
+[[example]]
+name = "poll_bot"
+path = "examples/poll_bot.rs"
+
+[[example]]
+name = "inline_bot"
+path = "examples/inline_bot.rs"
+
+[[example]]
+name = "inline_keyboard2"
+path = "examples/inline_keyboard2.rs"
+
+[[example]]
+name = "deep_linking"
+path = "examples/deep_linking.rs"
+
+[[example]]
+name = "conversation_bot2"
+path = "examples/conversation_bot2.rs"
+
+[[example]]
+name = "chat_member_bot"
+path = "examples/chat_member_bot.rs"
+
+[[example]]
+name = "context_types_bot"
+path = "examples/context_types_bot.rs"
+
+[[example]]
+name = "nested_conversation_bot"
+path = "examples/nested_conversation_bot.rs"
+
+[[example]]
+name = "persistent_conversation_bot"
+path = "examples/persistent_conversation_bot.rs"
+required-features = ["persistence-json"]
+
+[[example]]
+name = "payment_bot"
+path = "examples/payment_bot.rs"
+
+[[example]]
+name = "passport_bot"
+path = "examples/passport_bot.rs"
+
+[[example]]
+name = "webapp_bot"
+path = "examples/webapp_bot.rs"
+
+[[example]]
+name = "arbitrary_callback_data_bot"
+path = "examples/arbitrary_callback_data_bot.rs"
+
+[[example]]
+name = "custom_webhook_bot"
+path = "examples/custom_webhook_bot.rs"
+required-features = ["webhooks"]
