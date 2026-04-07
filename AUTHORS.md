@@ -3,7 +3,7 @@
 ## Creator
 
 **Jude Etuka**
-- Email: judechinedu122@gmail.com
+- Email: [judechinedu122@gmail.com](mailto:judechinedu122@gmail.com)
 - GitHub: [@JUDE122-MAX](https://github.com/JUDE122-MAX)
 - Telegram: [@judeetuka](https://t.me/judeetuka)
 

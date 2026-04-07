@@ -1,6 +1,10 @@
-# rust-telegram-bot
+<p align="center">
+  <img src="assets/logo.png" alt="rust-telegram-bot" width="200">
+</p>
 
-**We built you a bot you can't refuse -- now in Rust.**
+<h1 align="center">rust-telegram-bot</h1>
+
+<p align="center"><strong>We built you a bot you can't refuse -- now in Rust.</strong></p>
 
 [![Bot API 9.6](https://img.shields.io/badge/Bot%20API-9.6-blue?logo=telegram)](https://core.telegram.org/bots/api-changelog)
 [![License: LGPL-3.0](https://img.shields.io/badge/License-LGPL--3.0-green.svg)](https://www.gnu.org/licenses/lgpl-3.0.html)

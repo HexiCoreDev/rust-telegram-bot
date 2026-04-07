@@ -12,7 +12,7 @@ If you discover a security vulnerability in rust-telegram-bot, please report it 
 
 **Do NOT open a public GitHub issue for security vulnerabilities.**
 
-Instead, email: **judechinedu122@gmail.com**
+Instead, email: **[judechinedu122@gmail.com](mailto:judechinedu122@gmail.com)**
 
 Include:
 - Description of the vulnerability

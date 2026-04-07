@@ -36,7 +36,7 @@ This Code of Conduct applies within all community spaces, and also applies when 
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be reported to the project maintainer at:
 
-**judechinedu122@gmail.com**
+**[judechinedu122@gmail.com](mailto:judechinedu122@gmail.com)**
 
 All complaints will be reviewed and investigated promptly and fairly. The project team is obligated to maintain confidentiality with regard to the reporter of an incident.
 
