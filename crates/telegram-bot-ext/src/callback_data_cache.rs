@@ -101,9 +101,12 @@ struct LruMap<V> {
 
 impl<V> LruMap<V> {
     fn new(maxsize: usize) -> Self {
+        // Start with zero allocation -- the HashMap and VecDeque will grow
+        // lazily on first insert.  With maxsize=1024 this avoids ~64 KB of
+        // upfront heap usage per LruMap (hash table + VecDeque backing array).
         Self {
-            map: HashMap::with_capacity(maxsize),
-            order: VecDeque::with_capacity(maxsize),
+            map: HashMap::new(),
+            order: VecDeque::new(),
             maxsize,
         }
     }

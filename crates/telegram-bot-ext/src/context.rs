@@ -292,7 +292,8 @@ pub struct CallbackContext {
     pub error: Option<Arc<dyn std::error::Error + Send + Sync>>,
 
     /// Extra key-value pairs that handlers can attach for downstream handlers.
-    pub extra: HashMap<String, Value>,
+    /// Lazy: `None` until first insertion to avoid clone overhead during dispatch.
+    extra: Option<HashMap<String, Value>>,
 
     /// Optional reference to the application's job queue.
     ///
@@ -323,7 +324,7 @@ impl CallbackContext {
             named_matches: None,
             args: None,
             error: None,
-            extra: HashMap::new(),
+            extra: None,
             #[cfg(feature = "job-queue")]
             job_queue: None,
         }
@@ -462,6 +463,30 @@ impl CallbackContext {
         self.matches
             .as_ref()
             .and_then(|m| m.first().map(String::as_str))
+    }
+
+    /// Returns a reference to the extra data map, if any data has been set.
+    #[must_use]
+    pub fn extra(&self) -> Option<&HashMap<String, Value>> {
+        self.extra.as_ref()
+    }
+
+    /// Returns a mutable reference to the extra data map, creating it if needed.
+    pub fn extra_mut(&mut self) -> &mut HashMap<String, Value> {
+        self.extra.get_or_insert_with(HashMap::new)
+    }
+
+    /// Insert a key-value pair into the extra data map.
+    pub fn set_extra(&mut self, key: String, value: Value) {
+        self.extra
+            .get_or_insert_with(HashMap::new)
+            .insert(key, value);
+    }
+
+    /// Get a value from the extra data map by key.
+    #[must_use]
+    pub fn get_extra(&self, key: &str) -> Option<&Value> {
+        self.extra.as_ref().and_then(|m| m.get(key))
     }
 
     /// Drop the cached callback data for a given callback query ID.
@@ -868,6 +893,26 @@ mod tests {
         assert!(ctx.match_result().is_none());
         ctx.matches = Some(vec!["hello".into(), "world".into()]);
         assert_eq!(ctx.match_result(), Some("hello"));
+    }
+
+    #[test]
+    fn extra_is_lazily_initialized() {
+        let bot = make_bot();
+        let (ud, cd, bd) = make_stores();
+        let mut ctx = CallbackContext::new(bot, None, None, ud, cd, bd);
+
+        assert!(ctx.extra().is_none());
+        assert!(ctx.get_extra("missing").is_none());
+
+        ctx.extra_mut()
+            .insert("count".into(), Value::Number(1.into()));
+        assert_eq!(ctx.get_extra("count"), Some(&Value::Number(1.into())));
+
+        ctx.set_extra("name".into(), Value::String("Alice".into()));
+        assert_eq!(
+            ctx.extra().and_then(|extra| extra.get("name")),
+            Some(&Value::String("Alice".into()))
+        );
     }
 
     #[cfg(feature = "job-queue")]
