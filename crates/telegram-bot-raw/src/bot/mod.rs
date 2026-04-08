@@ -96,9 +96,9 @@ pub struct Defaults {
 ///
 /// `Bot` is `Send + Sync` and can be shared across tasks via `Arc<Bot>`.
 pub struct Bot {
-    token: String,
-    base_url: String,
-    base_file_url: String,
+    token: Arc<str>,
+    base_url: Arc<str>,
+    base_file_url: Arc<str>,
     request: Arc<dyn BaseRequest>,
     /// Separate request object for `getUpdates` long-polling (M3).
     request_for_updates: Arc<dyn BaseRequest>,
@@ -214,8 +214,9 @@ impl Bot {
     /// For custom endpoints (e.g. a local Bot API server), use [`Bot::with_options`].
     pub fn new(token: impl Into<String>, request: Arc<dyn BaseRequest>) -> Self {
         let token = token.into();
-        let base_url = format!("https://api.telegram.org/bot{token}");
-        let base_file_url = format!("https://api.telegram.org/file/bot{token}");
+        let base_url: Arc<str> = format!("https://api.telegram.org/bot{token}").into();
+        let base_file_url: Arc<str> = format!("https://api.telegram.org/file/bot{token}").into();
+        let token: Arc<str> = token.into();
         Self {
             token,
             base_url,
@@ -239,8 +240,9 @@ impl Bot {
         defaults: Option<Defaults>,
     ) -> Self {
         let token = token.into();
-        let base_url = format!("https://api.telegram.org/bot{token}");
-        let base_file_url = format!("https://api.telegram.org/file/bot{token}");
+        let base_url: Arc<str> = format!("https://api.telegram.org/bot{token}").into();
+        let base_file_url: Arc<str> = format!("https://api.telegram.org/file/bot{token}").into();
+        let token: Arc<str> = token.into();
         let request_for_updates = request_for_updates.unwrap_or_else(|| Arc::clone(&request));
         Self {
             token,
