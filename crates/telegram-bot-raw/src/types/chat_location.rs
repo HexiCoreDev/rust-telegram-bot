@@ -8,6 +8,16 @@ use crate::types::files::location::Location;
 pub struct ChatLocation {
     /// The location to which the supergroup is connected. Cannot be a live location.
     pub location: Location,
-    /// Location address as defined by the chat owner (1–64 characters).
+    /// Location address as defined by the chat owner (1-64 characters).
     pub address: String,
+}
+
+impl ChatLocation {
+    /// Creates a new `ChatLocation`.
+    pub fn new(location: Location, address: impl Into<String>) -> Self {
+        Self {
+            location,
+            address: address.into(),
+        }
+    }
 }

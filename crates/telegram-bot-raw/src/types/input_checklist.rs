@@ -8,7 +8,7 @@ use super::message_entity::MessageEntity;
 // ---------------------------------------------------------------------------
 
 /// A task to add to a checklist.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
 pub struct InputChecklistTask {
     /// Unique identifier of the task; must be positive and unique within the checklist.
     pub id: i64,
@@ -23,6 +23,17 @@ pub struct InputChecklistTask {
     /// Special entities in the text, used instead of `parse_mode`.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub text_entities: Vec<MessageEntity>,
+}
+
+impl InputChecklistTask {
+    /// Creates a new `InputChecklistTask`.
+    pub fn new(id: i64, text: impl Into<String>) -> Self {
+        Self {
+            id,
+            text: text.into(),
+            ..Default::default()
+        }
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -53,4 +64,18 @@ pub struct InputChecklist {
     /// True if other users can mark tasks as done or not done.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub others_can_mark_tasks_as_done: Option<bool>,
+}
+
+impl InputChecklist {
+    /// Creates a new `InputChecklist` with the given title and tasks.
+    pub fn new(title: impl Into<String>, tasks: Vec<InputChecklistTask>) -> Self {
+        Self {
+            title: title.into(),
+            tasks,
+            parse_mode: None,
+            title_entities: Vec::new(),
+            others_can_add_tasks: None,
+            others_can_mark_tasks_as_done: None,
+        }
+    }
 }

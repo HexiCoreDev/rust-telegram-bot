@@ -51,3 +51,9 @@ pub struct InlineQueryResultMpeg4Gif {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub show_caption_above_media: Option<bool>,
 }
+
+impl_new!(InlineQueryResultMpeg4Gif {
+    id: String,
+    mpeg4_url: String,
+    thumbnail_url: String,
+});

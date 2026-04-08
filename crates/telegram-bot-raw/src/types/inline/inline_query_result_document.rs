@@ -47,3 +47,10 @@ pub struct InlineQueryResultDocument {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub thumbnail_height: Option<i32>,
 }
+
+impl_new!(InlineQueryResultDocument {
+    id: String,
+    title: String,
+    document_url: String,
+    mime_type: String,
+});

@@ -38,3 +38,23 @@ pub enum MenuButton {
     /// No specific value set; the default button (command list) is used.
     Default(MenuButtonDefaultData),
 }
+
+impl MenuButton {
+    /// Create a menu button that opens the bot's command list.
+    pub fn commands() -> Self {
+        Self::Commands(MenuButtonCommandsData {})
+    }
+
+    /// Create a menu button that launches a Web App.
+    pub fn web_app(text: impl Into<String>, web_app: WebAppInfo) -> Self {
+        Self::WebApp(MenuButtonWebAppData {
+            text: text.into(),
+            web_app,
+        })
+    }
+
+    /// Create the default menu button.
+    pub fn default_button() -> Self {
+        Self::Default(MenuButtonDefaultData {})
+    }
+}

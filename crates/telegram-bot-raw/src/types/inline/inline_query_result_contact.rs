@@ -38,3 +38,9 @@ pub struct InlineQueryResultContact {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub thumbnail_height: Option<i32>,
 }
+
+impl_new!(InlineQueryResultContact {
+    id: String,
+    phone_number: String,
+    first_name: String,
+});

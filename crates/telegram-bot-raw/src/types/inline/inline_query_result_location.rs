@@ -50,3 +50,21 @@ pub struct InlineQueryResultLocation {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub thumbnail_height: Option<i32>,
 }
+
+impl InlineQueryResultLocation {
+    /// Creates a new `InlineQueryResultLocation`.
+    pub fn new(
+        id: impl Into<String>,
+        latitude: f64,
+        longitude: f64,
+        title: impl Into<String>,
+    ) -> Self {
+        Self {
+            id: id.into(),
+            latitude,
+            longitude,
+            title: title.into(),
+            ..Default::default()
+        }
+    }
+}

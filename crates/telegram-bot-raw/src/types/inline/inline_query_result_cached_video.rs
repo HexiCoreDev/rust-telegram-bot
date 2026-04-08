@@ -38,3 +38,9 @@ pub struct InlineQueryResultCachedVideo {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub show_caption_above_media: Option<bool>,
 }
+
+impl_new!(InlineQueryResultCachedVideo {
+    id: String,
+    video_file_id: String,
+    title: String,
+});

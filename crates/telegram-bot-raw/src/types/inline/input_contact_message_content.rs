@@ -17,3 +17,8 @@ pub struct InputContactMessageContent {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub vcard: Option<String>,
 }
+
+impl_new!(InputContactMessageContent {
+    phone_number: String,
+    first_name: String,
+});

@@ -25,8 +25,29 @@ pub struct StoryAreaPosition {
     pub corner_radius_percentage: f64,
 }
 
+impl StoryAreaPosition {
+    /// Creates a new `StoryAreaPosition`.
+    pub fn new(
+        x_percentage: f64,
+        y_percentage: f64,
+        width_percentage: f64,
+        height_percentage: f64,
+        rotation_angle: f64,
+        corner_radius_percentage: f64,
+    ) -> Self {
+        Self {
+            x_percentage,
+            y_percentage,
+            width_percentage,
+            height_percentage,
+            rotation_angle,
+            corner_radius_percentage,
+        }
+    }
+}
+
 /// Physical address of a location.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
 pub struct LocationAddress {
     /// Two-letter ISO 3166-1 alpha-2 country code.
     pub country_code: String,
@@ -43,6 +64,8 @@ pub struct LocationAddress {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub street: Option<String>,
 }
+
+impl_new!(LocationAddress { country_code: String });
 
 /// A story area pointing to a geographic location.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -120,6 +143,49 @@ pub enum StoryAreaType {
     UniqueGift(StoryAreaTypeUniqueGiftData),
 }
 
+impl StoryAreaType {
+    /// Create a location story area type.
+    pub fn location(latitude: f64, longitude: f64) -> Self {
+        Self::Location(StoryAreaTypeLocationData {
+            latitude,
+            longitude,
+            address: None,
+        })
+    }
+
+    /// Create a suggested reaction story area type.
+    pub fn suggested_reaction(reaction_type: ReactionType) -> Self {
+        Self::SuggestedReaction(StoryAreaTypeSuggestedReactionData {
+            reaction_type,
+            is_dark: None,
+            is_flipped: None,
+        })
+    }
+
+    /// Create a link story area type.
+    pub fn link(url: impl Into<String>) -> Self {
+        Self::Link(StoryAreaTypeLinkData {
+            url: url.into(),
+        })
+    }
+
+    /// Create a weather story area type.
+    pub fn weather(temperature: f64, emoji: impl Into<String>, background_color: i64) -> Self {
+        Self::Weather(StoryAreaTypeWeatherData {
+            temperature,
+            emoji: emoji.into(),
+            background_color,
+        })
+    }
+
+    /// Create a unique gift story area type.
+    pub fn unique_gift(name: impl Into<String>) -> Self {
+        Self::UniqueGift(StoryAreaTypeUniqueGiftData {
+            name: name.into(),
+        })
+    }
+}
+
 /// A clickable area on a story media.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct StoryArea {
@@ -129,4 +195,14 @@ pub struct StoryArea {
     /// Type of the area.
     #[serde(rename = "type")]
     pub area_type: StoryAreaType,
+}
+
+impl StoryArea {
+    /// Creates a new `StoryArea`.
+    pub fn new(position: StoryAreaPosition, area_type: StoryAreaType) -> Self {
+        Self {
+            position,
+            area_type,
+        }
+    }
 }

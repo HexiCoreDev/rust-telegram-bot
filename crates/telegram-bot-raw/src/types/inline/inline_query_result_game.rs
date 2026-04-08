@@ -15,3 +15,8 @@ pub struct InlineQueryResultGame {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub reply_markup: Option<InlineKeyboardMarkup>,
 }
+
+impl_new!(InlineQueryResultGame {
+    id: String,
+    game_short_name: String,
+});

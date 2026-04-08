@@ -26,3 +26,14 @@ pub struct InputLocationMessageContent {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub proximity_alert_radius: Option<i32>,
 }
+
+impl InputLocationMessageContent {
+    /// Creates a new `InputLocationMessageContent`.
+    pub fn new(latitude: f64, longitude: f64) -> Self {
+        Self {
+            latitude,
+            longitude,
+            ..Default::default()
+        }
+    }
+}

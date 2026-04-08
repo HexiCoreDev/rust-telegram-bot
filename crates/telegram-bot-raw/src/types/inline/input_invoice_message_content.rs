@@ -73,3 +73,23 @@ pub struct InputInvoiceMessageContent {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub is_flexible: Option<bool>,
 }
+
+impl InputInvoiceMessageContent {
+    /// Creates a new `InputInvoiceMessageContent`.
+    pub fn new(
+        title: impl Into<String>,
+        description: impl Into<String>,
+        payload: impl Into<String>,
+        currency: impl Into<String>,
+        prices: Vec<LabeledPrice>,
+    ) -> Self {
+        Self {
+            title: title.into(),
+            description: description.into(),
+            payload: payload.into(),
+            currency: currency.into(),
+            prices,
+            ..Default::default()
+        }
+    }
+}

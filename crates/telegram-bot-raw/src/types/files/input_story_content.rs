@@ -7,7 +7,7 @@ use crate::types::files::input_file::InputFile;
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct InputStoryContentPhotoData {
     /// The photo to post as a story.
-    /// Must be 1080×1920 px and no larger than 10 MB.
+    /// Must be 1080x1920 px and no larger than 10 MB.
     pub photo: InputFile,
 }
 
@@ -15,10 +15,10 @@ pub struct InputStoryContentPhotoData {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct InputStoryContentVideoData {
     /// The video to post as a story.
-    /// Must be 720×1280 px, streamable, H.265-encoded MPEG4, and no larger than 30 MB.
+    /// Must be 720x1280 px, streamable, H.265-encoded MPEG4, and no larger than 30 MB.
     pub video: InputFile,
 
-    /// Precise duration of the video in seconds (0–60).
+    /// Precise duration of the video in seconds (0-60).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub duration: Option<f64>,
 
@@ -40,4 +40,21 @@ pub enum InputStoryContent {
 
     /// A video story.
     Video(InputStoryContentVideoData),
+}
+
+impl InputStoryContent {
+    /// Create a photo story.
+    pub fn photo(photo: InputFile) -> Self {
+        Self::Photo(InputStoryContentPhotoData { photo })
+    }
+
+    /// Create a video story.
+    pub fn video(video: InputFile) -> Self {
+        Self::Video(InputStoryContentVideoData {
+            video,
+            duration: None,
+            cover_frame_timestamp: None,
+            is_animation: None,
+        })
+    }
 }

@@ -55,6 +55,24 @@ pub enum ChatId {
     Username(String),
 }
 
+impl From<i64> for ChatId {
+    fn from(id: i64) -> Self {
+        Self::Id(id)
+    }
+}
+
+impl From<&str> for ChatId {
+    fn from(username: &str) -> Self {
+        Self::Username(username.to_owned())
+    }
+}
+
+impl From<String> for ChatId {
+    fn from(username: String) -> Self {
+        Self::Username(username)
+    }
+}
+
 /// Polymorphic scope to which bot commands are applied.
 ///
 /// Serialized with a `"type"` tag that selects the variant.
@@ -81,4 +99,48 @@ pub enum BotCommandScope {
 
     /// Commands visible to a specific member of a specific chat.
     ChatMember(BotCommandScopeChatMemberData),
+}
+
+impl BotCommandScope {
+    /// Default scope — commands visible to all users in all chats.
+    pub fn default_scope() -> Self {
+        Self::Default(BotCommandScopeDefault {})
+    }
+
+    /// Commands visible to all users in all private chats.
+    pub fn all_private_chats() -> Self {
+        Self::AllPrivateChats(BotCommandScopeAllPrivateChats {})
+    }
+
+    /// Commands visible to all users in all group/supergroup chats.
+    pub fn all_group_chats() -> Self {
+        Self::AllGroupChats(BotCommandScopeAllGroupChats {})
+    }
+
+    /// Commands visible to all administrators in all group/supergroup chats.
+    pub fn all_chat_administrators() -> Self {
+        Self::AllChatAdministrators(BotCommandScopeAllChatAdministrators {})
+    }
+
+    /// Commands visible to all users in a specific chat.
+    pub fn chat(chat_id: impl Into<ChatId>) -> Self {
+        Self::Chat(BotCommandScopeChatData {
+            chat_id: chat_id.into(),
+        })
+    }
+
+    /// Commands visible to all administrators of a specific chat.
+    pub fn chat_administrators(chat_id: impl Into<ChatId>) -> Self {
+        Self::ChatAdministrators(BotCommandScopeChatAdministratorsData {
+            chat_id: chat_id.into(),
+        })
+    }
+
+    /// Commands visible to a specific member of a specific chat.
+    pub fn chat_member(chat_id: impl Into<ChatId>, user_id: i64) -> Self {
+        Self::ChatMember(BotCommandScopeChatMemberData {
+            chat_id: chat_id.into(),
+            user_id,
+        })
+    }
 }

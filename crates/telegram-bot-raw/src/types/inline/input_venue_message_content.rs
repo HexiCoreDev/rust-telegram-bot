@@ -28,3 +28,21 @@ pub struct InputVenueMessageContent {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub google_place_type: Option<String>,
 }
+
+impl InputVenueMessageContent {
+    /// Creates a new `InputVenueMessageContent`.
+    pub fn new(
+        latitude: f64,
+        longitude: f64,
+        title: impl Into<String>,
+        address: impl Into<String>,
+    ) -> Self {
+        Self {
+            latitude,
+            longitude,
+            title: title.into(),
+            address: address.into(),
+            ..Default::default()
+        }
+    }
+}

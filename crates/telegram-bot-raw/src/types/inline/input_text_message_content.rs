@@ -19,3 +19,19 @@ pub struct InputTextMessageContent {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub link_preview_options: Option<LinkPreviewOptions>,
 }
+
+impl_new!(InputTextMessageContent { message_text: String });
+
+impl InputTextMessageContent {
+    /// Set the parse mode.
+    pub fn parse_mode(mut self, mode: impl Into<String>) -> Self {
+        self.parse_mode = Some(mode.into());
+        self
+    }
+
+    /// Set the link preview options.
+    pub fn link_preview_options(mut self, opts: LinkPreviewOptions) -> Self {
+        self.link_preview_options = Some(opts);
+        self
+    }
+}

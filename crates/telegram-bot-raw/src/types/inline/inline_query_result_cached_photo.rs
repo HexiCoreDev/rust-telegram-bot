@@ -38,3 +38,8 @@ pub struct InlineQueryResultCachedPhoto {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub show_caption_above_media: Option<bool>,
 }
+
+impl_new!(InlineQueryResultCachedPhoto {
+    id: String,
+    photo_file_id: String,
+});

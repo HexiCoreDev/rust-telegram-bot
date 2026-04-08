@@ -19,3 +19,19 @@ pub struct InlineQueryResultsButton {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub start_parameter: Option<String>,
 }
+
+impl_new!(InlineQueryResultsButton { text: String });
+
+impl InlineQueryResultsButton {
+    /// Set the Web App to be launched.
+    pub fn web_app(mut self, web_app: WebAppInfo) -> Self {
+        self.web_app = Some(web_app);
+        self
+    }
+
+    /// Set the deep-linking start parameter.
+    pub fn start_parameter(mut self, param: impl Into<String>) -> Self {
+        self.start_parameter = Some(param.into());
+        self
+    }
+}
