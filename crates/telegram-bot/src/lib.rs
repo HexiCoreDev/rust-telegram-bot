@@ -59,6 +59,7 @@ impl RuntimeConfig {
 ///     );
 /// }
 /// ```
+#[deprecated(since = "1.0.0-beta.2", note = "Use #[tokio::main] directly instead")]
 pub fn run<F: std::future::Future<Output = ()> + Send>(future: F) {
     run_configured(RuntimeConfig::default(), future);
 }

@@ -14,7 +14,11 @@
 //! ```sh
 //! TELEGRAM_BOT_TOKEN="your-token-here" cargo run -p telegram-bot --example context_types_bot
 //! ```
-use telegram_bot::ext::prelude::*;
+use telegram_bot::ext::prelude::{
+    Application, ApplicationBuilder, CommandHandler, Context, FnHandler, HandlerError,
+    HandlerResult, InlineKeyboardButton, InlineKeyboardMarkup, Update, Arc,
+    JsonValue,
+};
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -31,7 +35,7 @@ fn extract_chat_id(update: &Update) -> i64 {
     update.effective_chat().expect("update must have a chat").id
 }
 
-fn build_click_keyboard() -> serde_json::Value {
+fn build_click_keyboard() -> JsonValue {
     serde_json::to_value(
         InlineKeyboardMarkup::from_button(InlineKeyboardButton::callback("Click me!", "button")),
     )
@@ -49,9 +53,9 @@ async fn track_users(update: Arc<Update>, context: Context) -> HandlerResult {
         let mut bd = context.bot_data_mut().await;
         let ids = bd
             .entry(USER_IDS_KEY.to_string())
-            .or_insert_with(|| serde_json::Value::Array(vec![]));
-        if let serde_json::Value::Array(ref mut arr) = ids {
-            let val = serde_json::Value::String(user_id_str.clone());
+            .or_insert_with(|| JsonValue::Array(vec![]));
+        if let JsonValue::Array(ref mut arr) = ids {
+            let val = JsonValue::String(user_id_str.clone());
             if !arr.contains(&val) {
                 arr.push(val);
             }
@@ -109,7 +113,7 @@ async fn count_click(update: Arc<Update>, context: Context) -> HandlerResult {
     let new_count = current + 1;
 
     context
-        .set_chat_data(key, serde_json::Value::Number(new_count.into()))
+        .set_chat_data(key, JsonValue::Number(new_count.into()))
         .await;
 
     // Edit the message to show the updated count.
@@ -159,47 +163,46 @@ async fn print_users(update: Arc<Update>, context: Context) -> HandlerResult {
 // Main
 // ---------------------------------------------------------------------------
 
-fn main() {
-    telegram_bot::run(async {
-        tracing_subscriber::fmt::init();
+#[tokio::main]
+async fn main() {
+    tracing_subscriber::fmt::init();
 
-        let token = std::env::var("TELEGRAM_BOT_TOKEN")
-            .expect("TELEGRAM_BOT_TOKEN environment variable must be set");
+    let token = std::env::var("TELEGRAM_BOT_TOKEN")
+        .expect("TELEGRAM_BOT_TOKEN environment variable must be set");
 
-        let app: Arc<Application> = ApplicationBuilder::new().token(token).build();
+    let app: Arc<Application> = ApplicationBuilder::new().token(token).build();
 
-        // Group -1: track all users before any other handler runs.
-        app.add_typed_handler(FnHandler::on_any(track_users), -1)
-            .await;
-
-        // /start -- send a button
-        app.add_typed_handler(CommandHandler::new("start", start), 0)
-            .await;
-
-        // Callback query handler for button clicks
-        app.add_typed_handler(
-            FnHandler::new(
-                |u| {
-                    u.callback_query
-                        .as_ref()
-                        .and_then(|cq| cq.data.as_deref())
-                        .map_or(false, |d| d == "button")
-                },
-                count_click,
-            ),
-            0,
-        )
+    // Group -1: track all users before any other handler runs.
+    app.add_typed_handler(FnHandler::on_any(track_users), -1)
         .await;
 
-        // /print_users -- show tracked user IDs
-        app.add_typed_handler(CommandHandler::new("print_users", print_users), 0)
-            .await;
+    // /start -- send a button
+    app.add_typed_handler(CommandHandler::new("start", start), 0)
+        .await;
 
-        println!("Context types bot is running. Press Ctrl+C to stop.");
-        println!("Commands: /start, /print_users");
+    // Callback query handler for button clicks
+    app.add_typed_handler(
+        FnHandler::new(
+            |u| {
+                u.callback_query
+                    .as_ref()
+                    .and_then(|cq| cq.data.as_deref())
+                    .map_or(false, |d| d == "button")
+            },
+            count_click,
+        ),
+        0,
+    )
+    .await;
 
-        if let Err(e) = app.run_polling().await {
-            eprintln!("Error running bot: {e}");
-        }
-    });
+    // /print_users -- show tracked user IDs
+    app.add_typed_handler(CommandHandler::new("print_users", print_users), 0)
+        .await;
+
+    println!("Context types bot is running. Press Ctrl+C to stop.");
+    println!("Commands: /start, /print_users");
+
+    if let Err(e) = app.run_polling().await {
+        eprintln!("Error running bot: {e}");
+    }
 }

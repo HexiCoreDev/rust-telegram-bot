@@ -18,7 +18,10 @@
 //! Then in Telegram:
 //! - `/start` -- begins the interactive menu
 
-use telegram_bot::ext::prelude::*;
+use telegram_bot::ext::prelude::{
+    ApplicationBuilder, Context, FnHandler, HandlerError, HandlerResult, InlineKeyboardButton,
+    InlineKeyboardMarkup, MessageEntityType, Update, Arc, HashMap, JsonValue, RwLock,
+};
 
 // ---------------------------------------------------------------------------
 // Conversation state
@@ -46,7 +49,7 @@ fn extract_chat_id(update: &Update) -> i64 {
     update.effective_chat().map(|c| c.id).unwrap_or(0)
 }
 
-fn keyboard_markup_json(markup: &InlineKeyboardMarkup) -> serde_json::Value {
+fn keyboard_markup_json(markup: &InlineKeyboardMarkup) -> JsonValue {
     serde_json::to_value(markup).expect("keyboard serialization")
 }
 
@@ -348,140 +351,139 @@ fn check_command(update: &Update, expected: &str) -> bool {
 // Main
 // ---------------------------------------------------------------------------
 
-fn main() {
-    telegram_bot::run(async {
-        tracing_subscriber::fmt::init();
+#[tokio::main]
+async fn main() {
+    tracing_subscriber::fmt::init();
 
-        let token = std::env::var("TELEGRAM_BOT_TOKEN")
-            .expect("TELEGRAM_BOT_TOKEN environment variable must be set");
+    let token = std::env::var("TELEGRAM_BOT_TOKEN")
+        .expect("TELEGRAM_BOT_TOKEN environment variable must be set");
 
-        let app = ApplicationBuilder::new().token(token).build();
-        let conv_store: ConvStore = Arc::new(RwLock::new(HashMap::new()));
+    let app = ApplicationBuilder::new().token(token).build();
+    let conv_store: ConvStore = Arc::new(RwLock::new(HashMap::new()));
 
-        // Entry point: /start
-        {
-            let cs = Arc::clone(&conv_store);
-            app.add_typed_handler(
-                FnHandler::new(
-                    |u| check_command(u, "start"),
-                    move |update, ctx| {
-                        let cs = Arc::clone(&cs);
-                        async move { start_command(update, ctx, cs).await }
-                    },
-                ),
-                0,
-            )
-            .await;
-        }
+    // Entry point: /start
+    {
+        let cs = Arc::clone(&conv_store);
+        app.add_typed_handler(
+            FnHandler::new(
+                |u| check_command(u, "start"),
+                move |update, ctx| {
+                    let cs = Arc::clone(&cs);
+                    async move { start_command(update, ctx, cs).await }
+                },
+            ),
+            0,
+        )
+        .await;
+    }
 
-        // START_ROUTES: callback data "0" (ONE) -> handler_one
-        {
-            let cs = Arc::clone(&conv_store);
-            let cs_check = Arc::clone(&conv_store);
-            app.add_typed_handler(
-                FnHandler::new(
-                    move |u| is_callback_with_data_in_stage(u, &cs_check, ONE, Stage::StartRoutes),
-                    move |update, ctx| {
-                        let cs = Arc::clone(&cs);
-                        async move { handler_one(update, ctx, cs).await }
-                    },
-                ),
-                1,
-            )
-            .await;
-        }
+    // START_ROUTES: callback data "0" (ONE) -> handler_one
+    {
+        let cs = Arc::clone(&conv_store);
+        let cs_check = Arc::clone(&conv_store);
+        app.add_typed_handler(
+            FnHandler::new(
+                move |u| is_callback_with_data_in_stage(u, &cs_check, ONE, Stage::StartRoutes),
+                move |update, ctx| {
+                    let cs = Arc::clone(&cs);
+                    async move { handler_one(update, ctx, cs).await }
+                },
+            ),
+            1,
+        )
+        .await;
+    }
 
-        // START_ROUTES: callback data "1" (TWO) -> handler_two
-        {
-            let cs = Arc::clone(&conv_store);
-            let cs_check = Arc::clone(&conv_store);
-            app.add_typed_handler(
-                FnHandler::new(
-                    move |u| is_callback_with_data_in_stage(u, &cs_check, TWO, Stage::StartRoutes),
-                    move |update, ctx| {
-                        let cs = Arc::clone(&cs);
-                        async move { handler_two(update, ctx, cs).await }
-                    },
-                ),
-                1,
-            )
-            .await;
-        }
+    // START_ROUTES: callback data "1" (TWO) -> handler_two
+    {
+        let cs = Arc::clone(&conv_store);
+        let cs_check = Arc::clone(&conv_store);
+        app.add_typed_handler(
+            FnHandler::new(
+                move |u| is_callback_with_data_in_stage(u, &cs_check, TWO, Stage::StartRoutes),
+                move |update, ctx| {
+                    let cs = Arc::clone(&cs);
+                    async move { handler_two(update, ctx, cs).await }
+                },
+            ),
+            1,
+        )
+        .await;
+    }
 
-        // START_ROUTES: callback data "2" (THREE) -> handler_three
-        {
-            let cs = Arc::clone(&conv_store);
-            let cs_check = Arc::clone(&conv_store);
-            app.add_typed_handler(
-                FnHandler::new(
-                    move |u| {
-                        is_callback_with_data_in_stage(u, &cs_check, THREE, Stage::StartRoutes)
-                    },
-                    move |update, ctx| {
-                        let cs = Arc::clone(&cs);
-                        async move { handler_three(update, ctx, cs).await }
-                    },
-                ),
-                1,
-            )
-            .await;
-        }
+    // START_ROUTES: callback data "2" (THREE) -> handler_three
+    {
+        let cs = Arc::clone(&conv_store);
+        let cs_check = Arc::clone(&conv_store);
+        app.add_typed_handler(
+            FnHandler::new(
+                move |u| {
+                    is_callback_with_data_in_stage(u, &cs_check, THREE, Stage::StartRoutes)
+                },
+                move |update, ctx| {
+                    let cs = Arc::clone(&cs);
+                    async move { handler_three(update, ctx, cs).await }
+                },
+            ),
+            1,
+        )
+        .await;
+    }
 
-        // START_ROUTES: callback data "3" (FOUR) -> handler_four
-        {
-            let cs = Arc::clone(&conv_store);
-            let cs_check = Arc::clone(&conv_store);
-            app.add_typed_handler(
-                FnHandler::new(
-                    move |u| is_callback_with_data_in_stage(u, &cs_check, FOUR, Stage::StartRoutes),
-                    move |update, ctx| {
-                        let cs = Arc::clone(&cs);
-                        async move { handler_four(update, ctx, cs).await }
-                    },
-                ),
-                1,
-            )
-            .await;
-        }
+    // START_ROUTES: callback data "3" (FOUR) -> handler_four
+    {
+        let cs = Arc::clone(&conv_store);
+        let cs_check = Arc::clone(&conv_store);
+        app.add_typed_handler(
+            FnHandler::new(
+                move |u| is_callback_with_data_in_stage(u, &cs_check, FOUR, Stage::StartRoutes),
+                move |update, ctx| {
+                    let cs = Arc::clone(&cs);
+                    async move { handler_four(update, ctx, cs).await }
+                },
+            ),
+            1,
+        )
+        .await;
+    }
 
-        // END_ROUTES: callback data "0" (ONE) -> start_over
-        {
-            let cs = Arc::clone(&conv_store);
-            let cs_check = Arc::clone(&conv_store);
-            app.add_typed_handler(
-                FnHandler::new(
-                    move |u| is_callback_with_data_in_stage(u, &cs_check, ONE, Stage::EndRoutes),
-                    move |update, ctx| {
-                        let cs = Arc::clone(&cs);
-                        async move { start_over(update, ctx, cs).await }
-                    },
-                ),
-                1,
-            )
-            .await;
-        }
+    // END_ROUTES: callback data "0" (ONE) -> start_over
+    {
+        let cs = Arc::clone(&conv_store);
+        let cs_check = Arc::clone(&conv_store);
+        app.add_typed_handler(
+            FnHandler::new(
+                move |u| is_callback_with_data_in_stage(u, &cs_check, ONE, Stage::EndRoutes),
+                move |update, ctx| {
+                    let cs = Arc::clone(&cs);
+                    async move { start_over(update, ctx, cs).await }
+                },
+            ),
+            1,
+        )
+        .await;
+    }
 
-        // END_ROUTES: callback data "1" (TWO) -> end_conversation
-        {
-            let cs = Arc::clone(&conv_store);
-            let cs_check = Arc::clone(&conv_store);
-            app.add_typed_handler(
-                FnHandler::new(
-                    move |u| is_callback_with_data_in_stage(u, &cs_check, TWO, Stage::EndRoutes),
-                    move |update, ctx| {
-                        let cs = Arc::clone(&cs);
-                        async move { end_conversation(update, ctx, cs).await }
-                    },
-                ),
-                1,
-            )
-            .await;
-        }
+    // END_ROUTES: callback data "1" (TWO) -> end_conversation
+    {
+        let cs = Arc::clone(&conv_store);
+        let cs_check = Arc::clone(&conv_store);
+        app.add_typed_handler(
+            FnHandler::new(
+                move |u| is_callback_with_data_in_stage(u, &cs_check, TWO, Stage::EndRoutes),
+                move |update, ctx| {
+                    let cs = Arc::clone(&cs);
+                    async move { end_conversation(update, ctx, cs).await }
+                },
+            ),
+            1,
+        )
+        .await;
+    }
 
-        println!("Inline keyboard 2 bot is running. Press Ctrl+C to stop.");
+    println!("Inline keyboard 2 bot is running. Press Ctrl+C to stop.");
 
-        if let Err(e) = app.run_polling().await {
-            eprintln!("Error running bot: {e}");
-        }
-    });
+    if let Err(e) = app.run_polling().await {
+        eprintln!("Error running bot: {e}");
+    }
 }

@@ -23,7 +23,11 @@
 //! - `/start` -- shows a keyboard button that opens the color picker Web App
 //! - Select a color in the Web App; the bot will display the chosen color
 
-use telegram_bot::ext::prelude::*;
+use telegram_bot::ext::prelude::{
+    Application, ApplicationBuilder, CommandHandler, Context, FnHandler, HandlerError,
+    HandlerResult, KeyboardButton, ReplyKeyboardMarkup, ReplyKeyboardRemove, Update, Arc,
+    json,
+};
 use telegram_bot::types::web_app_info::WebAppInfo;
 
 // ---------------------------------------------------------------------------
@@ -89,6 +93,7 @@ async fn web_app_data(update: Arc<Update>, context: Context) -> HandlerResult {
     };
 
     // The Web App sends data as a JSON-serialized string.
+    // This is legitimate json! usage for parsing unknown external webapp data.
     let parsed: serde_json::Value = serde_json::from_str(&webapp_data.data)
         .unwrap_or_else(|_| json!({"raw": &webapp_data.data}));
 
@@ -113,10 +118,13 @@ async fn web_app_data(update: Arc<Update>, context: Context) -> HandlerResult {
     );
 
     // Reply with the selected color and remove the custom keyboard.
+    let remove_keyboard =
+        serde_json::to_value(ReplyKeyboardRemove::new()).expect("keyboard remove serialization");
+
     context
         .bot()
         .send_message(chat_id, &text)
-        .reply_markup(json!({"remove_keyboard": true}))
+        .reply_markup(remove_keyboard)
         .send()
         .await
         .map_err(|e| HandlerError::Other(Box::new(e)))?;
@@ -128,39 +136,38 @@ async fn web_app_data(update: Arc<Update>, context: Context) -> HandlerResult {
 // Main
 // ---------------------------------------------------------------------------
 
-fn main() {
-    telegram_bot::run(async {
-        tracing_subscriber::fmt::init();
+#[tokio::main]
+async fn main() {
+    tracing_subscriber::fmt::init();
 
-        let token = std::env::var("TELEGRAM_BOT_TOKEN")
-            .expect("TELEGRAM_BOT_TOKEN environment variable must be set");
+    let token = std::env::var("TELEGRAM_BOT_TOKEN")
+        .expect("TELEGRAM_BOT_TOKEN environment variable must be set");
 
-        let app: Arc<Application> = ApplicationBuilder::new().token(token).build();
+    let app: Arc<Application> = ApplicationBuilder::new().token(token).build();
 
-        // /start
-        app.add_typed_handler(CommandHandler::new("start", start), 0)
-            .await;
-
-        // Handle Web App data (messages with web_app_data present).
-        app.add_typed_handler(
-            FnHandler::new(
-                |u| {
-                    u.effective_message()
-                        .and_then(|m| m.web_app_data.as_ref())
-                        .is_some()
-                },
-                web_app_data,
-            ),
-            0,
-        )
+    // /start
+    app.add_typed_handler(CommandHandler::new("start", start), 0)
         .await;
 
-        println!("Web App bot is running. Press Ctrl+C to stop.");
-        println!("Commands: /start");
-        println!("Note: The Web App HTML page is hosted externally at {WEBAPP_URL}");
+    // Handle Web App data (messages with web_app_data present).
+    app.add_typed_handler(
+        FnHandler::new(
+            |u| {
+                u.effective_message()
+                    .and_then(|m| m.web_app_data.as_ref())
+                    .is_some()
+            },
+            web_app_data,
+        ),
+        0,
+    )
+    .await;
 
-        if let Err(e) = app.run_polling().await {
-            eprintln!("Error running bot: {e}");
-        }
-    });
+    println!("Web App bot is running. Press Ctrl+C to stop.");
+    println!("Commands: /start");
+    println!("Note: The Web App HTML page is hosted externally at {WEBAPP_URL}");
+
+    if let Err(e) = app.run_polling().await {
+        eprintln!("Error running bot: {e}");
+    }
 }

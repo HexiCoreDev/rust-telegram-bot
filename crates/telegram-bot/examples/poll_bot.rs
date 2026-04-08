@@ -14,7 +14,11 @@
 //! ```sh
 //! TELEGRAM_BOT_TOKEN="your-token-here" cargo run -p telegram-bot --example poll_bot
 //! ```
-use telegram_bot::ext::prelude::*;
+use telegram_bot::ext::prelude::{
+    ApplicationBuilder, CommandHandler, Context, FnHandler, HandlerResult, Update, Arc,
+    json, JsonValue,
+};
+use telegram_bot::raw::types::poll::InputPollOption;
 
 /// After this many voters, polls and quizzes are automatically closed.
 const TOTAL_VOTER_COUNT: i64 = 3;
@@ -46,11 +50,11 @@ async fn help_handler(update: Arc<Update>, context: Context) -> HandlerResult {
 async fn poll_command(update: Arc<Update>, context: Context) -> HandlerResult {
     let chat_id = update.effective_chat().map(|c| c.id).unwrap_or(0);
 
-    let options: Vec<serde_json::Value> = vec![
-        json!({"text": "Good"}),
-        json!({"text": "Really good"}),
-        json!({"text": "Fantastic"}),
-        json!({"text": "Great"}),
+    let options: Vec<JsonValue> = vec![
+        serde_json::to_value(InputPollOption::new("Good")).expect("poll option serialization"),
+        serde_json::to_value(InputPollOption::new("Really good")).expect("poll option serialization"),
+        serde_json::to_value(InputPollOption::new("Fantastic")).expect("poll option serialization"),
+        serde_json::to_value(InputPollOption::new("Great")).expect("poll option serialization"),
     ];
 
     let msg = context
@@ -92,11 +96,11 @@ async fn poll_command(update: Arc<Update>, context: Context) -> HandlerResult {
 async fn quiz_command(update: Arc<Update>, context: Context) -> HandlerResult {
     let chat_id = update.effective_chat().map(|c| c.id).unwrap_or(0);
 
-    let options: Vec<serde_json::Value> = vec![
-        json!({"text": "1"}),
-        json!({"text": "2"}),
-        json!({"text": "4"}),
-        json!({"text": "20"}),
+    let options: Vec<JsonValue> = vec![
+        serde_json::to_value(InputPollOption::new("1")).expect("poll option serialization"),
+        serde_json::to_value(InputPollOption::new("2")).expect("poll option serialization"),
+        serde_json::to_value(InputPollOption::new("4")).expect("poll option serialization"),
+        serde_json::to_value(InputPollOption::new("20")).expect("poll option serialization"),
     ];
 
     let msg = context
@@ -227,35 +231,34 @@ async fn receive_quiz_answer(update: Arc<Update>, context: Context) -> HandlerRe
 // Main
 // ---------------------------------------------------------------------------
 
-fn main() {
-    telegram_bot::run(async {
-        tracing_subscriber::fmt::init();
+#[tokio::main]
+async fn main() {
+    tracing_subscriber::fmt::init();
 
-        let token = std::env::var("TELEGRAM_BOT_TOKEN")
-            .expect("TELEGRAM_BOT_TOKEN environment variable must be set");
+    let token = std::env::var("TELEGRAM_BOT_TOKEN")
+        .expect("TELEGRAM_BOT_TOKEN environment variable must be set");
 
-        let app = ApplicationBuilder::new().token(token).build();
+    let app = ApplicationBuilder::new().token(token).build();
 
-        // Command handlers.
-        app.add_typed_handler(CommandHandler::new("start", start), 0)
-            .await;
-        app.add_typed_handler(CommandHandler::new("poll", poll_command), 0)
-            .await;
-        app.add_typed_handler(CommandHandler::new("quiz", quiz_command), 0)
-            .await;
-        app.add_typed_handler(CommandHandler::new("help", help_handler), 0)
-            .await;
+    // Command handlers.
+    app.add_typed_handler(CommandHandler::new("start", start), 0)
+        .await;
+    app.add_typed_handler(CommandHandler::new("poll", poll_command), 0)
+        .await;
+    app.add_typed_handler(CommandHandler::new("quiz", quiz_command), 0)
+        .await;
+    app.add_typed_handler(CommandHandler::new("help", help_handler), 0)
+        .await;
 
-        // Poll answer handler (fires when a user votes in a non-anonymous poll).
-        app.add_typed_handler(FnHandler::on_poll_answer(receive_poll_answer), 0).await;
+    // Poll answer handler (fires when a user votes in a non-anonymous poll).
+    app.add_typed_handler(FnHandler::on_poll_answer(receive_poll_answer), 0).await;
 
-        // Poll handler (fires when a poll state changes, e.g., vote counts).
-        app.add_typed_handler(FnHandler::on_poll(receive_quiz_answer), 0).await;
+    // Poll handler (fires when a poll state changes, e.g., vote counts).
+    app.add_typed_handler(FnHandler::on_poll(receive_quiz_answer), 0).await;
 
-        println!("Poll bot is running. Press Ctrl+C to stop.");
+    println!("Poll bot is running. Press Ctrl+C to stop.");
 
-        if let Err(e) = app.run_polling().await {
-            eprintln!("Error running bot: {e}");
-        }
-    });
+    if let Err(e) = app.run_polling().await {
+        eprintln!("Error running bot: {e}");
+    }
 }

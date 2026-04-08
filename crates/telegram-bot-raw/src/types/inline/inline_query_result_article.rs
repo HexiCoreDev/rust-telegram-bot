@@ -7,6 +7,10 @@ use super::input_message_content::InputMessageContent;
 /// Represents a link to an article or web page.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct InlineQueryResultArticle {
+    /// Type of the result, must be `"article"`.
+    #[serde(rename = "type")]
+    pub result_type: String,
+
     /// Unique identifier for this result, 1-64 bytes.
     pub id: String,
 
@@ -43,6 +47,7 @@ impl InlineQueryResultArticle {
         input_message_content: InputMessageContent,
     ) -> Self {
         Self {
+            result_type: "article".to_string(),
             id: id.into(),
             title: title.into(),
             input_message_content,

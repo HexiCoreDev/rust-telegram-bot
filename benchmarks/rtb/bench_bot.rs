@@ -1,4 +1,4 @@
-//! RTB benchmark bot — identical features to PTB and teloxide versions.
+//! RTB benchmark bot -- identical features to PTB and teloxide versions.
 //!
 //! Features: /start (with inline keyboard), /help, echo with typing action,
 //! callback query handler, custom webhook on port 8000.
@@ -12,11 +12,15 @@ use axum::http::StatusCode;
 use axum::response::IntoResponse;
 use axum::routing::{get, post};
 use axum::Router;
-use serde_json::json;
+use telegram_bot::raw::types::inline::inline_keyboard_button::InlineKeyboardButton;
+use telegram_bot::raw::types::inline::inline_keyboard_markup::InlineKeyboardMarkup;
 use tokio::net::TcpListener;
 use tokio::sync::mpsc;
 
-use telegram_bot::ext::prelude::*;
+use telegram_bot::ext::prelude::{
+    ApplicationBuilder, CommandHandler, Context, FnHandler, HandlerResult,
+    MessageHandler, Update, COMMAND, TEXT,
+};
 use telegram_bot::raw::bot::ChatId;
 use telegram_bot::raw::types::update::Update as RawUpdate;
 
@@ -29,12 +33,13 @@ async fn start(update: Update, context: Context) -> HandlerResult {
         .unwrap_or("there");
     let chat_id = update.effective_chat().map(|c| c.id).unwrap_or(0);
 
-    let keyboard = json!({
-        "inline_keyboard": [
-            [{"text": "Option 1", "callback_data": "1"}, {"text": "Option 2", "callback_data": "2"}],
-            [{"text": "Option 3", "callback_data": "3"}]
-        ]
-    });
+    let keyboard = serde_json::to_value(InlineKeyboardMarkup::new(vec![
+        vec![
+            InlineKeyboardButton::callback("Option 1", "1"),
+            InlineKeyboardButton::callback("Option 2", "2"),
+        ],
+        vec![InlineKeyboardButton::callback("Option 3", "3")],
+    ])).unwrap();
 
     context
         .bot()
@@ -106,44 +111,43 @@ async fn healthcheck() -> &'static str { "OK" }
 
 // -- Main --------------------------------------------------------------------
 
-fn main() {
-    telegram_bot::run(async {
-        tracing_subscriber::fmt().with_max_level(tracing::Level::WARN).init();
+#[tokio::main]
+async fn main() {
+    tracing_subscriber::fmt().with_max_level(tracing::Level::WARN).init();
 
-        let token = std::env::var("TELEGRAM_BOT_TOKEN").expect("TELEGRAM_BOT_TOKEN required");
-        let webhook_url = std::env::var("WEBHOOK_URL").expect("WEBHOOK_URL required");
+    let token = std::env::var("TELEGRAM_BOT_TOKEN").expect("TELEGRAM_BOT_TOKEN required");
+    let webhook_url = std::env::var("WEBHOOK_URL").expect("WEBHOOK_URL required");
 
-        let app = ApplicationBuilder::new().token(&token).build();
+    let app = ApplicationBuilder::new().token(&token).build();
 
-        app.add_typed_handler(CommandHandler::new("start", start), 0).await;
-        app.add_typed_handler(CommandHandler::new("help", help_cmd), 0).await;
-        app.add_typed_handler(FnHandler::on_callback_query(button_callback), 0).await;
-        app.add_typed_handler(MessageHandler::new(TEXT() & !COMMAND(), echo), 0).await;
+    app.add_typed_handler(CommandHandler::new("start", start), 0).await;
+    app.add_typed_handler(CommandHandler::new("help", help_cmd), 0).await;
+    app.add_typed_handler(FnHandler::on_callback_query(button_callback), 0).await;
+    app.add_typed_handler(MessageHandler::new(TEXT() & !COMMAND(), echo), 0).await;
 
-        app.initialize().await.expect("init failed");
-        app.start().await.expect("start failed");
+    app.initialize().await.expect("init failed");
+    app.start().await.expect("start failed");
 
-        app.bot().set_webhook(&format!("{webhook_url}/telegram")).await.expect("set_webhook failed");
+    app.bot().set_webhook(&format!("{webhook_url}/telegram")).await.expect("set_webhook failed");
 
-        let state = AppState { update_tx: app.update_sender() };
-        let router = Router::new()
-            .route("/telegram", post(handle_webhook))
-            .route("/healthcheck", get(healthcheck))
-            .with_state(state);
+    let state = AppState { update_tx: app.update_sender() };
+    let router = Router::new()
+        .route("/telegram", post(handle_webhook))
+        .route("/healthcheck", get(healthcheck))
+        .with_state(state);
 
-        let listener = TcpListener::bind("127.0.0.1:8000").await.unwrap();
-        println!("RTB benchmark bot running on port 8000. Send /start to test.");
+    let listener = TcpListener::bind("127.0.0.1:8000").await.unwrap();
+    println!("RTB benchmark bot running on port 8000. Send /start to test.");
 
-        let stop = Arc::new(tokio::sync::Notify::new());
-        let stop2 = stop.clone();
-        tokio::spawn(async move { tokio::signal::ctrl_c().await.ok(); stop2.notify_waiters(); });
+    let stop = Arc::new(tokio::sync::Notify::new());
+    let stop2 = stop.clone();
+    tokio::spawn(async move { tokio::signal::ctrl_c().await.ok(); stop2.notify_waiters(); });
 
-        axum::serve(listener, router)
-            .with_graceful_shutdown(async move { stop.notified().await; })
-            .await
-            .ok();
+    axum::serve(listener, router)
+        .with_graceful_shutdown(async move { stop.notified().await; })
+        .await
+        .ok();
 
-        app.stop().await.ok();
-        app.shutdown().await.ok();
-    });
+    app.stop().await.ok();
+    app.shutdown().await.ok();
 }

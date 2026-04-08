@@ -22,7 +22,11 @@
 //! TELEGRAM_BOT_TOKEN="your-token-here" cargo run -p telegram-bot --example nested_conversation_bot
 //! ```
 
-use telegram_bot::ext::prelude::*;
+use telegram_bot::ext::prelude::{
+    Application, ApplicationBuilder, Context, FnHandler, HandlerError, HandlerResult,
+    InlineKeyboardButton, InlineKeyboardMarkup, MessageEntityType, Update, Arc, HashMap,
+    JsonValue, RwLock,
+};
 
 // ---------------------------------------------------------------------------
 // State definitions
@@ -202,7 +206,7 @@ fn pretty_print(family: &HashMap<String, Vec<PersonInfo>>, level: &str) -> Strin
     result
 }
 
-fn keyboard_json(markup: &InlineKeyboardMarkup) -> serde_json::Value {
+fn keyboard_json(markup: &InlineKeyboardMarkup) -> JsonValue {
     serde_json::to_value(markup).expect("keyboard serialization")
 }
 
@@ -210,7 +214,7 @@ fn keyboard_json(markup: &InlineKeyboardMarkup) -> serde_json::Value {
 // Keyboard builders
 // ---------------------------------------------------------------------------
 
-fn top_menu_keyboard() -> serde_json::Value {
+fn top_menu_keyboard() -> JsonValue {
     keyboard_json(&InlineKeyboardMarkup::new(vec![
         vec![
             InlineKeyboardButton::callback("Add family member", CB_ADD_MEMBER),
@@ -223,7 +227,7 @@ fn top_menu_keyboard() -> serde_json::Value {
     ]))
 }
 
-fn member_level_keyboard() -> serde_json::Value {
+fn member_level_keyboard() -> JsonValue {
     keyboard_json(&InlineKeyboardMarkup::new(vec![
         vec![
             InlineKeyboardButton::callback("Add parent", CB_PARENTS),
@@ -236,7 +240,7 @@ fn member_level_keyboard() -> serde_json::Value {
     ]))
 }
 
-fn gender_keyboard(level: &str) -> serde_json::Value {
+fn gender_keyboard(level: &str) -> JsonValue {
     let (male, female) = name_switcher(level);
     keyboard_json(&InlineKeyboardMarkup::new(vec![
         vec![
@@ -250,7 +254,7 @@ fn gender_keyboard(level: &str) -> serde_json::Value {
     ]))
 }
 
-fn feature_keyboard() -> serde_json::Value {
+fn feature_keyboard() -> JsonValue {
     keyboard_json(&InlineKeyboardMarkup::from_row(vec![
         InlineKeyboardButton::callback("Name", CB_NAME),
         InlineKeyboardButton::callback("Age", CB_AGE),
@@ -258,7 +262,7 @@ fn feature_keyboard() -> serde_json::Value {
     ]))
 }
 
-fn back_keyboard() -> serde_json::Value {
+fn back_keyboard() -> JsonValue {
     keyboard_json(&InlineKeyboardMarkup::from_button(
         InlineKeyboardButton::callback("Back", CB_BACK),
     ))
@@ -760,121 +764,120 @@ fn is_text_in_typing_state(update: &Update, store: &StateStore) -> bool {
 // Main
 // ---------------------------------------------------------------------------
 
-fn main() {
-    telegram_bot::run(async {
-        tracing_subscriber::fmt::init();
+#[tokio::main]
+async fn main() {
+    tracing_subscriber::fmt::init();
 
-        let token = std::env::var("TELEGRAM_BOT_TOKEN")
-            .expect("TELEGRAM_BOT_TOKEN environment variable must be set");
+    let token = std::env::var("TELEGRAM_BOT_TOKEN")
+        .expect("TELEGRAM_BOT_TOKEN environment variable must be set");
 
-        let app: Arc<Application> = ApplicationBuilder::new().token(token).build();
-        let store: StateStore = Arc::new(RwLock::new(HashMap::new()));
+    let app: Arc<Application> = ApplicationBuilder::new().token(token).build();
+    let store: StateStore = Arc::new(RwLock::new(HashMap::new()));
 
-        // /start
-        {
-            let s = Arc::clone(&store);
-            app.add_typed_handler(
-                FnHandler::new(
-                    |u| check_command(u, "start"),
-                    move |update, ctx| {
-                        let s = Arc::clone(&s);
-                        async move { start_command(update, ctx, s).await }
-                    },
-                ),
-                0,
-            )
-            .await;
-        }
+    // /start
+    {
+        let s = Arc::clone(&store);
+        app.add_typed_handler(
+            FnHandler::new(
+                |u| check_command(u, "start"),
+                move |update, ctx| {
+                    let s = Arc::clone(&s);
+                    async move { start_command(update, ctx, s).await }
+                },
+            ),
+            0,
+        )
+        .await;
+    }
 
-        // /stop
-        {
-            let s = Arc::clone(&store);
-            app.add_typed_handler(
-                FnHandler::new(
-                    |u| check_command(u, "stop"),
-                    move |update, ctx| {
-                        let s = Arc::clone(&s);
-                        async move { stop_command(update, ctx, s).await }
-                    },
-                ),
-                0,
-            )
-            .await;
-        }
+    // /stop
+    {
+        let s = Arc::clone(&store);
+        app.add_typed_handler(
+            FnHandler::new(
+                |u| check_command(u, "stop"),
+                move |update, ctx| {
+                    let s = Arc::clone(&s);
+                    async move { stop_command(update, ctx, s).await }
+                },
+            ),
+            0,
+        )
+        .await;
+    }
 
-        // Top-level callback handler
-        {
-            let s = Arc::clone(&store);
-            let s_check = Arc::clone(&store);
-            app.add_typed_handler(
-                FnHandler::new(
-                    move |u| is_callback_in_top_state(u, &s_check),
-                    move |update, ctx| {
-                        let s = Arc::clone(&s);
-                        async move { handle_top_action(update, ctx, s).await }
-                    },
-                ),
-                1,
-            )
-            .await;
-        }
+    // Top-level callback handler
+    {
+        let s = Arc::clone(&store);
+        let s_check = Arc::clone(&store);
+        app.add_typed_handler(
+            FnHandler::new(
+                move |u| is_callback_in_top_state(u, &s_check),
+                move |update, ctx| {
+                    let s = Arc::clone(&s);
+                    async move { handle_top_action(update, ctx, s).await }
+                },
+            ),
+            1,
+        )
+        .await;
+    }
 
-        // Member-level callback handler
-        {
-            let s = Arc::clone(&store);
-            let s_check = Arc::clone(&store);
-            app.add_typed_handler(
-                FnHandler::new(
-                    move |u| is_callback_in_member_state(u, &s_check),
-                    move |update, ctx| {
-                        let s = Arc::clone(&s);
-                        async move { handle_member_action(update, ctx, s).await }
-                    },
-                ),
-                1,
-            )
-            .await;
-        }
+    // Member-level callback handler
+    {
+        let s = Arc::clone(&store);
+        let s_check = Arc::clone(&store);
+        app.add_typed_handler(
+            FnHandler::new(
+                move |u| is_callback_in_member_state(u, &s_check),
+                move |update, ctx| {
+                    let s = Arc::clone(&s);
+                    async move { handle_member_action(update, ctx, s).await }
+                },
+            ),
+            1,
+        )
+        .await;
+    }
 
-        // Gender/feature-level callback handler
-        {
-            let s = Arc::clone(&store);
-            let s_check = Arc::clone(&store);
-            app.add_typed_handler(
-                FnHandler::new(
-                    move |u| is_callback_in_gender_or_feature_state(u, &s_check),
-                    move |update, ctx| {
-                        let s = Arc::clone(&s);
-                        async move { handle_feature_action(update, ctx, s).await }
-                    },
-                ),
-                1,
-            )
-            .await;
-        }
+    // Gender/feature-level callback handler
+    {
+        let s = Arc::clone(&store);
+        let s_check = Arc::clone(&store);
+        app.add_typed_handler(
+            FnHandler::new(
+                move |u| is_callback_in_gender_or_feature_state(u, &s_check),
+                move |update, ctx| {
+                    let s = Arc::clone(&s);
+                    async move { handle_feature_action(update, ctx, s).await }
+                },
+            ),
+            1,
+        )
+        .await;
+    }
 
-        // Text input handler (typing state)
-        {
-            let s = Arc::clone(&store);
-            let s_check = Arc::clone(&store);
-            app.add_typed_handler(
-                FnHandler::new(
-                    move |u| is_text_in_typing_state(u, &s_check),
-                    move |update, ctx| {
-                        let s = Arc::clone(&s);
-                        async move { handle_text_input(update, ctx, s).await }
-                    },
-                ),
-                1,
-            )
-            .await;
-        }
+    // Text input handler (typing state)
+    {
+        let s = Arc::clone(&store);
+        let s_check = Arc::clone(&store);
+        app.add_typed_handler(
+            FnHandler::new(
+                move |u| is_text_in_typing_state(u, &s_check),
+                move |update, ctx| {
+                    let s = Arc::clone(&s);
+                    async move { handle_text_input(update, ctx, s).await }
+                },
+            ),
+            1,
+        )
+        .await;
+    }
 
-        println!("Nested conversation bot is running. Press Ctrl+C to stop.");
-        println!("Commands: /start, /stop");
+    println!("Nested conversation bot is running. Press Ctrl+C to stop.");
+    println!("Commands: /start, /stop");
 
-        if let Err(e) = app.run_polling().await {
-            eprintln!("Error running bot: {e}");
-        }
-    });
+    if let Err(e) = app.run_polling().await {
+        eprintln!("Error running bot: {e}");
+    }
 }

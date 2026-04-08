@@ -22,7 +22,10 @@
 //! - `/start` -- begins the conversation
 //! - `/cancel` -- cancels at any point
 
-use telegram_bot::ext::prelude::*;
+use telegram_bot::ext::prelude::{
+    Application, ApplicationBuilder, Context, FnHandler, HandlerError, HandlerResult,
+    MessageEntityType, Update, Arc, HashMap, RwLock,
+};
 
 // ---------------------------------------------------------------------------
 // Conversation state
@@ -272,131 +275,130 @@ fn is_text_in_state(update: &Update, conv_store: &ConvStore, state: ConvState) -
 // Main
 // ---------------------------------------------------------------------------
 
-fn main() {
-    telegram_bot::run(async {
-        tracing_subscriber::fmt::init();
+#[tokio::main]
+async fn main() {
+    tracing_subscriber::fmt::init();
 
-        let token = std::env::var("TELEGRAM_BOT_TOKEN")
-            .expect("TELEGRAM_BOT_TOKEN environment variable must be set");
+    let token = std::env::var("TELEGRAM_BOT_TOKEN")
+        .expect("TELEGRAM_BOT_TOKEN environment variable must be set");
 
-        let app: Arc<Application> = ApplicationBuilder::new().token(token).build();
+    let app: Arc<Application> = ApplicationBuilder::new().token(token).build();
 
-        let conv_store: ConvStore = Arc::new(RwLock::new(HashMap::new()));
-        let user_data: UserDataStore = Arc::new(RwLock::new(HashMap::new()));
+    let conv_store: ConvStore = Arc::new(RwLock::new(HashMap::new()));
+    let user_data: UserDataStore = Arc::new(RwLock::new(HashMap::new()));
 
-        // Entry point: /start
-        {
-            let cs = Arc::clone(&conv_store);
-            app.add_typed_handler(
-                FnHandler::new(
-                    |u| check_command(u, "start"),
-                    move |update, ctx| {
-                        let cs = Arc::clone(&cs);
-                        async move { start_command(update, ctx, cs).await }
-                    },
-                ),
-                0,
-            )
-            .await;
-        }
+    // Entry point: /start
+    {
+        let cs = Arc::clone(&conv_store);
+        app.add_typed_handler(
+            FnHandler::new(
+                |u| check_command(u, "start"),
+                move |update, ctx| {
+                    let cs = Arc::clone(&cs);
+                    async move { start_command(update, ctx, cs).await }
+                },
+            ),
+            0,
+        )
+        .await;
+    }
 
-        // Fallback: /cancel
-        {
-            let cs = Arc::clone(&conv_store);
-            app.add_typed_handler(
-                FnHandler::new(
-                    |u| check_command(u, "cancel"),
-                    move |update, ctx| {
-                        let cs = Arc::clone(&cs);
-                        async move { cancel(update, ctx, cs).await }
-                    },
-                ),
-                0,
-            )
-            .await;
-        }
+    // Fallback: /cancel
+    {
+        let cs = Arc::clone(&conv_store);
+        app.add_typed_handler(
+            FnHandler::new(
+                |u| check_command(u, "cancel"),
+                move |update, ctx| {
+                    let cs = Arc::clone(&cs);
+                    async move { cancel(update, ctx, cs).await }
+                },
+            ),
+            0,
+        )
+        .await;
+    }
 
-        // State: AskName
-        {
-            let cs = Arc::clone(&conv_store);
-            let ud = Arc::clone(&user_data);
-            let cs_check = Arc::clone(&conv_store);
-            app.add_typed_handler(
-                FnHandler::new(
-                    move |u| is_text_in_state(u, &cs_check, ConvState::AskName),
-                    move |update, ctx| {
-                        let cs = Arc::clone(&cs);
-                        let ud = Arc::clone(&ud);
-                        async move { receive_name(update, ctx, cs, ud).await }
-                    },
-                ),
-                1,
-            )
-            .await;
-        }
+    // State: AskName
+    {
+        let cs = Arc::clone(&conv_store);
+        let ud = Arc::clone(&user_data);
+        let cs_check = Arc::clone(&conv_store);
+        app.add_typed_handler(
+            FnHandler::new(
+                move |u| is_text_in_state(u, &cs_check, ConvState::AskName),
+                move |update, ctx| {
+                    let cs = Arc::clone(&cs);
+                    let ud = Arc::clone(&ud);
+                    async move { receive_name(update, ctx, cs, ud).await }
+                },
+            ),
+            1,
+        )
+        .await;
+    }
 
-        // State: AskAge
-        {
-            let cs = Arc::clone(&conv_store);
-            let ud = Arc::clone(&user_data);
-            let cs_check = Arc::clone(&conv_store);
-            app.add_typed_handler(
-                FnHandler::new(
-                    move |u| is_text_in_state(u, &cs_check, ConvState::AskAge),
-                    move |update, ctx| {
-                        let cs = Arc::clone(&cs);
-                        let ud = Arc::clone(&ud);
-                        async move { receive_age(update, ctx, cs, ud).await }
-                    },
-                ),
-                1,
-            )
-            .await;
-        }
+    // State: AskAge
+    {
+        let cs = Arc::clone(&conv_store);
+        let ud = Arc::clone(&user_data);
+        let cs_check = Arc::clone(&conv_store);
+        app.add_typed_handler(
+            FnHandler::new(
+                move |u| is_text_in_state(u, &cs_check, ConvState::AskAge),
+                move |update, ctx| {
+                    let cs = Arc::clone(&cs);
+                    let ud = Arc::clone(&ud);
+                    async move { receive_age(update, ctx, cs, ud).await }
+                },
+            ),
+            1,
+        )
+        .await;
+    }
 
-        // State: AskLocation
-        {
-            let cs = Arc::clone(&conv_store);
-            let ud = Arc::clone(&user_data);
-            let cs_check = Arc::clone(&conv_store);
-            app.add_typed_handler(
-                FnHandler::new(
-                    move |u| is_text_in_state(u, &cs_check, ConvState::AskLocation),
-                    move |update, ctx| {
-                        let cs = Arc::clone(&cs);
-                        let ud = Arc::clone(&ud);
-                        async move { receive_location(update, ctx, cs, ud).await }
-                    },
-                ),
-                1,
-            )
-            .await;
-        }
+    // State: AskLocation
+    {
+        let cs = Arc::clone(&conv_store);
+        let ud = Arc::clone(&user_data);
+        let cs_check = Arc::clone(&conv_store);
+        app.add_typed_handler(
+            FnHandler::new(
+                move |u| is_text_in_state(u, &cs_check, ConvState::AskLocation),
+                move |update, ctx| {
+                    let cs = Arc::clone(&cs);
+                    let ud = Arc::clone(&ud);
+                    async move { receive_location(update, ctx, cs, ud).await }
+                },
+            ),
+            1,
+        )
+        .await;
+    }
 
-        // State: AskBio
-        {
-            let cs = Arc::clone(&conv_store);
-            let ud = Arc::clone(&user_data);
-            let cs_check = Arc::clone(&conv_store);
-            app.add_typed_handler(
-                FnHandler::new(
-                    move |u| is_text_in_state(u, &cs_check, ConvState::AskBio),
-                    move |update, ctx| {
-                        let cs = Arc::clone(&cs);
-                        let ud = Arc::clone(&ud);
-                        async move { receive_bio(update, ctx, cs, ud).await }
-                    },
-                ),
-                1,
-            )
-            .await;
-        }
+    // State: AskBio
+    {
+        let cs = Arc::clone(&conv_store);
+        let ud = Arc::clone(&user_data);
+        let cs_check = Arc::clone(&conv_store);
+        app.add_typed_handler(
+            FnHandler::new(
+                move |u| is_text_in_state(u, &cs_check, ConvState::AskBio),
+                move |update, ctx| {
+                    let cs = Arc::clone(&cs);
+                    let ud = Arc::clone(&ud);
+                    async move { receive_bio(update, ctx, cs, ud).await }
+                },
+            ),
+            1,
+        )
+        .await;
+    }
 
-        println!("Conversation bot is running. Press Ctrl+C to stop.");
-        println!("Commands: /start, /cancel");
+    println!("Conversation bot is running. Press Ctrl+C to stop.");
+    println!("Commands: /start, /cancel");
 
-        if let Err(e) = app.run_polling().await {
-            eprintln!("Error running bot: {e}");
-        }
-    });
+    if let Err(e) = app.run_polling().await {
+        eprintln!("Error running bot: {e}");
+    }
 }

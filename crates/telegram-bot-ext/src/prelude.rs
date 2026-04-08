@@ -53,6 +53,9 @@ pub use serde_json::{json, Value as JsonValue};
 pub use tokio::sync::RwLock;
 pub use std::collections::HashMap;
 
+// Re-export tokio so users can use #[tokio::main] without adding tokio as direct dep
+pub use tokio;
+
 // ---------------------------------------------------------------------------
 // Webhook types (feature-gated)
 // ---------------------------------------------------------------------------

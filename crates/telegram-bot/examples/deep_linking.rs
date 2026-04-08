@@ -14,7 +14,10 @@
 //! TELEGRAM_BOT_TOKEN="your-token-here" cargo run -p telegram-bot --example deep_linking
 //! ```
 
-use telegram_bot::ext::prelude::*;
+use telegram_bot::ext::prelude::{
+    ApplicationBuilder, Context, FnHandler, HandlerResult, InlineKeyboardButton,
+    InlineKeyboardMarkup, MessageEntityType, ParseMode, Update, Arc, JsonValue,
+};
 
 // ---------------------------------------------------------------------------
 // Deep-link payload constants
@@ -100,7 +103,7 @@ fn is_plain_start(update: &Update) -> bool {
     is_cmd && (text.trim() == "/start" || text.trim().starts_with("/start@"))
 }
 
-fn keyboard_markup_json(markup: &InlineKeyboardMarkup) -> serde_json::Value {
+fn keyboard_markup_json(markup: &InlineKeyboardMarkup) -> JsonValue {
     serde_json::to_value(markup).expect("keyboard serialization")
 }
 
@@ -223,76 +226,75 @@ async fn deep_linked_level_4(update: Arc<Update>, context: Context) -> HandlerRe
 // Main
 // ---------------------------------------------------------------------------
 
-fn main() {
-    telegram_bot::run(async {
-        tracing_subscriber::fmt::init();
+#[tokio::main]
+async fn main() {
+    tracing_subscriber::fmt::init();
 
-        let token = std::env::var("TELEGRAM_BOT_TOKEN")
-            .expect("TELEGRAM_BOT_TOKEN environment variable must be set");
+    let token = std::env::var("TELEGRAM_BOT_TOKEN")
+        .expect("TELEGRAM_BOT_TOKEN environment variable must be set");
 
-        let app = ApplicationBuilder::new().token(token).build();
+    let app = ApplicationBuilder::new().token(token).build();
 
-        // Deep-link handlers are registered BEFORE the plain /start handler.
-        // The first matching handler wins within its group.
+    // Deep-link handlers are registered BEFORE the plain /start handler.
+    // The first matching handler wins within its group.
 
-        // Level 1: /start check-this-out
-        app.add_typed_handler(
-            FnHandler::new(
-                |u| is_start_with_payload(u, CHECK_THIS_OUT),
-                deep_linked_level_1,
-            ),
-            0,
-        )
+    // Level 1: /start check-this-out
+    app.add_typed_handler(
+        FnHandler::new(
+            |u| is_start_with_payload(u, CHECK_THIS_OUT),
+            deep_linked_level_1,
+        ),
+        0,
+    )
+    .await;
+
+    // Level 2: /start so-cool
+    app.add_typed_handler(
+        FnHandler::new(|u| is_start_with_payload(u, SO_COOL), deep_linked_level_2),
+        0,
+    )
+    .await;
+
+    // Level 3: /start using-entities-here
+    app.add_typed_handler(
+        FnHandler::new(
+            |u| is_start_with_payload(u, USING_ENTITIES),
+            deep_linked_level_3,
+        ),
+        0,
+    )
+    .await;
+
+    // Level 4: /start using-keyboard-here
+    app.add_typed_handler(
+        FnHandler::new(
+            |u| is_start_with_payload(u, USING_KEYBOARD),
+            deep_linked_level_4,
+        ),
+        0,
+    )
+    .await;
+
+    // Callback query handler for the inline keyboard button.
+    app.add_typed_handler(
+        FnHandler::new(
+            |u| {
+                u.callback_query.as_ref().and_then(|cq| cq.data.as_deref())
+                    == Some(KEYBOARD_CALLBACKDATA)
+            },
+            deep_link_level_3_callback,
+        ),
+        0,
+    )
+    .await;
+
+    // Plain /start -- must be registered AFTER the deep-link handlers.
+    app.add_typed_handler(FnHandler::new(is_plain_start, start), 0)
         .await;
 
-        // Level 2: /start so-cool
-        app.add_typed_handler(
-            FnHandler::new(|u| is_start_with_payload(u, SO_COOL), deep_linked_level_2),
-            0,
-        )
-        .await;
+    println!("Deep linking bot is running. Press Ctrl+C to stop.");
 
-        // Level 3: /start using-entities-here
-        app.add_typed_handler(
-            FnHandler::new(
-                |u| is_start_with_payload(u, USING_ENTITIES),
-                deep_linked_level_3,
-            ),
-            0,
-        )
-        .await;
-
-        // Level 4: /start using-keyboard-here
-        app.add_typed_handler(
-            FnHandler::new(
-                |u| is_start_with_payload(u, USING_KEYBOARD),
-                deep_linked_level_4,
-            ),
-            0,
-        )
-        .await;
-
-        // Callback query handler for the inline keyboard button.
-        app.add_typed_handler(
-            FnHandler::new(
-                |u| {
-                    u.callback_query.as_ref().and_then(|cq| cq.data.as_deref())
-                        == Some(KEYBOARD_CALLBACKDATA)
-                },
-                deep_link_level_3_callback,
-            ),
-            0,
-        )
-        .await;
-
-        // Plain /start -- must be registered AFTER the deep-link handlers.
-        app.add_typed_handler(FnHandler::new(is_plain_start, start), 0)
-            .await;
-
-        println!("Deep linking bot is running. Press Ctrl+C to stop.");
-
-        if let Err(e) = app.run_polling().await {
-            eprintln!("Error running bot: {e}");
-        }
-    });
+    if let Err(e) = app.run_polling().await {
+        eprintln!("Error running bot: {e}");
+    }
 }

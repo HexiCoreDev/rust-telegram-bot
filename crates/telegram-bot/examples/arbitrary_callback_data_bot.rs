@@ -25,7 +25,11 @@
 //! - `/help` -- shows usage info
 //! - `/clear` -- clears the callback data cache (demonstrates invalid data handling)
 
-use telegram_bot::ext::prelude::*;
+use telegram_bot::ext::prelude::{
+    Application, ApplicationBuilder, CommandHandler, Context, FnHandler, HandlerError,
+    HandlerResult, InlineKeyboardButton, InlineKeyboardMarkup, Update, Arc,
+    JsonValue,
+};
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -48,11 +52,11 @@ fn extract_chat_id(update: &Update) -> i64 {
 /// current list of previously selected numbers as a JSON array. With
 /// `arbitrary_callback_data` enabled, the framework caches this rich data
 /// and replaces it with a short UUID for the actual Telegram API call.
-fn build_keyboard(current_list: &[i64]) -> serde_json::Value {
+fn build_keyboard(current_list: &[i64]) -> JsonValue {
     let buttons: Vec<InlineKeyboardButton> = (1..=5)
         .map(|i| {
             // The callback data is a JSON array: [selected_number, [...previous_selections]]
-            let data = json!([i, current_list]);
+            let data = serde_json::to_value((i, current_list)).expect("tuple serialization");
             InlineKeyboardButton::callback(i.to_string(), data.to_string())
         })
         .collect();
@@ -140,8 +144,8 @@ async fn list_button(update: Arc<Update>, context: Context) -> HandlerResult {
     let data_str = cq.data.as_deref().unwrap_or("[]");
 
     // Try to parse the callback data as [number, [list...]].
-    let parsed: serde_json::Value =
-        serde_json::from_str(data_str).unwrap_or(serde_json::Value::Null);
+    let parsed: JsonValue =
+        serde_json::from_str(data_str).unwrap_or(JsonValue::Null);
 
     if parsed.is_null() || !parsed.is_array() {
         // Invalid callback data -- the cache was likely cleared.
@@ -197,32 +201,31 @@ async fn list_button(update: Arc<Update>, context: Context) -> HandlerResult {
 // Main
 // ---------------------------------------------------------------------------
 
-fn main() {
-    telegram_bot::run(async {
-        tracing_subscriber::fmt::init();
+#[tokio::main]
+async fn main() {
+    tracing_subscriber::fmt::init();
 
-        let token = std::env::var("TELEGRAM_BOT_TOKEN")
-            .expect("TELEGRAM_BOT_TOKEN environment variable must be set");
+    let token = std::env::var("TELEGRAM_BOT_TOKEN")
+        .expect("TELEGRAM_BOT_TOKEN environment variable must be set");
 
-        let app: Arc<Application> = ApplicationBuilder::new()
-            .token(token)
-            .arbitrary_callback_data(CALLBACK_DATA_CACHE_SIZE)
-            .build();
+    let app: Arc<Application> = ApplicationBuilder::new()
+        .token(token)
+        .arbitrary_callback_data(CALLBACK_DATA_CACHE_SIZE)
+        .build();
 
-        app.add_typed_handler(CommandHandler::new("start", start), 0)
-            .await;
-        app.add_typed_handler(CommandHandler::new("help", help_command), 0)
-            .await;
-        app.add_typed_handler(CommandHandler::new("clear", clear), 0)
-            .await;
-        app.add_typed_handler(FnHandler::on_callback_query(list_button), 0)
-            .await;
+    app.add_typed_handler(CommandHandler::new("start", start), 0)
+        .await;
+    app.add_typed_handler(CommandHandler::new("help", help_command), 0)
+        .await;
+    app.add_typed_handler(CommandHandler::new("clear", clear), 0)
+        .await;
+    app.add_typed_handler(FnHandler::on_callback_query(list_button), 0)
+        .await;
 
-        println!("Arbitrary callback data bot is running. Press Ctrl+C to stop.");
-        println!("Commands: /start, /help, /clear");
+    println!("Arbitrary callback data bot is running. Press Ctrl+C to stop.");
+    println!("Commands: /start, /help, /clear");
 
-        if let Err(e) = app.run_polling().await {
-            eprintln!("Error running bot: {e}");
-        }
-    });
+    if let Err(e) = app.run_polling().await {
+        eprintln!("Error running bot: {e}");
+    }
 }

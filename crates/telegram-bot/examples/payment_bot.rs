@@ -22,7 +22,12 @@
 //! - `/shipping` -- sends an invoice with shipping required
 //! - `/noshipping` -- sends an invoice without shipping
 
-use telegram_bot::ext::prelude::*;
+use telegram_bot::ext::prelude::{
+    Application, ApplicationBuilder, CommandHandler, Context, FnHandler, HandlerError,
+    HandlerResult, MessageEntityType, Update, Arc,
+};
+use telegram_bot::raw::types::payment::labeled_price::LabeledPrice;
+use telegram_bot::raw::types::payment::shipping_option::ShippingOption;
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -77,7 +82,10 @@ async fn start_with_shipping(
 ) -> HandlerResult {
     let chat_id = extract_chat_id(&update);
 
-    let prices = vec![json!({"label": "Test", "amount": INVOICE_PRICE_CENTS})];
+    let prices = vec![
+        serde_json::to_value(LabeledPrice::new("Test", INVOICE_PRICE_CENTS))
+            .expect("price serialization"),
+    ];
 
     context
         .bot()
@@ -110,7 +118,10 @@ async fn start_without_shipping(
 ) -> HandlerResult {
     let chat_id = extract_chat_id(&update);
 
-    let prices = vec![json!({"label": "Test", "amount": INVOICE_PRICE_CENTS})];
+    let prices = vec![
+        serde_json::to_value(LabeledPrice::new("Test", INVOICE_PRICE_CENTS))
+            .expect("price serialization"),
+    ];
 
     context
         .bot()
@@ -151,19 +162,21 @@ async fn shipping_callback(update: Arc<Update>, context: Context) -> HandlerResu
 
     // Define available shipping options.
     let options = vec![
-        json!({
-            "id": "1",
-            "title": "Shipping Option A",
-            "prices": [{"label": "A", "amount": 100}]
-        }),
-        json!({
-            "id": "2",
-            "title": "Shipping Option B",
-            "prices": [
-                {"label": "B1", "amount": 150},
-                {"label": "B2", "amount": 200},
-            ]
-        }),
+        serde_json::to_value(ShippingOption::new(
+            "1",
+            "Shipping Option A",
+            vec![LabeledPrice::new("A", 100)],
+        ))
+        .expect("shipping option serialization"),
+        serde_json::to_value(ShippingOption::new(
+            "2",
+            "Shipping Option B",
+            vec![
+                LabeledPrice::new("B1", 150),
+                LabeledPrice::new("B2", 200),
+            ],
+        ))
+        .expect("shipping option serialization"),
     ];
 
     context
@@ -222,117 +235,116 @@ async fn successful_payment_callback(update: Arc<Update>, context: Context) -> H
 // Main
 // ---------------------------------------------------------------------------
 
-fn main() {
-    telegram_bot::run(async {
-        tracing_subscriber::fmt::init();
+#[tokio::main]
+async fn main() {
+    tracing_subscriber::fmt::init();
 
-        let token = std::env::var("TELEGRAM_BOT_TOKEN")
-            .expect("TELEGRAM_BOT_TOKEN environment variable must be set");
+    let token = std::env::var("TELEGRAM_BOT_TOKEN")
+        .expect("TELEGRAM_BOT_TOKEN environment variable must be set");
 
-        let provider_token = std::env::var("PAYMENT_PROVIDER_TOKEN")
-            .expect("PAYMENT_PROVIDER_TOKEN environment variable must be set");
+    let provider_token = std::env::var("PAYMENT_PROVIDER_TOKEN")
+        .expect("PAYMENT_PROVIDER_TOKEN environment variable must be set");
 
-        let app: Arc<Application> = ApplicationBuilder::new().token(token).build();
+    let app: Arc<Application> = ApplicationBuilder::new().token(token).build();
 
-        // /start
-        app.add_typed_handler(CommandHandler::new("start", start_callback), 0)
-            .await;
+    // /start
+    app.add_typed_handler(CommandHandler::new("start", start_callback), 0)
+        .await;
 
-        // /shipping
-        {
-            let pt = provider_token.clone();
-            app.add_typed_handler(
-                FnHandler::new(
-                    |u| {
-                        u.effective_message()
-                            .and_then(|m| m.text.as_deref())
-                            .and_then(|t| {
-                                let entities = u.effective_message()?.entities.as_ref()?;
-                                let e = entities.first()?;
-                                if e.entity_type == MessageEntityType::BotCommand && e.offset == 0 {
-                                    let cmd = t[1..e.length as usize].split('@').next()?;
-                                    if cmd.eq_ignore_ascii_case("shipping") {
-                                        Some(true)
-                                    } else {
-                                        None
-                                    }
-                                } else {
-                                    None
-                                }
-                            })
-                            .is_some()
-                    },
-                    move |update, ctx| {
-                        let pt = pt.clone();
-                        async move { start_with_shipping(update, ctx, pt).await }
-                    },
-                ),
-                0,
-            )
-            .await;
-        }
-
-        // /noshipping
-        {
-            let pt = provider_token.clone();
-            app.add_typed_handler(
-                FnHandler::new(
-                    |u| {
-                        u.effective_message()
-                            .and_then(|m| m.text.as_deref())
-                            .and_then(|t| {
-                                let entities = u.effective_message()?.entities.as_ref()?;
-                                let e = entities.first()?;
-                                if e.entity_type == MessageEntityType::BotCommand && e.offset == 0 {
-                                    let cmd = t[1..e.length as usize].split('@').next()?;
-                                    if cmd.eq_ignore_ascii_case("noshipping") {
-                                        Some(true)
-                                    } else {
-                                        None
-                                    }
-                                } else {
-                                    None
-                                }
-                            })
-                            .is_some()
-                    },
-                    move |update, ctx| {
-                        let pt = pt.clone();
-                        async move { start_without_shipping(update, ctx, pt).await }
-                    },
-                ),
-                0,
-            )
-            .await;
-        }
-
-        // Shipping query handler
-        app.add_typed_handler(FnHandler::on_shipping_query(shipping_callback), 0)
-            .await;
-
-        // Pre-checkout query handler
-        app.add_typed_handler(FnHandler::on_pre_checkout_query(precheckout_callback), 0)
-            .await;
-
-        // Successful payment handler
+    // /shipping
+    {
+        let pt = provider_token.clone();
         app.add_typed_handler(
             FnHandler::new(
                 |u| {
                     u.effective_message()
-                        .and_then(|m| m.successful_payment.as_ref())
+                        .and_then(|m| m.text.as_deref())
+                        .and_then(|t| {
+                            let entities = u.effective_message()?.entities.as_ref()?;
+                            let e = entities.first()?;
+                            if e.entity_type == MessageEntityType::BotCommand && e.offset == 0 {
+                                let cmd = t[1..e.length as usize].split('@').next()?;
+                                if cmd.eq_ignore_ascii_case("shipping") {
+                                    Some(true)
+                                } else {
+                                    None
+                                }
+                            } else {
+                                None
+                            }
+                        })
                         .is_some()
                 },
-                successful_payment_callback,
+                move |update, ctx| {
+                    let pt = pt.clone();
+                    async move { start_with_shipping(update, ctx, pt).await }
+                },
             ),
             0,
         )
         .await;
+    }
 
-        println!("Payment bot is running. Press Ctrl+C to stop.");
-        println!("Commands: /start, /shipping, /noshipping");
+    // /noshipping
+    {
+        let pt = provider_token.clone();
+        app.add_typed_handler(
+            FnHandler::new(
+                |u| {
+                    u.effective_message()
+                        .and_then(|m| m.text.as_deref())
+                        .and_then(|t| {
+                            let entities = u.effective_message()?.entities.as_ref()?;
+                            let e = entities.first()?;
+                            if e.entity_type == MessageEntityType::BotCommand && e.offset == 0 {
+                                let cmd = t[1..e.length as usize].split('@').next()?;
+                                if cmd.eq_ignore_ascii_case("noshipping") {
+                                    Some(true)
+                                } else {
+                                    None
+                                }
+                            } else {
+                                None
+                            }
+                        })
+                        .is_some()
+                },
+                move |update, ctx| {
+                    let pt = pt.clone();
+                    async move { start_without_shipping(update, ctx, pt).await }
+                },
+            ),
+            0,
+        )
+        .await;
+    }
 
-        if let Err(e) = app.run_polling().await {
-            eprintln!("Error running bot: {e}");
-        }
-    });
+    // Shipping query handler
+    app.add_typed_handler(FnHandler::on_shipping_query(shipping_callback), 0)
+        .await;
+
+    // Pre-checkout query handler
+    app.add_typed_handler(FnHandler::on_pre_checkout_query(precheckout_callback), 0)
+        .await;
+
+    // Successful payment handler
+    app.add_typed_handler(
+        FnHandler::new(
+            |u| {
+                u.effective_message()
+                    .and_then(|m| m.successful_payment.as_ref())
+                    .is_some()
+            },
+            successful_payment_callback,
+        ),
+        0,
+    )
+    .await;
+
+    println!("Payment bot is running. Press Ctrl+C to stop.");
+    println!("Commands: /start, /shipping, /noshipping");
+
+    if let Err(e) = app.run_polling().await {
+        eprintln!("Error running bot: {e}");
+    }
 }

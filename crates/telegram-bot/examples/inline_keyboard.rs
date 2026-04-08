@@ -14,7 +14,10 @@
 //! TELEGRAM_BOT_TOKEN="your-token-here" cargo run -p telegram-bot --example inline_keyboard
 //! ```
 
-use telegram_bot::ext::prelude::*;
+use telegram_bot::ext::prelude::{
+    ApplicationBuilder, CommandHandler, Context, FnHandler, HandlerError, HandlerResult,
+    InlineKeyboardButton, InlineKeyboardMarkup, Update, Arc,
+};
 
 // ---------------------------------------------------------------------------
 // Keyboard builder
@@ -97,26 +100,25 @@ async fn button_callback(update: Arc<Update>, context: Context) -> HandlerResult
 // Main
 // ---------------------------------------------------------------------------
 
-fn main() {
-    telegram_bot::run(async {
-        tracing_subscriber::fmt::init();
+#[tokio::main]
+async fn main() {
+    tracing_subscriber::fmt::init();
 
-        let token = std::env::var("TELEGRAM_BOT_TOKEN")
-            .expect("TELEGRAM_BOT_TOKEN environment variable must be set");
+    let token = std::env::var("TELEGRAM_BOT_TOKEN")
+        .expect("TELEGRAM_BOT_TOKEN environment variable must be set");
 
-        let app = ApplicationBuilder::new().token(token).build();
+    let app = ApplicationBuilder::new().token(token).build();
 
-        app.add_typed_handler(CommandHandler::new("start", start), 0)
-            .await;
-        app.add_typed_handler(CommandHandler::new("help", help), 0)
-            .await;
-        app.add_typed_handler(FnHandler::on_callback_query(button_callback), 0)
-            .await;
+    app.add_typed_handler(CommandHandler::new("start", start), 0)
+        .await;
+    app.add_typed_handler(CommandHandler::new("help", help), 0)
+        .await;
+    app.add_typed_handler(FnHandler::on_callback_query(button_callback), 0)
+        .await;
 
-        println!("Inline keyboard bot is running. Press Ctrl+C to stop.");
+    println!("Inline keyboard bot is running. Press Ctrl+C to stop.");
 
-        if let Err(e) = app.run_polling().await {
-            eprintln!("Error running bot: {e}");
-        }
-    });
+    if let Err(e) = app.run_polling().await {
+        eprintln!("Error running bot: {e}");
+    }
 }

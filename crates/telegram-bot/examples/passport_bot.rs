@@ -19,7 +19,9 @@
 //! ```sh
 //! TELEGRAM_BOT_TOKEN="your-token-here" cargo run -p telegram-bot --example passport_bot
 //! ```
-use telegram_bot::ext::prelude::*;
+use telegram_bot::ext::prelude::{
+    Application, ApplicationBuilder, Context, FnHandler, HandlerResult, Update, Arc,
+};
 
 // ---------------------------------------------------------------------------
 // Constants for passport element types
@@ -193,41 +195,40 @@ async fn handle_passport_data(update: Arc<Update>, _context: Context) -> Handler
 // Main
 // ---------------------------------------------------------------------------
 
-fn main() {
-    telegram_bot::run(async {
-        tracing_subscriber::fmt::init();
+#[tokio::main]
+async fn main() {
+    tracing_subscriber::fmt::init();
 
-        let token = std::env::var("TELEGRAM_BOT_TOKEN")
-            .expect("TELEGRAM_BOT_TOKEN environment variable must be set");
+    let token = std::env::var("TELEGRAM_BOT_TOKEN")
+        .expect("TELEGRAM_BOT_TOKEN environment variable must be set");
 
-        // Note: In a real bot, you would also load the private key:
-        //   let private_key = std::fs::read("private.key")
-        //       .expect("private.key must exist for Passport data decryption");
+    // Note: In a real bot, you would also load the private key:
+    //   let private_key = std::fs::read("private.key")
+    //       .expect("private.key must exist for Passport data decryption");
 
-        let app: Arc<Application> = ApplicationBuilder::new().token(token).build();
+    let app: Arc<Application> = ApplicationBuilder::new().token(token).build();
 
-        // Handle messages containing passport data.
-        app.add_typed_handler(
-            FnHandler::new(
-                |u| {
-                    u.effective_message()
-                        .and_then(|m| m.passport_data.as_ref())
-                        .is_some()
-                },
-                handle_passport_data,
-            ),
-            0,
-        )
-        .await;
+    // Handle messages containing passport data.
+    app.add_typed_handler(
+        FnHandler::new(
+            |u| {
+                u.effective_message()
+                    .and_then(|m| m.passport_data.as_ref())
+                    .is_some()
+            },
+            handle_passport_data,
+        ),
+        0,
+    )
+    .await;
 
-        println!("Passport bot is running. Press Ctrl+C to stop.");
-        println!(
-            "Note: This example logs passport data structure without decryption.\n\
-             For real usage, provide a private key and implement decryption."
-        );
+    println!("Passport bot is running. Press Ctrl+C to stop.");
+    println!(
+        "Note: This example logs passport data structure without decryption.\n\
+         For real usage, provide a private key and implement decryption."
+    );
 
-        if let Err(e) = app.run_polling().await {
-            eprintln!("Error running bot: {e}");
-        }
-    });
+    if let Err(e) = app.run_polling().await {
+        eprintln!("Error running bot: {e}");
+    }
 }

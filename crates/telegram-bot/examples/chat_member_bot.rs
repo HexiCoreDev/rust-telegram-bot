@@ -16,7 +16,9 @@
 //! TELEGRAM_BOT_TOKEN="your-token-here" cargo run -p telegram-bot --example chat_member_bot
 //! ```
 
-use telegram_bot::ext::prelude::*;
+use telegram_bot::ext::prelude::{
+    ApplicationBuilder, ChatType, CommandHandler, Context, FnHandler, HandlerResult, Update, Arc,
+};
 use telegram_bot::raw::types::chat_member::ChatMember;
 
 // ---------------------------------------------------------------------------
@@ -223,35 +225,34 @@ async fn start_private_chat(update: Arc<Update>, context: Context) -> HandlerRes
 // Main
 // ---------------------------------------------------------------------------
 
-fn main() {
-    telegram_bot::run(async {
-        tracing_subscriber::fmt::init();
+#[tokio::main]
+async fn main() {
+    tracing_subscriber::fmt::init();
 
-        let token = std::env::var("TELEGRAM_BOT_TOKEN")
-            .expect("TELEGRAM_BOT_TOKEN environment variable must be set");
+    let token = std::env::var("TELEGRAM_BOT_TOKEN")
+        .expect("TELEGRAM_BOT_TOKEN environment variable must be set");
 
-        let app = ApplicationBuilder::new().token(token).build();
+    let app = ApplicationBuilder::new().token(token).build();
 
-        // Track which chats the bot is in (my_chat_member updates).
-        app.add_typed_handler(FnHandler::on_my_chat_member(track_chats), 0)
-            .await;
+    // Track which chats the bot is in (my_chat_member updates).
+    app.add_typed_handler(FnHandler::on_my_chat_member(track_chats), 0)
+        .await;
 
-        // /show_chats command.
-        app.add_typed_handler(CommandHandler::new("show_chats", show_chats), 0)
-            .await;
+    // /show_chats command.
+    app.add_typed_handler(CommandHandler::new("show_chats", show_chats), 0)
+        .await;
 
-        // Greet members joining/leaving (chat_member updates).
-        app.add_typed_handler(FnHandler::on_chat_member(greet_chat_members), 0)
-            .await;
+    // Greet members joining/leaving (chat_member updates).
+    app.add_typed_handler(FnHandler::on_chat_member(greet_chat_members), 0)
+        .await;
 
-        // Catch-all: record private chats.
-        app.add_typed_handler(FnHandler::on_message(start_private_chat), 1)
-            .await;
+    // Catch-all: record private chats.
+    app.add_typed_handler(FnHandler::on_message(start_private_chat), 1)
+        .await;
 
-        println!("Chat member bot is running. Press Ctrl+C to stop.");
+    println!("Chat member bot is running. Press Ctrl+C to stop.");
 
-        if let Err(e) = app.run_polling().await {
-            eprintln!("Error running bot: {e}");
-        }
-    });
+    if let Err(e) = app.run_polling().await {
+        eprintln!("Error running bot: {e}");
+    }
 }

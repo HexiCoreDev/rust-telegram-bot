@@ -30,7 +30,10 @@ use serde::Deserialize;
 use tokio::net::TcpListener;
 use tokio::sync::mpsc;
 
-use telegram_bot::ext::prelude::*;
+use telegram_bot::ext::prelude::{
+    Application, ApplicationBuilder, ChatId, CommandHandler, Context, HandlerResult, ParseMode,
+    Update, Arc,
+};
 use telegram_bot::raw::types::chat_member::ChatMember;
 use telegram_bot::raw::types::update::Update as RawUpdate;
 
@@ -251,108 +254,107 @@ fn html_escape(s: &str) -> String {
 // Main
 // ---------------------------------------------------------------------------
 
-fn main() {
-    telegram_bot::run(async {
-        tracing_subscriber::fmt::init();
+#[tokio::main]
+async fn main() {
+    tracing_subscriber::fmt::init();
 
-        // -- Read configuration from environment --------------------------------
-        let token = std::env::var("TELEGRAM_BOT_TOKEN")
-            .expect("TELEGRAM_BOT_TOKEN environment variable must be set");
+    // -- Read configuration from environment --------------------------------
+    let token = std::env::var("TELEGRAM_BOT_TOKEN")
+        .expect("TELEGRAM_BOT_TOKEN environment variable must be set");
 
-        let webhook_url =
-            std::env::var("WEBHOOK_URL").expect("WEBHOOK_URL environment variable must be set");
+    let webhook_url =
+        std::env::var("WEBHOOK_URL").expect("WEBHOOK_URL environment variable must be set");
 
-        let admin_chat_id: i64 = std::env::var("ADMIN_CHAT_ID")
-            .expect("ADMIN_CHAT_ID environment variable must be set")
-            .parse()
-            .expect("ADMIN_CHAT_ID must be a valid integer");
+    let admin_chat_id: i64 = std::env::var("ADMIN_CHAT_ID")
+        .expect("ADMIN_CHAT_ID environment variable must be set")
+        .parse()
+        .expect("ADMIN_CHAT_ID must be a valid integer");
 
-        let port: u16 = std::env::var("PORT")
-            .unwrap_or_else(|_| DEFAULT_PORT.to_string())
-            .parse()
-            .expect("PORT must be a valid u16");
+    let port: u16 = std::env::var("PORT")
+        .unwrap_or_else(|_| DEFAULT_PORT.to_string())
+        .parse()
+        .expect("PORT must be a valid u16");
 
-        // -- Build the Application ----------------------------------------------
-        let app = ApplicationBuilder::new().token(&token).build();
+    // -- Build the Application ----------------------------------------------
+    let app = ApplicationBuilder::new().token(&token).build();
 
-        // Store webhook URL in a static so handlers can access it without magic string keys.
-        WEBHOOK_BASE_URL.set(webhook_url.clone()).ok();
+    // Store webhook URL in a static so handlers can access it without magic string keys.
+    WEBHOOK_BASE_URL.set(webhook_url.clone()).ok();
 
-        // -- Register handlers --------------------------------------------------
-        app.add_typed_handler(CommandHandler::new("start", start), 0)
-            .await;
+    // -- Register handlers --------------------------------------------------
+    app.add_typed_handler(CommandHandler::new("start", start), 0)
+        .await;
 
-        // -- Initialize and start the Application (without the built-in updater) -
-        // Calling initialize + start manually (instead of run_webhook) lets us
-        // run our own axum server alongside the Application's update processor.
-        app.initialize()
+    // -- Initialize and start the Application (without the built-in updater) -
+    // Calling initialize + start manually (instead of run_webhook) lets us
+    // run our own axum server alongside the Application's update processor.
+    app.initialize()
+        .await
+        .expect("Failed to initialize application");
+    app.start().await.expect("Failed to start application");
+
+    // -- Set the webhook on Telegram's side ---------------------------------
+    let full_webhook_url = format!("{webhook_url}{TELEGRAM_WEBHOOK_PATH}");
+    app.bot()
+        .set_webhook(&full_webhook_url)
+        .send()
+        .await
+        .expect("Failed to set webhook");
+
+    tracing::info!("Webhook set to {full_webhook_url}");
+
+    // -- Build the custom axum router ---------------------------------------
+    let state = AppState {
+        update_tx: app.update_sender(),
+        app: Arc::clone(&app),
+        admin_chat_id,
+        webhook_url,
+    };
+
+    let router = Router::new()
+        .route(TELEGRAM_WEBHOOK_PATH, post(handle_telegram_webhook))
+        .route(HEALTHCHECK_PATH, get(handle_healthcheck))
+        .route(SUBMIT_PAYLOAD_PATH, get(handle_submit_payload))
+        .with_state(state);
+
+    // -- Bind and serve the web server --------------------------------------
+    let addr = format!("{LISTEN_ADDR}:{port}");
+    let listener = TcpListener::bind(&addr)
+        .await
+        .unwrap_or_else(|e| panic!("Failed to bind to {addr}: {e}"));
+
+    tracing::info!("Custom webhook server listening on {addr}");
+    println!(
+        "Bot is running.\n  Webhook: {TELEGRAM_WEBHOOK_PATH}\n  Health:  {HEALTHCHECK_PATH}\n  Payload: {SUBMIT_PAYLOAD_PATH}\nPress Ctrl+C to stop."
+    );
+
+    // -- Run web server with graceful shutdown on Ctrl+C --------------------
+    let stop_notify = Arc::new(tokio::sync::Notify::new());
+    let stop_for_signal = stop_notify.clone();
+
+    tokio::spawn(async move {
+        tokio::signal::ctrl_c()
             .await
-            .expect("Failed to initialize application");
-        app.start().await.expect("Failed to start application");
-
-        // -- Set the webhook on Telegram's side ---------------------------------
-        let full_webhook_url = format!("{webhook_url}{TELEGRAM_WEBHOOK_PATH}");
-        app.bot()
-            .set_webhook(&full_webhook_url)
-            .send()
-            .await
-            .expect("Failed to set webhook");
-
-        tracing::info!("Webhook set to {full_webhook_url}");
-
-        // -- Build the custom axum router ---------------------------------------
-        let state = AppState {
-            update_tx: app.update_sender(),
-            app: Arc::clone(&app),
-            admin_chat_id,
-            webhook_url,
-        };
-
-        let router = Router::new()
-            .route(TELEGRAM_WEBHOOK_PATH, post(handle_telegram_webhook))
-            .route(HEALTHCHECK_PATH, get(handle_healthcheck))
-            .route(SUBMIT_PAYLOAD_PATH, get(handle_submit_payload))
-            .with_state(state);
-
-        // -- Bind and serve the web server --------------------------------------
-        let addr = format!("{LISTEN_ADDR}:{port}");
-        let listener = TcpListener::bind(&addr)
-            .await
-            .unwrap_or_else(|e| panic!("Failed to bind to {addr}: {e}"));
-
-        tracing::info!("Custom webhook server listening on {addr}");
-        println!(
-            "Bot is running.\n  Webhook: {TELEGRAM_WEBHOOK_PATH}\n  Health:  {HEALTHCHECK_PATH}\n  Payload: {SUBMIT_PAYLOAD_PATH}\nPress Ctrl+C to stop."
-        );
-
-        // -- Run web server with graceful shutdown on Ctrl+C --------------------
-        let stop_notify = Arc::new(tokio::sync::Notify::new());
-        let stop_for_signal = stop_notify.clone();
-
-        tokio::spawn(async move {
-            tokio::signal::ctrl_c()
-                .await
-                .expect("Failed to listen for Ctrl+C");
-            tracing::info!("Received Ctrl+C, shutting down...");
-            stop_for_signal.notify_waiters();
-        });
-
-        let shutdown = stop_notify.clone();
-        axum::serve(listener, router)
-            .with_graceful_shutdown(async move {
-                shutdown.notified().await;
-            })
-            .await
-            .expect("Web server error");
-
-        // -- Teardown -----------------------------------------------------------
-        if let Err(e) = app.stop().await {
-            tracing::warn!("Error stopping application: {e}");
-        }
-        if let Err(e) = app.shutdown().await {
-            tracing::warn!("Error shutting down application: {e}");
-        }
-
-        tracing::info!("Bot stopped.");
+            .expect("Failed to listen for Ctrl+C");
+        tracing::info!("Received Ctrl+C, shutting down...");
+        stop_for_signal.notify_waiters();
     });
+
+    let shutdown = stop_notify.clone();
+    axum::serve(listener, router)
+        .with_graceful_shutdown(async move {
+            shutdown.notified().await;
+        })
+        .await
+        .expect("Web server error");
+
+    // -- Teardown -----------------------------------------------------------
+    if let Err(e) = app.stop().await {
+        tracing::warn!("Error stopping application: {e}");
+    }
+    if let Err(e) = app.shutdown().await {
+        tracing::warn!("Error shutting down application: {e}");
+    }
+
+    tracing::info!("Bot stopped.");
 }

@@ -19,7 +19,10 @@
 //! - `/start` -- begins the conversation
 //! - Reply "Age", "Favourite colour", "Number of siblings", "Something else...", or "Done"
 
-use telegram_bot::ext::prelude::*;
+use telegram_bot::ext::prelude::{
+    ApplicationBuilder, Context, FnHandler, HandlerError, HandlerResult, KeyboardButton,
+    MessageEntityType, ReplyKeyboardMarkup, ReplyKeyboardRemove, Update, Arc, HashMap, RwLock,
+};
 
 // ---------------------------------------------------------------------------
 // Conversation state
@@ -305,7 +308,8 @@ async fn done(
     conv_store.write().await.remove(&chat_id);
 
     // Remove the reply keyboard.
-    let remove_keyboard = json!({"remove_keyboard": true});
+    let remove_keyboard =
+        serde_json::to_value(ReplyKeyboardRemove::new()).expect("keyboard remove serialization");
 
     context
         .bot()
@@ -325,153 +329,152 @@ async fn done(
 // Main
 // ---------------------------------------------------------------------------
 
-fn main() {
-    telegram_bot::run(async {
-        tracing_subscriber::fmt::init();
+#[tokio::main]
+async fn main() {
+    tracing_subscriber::fmt::init();
 
-        let token = std::env::var("TELEGRAM_BOT_TOKEN")
-            .expect("TELEGRAM_BOT_TOKEN environment variable must be set");
+    let token = std::env::var("TELEGRAM_BOT_TOKEN")
+        .expect("TELEGRAM_BOT_TOKEN environment variable must be set");
 
-        let app = ApplicationBuilder::new().token(token).build();
+    let app = ApplicationBuilder::new().token(token).build();
 
-        let conv_store: ConvStore = Arc::new(RwLock::new(HashMap::new()));
-        let user_facts: UserFacts = Arc::new(RwLock::new(HashMap::new()));
+    let conv_store: ConvStore = Arc::new(RwLock::new(HashMap::new()));
+    let user_facts: UserFacts = Arc::new(RwLock::new(HashMap::new()));
 
-        // Entry point: /start
-        {
-            let cs = Arc::clone(&conv_store);
-            app.add_typed_handler(
-                FnHandler::new(
-                    |u| check_command(u, "start"),
-                    move |update, ctx| {
-                        let cs = Arc::clone(&cs);
-                        async move { start_command(update, ctx, cs).await }
-                    },
-                ),
-                0,
-            )
-            .await;
-        }
+    // Entry point: /start
+    {
+        let cs = Arc::clone(&conv_store);
+        app.add_typed_handler(
+            FnHandler::new(
+                |u| check_command(u, "start"),
+                move |update, ctx| {
+                    let cs = Arc::clone(&cs);
+                    async move { start_command(update, ctx, cs).await }
+                },
+            ),
+            0,
+        )
+        .await;
+    }
 
-        // CHOOSING state: predefined categories
-        for category in &["Age", "Favourite colour", "Number of siblings"] {
-            let cs = Arc::clone(&conv_store);
-            let uf = Arc::clone(&user_facts);
-            let cs_check = Arc::clone(&conv_store);
-            let cat = category.to_string();
-            app.add_typed_handler(
-                FnHandler::new(
-                    move |u| is_text_matching_in_state(u, &cs_check, ConvState::Choosing, &cat),
-                    move |update, ctx| {
-                        let cs = Arc::clone(&cs);
-                        let uf = Arc::clone(&uf);
-                        async move { regular_choice(update, ctx, cs, uf).await }
-                    },
-                ),
-                1,
-            )
-            .await;
-        }
+    // CHOOSING state: predefined categories
+    for category in &["Age", "Favourite colour", "Number of siblings"] {
+        let cs = Arc::clone(&conv_store);
+        let uf = Arc::clone(&user_facts);
+        let cs_check = Arc::clone(&conv_store);
+        let cat = category.to_string();
+        app.add_typed_handler(
+            FnHandler::new(
+                move |u| is_text_matching_in_state(u, &cs_check, ConvState::Choosing, &cat),
+                move |update, ctx| {
+                    let cs = Arc::clone(&cs);
+                    let uf = Arc::clone(&uf);
+                    async move { regular_choice(update, ctx, cs, uf).await }
+                },
+            ),
+            1,
+        )
+        .await;
+    }
 
-        // CHOOSING state: "Something else..."
-        {
-            let cs = Arc::clone(&conv_store);
-            let cs_check = Arc::clone(&conv_store);
-            app.add_typed_handler(
-                FnHandler::new(
-                    move |u| {
-                        is_text_matching_in_state(
-                            u,
-                            &cs_check,
-                            ConvState::Choosing,
-                            "Something else...",
-                        )
-                    },
-                    move |update, ctx| {
-                        let cs = Arc::clone(&cs);
-                        async move { custom_choice(update, ctx, cs).await }
-                    },
-                ),
-                1,
-            )
-            .await;
-        }
+    // CHOOSING state: "Something else..."
+    {
+        let cs = Arc::clone(&conv_store);
+        let cs_check = Arc::clone(&conv_store);
+        app.add_typed_handler(
+            FnHandler::new(
+                move |u| {
+                    is_text_matching_in_state(
+                        u,
+                        &cs_check,
+                        ConvState::Choosing,
+                        "Something else...",
+                    )
+                },
+                move |update, ctx| {
+                    let cs = Arc::clone(&cs);
+                    async move { custom_choice(update, ctx, cs).await }
+                },
+            ),
+            1,
+        )
+        .await;
+    }
 
-        // TYPING_CHOICE state: user types a custom category name, then transitions to regular_choice behavior.
-        // In the Python example, TYPING_CHOICE uses the same regular_choice handler.
-        {
-            let cs = Arc::clone(&conv_store);
-            let uf = Arc::clone(&user_facts);
-            let cs_check = Arc::clone(&conv_store);
-            app.add_typed_handler(
-                FnHandler::new(
-                    move |u| {
-                        is_text_in_state(u, &cs_check, ConvState::TypingChoice)
-                            && extract_text(u).map_or(true, |t| t != "Done")
-                    },
-                    move |update, ctx| {
-                        let cs = Arc::clone(&cs);
-                        let uf = Arc::clone(&uf);
-                        async move { regular_choice(update, ctx, cs, uf).await }
-                    },
-                ),
-                1,
-            )
-            .await;
-        }
+    // TYPING_CHOICE state: user types a custom category name, then transitions to regular_choice behavior.
+    // In the Python example, TYPING_CHOICE uses the same regular_choice handler.
+    {
+        let cs = Arc::clone(&conv_store);
+        let uf = Arc::clone(&user_facts);
+        let cs_check = Arc::clone(&conv_store);
+        app.add_typed_handler(
+            FnHandler::new(
+                move |u| {
+                    is_text_in_state(u, &cs_check, ConvState::TypingChoice)
+                        && extract_text(u).map_or(true, |t| t != "Done")
+                },
+                move |update, ctx| {
+                    let cs = Arc::clone(&cs);
+                    let uf = Arc::clone(&uf);
+                    async move { regular_choice(update, ctx, cs, uf).await }
+                },
+            ),
+            1,
+        )
+        .await;
+    }
 
-        // TYPING_REPLY state: user provides the actual value.
-        {
-            let cs = Arc::clone(&conv_store);
-            let uf = Arc::clone(&user_facts);
-            let cs_check = Arc::clone(&conv_store);
-            app.add_typed_handler(
-                FnHandler::new(
-                    move |u| {
-                        is_text_in_state(u, &cs_check, ConvState::TypingReply)
-                            && extract_text(u).map_or(true, |t| t != "Done")
-                    },
-                    move |update, ctx| {
-                        let cs = Arc::clone(&cs);
-                        let uf = Arc::clone(&uf);
-                        async move { received_information(update, ctx, cs, uf).await }
-                    },
-                ),
-                1,
-            )
-            .await;
-        }
+    // TYPING_REPLY state: user provides the actual value.
+    {
+        let cs = Arc::clone(&conv_store);
+        let uf = Arc::clone(&user_facts);
+        let cs_check = Arc::clone(&conv_store);
+        app.add_typed_handler(
+            FnHandler::new(
+                move |u| {
+                    is_text_in_state(u, &cs_check, ConvState::TypingReply)
+                        && extract_text(u).map_or(true, |t| t != "Done")
+                },
+                move |update, ctx| {
+                    let cs = Arc::clone(&cs);
+                    let uf = Arc::clone(&uf);
+                    async move { received_information(update, ctx, cs, uf).await }
+                },
+            ),
+            1,
+        )
+        .await;
+    }
 
-        // Fallback: "Done" text in any conversation state.
-        {
-            let cs = Arc::clone(&conv_store);
-            let uf = Arc::clone(&user_facts);
-            let cs_check = Arc::clone(&conv_store);
-            app.add_typed_handler(
-                FnHandler::new(
-                    move |u| {
-                        let text = extract_text(u).unwrap_or("");
-                        text == "Done"
-                            && (is_text_in_state(u, &cs_check, ConvState::Choosing)
-                                || is_text_in_state(u, &cs_check, ConvState::TypingReply)
-                                || is_text_in_state(u, &cs_check, ConvState::TypingChoice))
-                    },
-                    move |update, ctx| {
-                        let cs = Arc::clone(&cs);
-                        let uf = Arc::clone(&uf);
-                        async move { done(update, ctx, cs, uf).await }
-                    },
-                ),
-                1,
-            )
-            .await;
-        }
+    // Fallback: "Done" text in any conversation state.
+    {
+        let cs = Arc::clone(&conv_store);
+        let uf = Arc::clone(&user_facts);
+        let cs_check = Arc::clone(&conv_store);
+        app.add_typed_handler(
+            FnHandler::new(
+                move |u| {
+                    let text = extract_text(u).unwrap_or("");
+                    text == "Done"
+                        && (is_text_in_state(u, &cs_check, ConvState::Choosing)
+                            || is_text_in_state(u, &cs_check, ConvState::TypingReply)
+                            || is_text_in_state(u, &cs_check, ConvState::TypingChoice))
+                },
+                move |update, ctx| {
+                    let cs = Arc::clone(&cs);
+                    let uf = Arc::clone(&uf);
+                    async move { done(update, ctx, cs, uf).await }
+                },
+            ),
+            1,
+        )
+        .await;
+    }
 
-        println!("Conversation bot 2 is running. Press Ctrl+C to stop.");
-        println!("Commands: /start");
+    println!("Conversation bot 2 is running. Press Ctrl+C to stop.");
+    println!("Commands: /start");
 
-        if let Err(e) = app.run_polling().await {
-            eprintln!("Error running bot: {e}");
-        }
-    });
+    if let Err(e) = app.run_polling().await {
+        eprintln!("Error running bot: {e}");
+    }
 }

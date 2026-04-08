@@ -16,8 +16,10 @@
 //! DEVELOPER_CHAT_ID="your-chat-id" \
 //! cargo run -p telegram-bot --example error_handler_bot
 //! ```
-use telegram_bot::ext::application;
-use telegram_bot::ext::prelude::*;
+use telegram_bot::ext::prelude::{
+    ApplicationBuilder, CallbackContext, CommandHandler, Context, HandlerError, HandlerResult,
+    Update, Arc,
+};
 
 // ---------------------------------------------------------------------------
 // Configuration
@@ -51,7 +53,7 @@ async fn start(update: Arc<Update>, context: Context) -> HandlerResult {
 /// Intentionally trigger an error so the error handler fires.
 async fn bad_command(_update: Arc<Update>, _context: Context) -> HandlerResult {
     // Simulate an application error by returning an Err.
-    Err(application::HandlerError::Other(Box::new(
+    Err(HandlerError::Other(Box::new(
         std::io::Error::new(
             std::io::ErrorKind::Other,
             "This is a deliberately triggered error from /bad_command!",
@@ -123,32 +125,31 @@ async fn error_handler(update: Option<Arc<Update>>, context: CallbackContext) ->
 // Main
 // ---------------------------------------------------------------------------
 
-fn main() {
-    telegram_bot::run(async {
-        tracing_subscriber::fmt::init();
+#[tokio::main]
+async fn main() {
+    tracing_subscriber::fmt::init();
 
-        let token = std::env::var("TELEGRAM_BOT_TOKEN")
-            .expect("TELEGRAM_BOT_TOKEN environment variable must be set");
+    let token = std::env::var("TELEGRAM_BOT_TOKEN")
+        .expect("TELEGRAM_BOT_TOKEN environment variable must be set");
 
-        let app = ApplicationBuilder::new().token(token).build();
+    let app = ApplicationBuilder::new().token(token).build();
 
-        // Register command handlers.
-        app.add_typed_handler(CommandHandler::new("start", start), 0)
-            .await;
-        app.add_typed_handler(CommandHandler::new("bad_command", bad_command), 0)
-            .await;
-
-        // Register the error handler.
-        app.add_error_handler(
-            Arc::new(|update, ctx| Box::pin(error_handler(update, ctx))),
-            true,
-        )
+    // Register command handlers.
+    app.add_typed_handler(CommandHandler::new("start", start), 0)
+        .await;
+    app.add_typed_handler(CommandHandler::new("bad_command", bad_command), 0)
         .await;
 
-        println!("Error handler bot is running. Press Ctrl+C to stop.");
+    // Register the error handler.
+    app.add_error_handler(
+        Arc::new(|update, ctx| Box::pin(error_handler(update, ctx))),
+        true,
+    )
+    .await;
 
-        if let Err(e) = app.run_polling().await {
-            eprintln!("Error running bot: {e}");
-        }
-    });
+    println!("Error handler bot is running. Press Ctrl+C to stop.");
+
+    if let Err(e) = app.run_polling().await {
+        eprintln!("Error running bot: {e}");
+    }
 }
