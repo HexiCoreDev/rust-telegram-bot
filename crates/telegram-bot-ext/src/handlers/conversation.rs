@@ -821,3 +821,296 @@ impl<S: Hash + Eq + Clone + Send + Sync + 'static> ConversationHandlerBuilder<S>
         }
     }
 }
+
+// ---------------------------------------------------------------------------
+// Tests
+// ---------------------------------------------------------------------------
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serde_json::json;
+    use std::sync::Arc;
+
+    // -- Test state type ---------------------------------------------------
+
+    #[derive(Debug, Clone, Hash, Eq, PartialEq)]
+    enum TestState {
+        AskName,
+        AskAge,
+    }
+
+    // -- Helpers -----------------------------------------------------------
+
+    /// Create a simple handler that always matches updates with a message.
+    fn always_match_handler() -> Box<dyn Handler> {
+        struct AlwaysMatch;
+        impl Handler for AlwaysMatch {
+            fn check_update(&self, update: &Update) -> Option<MatchResult> {
+                if update.message.is_some() {
+                    Some(MatchResult::Empty)
+                } else {
+                    None
+                }
+            }
+            fn handle_update(
+                &self,
+                _update: Arc<Update>,
+                _match_result: MatchResult,
+            ) -> Pin<Box<dyn Future<Output = HandlerResult> + Send>> {
+                Box::pin(async { HandlerResult::Continue })
+            }
+        }
+        Box::new(AlwaysMatch)
+    }
+
+    /// Create a handler that never matches.
+    fn never_match_handler() -> Box<dyn Handler> {
+        struct NeverMatch;
+        impl Handler for NeverMatch {
+            fn check_update(&self, _update: &Update) -> Option<MatchResult> {
+                None
+            }
+            fn handle_update(
+                &self,
+                _update: Arc<Update>,
+                _match_result: MatchResult,
+            ) -> Pin<Box<dyn Future<Output = HandlerResult> + Send>> {
+                Box::pin(async { HandlerResult::Continue })
+            }
+        }
+        Box::new(NeverMatch)
+    }
+
+    fn make_step<S: Hash + Eq + Clone + Send + Sync + 'static>(
+        handler: Box<dyn Handler>,
+        result: ConversationResult<S>,
+    ) -> ConversationStepHandler<S> {
+        ConversationStepHandler {
+            handler,
+            conv_callback: Arc::new(move |_u, _m| {
+                let r = result.clone();
+                Box::pin(async move { (HandlerResult::Continue, r) })
+            }),
+        }
+    }
+
+    fn make_update(chat_id: i64, user_id: i64) -> Update {
+        serde_json::from_value(json!({
+            "update_id": 1,
+            "message": {
+                "message_id": 1,
+                "date": 0,
+                "chat": {"id": chat_id, "type": "private"},
+                "from": {"id": user_id, "is_bot": false, "first_name": "Test"}
+            }
+        }))
+        .expect("test update JSON must be valid")
+    }
+
+    fn make_channel_post_update() -> Update {
+        serde_json::from_value(json!({
+            "update_id": 1,
+            "channel_post": {
+                "message_id": 1,
+                "date": 0,
+                "chat": {"id": -100, "type": "channel", "title": "Test"}
+            }
+        }))
+        .expect("test update JSON must be valid")
+    }
+
+    // -- Tests -------------------------------------------------------------
+
+    #[tokio::test]
+    async fn state_transition_entry_to_state1_to_state2_to_end() {
+        let conv = ConversationHandler::builder()
+            .entry_point(make_step(
+                always_match_handler(),
+                ConversationResult::NextState(TestState::AskName),
+            ))
+            .state(
+                TestState::AskName,
+                vec![make_step(
+                    always_match_handler(),
+                    ConversationResult::NextState(TestState::AskAge),
+                )],
+            )
+            .state(
+                TestState::AskAge,
+                vec![make_step(always_match_handler(), ConversationResult::End)],
+            )
+            .build();
+
+        let key = vec![100i64, 42i64];
+        let update = Arc::new(make_update(100, 42));
+
+        // Step 1: Entry point should match (no current state)
+        assert!(conv.check_update(&update).is_some());
+
+        // Execute the entry point -> transitions to AskName
+        conv.handle_update(update.clone(), MatchResult::Empty).await;
+        assert_eq!(conv.get_state(&key).await, Some(TestState::AskName));
+
+        // Step 2: AskName handler should match
+        assert!(conv.check_update(&update).is_some());
+        conv.handle_update(update.clone(), MatchResult::Empty).await;
+        assert_eq!(conv.get_state(&key).await, Some(TestState::AskAge));
+
+        // Step 3: AskAge handler should match and end the conversation
+        assert!(conv.check_update(&update).is_some());
+        conv.handle_update(update.clone(), MatchResult::Empty).await;
+        assert_eq!(conv.get_state(&key).await, None);
+    }
+
+    #[tokio::test]
+    async fn timeout_removes_conversation() {
+        let conv = ConversationHandler::builder()
+            .entry_point(make_step(
+                always_match_handler(),
+                ConversationResult::NextState(TestState::AskName),
+            ))
+            .state(
+                TestState::AskName,
+                vec![make_step(
+                    always_match_handler(),
+                    ConversationResult::NextState(TestState::AskAge),
+                )],
+            )
+            .conversation_timeout(Duration::from_millis(50))
+            .build();
+
+        let key = vec![100i64, 42i64];
+        let update = Arc::new(make_update(100, 42));
+
+        // Enter the conversation
+        conv.handle_update(update.clone(), MatchResult::Empty).await;
+        assert_eq!(conv.get_state(&key).await, Some(TestState::AskName));
+
+        // Wait for timeout to fire
+        tokio::time::sleep(Duration::from_millis(120)).await;
+
+        // Conversation should be removed
+        assert_eq!(conv.get_state(&key).await, None);
+    }
+
+    #[tokio::test]
+    async fn fallback_triggers_on_unmatched_input() {
+        let conv = ConversationHandler::builder()
+            .entry_point(make_step(
+                always_match_handler(),
+                ConversationResult::NextState(TestState::AskName),
+            ))
+            .state(
+                TestState::AskName,
+                vec![make_step(
+                    never_match_handler(), // state handler won't match
+                    ConversationResult::NextState(TestState::AskAge),
+                )],
+            )
+            .fallback(make_step(always_match_handler(), ConversationResult::End))
+            .build();
+
+        let key = vec![100i64, 42i64];
+        let update = Arc::new(make_update(100, 42));
+
+        // Enter conversation
+        conv.handle_update(update.clone(), MatchResult::Empty).await;
+        assert_eq!(conv.get_state(&key).await, Some(TestState::AskName));
+
+        // In AskName state, the state handler won't match (NeverMatch),
+        // so the fallback should match and end the conversation
+        assert!(conv.check_update(&update).is_some());
+        conv.handle_update(update.clone(), MatchResult::Empty).await;
+        assert_eq!(conv.get_state(&key).await, None);
+    }
+
+    #[test]
+    fn channel_post_returns_none() {
+        let conv = ConversationHandler::<TestState>::builder()
+            .entry_point(make_step(
+                always_match_handler(),
+                ConversationResult::NextState(TestState::AskName),
+            ))
+            .build();
+
+        let channel_update = make_channel_post_update();
+        assert!(
+            conv.check_update(&channel_update).is_none(),
+            "Channel posts must be rejected by ConversationHandler"
+        );
+    }
+
+    #[tokio::test]
+    async fn persistence_load_save_roundtrip() {
+        let conv = ConversationHandler::<TestState>::builder()
+            .entry_point(make_step(
+                always_match_handler(),
+                ConversationResult::NextState(TestState::AskName),
+            ))
+            .state(
+                TestState::AskName,
+                vec![make_step(
+                    always_match_handler(),
+                    ConversationResult::NextState(TestState::AskAge),
+                )],
+            )
+            .name("test_conv".to_string())
+            .persistent(true)
+            .build();
+
+        // Load pre-existing conversation data
+        let mut data = HashMap::new();
+        data.insert(vec![1i64, 2i64], TestState::AskAge);
+        data.insert(vec![3i64, 4i64], TestState::AskName);
+        conv.load_conversations(data).await;
+
+        // Verify loaded state
+        assert_eq!(
+            conv.get_state(&vec![1i64, 2i64]).await,
+            Some(TestState::AskAge)
+        );
+        assert_eq!(
+            conv.get_state(&vec![3i64, 4i64]).await,
+            Some(TestState::AskName)
+        );
+
+        // Save and verify round-trip
+        let saved = conv.save_conversations().await;
+        assert_eq!(saved.len(), 2);
+        assert_eq!(saved.get(&vec![1i64, 2i64]), Some(&TestState::AskAge));
+    }
+
+    #[test]
+    fn builder_name_and_persistence() {
+        let conv = ConversationHandler::<TestState>::builder()
+            .entry_point(make_step(
+                always_match_handler(),
+                ConversationResult::NextState(TestState::AskName),
+            ))
+            .name("my_conv".to_string())
+            .persistent(true)
+            .build();
+
+        assert!(conv.is_persistent());
+        assert_eq!(conv.name(), Some("my_conv"));
+    }
+
+    #[test]
+    #[should_panic(expected = "At least one of per_chat, per_user, per_message must be true")]
+    fn builder_panics_without_key_components() {
+        ConversationHandler::<TestState>::builder()
+            .per_chat(false)
+            .per_user(false)
+            .per_message(false)
+            .build();
+    }
+
+    #[test]
+    #[should_panic(expected = "Conversations can't be persistent when handler is unnamed")]
+    fn builder_panics_persistent_without_name() {
+        ConversationHandler::<TestState>::builder()
+            .persistent(true)
+            .build();
+    }
+}

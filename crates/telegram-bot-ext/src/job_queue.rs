@@ -1101,9 +1101,10 @@ fn duration_until_next_daily(time: &NaiveTime, days: &[u8]) -> Duration {
             continue;
         }
         let candidate_date = (now + chrono::Duration::days(i64::from(offset))).date_naive();
+        // Safety: hour/minute/second from a NaiveTime are always valid
         let candidate_dt = candidate_date
             .and_hms_opt(time.hour(), time.minute(), time.second())
-            .expect("valid time");
+            .expect("valid time components from NaiveTime");
         let candidate_utc = candidate_dt.and_utc();
         if candidate_utc > now {
             return (candidate_utc - now)
@@ -1135,9 +1136,10 @@ fn duration_until_next_monthly(time: &NaiveTime, day: i32) -> Duration {
             Some(d) => d,
             None => continue, // month doesn't have this day
         };
+        // Safety: hour/minute/second from a NaiveTime are always valid
         let candidate_dt = candidate_date
             .and_hms_opt(time.hour(), time.minute(), time.second())
-            .expect("valid time");
+            .expect("valid time components from NaiveTime");
         let candidate_utc = candidate_dt.and_utc();
         if candidate_utc > now {
             return (candidate_utc - now)
@@ -1168,10 +1170,11 @@ fn last_day_of_month(year: i32, month: u32) -> u32 {
     } else {
         (year, month + 1)
     };
+    // Safety: month is always 1-12 and year is a valid calendar year
     chrono::NaiveDate::from_ymd_opt(y, m, 1)
-        .expect("valid date")
+        .expect("valid month for next-month calculation")
         .pred_opt()
-        .expect("valid predecessor")
+        .expect("first day of a month always has a valid predecessor")
         .day()
 }
 
@@ -1452,5 +1455,246 @@ mod tests {
         assert_eq!(last_day_of_month(2023, 2), 28);
         assert_eq!(last_day_of_month(2024, 12), 31);
         assert_eq!(last_day_of_month(2024, 4), 30);
+    }
+
+    // =====================================================================
+    // R2: Additional edge-case tests
+    // =====================================================================
+
+    #[tokio::test]
+    async fn zero_delay_once_job_fires_immediately() {
+        let jq = JobQueue::new();
+        jq.start().await;
+
+        let counter = Arc::new(AtomicU32::new(0));
+        let _job = jq
+            .once(make_callback(counter.clone()), Duration::from_secs(0))
+            .name("zero-delay")
+            .start()
+            .await;
+
+        // Give the spawned task time to execute
+        tokio::time::sleep(Duration::from_millis(50)).await;
+        assert_eq!(counter.load(Ordering::Relaxed), 1);
+        jq.stop().await;
+    }
+
+    #[tokio::test]
+    async fn concurrent_job_scheduling() {
+        let jq = Arc::new(JobQueue::new());
+        jq.start().await;
+
+        let counter = Arc::new(AtomicU32::new(0));
+
+        // Schedule 10 jobs concurrently
+        let mut handles = Vec::new();
+        for i in 0..10 {
+            let jq = jq.clone();
+            let counter = counter.clone();
+            handles.push(tokio::spawn(async move {
+                jq.once(make_callback(counter), Duration::from_millis(10))
+                    .name(format!("concurrent-{i}"))
+                    .start()
+                    .await
+            }));
+        }
+
+        // Wait for all to be scheduled
+        for h in handles {
+            let _ = h.await;
+        }
+
+        // Wait for them to fire
+        tokio::time::sleep(Duration::from_millis(100)).await;
+
+        assert_eq!(
+            counter.load(Ordering::Relaxed),
+            10,
+            "all 10 concurrently scheduled jobs should fire"
+        );
+        jq.stop().await;
+    }
+
+    #[tokio::test]
+    async fn disabled_job_does_not_run() {
+        let jq = JobQueue::new();
+        jq.start().await;
+
+        let counter = Arc::new(AtomicU32::new(0));
+        let job = jq
+            .once(make_callback(counter.clone()), Duration::from_millis(10))
+            .name("disabled")
+            .start()
+            .await;
+
+        // Disable the job before it fires
+        job.set_enabled(false);
+
+        tokio::time::sleep(Duration::from_millis(80)).await;
+        assert_eq!(
+            counter.load(Ordering::Relaxed),
+            0,
+            "disabled job should not execute"
+        );
+        jq.stop().await;
+    }
+
+    #[tokio::test]
+    async fn job_enable_disable_toggle() {
+        let jq = JobQueue::new();
+        jq.start().await;
+
+        let counter = Arc::new(AtomicU32::new(0));
+        let job = jq
+            .repeating(make_callback(counter.clone()), Duration::from_millis(20))
+            .name("toggle")
+            .start()
+            .await;
+
+        // Let it run a bit
+        tokio::time::sleep(Duration::from_millis(60)).await;
+        let count_before_disable = counter.load(Ordering::Relaxed);
+        assert!(count_before_disable > 0);
+
+        // Disable
+        job.set_enabled(false);
+        tokio::time::sleep(Duration::from_millis(60)).await;
+        let count_after_disable = counter.load(Ordering::Relaxed);
+
+        // Re-enable
+        job.set_enabled(true);
+        tokio::time::sleep(Duration::from_millis(60)).await;
+        let count_after_reenable = counter.load(Ordering::Relaxed);
+
+        // After re-enable, the counter should have increased again
+        assert!(
+            count_after_reenable > count_after_disable,
+            "re-enabled job should continue running"
+        );
+
+        job.schedule_removal();
+        jq.stop().await;
+    }
+
+    #[tokio::test]
+    async fn repeating_with_first_delay() {
+        let jq = JobQueue::new();
+        jq.start().await;
+
+        let counter = Arc::new(AtomicU32::new(0));
+        let job = jq
+            .repeating(make_callback(counter.clone()), Duration::from_millis(30))
+            .name("first-delay")
+            .first(Duration::from_millis(80))
+            .start()
+            .await;
+
+        // At 50ms, the first delay hasn't elapsed yet
+        tokio::time::sleep(Duration::from_millis(50)).await;
+        assert_eq!(
+            counter.load(Ordering::Relaxed),
+            0,
+            "job should not fire before first delay"
+        );
+
+        // At 150ms, the first delay has passed and the repeating interval has ticked
+        tokio::time::sleep(Duration::from_millis(100)).await;
+        assert!(
+            counter.load(Ordering::Relaxed) >= 1,
+            "job should have fired at least once after first delay"
+        );
+
+        job.schedule_removal();
+        jq.stop().await;
+    }
+
+    #[tokio::test]
+    async fn repeating_with_last_deadline() {
+        let jq = JobQueue::new();
+        jq.start().await;
+
+        let counter = Arc::new(AtomicU32::new(0));
+        let _job = jq
+            .repeating(make_callback(counter.clone()), Duration::from_millis(20))
+            .name("deadline")
+            .last(Duration::from_millis(80))
+            .start()
+            .await;
+
+        // Let it run past the deadline
+        tokio::time::sleep(Duration::from_millis(150)).await;
+        let count_at_deadline = counter.load(Ordering::Relaxed);
+
+        // Wait more -- count should not increase
+        tokio::time::sleep(Duration::from_millis(80)).await;
+        let count_after = counter.load(Ordering::Relaxed);
+        assert_eq!(
+            count_at_deadline, count_after,
+            "job should stop after last deadline"
+        );
+
+        jq.stop().await;
+    }
+
+    #[test]
+    fn chrono_weekday_mapping() {
+        assert_eq!(chrono_weekday_to_ptb(Weekday::Sun), 0);
+        assert_eq!(chrono_weekday_to_ptb(Weekday::Mon), 1);
+        assert_eq!(chrono_weekday_to_ptb(Weekday::Sat), 6);
+    }
+
+    #[test]
+    fn duration_until_next_daily_returns_positive() {
+        // All days enabled -- the next daily occurrence must be positive
+        let time = NaiveTime::from_hms_opt(0, 0, 1).unwrap();
+        let all_days: Vec<u8> = (0..7).collect();
+        let dur = duration_until_next_daily(&time, &all_days);
+        assert!(dur.as_secs() > 0 || dur.as_millis() > 0);
+    }
+
+    #[test]
+    fn duration_until_next_monthly_returns_positive() {
+        let time = NaiveTime::from_hms_opt(0, 0, 1).unwrap();
+        let dur = duration_until_next_monthly(&time, 1);
+        assert!(dur.as_secs() > 0);
+    }
+
+    #[test]
+    fn duration_until_next_monthly_last_day() {
+        let time = NaiveTime::from_hms_opt(0, 0, 1).unwrap();
+        let dur = duration_until_next_monthly(&time, -1);
+        assert!(dur.as_secs() > 0);
+    }
+
+    #[tokio::test]
+    async fn jobs_by_pattern_works() {
+        let jq = JobQueue::new();
+        jq.start().await;
+
+        let counter = Arc::new(AtomicU32::new(0));
+        let _a = jq
+            .once(make_callback(counter.clone()), Duration::from_secs(600))
+            .name("daily_report")
+            .start()
+            .await;
+        let _b = jq
+            .once(make_callback(counter.clone()), Duration::from_secs(600))
+            .name("daily_cleanup")
+            .start()
+            .await;
+        let _c = jq
+            .once(make_callback(counter), Duration::from_secs(600))
+            .name("weekly_report")
+            .start()
+            .await;
+
+        let daily_jobs = jq.jobs_by_pattern("^daily_").await;
+        assert_eq!(daily_jobs.len(), 2);
+
+        // Invalid regex returns empty vec (not panic)
+        let bad_pattern = jq.jobs_by_pattern("[invalid").await;
+        assert!(bad_pattern.is_empty());
+
+        jq.stop().await;
     }
 }
