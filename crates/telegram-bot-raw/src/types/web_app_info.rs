@@ -1,4 +1,3 @@
-
 use serde::{Deserialize, Serialize};
 
 /// Information about a Telegram Web App.

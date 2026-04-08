@@ -1,4 +1,3 @@
-
 use serde::{Deserialize, Serialize};
 
 /// An inline button that switches the user to inline mode in a chosen chat.

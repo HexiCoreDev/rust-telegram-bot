@@ -46,7 +46,7 @@ impl PaidMediaPurchasedHandler {
 
 impl Handler for PaidMediaPurchasedHandler {
     fn check_update(&self, update: &Update) -> Option<MatchResult> {
-        let ppm = update.purchased_paid_media.as_ref()?;
+        let ppm = update.purchased_paid_media()?;
 
         // No filters -> accept all.
         if self.user_ids.is_empty() && self.usernames.is_empty() {

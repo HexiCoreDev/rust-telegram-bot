@@ -71,9 +71,7 @@ impl RequestData {
     /// assert!(data.contains_files());
     /// ```
     pub fn contains_files(&self) -> bool {
-        self.parameters
-            .iter()
-            .any(|p| p.input_files.is_some())
+        self.parameters.iter().any(|p| p.input_files.is_some())
     }
 
     /// All parameters as a `HashMap<name, Value>`, excluding those whose value
@@ -156,13 +154,7 @@ impl RequestData {
         // Build the query string manually to avoid pulling in an extra crate.
         // This matches `urllib.parse.urlencode` for the common case.
         map.iter()
-            .map(|(k, v)| {
-                format!(
-                    "{}={}",
-                    percent_encode(k),
-                    percent_encode(v)
-                )
-            })
+            .map(|(k, v)| format!("{}={}", percent_encode(k), percent_encode(v)))
             .collect::<Vec<_>>()
             .join("&")
     }
@@ -245,13 +237,9 @@ fn percent_encode(input: &str) -> String {
     let mut out = String::with_capacity(input.len());
     for byte in input.bytes() {
         match byte {
-            b'A'..=b'Z'
-            | b'a'..=b'z'
-            | b'0'..=b'9'
-            | b'-'
-            | b'_'
-            | b'.'
-            | b'~' => out.push(byte as char),
+            b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'-' | b'_' | b'.' | b'~' => {
+                out.push(byte as char)
+            }
             _ => {
                 use std::fmt::Write as _;
                 let _ = write!(out, "%{byte:02X}");
@@ -388,7 +376,10 @@ mod tests {
         let p = RequestParameter::with_files("media", json!("attach://media0"), vec![file]);
         let data = RequestData::from_parameters(vec![p]);
         let parts = data.multipart_data().unwrap();
-        assert!(parts.contains_key("media0"), "expected key 'media0', got: {parts:?}");
+        assert!(
+            parts.contains_key("media0"),
+            "expected key 'media0', got: {parts:?}"
+        );
     }
 
     // ------------------------------------------------------------------

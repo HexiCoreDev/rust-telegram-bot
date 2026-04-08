@@ -23,8 +23,8 @@
 //! - `/cancel` -- cancels at any point
 
 use telegram_bot::ext::prelude::{
-    Application, ApplicationBuilder, Context, FnHandler, HandlerError, HandlerResult,
-    MessageEntityType, Update, Arc, HashMap, RwLock,
+    Application, ApplicationBuilder, Arc, Context, FnHandler, HandlerError, HandlerResult, HashMap,
+    MessageEntityType, RwLock, Update,
 };
 
 // ---------------------------------------------------------------------------

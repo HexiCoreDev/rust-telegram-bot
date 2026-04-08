@@ -80,6 +80,5 @@ pub type RateLimitArgs = Value;
 // ---------------------------------------------------------------------------
 
 /// Type-erased handler callback: `async fn(update, context) -> RT`.
-pub type HandlerCallback = Arc<
-    dyn Fn(Value, Value) -> Pin<Box<dyn Future<Output = Value> + Send>> + Send + Sync,
->;
+pub type HandlerCallback =
+    Arc<dyn Fn(Value, Value) -> Pin<Box<dyn Future<Output = Value> + Send>> + Send + Sync>;

@@ -177,7 +177,7 @@ pub trait Handler: Send + Sync {
 ///
 /// // Register with a predicate:
 /// app.add_typed_handler(
-///     FnHandler::new(|u| u.callback_query.is_some(), button_handler),
+///     FnHandler::new(|u| u.callback_query().is_some(), button_handler),
 ///     0,
 /// ).await;
 ///
@@ -220,7 +220,7 @@ impl FnHandler {
         Cb: Fn(Arc<Update>, CallbackContext) -> Fut + Send + Sync + 'static,
         Fut: Future<Output = Result<(), crate::application::HandlerError>> + Send + 'static,
     {
-        Self::new(|u| u.callback_query.is_some(), callback)
+        Self::new(|u| u.callback_query().is_some(), callback)
     }
 
     /// Match updates that have an `inline_query`.
@@ -229,7 +229,7 @@ impl FnHandler {
         Cb: Fn(Arc<Update>, CallbackContext) -> Fut + Send + Sync + 'static,
         Fut: Future<Output = Result<(), crate::application::HandlerError>> + Send + 'static,
     {
-        Self::new(|u| u.inline_query.is_some(), callback)
+        Self::new(|u| u.inline_query().is_some(), callback)
     }
 
     /// Match updates that have a `poll`.
@@ -238,7 +238,7 @@ impl FnHandler {
         Cb: Fn(Arc<Update>, CallbackContext) -> Fut + Send + Sync + 'static,
         Fut: Future<Output = Result<(), crate::application::HandlerError>> + Send + 'static,
     {
-        Self::new(|u| u.poll.is_some(), callback)
+        Self::new(|u| u.poll().is_some(), callback)
     }
 
     /// Match updates that have a `poll_answer`.
@@ -247,7 +247,7 @@ impl FnHandler {
         Cb: Fn(Arc<Update>, CallbackContext) -> Fut + Send + Sync + 'static,
         Fut: Future<Output = Result<(), crate::application::HandlerError>> + Send + 'static,
     {
-        Self::new(|u| u.poll_answer.is_some(), callback)
+        Self::new(|u| u.poll_answer().is_some(), callback)
     }
 
     /// Match updates that have a `shipping_query`.
@@ -256,7 +256,7 @@ impl FnHandler {
         Cb: Fn(Arc<Update>, CallbackContext) -> Fut + Send + Sync + 'static,
         Fut: Future<Output = Result<(), crate::application::HandlerError>> + Send + 'static,
     {
-        Self::new(|u| u.shipping_query.is_some(), callback)
+        Self::new(|u| u.shipping_query().is_some(), callback)
     }
 
     /// Match updates that have a `pre_checkout_query`.
@@ -265,7 +265,7 @@ impl FnHandler {
         Cb: Fn(Arc<Update>, CallbackContext) -> Fut + Send + Sync + 'static,
         Fut: Future<Output = Result<(), crate::application::HandlerError>> + Send + 'static,
     {
-        Self::new(|u| u.pre_checkout_query.is_some(), callback)
+        Self::new(|u| u.pre_checkout_query().is_some(), callback)
     }
 
     /// Match updates that have a `chat_member`.
@@ -274,7 +274,7 @@ impl FnHandler {
         Cb: Fn(Arc<Update>, CallbackContext) -> Fut + Send + Sync + 'static,
         Fut: Future<Output = Result<(), crate::application::HandlerError>> + Send + 'static,
     {
-        Self::new(|u| u.chat_member.is_some(), callback)
+        Self::new(|u| u.chat_member().is_some(), callback)
     }
 
     /// Match updates that have a `my_chat_member`.
@@ -283,7 +283,7 @@ impl FnHandler {
         Cb: Fn(Arc<Update>, CallbackContext) -> Fut + Send + Sync + 'static,
         Fut: Future<Output = Result<(), crate::application::HandlerError>> + Send + 'static,
     {
-        Self::new(|u| u.my_chat_member.is_some(), callback)
+        Self::new(|u| u.my_chat_member().is_some(), callback)
     }
 
     /// Match updates that have a `message`.
@@ -292,7 +292,7 @@ impl FnHandler {
         Cb: Fn(Arc<Update>, CallbackContext) -> Fut + Send + Sync + 'static,
         Fut: Future<Output = Result<(), crate::application::HandlerError>> + Send + 'static,
     {
-        Self::new(|u| u.message.is_some(), callback)
+        Self::new(|u| u.message().is_some(), callback)
     }
 
     /// Match every update (catch-all).

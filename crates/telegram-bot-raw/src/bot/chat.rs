@@ -1,8 +1,6 @@
 use super::{input_file_param, push_opt, push_opt_str, Bot, ChatId, Result};
 use crate::request::request_parameter::RequestParameter;
-use crate::types::{
-    chat_full_info, chat_invite_link, chat_member, chat_permissions, files,
-};
+use crate::types::{chat_full_info, chat_invite_link, chat_member, chat_permissions, files};
 
 #[allow(dead_code)]
 impl Bot {

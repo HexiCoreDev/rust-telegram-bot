@@ -1,4 +1,3 @@
-
 use serde::{Deserialize, Serialize};
 
 /// Represents a bot command (text + description pair).
@@ -11,4 +10,7 @@ pub struct BotCommand {
     pub description: String,
 }
 
-impl_new!(BotCommand { command: String, description: String });
+impl_new!(BotCommand {
+    command: String,
+    description: String
+});

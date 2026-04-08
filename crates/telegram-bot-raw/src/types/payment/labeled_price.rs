@@ -1,4 +1,3 @@
-
 use serde::{Deserialize, Serialize};
 
 /// A portion of the total price for goods or services.
@@ -11,4 +10,7 @@ pub struct LabeledPrice {
     pub amount: i64,
 }
 
-impl_new!(LabeledPrice { label: String, amount: i64 });
+impl_new!(LabeledPrice {
+    label: String,
+    amount: i64
+});

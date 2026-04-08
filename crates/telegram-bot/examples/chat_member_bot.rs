@@ -17,7 +17,7 @@
 //! ```
 
 use telegram_bot::ext::prelude::{
-    ApplicationBuilder, ChatType, CommandHandler, Context, FnHandler, HandlerResult, Update, Arc,
+    ApplicationBuilder, Arc, ChatType, CommandHandler, Context, FnHandler, HandlerResult, Update,
 };
 use telegram_bot::raw::types::chat_member::ChatMember;
 
@@ -58,7 +58,7 @@ fn extract_status_change(old: &ChatMember, new: &ChatMember) -> Option<(bool, bo
 /// Uses typed `add_to_id_set` / `remove_from_id_set` instead of manual JSON
 /// array manipulation.
 async fn track_chats(update: Arc<Update>, context: Context) -> HandlerResult {
-    let cmu = match &update.my_chat_member {
+    let cmu = match update.my_chat_member() {
         Some(c) => c,
         None => return Ok(()),
     };
@@ -142,7 +142,7 @@ async fn show_chats(update: Arc<Update>, context: Context) -> HandlerResult {
 /// Greet new users in chats and announce when someone leaves.
 /// Handles `chat_member` updates (not `my_chat_member`).
 async fn greet_chat_members(update: Arc<Update>, context: Context) -> HandlerResult {
-    let cmu = match &update.chat_member {
+    let cmu = match update.chat_member() {
         Some(c) => c,
         None => return Ok(()),
     };

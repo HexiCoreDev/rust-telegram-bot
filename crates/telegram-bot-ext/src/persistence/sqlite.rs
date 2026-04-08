@@ -173,11 +173,9 @@ impl BasePersistence for SqlitePersistence {
     async fn get_callback_data(&self) -> PersistenceResult<Option<CdcData>> {
         let conn = self.conn.lock().await;
         let result: Option<String> = conn
-            .query_row(
-                "SELECT data FROM callback_data WHERE id = 1",
-                [],
-                |row| row.get(0),
-            )
+            .query_row("SELECT data FROM callback_data WHERE id = 1", [], |row| {
+                row.get(0)
+            })
             .ok();
         match result {
             Some(json) => Ok(serde_json::from_str(&json)?),
@@ -274,21 +272,15 @@ impl BasePersistence for SqlitePersistence {
 
     async fn drop_chat_data(&self, chat_id: i64) -> PersistenceResult<()> {
         let conn = self.conn.lock().await;
-        conn.execute(
-            "DELETE FROM chat_data WHERE chat_id = ?1",
-            [chat_id],
-        )
-        .map_err(PersistenceError::Sqlite)?;
+        conn.execute("DELETE FROM chat_data WHERE chat_id = ?1", [chat_id])
+            .map_err(PersistenceError::Sqlite)?;
         Ok(())
     }
 
     async fn drop_user_data(&self, user_id: i64) -> PersistenceResult<()> {
         let conn = self.conn.lock().await;
-        conn.execute(
-            "DELETE FROM user_data WHERE user_id = ?1",
-            [user_id],
-        )
-        .map_err(PersistenceError::Sqlite)?;
+        conn.execute("DELETE FROM user_data WHERE user_id = ?1", [user_id])
+            .map_err(PersistenceError::Sqlite)?;
         Ok(())
     }
 

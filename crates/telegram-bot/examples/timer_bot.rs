@@ -23,8 +23,8 @@
 use std::time::Duration;
 use telegram_bot::ext::job_queue::{JobCallbackFn, JobContext, JobQueue};
 use telegram_bot::ext::prelude::{
-    Application, ApplicationBuilder, Context, FnHandler, HandlerError, HandlerResult,
-    MessageEntityType, Update, Arc, RwLock,
+    Application, ApplicationBuilder, Arc, Context, FnHandler, HandlerError, HandlerResult,
+    MessageEntityType, RwLock, Update,
 };
 
 /// A shared map to track active timer job IDs per chat.

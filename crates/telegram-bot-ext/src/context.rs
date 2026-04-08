@@ -207,10 +207,7 @@ impl<'a> DataWriteGuard<'a> {
     }
 
     /// Access the `Entry` API of the underlying `HashMap`.
-    pub fn entry(
-        &mut self,
-        key: String,
-    ) -> std::collections::hash_map::Entry<'_, String, Value> {
+    pub fn entry(&mut self, key: String) -> std::collections::hash_map::Entry<'_, String, Value> {
         self.inner.entry(key)
     }
 
@@ -268,7 +265,6 @@ pub struct CallbackContext {
     user_id: Option<i64>,
 
     // -- Shared data references (populated by Application) --------------------
-
     /// Reference into the application's per-user data store.
     user_data_store: Arc<RwLock<HashMap<i64, DefaultData>>>,
 
@@ -279,7 +275,6 @@ pub struct CallbackContext {
     bot_data: Arc<RwLock<DefaultData>>,
 
     // -- Per-callback mutable state -------------------------------------------
-
     /// Positional regex match results (populated by regex-based handlers).
     pub matches: Option<Vec<String>>,
 
@@ -346,7 +341,14 @@ impl CallbackContext {
         bot_data: Arc<RwLock<DefaultData>>,
     ) -> Self {
         let (chat_id, user_id) = extract_ids(update);
-        Self::new(bot, chat_id, user_id, user_data_store, chat_data_store, bot_data)
+        Self::new(
+            bot,
+            chat_id,
+            user_id,
+            user_data_store,
+            chat_data_store,
+            bot_data,
+        )
     }
 
     /// Constructs a context for an error handler.
@@ -360,7 +362,14 @@ impl CallbackContext {
         bot_data: Arc<RwLock<DefaultData>>,
     ) -> Self {
         let (chat_id, user_id) = update.map_or((None, None), extract_ids);
-        let mut ctx = Self::new(bot, chat_id, user_id, user_data_store, chat_data_store, bot_data);
+        let mut ctx = Self::new(
+            bot,
+            chat_id,
+            user_id,
+            user_data_store,
+            chat_data_store,
+            bot_data,
+        );
         ctx.error = Some(error);
         ctx
     }
@@ -426,7 +435,10 @@ impl CallbackContext {
             None => return false,
         };
         let mut store = self.user_data_store.write().await;
-        store.entry(uid).or_insert_with(HashMap::new).insert(key, value);
+        store
+            .entry(uid)
+            .or_insert_with(HashMap::new)
+            .insert(key, value);
         true
     }
 
@@ -437,14 +449,19 @@ impl CallbackContext {
             None => return false,
         };
         let mut store = self.chat_data_store.write().await;
-        store.entry(cid).or_insert_with(HashMap::new).insert(key, value);
+        store
+            .entry(cid)
+            .or_insert_with(HashMap::new)
+            .insert(key, value);
         true
     }
 
     /// Returns the first positional regex match, if available.
     #[must_use]
     pub fn match_result(&self) -> Option<&str> {
-        self.matches.as_ref().and_then(|m| m.first().map(String::as_str))
+        self.matches
+            .as_ref()
+            .and_then(|m| m.first().map(String::as_str))
     }
 
     /// Drop the cached callback data for a given callback query ID.
@@ -452,12 +469,11 @@ impl CallbackContext {
         &self,
         callback_query_id: &str,
     ) -> Result<(), crate::callback_data_cache::InvalidCallbackData> {
-        let cache = self
-            .bot
-            .callback_data_cache()
-            .ok_or(crate::callback_data_cache::InvalidCallbackData {
+        let cache = self.bot.callback_data_cache().ok_or(
+            crate::callback_data_cache::InvalidCallbackData {
                 callback_data: None,
-            })?;
+            },
+        )?;
         let mut guard = cache.write().await;
         guard.drop_data(callback_query_id)
     }
@@ -470,7 +486,6 @@ impl CallbackContext {
         self.job_queue = Some(jq);
         self
     }
-
 
     // -- Convenience methods (mirrors python-telegram-bot patterns) -----------
 
@@ -487,11 +502,11 @@ impl CallbackContext {
         &self,
         update: &Update,
         text: &str,
-    ) -> Result<telegram_bot_raw::types::message::Message, telegram_bot_raw::error::TelegramError> {
-        let chat_id = update
-            .effective_chat()
-            .map(|c| c.id)
-            .ok_or_else(|| telegram_bot_raw::error::TelegramError::Network("No chat in update".into()))?;
+    ) -> Result<telegram_bot_raw::types::message::Message, telegram_bot_raw::error::TelegramError>
+    {
+        let chat_id = update.effective_chat().map(|c| c.id).ok_or_else(|| {
+            telegram_bot_raw::error::TelegramError::Network("No chat in update".into())
+        })?;
         self.bot().send_message(chat_id, text).await
     }
 
@@ -507,12 +522,15 @@ impl CallbackContext {
         &self,
         update: &Update,
         text: &str,
-    ) -> Result<telegram_bot_raw::types::message::Message, telegram_bot_raw::error::TelegramError> {
-        let chat_id = update
-            .effective_chat()
-            .map(|c| c.id)
-            .ok_or_else(|| telegram_bot_raw::error::TelegramError::Network("No chat in update".into()))?;
-        self.bot().send_message(chat_id, text).parse_mode("HTML").await
+    ) -> Result<telegram_bot_raw::types::message::Message, telegram_bot_raw::error::TelegramError>
+    {
+        let chat_id = update.effective_chat().map(|c| c.id).ok_or_else(|| {
+            telegram_bot_raw::error::TelegramError::Network("No chat in update".into())
+        })?;
+        self.bot()
+            .send_message(chat_id, text)
+            .parse_mode("HTML")
+            .await
     }
 
     /// Send a MarkdownV2-formatted text reply to the chat associated with the given update.
@@ -527,12 +545,15 @@ impl CallbackContext {
         &self,
         update: &Update,
         text: &str,
-    ) -> Result<telegram_bot_raw::types::message::Message, telegram_bot_raw::error::TelegramError> {
-        let chat_id = update
-            .effective_chat()
-            .map(|c| c.id)
-            .ok_or_else(|| telegram_bot_raw::error::TelegramError::Network("No chat in update".into()))?;
-        self.bot().send_message(chat_id, text).parse_mode("MarkdownV2").await
+    ) -> Result<telegram_bot_raw::types::message::Message, telegram_bot_raw::error::TelegramError>
+    {
+        let chat_id = update.effective_chat().map(|c| c.id).ok_or_else(|| {
+            telegram_bot_raw::error::TelegramError::Network("No chat in update".into())
+        })?;
+        self.bot()
+            .send_message(chat_id, text)
+            .parse_mode("MarkdownV2")
+            .await
     }
 
     /// Send a photo reply to the chat associated with the given update.
@@ -545,11 +566,11 @@ impl CallbackContext {
         &self,
         update: &Update,
         photo: InputFile,
-    ) -> Result<telegram_bot_raw::types::message::Message, telegram_bot_raw::error::TelegramError> {
-        let chat_id = update
-            .effective_chat()
-            .map(|c| c.id)
-            .ok_or_else(|| telegram_bot_raw::error::TelegramError::Network("No chat in update".into()))?;
+    ) -> Result<telegram_bot_raw::types::message::Message, telegram_bot_raw::error::TelegramError>
+    {
+        let chat_id = update.effective_chat().map(|c| c.id).ok_or_else(|| {
+            telegram_bot_raw::error::TelegramError::Network("No chat in update".into())
+        })?;
         self.bot().send_photo(chat_id, photo).await
     }
 
@@ -563,11 +584,11 @@ impl CallbackContext {
         &self,
         update: &Update,
         document: InputFile,
-    ) -> Result<telegram_bot_raw::types::message::Message, telegram_bot_raw::error::TelegramError> {
-        let chat_id = update
-            .effective_chat()
-            .map(|c| c.id)
-            .ok_or_else(|| telegram_bot_raw::error::TelegramError::Network("No chat in update".into()))?;
+    ) -> Result<telegram_bot_raw::types::message::Message, telegram_bot_raw::error::TelegramError>
+    {
+        let chat_id = update.effective_chat().map(|c| c.id).ok_or_else(|| {
+            telegram_bot_raw::error::TelegramError::Network("No chat in update".into())
+        })?;
         self.bot().send_document(chat_id, document).await
     }
 
@@ -581,11 +602,11 @@ impl CallbackContext {
         &self,
         update: &Update,
         sticker: InputFile,
-    ) -> Result<telegram_bot_raw::types::message::Message, telegram_bot_raw::error::TelegramError> {
-        let chat_id = update
-            .effective_chat()
-            .map(|c| c.id)
-            .ok_or_else(|| telegram_bot_raw::error::TelegramError::Network("No chat in update".into()))?;
+    ) -> Result<telegram_bot_raw::types::message::Message, telegram_bot_raw::error::TelegramError>
+    {
+        let chat_id = update.effective_chat().map(|c| c.id).ok_or_else(|| {
+            telegram_bot_raw::error::TelegramError::Network("No chat in update".into())
+        })?;
         self.bot().send_sticker(chat_id, sticker).await
     }
 
@@ -600,11 +621,11 @@ impl CallbackContext {
         update: &Update,
         latitude: f64,
         longitude: f64,
-    ) -> Result<telegram_bot_raw::types::message::Message, telegram_bot_raw::error::TelegramError> {
-        let chat_id = update
-            .effective_chat()
-            .map(|c| c.id)
-            .ok_or_else(|| telegram_bot_raw::error::TelegramError::Network("No chat in update".into()))?;
+    ) -> Result<telegram_bot_raw::types::message::Message, telegram_bot_raw::error::TelegramError>
+    {
+        let chat_id = update.effective_chat().map(|c| c.id).ok_or_else(|| {
+            telegram_bot_raw::error::TelegramError::Network("No chat in update".into())
+        })?;
         self.bot().send_location(chat_id, latitude, longitude).await
     }
 
@@ -622,10 +643,9 @@ impl CallbackContext {
         &self,
         update: &Update,
     ) -> Result<bool, telegram_bot_raw::error::TelegramError> {
-        let cq = update
-            .callback_query
-            .as_ref()
-            .ok_or_else(|| telegram_bot_raw::error::TelegramError::Network("No callback query in update".into()))?;
+        let cq = update.callback_query().ok_or_else(|| {
+            telegram_bot_raw::error::TelegramError::Network("No callback query in update".into())
+        })?;
         self.bot().answer_callback_query(&cq.id).await
     }
 
@@ -643,12 +663,11 @@ impl CallbackContext {
         update: &Update,
         text: &str,
     ) -> Result<MessageOrBool, telegram_bot_raw::error::TelegramError> {
-        let cq = update
-            .callback_query
-            .as_ref()
-            .ok_or_else(|| telegram_bot_raw::error::TelegramError::Network("No callback query in update".into()))?;
+        let cq = update.callback_query().ok_or_else(|| {
+            telegram_bot_raw::error::TelegramError::Network("No callback query in update".into())
+        })?;
 
-        if let Some(ref msg) = cq.message {
+        if let Some(msg) = cq.message.as_deref() {
             self.bot()
                 .edit_message_text(text)
                 .chat_id(msg.chat().id)
@@ -723,7 +742,9 @@ mod tests {
 
     #[test]
     fn extract_ids_from_message_update() {
-        let update = make_update(serde_json::json!({"update_id": 1, "message": {"message_id": 1, "date": 0, "chat": {"id": 100, "type": "private"}, "from": {"id": 200, "is_bot": false, "first_name": "Test"}}}));
+        let update = make_update(
+            serde_json::json!({"update_id": 1, "message": {"message_id": 1, "date": 0, "chat": {"id": 100, "type": "private"}, "from": {"id": 200, "is_bot": false, "first_name": "Test"}}}),
+        );
         let (chat_id, user_id) = extract_ids(&update);
         assert_eq!(chat_id, Some(100));
         assert_eq!(user_id, Some(200));
@@ -731,7 +752,9 @@ mod tests {
 
     #[test]
     fn extract_ids_from_callback_query() {
-        let update = make_update(serde_json::json!({"update_id": 2, "callback_query": {"id": "abc", "from": {"id": 300, "is_bot": false, "first_name": "U"}, "chat_instance": "ci", "message": {"message_id": 5, "date": 0, "chat": {"id": 400, "type": "group"}}}}));
+        let update = make_update(
+            serde_json::json!({"update_id": 2, "callback_query": {"id": "abc", "from": {"id": 300, "is_bot": false, "first_name": "U"}, "chat_instance": "ci", "message": {"message_id": 5, "date": 0, "chat": {"id": 400, "type": "group"}}}}),
+        );
         let (chat_id, user_id) = extract_ids(&update);
         assert_eq!(chat_id, Some(400));
         assert_eq!(user_id, Some(300));
@@ -749,7 +772,9 @@ mod tests {
     fn from_update_factory() {
         let bot = make_bot();
         let (ud, cd, bd) = make_stores();
-        let update = make_update(serde_json::json!({"update_id": 1, "message": {"message_id": 1, "date": 0, "chat": {"id": 10, "type": "private"}, "from": {"id": 20, "is_bot": false, "first_name": "T"}}}));
+        let update = make_update(
+            serde_json::json!({"update_id": 1, "message": {"message_id": 1, "date": 0, "chat": {"id": 10, "type": "private"}, "from": {"id": 20, "is_bot": false, "first_name": "T"}}}),
+        );
         let ctx = CallbackContext::from_update(&update, bot, ud, cd, bd);
         assert_eq!(ctx.chat_id(), Some(10));
         assert_eq!(ctx.user_id(), Some(20));
@@ -759,7 +784,8 @@ mod tests {
     fn from_error_factory() {
         let bot = make_bot();
         let (ud, cd, bd) = make_stores();
-        let err: Arc<dyn std::error::Error + Send + Sync> = Arc::new(std::io::Error::new(std::io::ErrorKind::Other, "boom"));
+        let err: Arc<dyn std::error::Error + Send + Sync> =
+            Arc::new(std::io::Error::new(std::io::ErrorKind::Other, "boom"));
         let ctx = CallbackContext::from_error(None, err, bot, ud, cd, bd);
         assert!(ctx.error.is_some());
         assert!(ctx.chat_id().is_none());
@@ -770,7 +796,10 @@ mod tests {
         let bot = make_bot();
         let (ud, cd, bd) = make_stores();
         let ctx = CallbackContext::new(bot, None, None, ud, cd, bd);
-        { let mut guard = ctx.bot_data_mut().await; guard.insert("key".into(), Value::String("val".into())); }
+        {
+            let mut guard = ctx.bot_data_mut().await;
+            guard.insert("key".into(), Value::String("val".into()));
+        }
         let guard = ctx.bot_data().await;
         assert_eq!(guard.get("key"), Some(&Value::String("val".into())));
     }
@@ -796,9 +825,15 @@ mod tests {
         let bot = make_bot();
         let (ud, cd, bd) = make_stores();
         let ctx = CallbackContext::new(bot, None, Some(42), ud.clone(), cd, bd);
-        assert!(ctx.set_user_data("score".into(), Value::Number(100.into())).await);
+        assert!(
+            ctx.set_user_data("score".into(), Value::Number(100.into()))
+                .await
+        );
         let store = ud.read().await;
-        assert_eq!(store.get(&42).unwrap().get("score"), Some(&Value::Number(100.into())));
+        assert_eq!(
+            store.get(&42).unwrap().get("score"),
+            Some(&Value::Number(100.into()))
+        );
     }
 
     #[tokio::test]
@@ -806,9 +841,15 @@ mod tests {
         let bot = make_bot();
         let (ud, cd, bd) = make_stores();
         let ctx = CallbackContext::new(bot, Some(10), None, ud, cd.clone(), bd);
-        assert!(ctx.set_chat_data("topic".into(), Value::String("rust".into())).await);
+        assert!(
+            ctx.set_chat_data("topic".into(), Value::String("rust".into()))
+                .await
+        );
         let store = cd.read().await;
-        assert_eq!(store.get(&10).unwrap().get("topic"), Some(&Value::String("rust".into())));
+        assert_eq!(
+            store.get(&10).unwrap().get("topic"),
+            Some(&Value::String("rust".into()))
+        );
     }
 
     #[tokio::test]

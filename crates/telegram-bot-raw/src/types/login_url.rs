@@ -1,4 +1,3 @@
-
 use serde::{Deserialize, Serialize};
 
 /// An inline keyboard button parameter used to automatically authorize a user via Telegram Login.

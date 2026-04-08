@@ -52,7 +52,7 @@ impl InlineQueryHandler {
 
 impl Handler for InlineQueryHandler {
     fn check_update(&self, update: &Update) -> Option<MatchResult> {
-        let iq = update.inline_query.as_ref()?;
+        let iq = update.inline_query()?;
 
         // chat_types filter
         if let Some(ref allowed) = self.chat_types {

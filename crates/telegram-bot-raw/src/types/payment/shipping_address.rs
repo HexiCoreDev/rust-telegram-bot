@@ -1,4 +1,3 @@
-
 use serde::{Deserialize, Serialize};
 
 /// Shipping address provided by a user.

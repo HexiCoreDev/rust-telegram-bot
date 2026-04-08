@@ -33,7 +33,7 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use bytes::Bytes;
-use reqwest::header::{HeaderMap, HeaderValue, USER_AGENT};
+use reqwest::header::{HeaderMap, HeaderValue, CONTENT_TYPE, USER_AGENT};
 use reqwest::multipart::{Form, Part};
 use reqwest::Client;
 use tracing::{debug, warn};
@@ -415,6 +415,37 @@ impl BaseRequest for ReqwestRequest {
             .map_err(|e| TelegramError::Network(format!("Failed to read response body: {e}")))?;
 
         Ok((status, body))
+    }
+
+    async fn do_request_json_bytes(
+        &self,
+        url: &str,
+        body: &[u8],
+        timeouts: TimeoutOverride,
+    ) -> Result<(u16, Bytes)> {
+        // Text-only requests never carry files, so use normal write timeout.
+        let resolved = self.defaults.resolve(timeouts, false);
+
+        let mut req_builder = self
+            .api_client
+            .post(url)
+            .header(CONTENT_TYPE, HeaderValue::from_static("application/json"))
+            .body(body.to_vec());
+
+        let effective_timeout = max_duration(resolved.read, resolved.write);
+        if let Some(t) = effective_timeout {
+            req_builder = req_builder.timeout(t);
+        }
+
+        let response = req_builder.send().await.map_err(map_reqwest_error)?;
+
+        let status = response.status().as_u16();
+        let resp_body = response
+            .bytes()
+            .await
+            .map_err(|e| TelegramError::Network(format!("Failed to read response body: {e}")))?;
+
+        Ok((status, resp_body))
     }
 }
 

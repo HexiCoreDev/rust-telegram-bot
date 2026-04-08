@@ -36,7 +36,7 @@ impl ChosenInlineResultHandler {
 
 impl Handler for ChosenInlineResultHandler {
     fn check_update(&self, update: &Update) -> Option<MatchResult> {
-        let cir = update.chosen_inline_result.as_ref()?;
+        let cir = update.chosen_inline_result()?;
 
         if let Some(ref re) = self.pattern {
             let result_id = &cir.result_id;

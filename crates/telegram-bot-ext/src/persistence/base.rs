@@ -81,9 +81,7 @@ pub trait BasePersistence: Send + Sync + fmt::Debug {
     ) -> impl std::future::Future<Output = PersistenceResult<HashMap<i64, JsonMap>>> + Send;
 
     /// Return the stored bot-wide data.
-    fn get_bot_data(
-        &self,
-    ) -> impl std::future::Future<Output = PersistenceResult<JsonMap>> + Send;
+    fn get_bot_data(&self) -> impl std::future::Future<Output = PersistenceResult<JsonMap>> + Send;
 
     /// Return the stored callback-data cache, if any.
     fn get_callback_data(
@@ -179,9 +177,7 @@ pub trait BasePersistence: Send + Sync + fmt::Debug {
 
     /// Called by `Application::stop`. Gives the back-end a chance to flush
     /// pending writes or close a database connection.
-    fn flush(
-        &self,
-    ) -> impl std::future::Future<Output = PersistenceResult<()>> + Send;
+    fn flush(&self) -> impl std::future::Future<Output = PersistenceResult<()>> + Send;
 
     /// The interval in seconds at which the `Application` should trigger
     /// a persistence update cycle. Defaults to 60 seconds.

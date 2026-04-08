@@ -1,4 +1,3 @@
-
 use serde::{Deserialize, Serialize};
 
 /// Describes an inline message to be sent by a user of a Mini App.

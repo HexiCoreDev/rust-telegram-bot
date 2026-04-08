@@ -1,4 +1,3 @@
-
 use serde::{Deserialize, Serialize};
 
 /// Data sent from a Web App to the bot.

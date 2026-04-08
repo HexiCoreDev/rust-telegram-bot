@@ -15,8 +15,8 @@
 //! TELEGRAM_BOT_TOKEN="your-token-here" cargo run -p telegram-bot --example poll_bot
 //! ```
 use telegram_bot::ext::prelude::{
-    ApplicationBuilder, CommandHandler, Context, FnHandler, HandlerResult, Update, Arc,
-    json, JsonValue,
+    json, ApplicationBuilder, Arc, CommandHandler, Context, FnHandler, HandlerResult, JsonValue,
+    Update,
 };
 use telegram_bot::raw::types::poll::InputPollOption;
 
@@ -52,7 +52,8 @@ async fn poll_command(update: Arc<Update>, context: Context) -> HandlerResult {
 
     let options: Vec<JsonValue> = vec![
         serde_json::to_value(InputPollOption::new("Good")).expect("poll option serialization"),
-        serde_json::to_value(InputPollOption::new("Really good")).expect("poll option serialization"),
+        serde_json::to_value(InputPollOption::new("Really good"))
+            .expect("poll option serialization"),
         serde_json::to_value(InputPollOption::new("Fantastic")).expect("poll option serialization"),
         serde_json::to_value(InputPollOption::new("Great")).expect("poll option serialization"),
     ];
@@ -131,7 +132,7 @@ async fn quiz_command(update: Arc<Update>, context: Context) -> HandlerResult {
 
 /// Handle a `poll_answer` update -- summarize the user's vote.
 async fn receive_poll_answer(update: Arc<Update>, context: Context) -> HandlerResult {
-    let answer = match &update.poll_answer {
+    let answer = match update.poll_answer() {
         Some(a) => a,
         None => return Ok(()),
     };
@@ -146,7 +147,11 @@ async fn receive_poll_answer(update: Arc<Update>, context: Context) -> HandlerRe
         };
         let questions: Vec<String> = entry["questions"]
             .as_array()
-            .map(|arr| arr.iter().filter_map(|v| v.as_str().map(String::from)).collect())
+            .map(|arr| {
+                arr.iter()
+                    .filter_map(|v| v.as_str().map(String::from))
+                    .collect()
+            })
             .unwrap_or_default();
         let chat_id = entry["chat_id"].as_i64().unwrap_or(0);
         let message_id = entry["message_id"].as_i64().unwrap_or(0);
@@ -169,11 +174,7 @@ async fn receive_poll_answer(update: Arc<Update>, context: Context) -> HandlerRe
         .unwrap_or("Someone");
 
     let text = format!("{user_name} feels {answer_string}!");
-    let _ = context
-        .bot()
-        .send_message(chat_id, &text)
-        .send()
-        .await;
+    let _ = context.bot().send_message(chat_id, &text).send().await;
 
     // Track answer count and close the poll after TOTAL_VOTER_COUNT.
     let new_count = answers + 1;
@@ -196,7 +197,7 @@ async fn receive_poll_answer(update: Arc<Update>, context: Context) -> HandlerRe
 
 /// Handle a `poll` update -- close quiz after enough participants.
 async fn receive_quiz_answer(update: Arc<Update>, context: Context) -> HandlerResult {
-    let poll = match &update.poll {
+    let poll = match update.poll() {
         Some(p) => p,
         None => return Ok(()),
     };
@@ -251,10 +252,12 @@ async fn main() {
         .await;
 
     // Poll answer handler (fires when a user votes in a non-anonymous poll).
-    app.add_typed_handler(FnHandler::on_poll_answer(receive_poll_answer), 0).await;
+    app.add_typed_handler(FnHandler::on_poll_answer(receive_poll_answer), 0)
+        .await;
 
     // Poll handler (fires when a poll state changes, e.g., vote counts).
-    app.add_typed_handler(FnHandler::on_poll(receive_quiz_answer), 0).await;
+    app.add_typed_handler(FnHandler::on_poll(receive_quiz_answer), 0)
+        .await;
 
     println!("Poll bot is running. Press Ctrl+C to stop.");
 

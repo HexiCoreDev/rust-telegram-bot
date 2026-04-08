@@ -15,8 +15,8 @@
 //! ```
 
 use telegram_bot::ext::prelude::{
-    ApplicationBuilder, Context, FnHandler, HandlerResult, InlineKeyboardButton,
-    InlineKeyboardMarkup, MessageEntityType, ParseMode, Update, Arc, JsonValue,
+    ApplicationBuilder, Arc, Context, FnHandler, HandlerResult, InlineKeyboardButton,
+    InlineKeyboardMarkup, JsonValue, MessageEntityType, ParseMode, Update,
 };
 
 // ---------------------------------------------------------------------------
@@ -190,7 +190,7 @@ async fn deep_linked_level_3(update: Arc<Update>, context: Context) -> HandlerRe
 
 /// Callback query from the inline button -- answer with the deep link URL.
 async fn deep_link_level_3_callback(update: Arc<Update>, context: Context) -> HandlerResult {
-    let cq = match &update.callback_query {
+    let cq = match update.callback_query() {
         Some(q) => q,
         None => return Ok(()),
     };
@@ -278,10 +278,7 @@ async fn main() {
     // Callback query handler for the inline keyboard button.
     app.add_typed_handler(
         FnHandler::new(
-            |u| {
-                u.callback_query.as_ref().and_then(|cq| cq.data.as_deref())
-                    == Some(KEYBOARD_CALLBACKDATA)
-            },
+            |u| u.callback_query().and_then(|cq| cq.data.as_deref()) == Some(KEYBOARD_CALLBACKDATA),
             deep_link_level_3_callback,
         ),
         0,

@@ -116,7 +116,7 @@ impl CallbackQueryHandler {
 
 impl Handler for CallbackQueryHandler {
     fn check_update(&self, update: &Update) -> Option<MatchResult> {
-        let cq = update.callback_query.as_ref()?;
+        let cq = update.callback_query()?;
 
         match &self.pattern {
             None => {

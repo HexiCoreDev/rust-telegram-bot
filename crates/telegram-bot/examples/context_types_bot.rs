@@ -15,9 +15,8 @@
 //! TELEGRAM_BOT_TOKEN="your-token-here" cargo run -p telegram-bot --example context_types_bot
 //! ```
 use telegram_bot::ext::prelude::{
-    Application, ApplicationBuilder, CommandHandler, Context, FnHandler, HandlerError,
-    HandlerResult, InlineKeyboardButton, InlineKeyboardMarkup, Update, Arc,
-    JsonValue,
+    Application, ApplicationBuilder, Arc, CommandHandler, Context, FnHandler, HandlerError,
+    HandlerResult, InlineKeyboardButton, InlineKeyboardMarkup, JsonValue, Update,
 };
 
 // ---------------------------------------------------------------------------
@@ -36,9 +35,9 @@ fn extract_chat_id(update: &Update) -> i64 {
 }
 
 fn build_click_keyboard() -> JsonValue {
-    serde_json::to_value(
-        InlineKeyboardMarkup::from_button(InlineKeyboardButton::callback("Click me!", "button")),
-    )
+    serde_json::to_value(InlineKeyboardMarkup::from_button(
+        InlineKeyboardButton::callback("Click me!", "button"),
+    ))
     .expect("keyboard serialization")
 }
 
@@ -82,8 +81,7 @@ async fn start(update: Arc<Update>, context: Context) -> HandlerResult {
 /// Handle button clicks -- increment a per-message click counter stored in chat_data.
 async fn count_click(update: Arc<Update>, context: Context) -> HandlerResult {
     let cq = update
-        .callback_query
-        .as_ref()
+        .callback_query()
         .expect("callback query handler requires callback_query");
 
     // Answer the callback query to dismiss the loading indicator.
@@ -184,10 +182,9 @@ async fn main() {
     app.add_typed_handler(
         FnHandler::new(
             |u| {
-                u.callback_query
-                    .as_ref()
+                u.callback_query()
                     .and_then(|cq| cq.data.as_deref())
-                    .map_or(false, |d| d == "button")
+                    .is_some_and(|d| d == "button")
             },
             count_click,
         ),

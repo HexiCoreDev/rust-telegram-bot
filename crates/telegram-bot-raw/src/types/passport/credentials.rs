@@ -1,4 +1,3 @@
-
 use serde::{Deserialize, Serialize};
 
 /// Contains data required for decrypting and authenticating `EncryptedPassportElement`.

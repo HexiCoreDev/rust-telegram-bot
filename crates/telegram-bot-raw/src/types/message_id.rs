@@ -1,4 +1,3 @@
-
 use serde::{Deserialize, Serialize};
 
 /// A unique message identifier.

@@ -1,4 +1,3 @@
-
 use serde::{Deserialize, Serialize};
 
 /// Represents a file uploaded to Telegram Passport.

@@ -28,7 +28,7 @@ impl PollHandler {
 
 impl Handler for PollHandler {
     fn check_update(&self, update: &Update) -> Option<MatchResult> {
-        if update.poll.is_some() {
+        if update.poll().is_some() {
             Some(MatchResult::Empty)
         } else {
             None

@@ -28,9 +28,9 @@
 
 use telegram_bot::ext::persistence::json_file::JsonFilePersistence;
 use telegram_bot::ext::prelude::{
-    Application, ApplicationBuilder, Context, FnHandler, HandlerError, HandlerResult,
-    KeyboardButton, MessageEntityType, ReplyKeyboardMarkup, ReplyKeyboardRemove, Update,
-    Arc, HashMap, RwLock, JsonValue,
+    Application, ApplicationBuilder, Arc, Context, FnHandler, HandlerError, HandlerResult, HashMap,
+    JsonValue, KeyboardButton, MessageEntityType, ReplyKeyboardMarkup, ReplyKeyboardRemove, RwLock,
+    Update,
 };
 
 // ---------------------------------------------------------------------------
@@ -95,7 +95,10 @@ fn check_command(update: &Update, expected: &str) -> bool {
 fn build_reply_keyboard() -> JsonValue {
     serde_json::to_value(
         ReplyKeyboardMarkup::new(vec![
-            vec![KeyboardButton::text("Age"), KeyboardButton::text("Favourite colour")],
+            vec![
+                KeyboardButton::text("Age"),
+                KeyboardButton::text("Favourite colour"),
+            ],
             vec![
                 KeyboardButton::text("Number of siblings"),
                 KeyboardButton::text("Something else..."),
@@ -207,10 +210,7 @@ async fn regular_choice(
 
     // Store which category was chosen.
     context
-        .set_user_data(
-            CHOICE_KEY.to_string(),
-            JsonValue::String(text.clone()),
-        )
+        .set_user_data(CHOICE_KEY.to_string(), JsonValue::String(text.clone()))
         .await;
 
     conv_store

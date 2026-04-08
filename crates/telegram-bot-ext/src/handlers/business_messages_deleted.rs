@@ -46,7 +46,7 @@ impl BusinessMessagesDeletedHandler {
 
 impl Handler for BusinessMessagesDeletedHandler {
     fn check_update(&self, update: &Update) -> Option<MatchResult> {
-        let dbm = update.deleted_business_messages.as_ref()?;
+        let dbm = update.deleted_business_messages()?;
 
         // No filters -> accept all.
         if self.chat_ids.is_empty() && self.usernames.is_empty() {

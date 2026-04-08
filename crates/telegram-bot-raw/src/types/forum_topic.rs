@@ -1,4 +1,3 @@
-
 use serde::{Deserialize, Serialize};
 
 /// A forum topic.
@@ -42,13 +41,11 @@ pub struct ForumTopicCreated {
 
 /// Service message: a forum topic was closed.  Carries no additional data.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct ForumTopicClosed {
-}
+pub struct ForumTopicClosed {}
 
 /// Service message: a forum topic was reopened.  Carries no additional data.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct ForumTopicReopened {
-}
+pub struct ForumTopicReopened {}
 
 /// Service message content for an edited forum topic.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -64,10 +61,8 @@ pub struct ForumTopicEdited {
 
 /// Service message: the General forum topic was hidden.  Carries no additional data.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct GeneralForumTopicHidden {
-}
+pub struct GeneralForumTopicHidden {}
 
 /// Service message: the General forum topic was unhidden.  Carries no additional data.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct GeneralForumTopicUnhidden {
-}
+pub struct GeneralForumTopicUnhidden {}

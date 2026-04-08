@@ -1209,7 +1209,7 @@ mod tests {
         let c2 = called.clone();
         app.add_handler(
             Handler {
-                check_update: Arc::new(|u| u.message.is_some()),
+                check_update: Arc::new(|u| u.message().is_some()),
                 callback: Arc::new(move |_, _| {
                     let c = c2.clone();
                     Box::pin(async move {

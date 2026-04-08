@@ -1,4 +1,3 @@
-
 use serde::{Deserialize, Serialize};
 
 /// Rating of a user based on their Telegram Star spendings.

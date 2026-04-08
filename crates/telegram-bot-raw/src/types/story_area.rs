@@ -1,4 +1,3 @@
-
 use serde::{Deserialize, Serialize};
 
 use super::reaction::ReactionType;
@@ -65,7 +64,9 @@ pub struct LocationAddress {
     pub street: Option<String>,
 }
 
-impl_new!(LocationAddress { country_code: String });
+impl_new!(LocationAddress {
+    country_code: String
+});
 
 /// A story area pointing to a geographic location.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -164,9 +165,7 @@ impl StoryAreaType {
 
     /// Create a link story area type.
     pub fn link(url: impl Into<String>) -> Self {
-        Self::Link(StoryAreaTypeLinkData {
-            url: url.into(),
-        })
+        Self::Link(StoryAreaTypeLinkData { url: url.into() })
     }
 
     /// Create a weather story area type.
@@ -180,9 +179,7 @@ impl StoryAreaType {
 
     /// Create a unique gift story area type.
     pub fn unique_gift(name: impl Into<String>) -> Self {
-        Self::UniqueGift(StoryAreaTypeUniqueGiftData {
-            name: name.into(),
-        })
+        Self::UniqueGift(StoryAreaTypeUniqueGiftData { name: name.into() })
     }
 }
 

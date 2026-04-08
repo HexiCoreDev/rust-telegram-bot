@@ -19,8 +19,8 @@
 //! - `/start` -- begins the interactive menu
 
 use telegram_bot::ext::prelude::{
-    ApplicationBuilder, Context, FnHandler, HandlerError, HandlerResult, InlineKeyboardButton,
-    InlineKeyboardMarkup, MessageEntityType, Update, Arc, HashMap, JsonValue, RwLock,
+    ApplicationBuilder, Arc, Context, FnHandler, HandlerError, HandlerResult, HashMap,
+    InlineKeyboardButton, InlineKeyboardMarkup, JsonValue, MessageEntityType, RwLock, Update,
 };
 
 // ---------------------------------------------------------------------------
@@ -98,8 +98,7 @@ async fn handler_one(
     conv_store: ConvStore,
 ) -> HandlerResult {
     let cq = update
-        .callback_query
-        .as_ref()
+        .callback_query()
         .expect("handler_one: missing callback_query");
 
     context.bot().answer_callback_query(&cq.id).send().await?;
@@ -109,7 +108,7 @@ async fn handler_one(
         InlineKeyboardButton::callback("4", FOUR),
     ]);
 
-    if let Some(ref msg) = cq.message {
+    if let Some(msg) = cq.message.as_deref() {
         context
             .bot()
             .edit_message_text("First CallbackQueryHandler, Choose a route")
@@ -132,8 +131,7 @@ async fn handler_two(
     conv_store: ConvStore,
 ) -> HandlerResult {
     let cq = update
-        .callback_query
-        .as_ref()
+        .callback_query()
         .expect("handler_two: missing callback_query");
 
     context.bot().answer_callback_query(&cq.id).send().await?;
@@ -143,7 +141,7 @@ async fn handler_two(
         InlineKeyboardButton::callback("3", THREE),
     ]);
 
-    if let Some(ref msg) = cq.message {
+    if let Some(msg) = cq.message.as_deref() {
         context
             .bot()
             .edit_message_text("Second CallbackQueryHandler, Choose a route")
@@ -166,8 +164,7 @@ async fn handler_three(
     conv_store: ConvStore,
 ) -> HandlerResult {
     let cq = update
-        .callback_query
-        .as_ref()
+        .callback_query()
         .expect("handler_three: missing callback_query");
 
     context.bot().answer_callback_query(&cq.id).send().await?;
@@ -177,7 +174,7 @@ async fn handler_three(
         InlineKeyboardButton::callback("Nah, I've had enough ...", TWO),
     ]);
 
-    if let Some(ref msg) = cq.message {
+    if let Some(msg) = cq.message.as_deref() {
         context
             .bot()
             .edit_message_text("Third CallbackQueryHandler. Do you want to start over?")
@@ -201,8 +198,7 @@ async fn handler_four(
     conv_store: ConvStore,
 ) -> HandlerResult {
     let cq = update
-        .callback_query
-        .as_ref()
+        .callback_query()
         .expect("handler_four: missing callback_query");
 
     context.bot().answer_callback_query(&cq.id).send().await?;
@@ -212,7 +208,7 @@ async fn handler_four(
         InlineKeyboardButton::callback("3", THREE),
     ]);
 
-    if let Some(ref msg) = cq.message {
+    if let Some(msg) = cq.message.as_deref() {
         context
             .bot()
             .edit_message_text("Fourth CallbackQueryHandler, Choose a route")
@@ -235,8 +231,7 @@ async fn handler_four(
 
 async fn start_over(update: Arc<Update>, context: Context, conv_store: ConvStore) -> HandlerResult {
     let cq = update
-        .callback_query
-        .as_ref()
+        .callback_query()
         .expect("start_over: missing callback_query");
 
     context.bot().answer_callback_query(&cq.id).send().await?;
@@ -246,7 +241,7 @@ async fn start_over(update: Arc<Update>, context: Context, conv_store: ConvStore
         InlineKeyboardButton::callback("2", TWO),
     ]);
 
-    if let Some(ref msg) = cq.message {
+    if let Some(msg) = cq.message.as_deref() {
         context
             .bot()
             .edit_message_text("Start handler, Choose a route")
@@ -269,13 +264,12 @@ async fn end_conversation(
     conv_store: ConvStore,
 ) -> HandlerResult {
     let cq = update
-        .callback_query
-        .as_ref()
+        .callback_query()
         .expect("end: missing callback_query");
 
     context.bot().answer_callback_query(&cq.id).send().await?;
 
-    if let Some(ref msg) = cq.message {
+    if let Some(msg) = cq.message.as_deref() {
         context
             .bot()
             .edit_message_text("See you next time!")
@@ -301,7 +295,7 @@ fn is_callback_with_data_in_stage(
     data: &str,
     stage: Stage,
 ) -> bool {
-    let cq = match &update.callback_query {
+    let cq = match update.callback_query() {
         Some(cq) => cq,
         None => return false,
     };
@@ -417,9 +411,7 @@ async fn main() {
         let cs_check = Arc::clone(&conv_store);
         app.add_typed_handler(
             FnHandler::new(
-                move |u| {
-                    is_callback_with_data_in_stage(u, &cs_check, THREE, Stage::StartRoutes)
-                },
+                move |u| is_callback_with_data_in_stage(u, &cs_check, THREE, Stage::StartRoutes),
                 move |update, ctx| {
                     let cs = Arc::clone(&cs);
                     async move { handler_three(update, ctx, cs).await }

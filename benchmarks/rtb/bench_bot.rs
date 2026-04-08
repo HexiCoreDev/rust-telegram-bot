@@ -76,7 +76,7 @@ async fn echo(update: Update, context: Context) -> HandlerResult {
 }
 
 async fn button_callback(update: Update, context: Context) -> HandlerResult {
-    let cq = match update.callback_query.as_ref() {
+    let cq = match update.callback_query() {
         Some(c) => c,
         None => return Ok(()),
     };

@@ -1,4 +1,3 @@
-
 use serde::{Deserialize, Serialize};
 
 /// An amount of Telegram Stars.

@@ -160,14 +160,10 @@ async fn wait_for_stop(rx: &mut watch::Receiver<bool>) {
 /// Returns `true` if we should abort (max retries reached).
 fn check_max_retries(current: i32, max: i32, prefix: &str) -> bool {
     if max < 0 || current < max {
-        debug!(
-            "{prefix} Failed run {current} of {max}. Retrying.",
-        );
+        debug!("{prefix} Failed run {current} of {max}. Retrying.",);
         false
     } else {
-        error!(
-            "{prefix} Failed run {current} of {max}. Aborting.",
-        );
+        error!("{prefix} Failed run {current} of {max}. Aborting.",);
         true
     }
 }
@@ -226,9 +222,7 @@ mod tests {
     #[tokio::test]
     async fn aborts_after_max_retries() {
         let result = network_retry_loop(NetworkLoopConfig {
-            action_cb: || async {
-                Err::<(), _>(TelegramError::Network("always fail".into()))
-            },
+            action_cb: || async { Err::<(), _>(TelegramError::Network("always fail".into())) },
             on_err_cb: None::<fn(&TelegramError)>,
             description: "abort-test",
             interval: 0.0,

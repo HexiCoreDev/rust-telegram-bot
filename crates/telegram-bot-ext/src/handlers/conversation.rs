@@ -195,7 +195,7 @@ impl<S: Hash + Eq + Clone + Send + Sync + 'static> ConversationHandler<S> {
         }
 
         if self.per_message {
-            let cq = update.callback_query.as_ref()?;
+            let cq = update.callback_query()?;
             if let Some(ref inline_id) = cq.inline_message_id {
                 use std::hash::Hasher;
                 let mut hasher = std::collections::hash_map::DefaultHasher::new();
@@ -335,7 +335,7 @@ impl<S: Hash + Eq + Clone + Send + Sync + 'static> ConversationHandler<S> {
 impl<S: Hash + Eq + Clone + Send + Sync + 'static> Handler for ConversationHandler<S> {
     fn check_update(&self, update: &Update) -> Option<MatchResult> {
         // ── M12: Reject channel posts and edited channel posts ───────────
-        if update.channel_post.is_some() || update.edited_channel_post.is_some() {
+        if update.channel_post().is_some() || update.edited_channel_post().is_some() {
             return None;
         }
 
@@ -847,7 +847,7 @@ mod tests {
         struct AlwaysMatch;
         impl Handler for AlwaysMatch {
             fn check_update(&self, update: &Update) -> Option<MatchResult> {
-                if update.message.is_some() {
+                if update.message().is_some() {
                     Some(MatchResult::Empty)
                 } else {
                     None

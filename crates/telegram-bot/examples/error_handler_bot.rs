@@ -17,8 +17,8 @@
 //! cargo run -p telegram-bot --example error_handler_bot
 //! ```
 use telegram_bot::ext::prelude::{
-    ApplicationBuilder, CallbackContext, CommandHandler, Context, HandlerError, HandlerResult,
-    Update, Arc,
+    ApplicationBuilder, Arc, CallbackContext, CommandHandler, Context, HandlerError, HandlerResult,
+    Update,
 };
 
 // ---------------------------------------------------------------------------
@@ -53,12 +53,10 @@ async fn start(update: Arc<Update>, context: Context) -> HandlerResult {
 /// Intentionally trigger an error so the error handler fires.
 async fn bad_command(_update: Arc<Update>, _context: Context) -> HandlerResult {
     // Simulate an application error by returning an Err.
-    Err(HandlerError::Other(Box::new(
-        std::io::Error::new(
-            std::io::ErrorKind::Other,
-            "This is a deliberately triggered error from /bad_command!",
-        ),
-    )))
+    Err(HandlerError::Other(Box::new(std::io::Error::new(
+        std::io::ErrorKind::Other,
+        "This is a deliberately triggered error from /bad_command!",
+    ))))
 }
 
 // ---------------------------------------------------------------------------

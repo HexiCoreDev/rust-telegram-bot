@@ -58,8 +58,8 @@ impl ChatBoostHandler {
 
 impl Handler for ChatBoostHandler {
     fn check_update(&self, update: &Update) -> Option<MatchResult> {
-        let has_boost = update.chat_boost.is_some();
-        let has_removed = update.removed_chat_boost.is_some();
+        let has_boost = update.chat_boost().is_some();
+        let has_removed = update.removed_chat_boost().is_some();
 
         if !has_boost && !has_removed {
             return None;

@@ -1,4 +1,3 @@
-
 use serde::{Deserialize, Serialize};
 
 /// A reaction with a normal emoji.
@@ -17,8 +16,7 @@ pub struct ReactionTypeCustomEmojiData {
 
 /// A paid reaction (no additional fields beyond the type tag).
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct ReactionTypePaidData {
-}
+pub struct ReactionTypePaidData {}
 
 /// Polymorphic reaction type, selected by the `"type"` field in the JSON.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]

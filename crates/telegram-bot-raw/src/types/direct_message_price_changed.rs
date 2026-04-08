@@ -1,4 +1,3 @@
-
 use serde::{Deserialize, Serialize};
 
 /// Service message about a change in the price of direct messages sent to a channel chat.

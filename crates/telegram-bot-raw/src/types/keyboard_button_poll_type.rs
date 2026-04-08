@@ -1,4 +1,3 @@
-
 use serde::{Deserialize, Serialize};
 
 /// The type of poll a `KeyboardButton` may request the user to create.

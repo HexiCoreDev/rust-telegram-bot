@@ -11,9 +11,8 @@
 //!   `bot_username` is `None` the `@` part is silently stripped (backwards
 //!   compatible).
 //! - **C2 -- Filter integration**: An optional `filter_fn` runs *before*
-//!   command matching. The default filter accepts updates that have a
-//!   `message` **or** `edited_message` field, matching Python's
-//!   `filters.UpdateType.MESSAGES` default.
+//!   command matching. The default filter accepts message-like updates via
+//!   [`Update::message`](telegram_bot_raw::types::update::Update::message).
 
 use std::collections::HashSet;
 use std::future::Future;
@@ -109,13 +108,9 @@ fn lazy_static_regex() -> &'static Regex {
     RE.get_or_init(|| Regex::new(r"^[a-z0-9_]{1,32}$").expect("command regex is valid"))
 }
 
-/// The default update filter: accepts updates with a `message` **or**
-/// `edited_message` field.
-///
-/// This mirrors Python's `filters.UpdateType.MESSAGES` default which accepts
-/// both `message` and `edited_message`.
+/// The default update filter: accepts message-like updates.
 fn default_update_filter(update: &Update) -> bool {
-    update.message.is_some() || update.edited_message.is_some()
+    update.message().is_some()
 }
 
 impl CommandHandler {
@@ -225,9 +220,8 @@ impl CommandHandler {
     /// The filter runs *before* any command matching. If it returns `false`
     /// the update is immediately rejected.
     ///
-    /// When no custom filter is supplied the default behaviour is to require
-    /// `update.message` or `update.edited_message` to be `Some`, matching
-    /// Python's `UpdateType.MESSAGES`.
+    /// When no custom filter is supplied the default behaviour is to accept
+    /// message-like updates via [`Update::message`](Update::message).
     pub fn with_filter(mut self, filter: UpdateFilter) -> Self {
         self.filter_fn = Some(filter);
         self
@@ -484,7 +478,7 @@ mod tests {
     }
 
     #[test]
-    fn c2_default_filter_rejects_channel_post() {
+    fn c2_default_filter_accepts_channel_post() {
         let update: Update = serde_json::from_value(json!({
             "update_id": 1,
             "channel_post": {
@@ -498,7 +492,7 @@ mod tests {
         .expect("valid");
 
         let h = CommandHandler::with_options(vec!["start".into()], noop_callback(), None, true);
-        assert!(h.check_update(&update).is_none());
+        assert!(h.check_update(&update).is_some());
     }
 
     #[test]
@@ -507,7 +501,7 @@ mod tests {
 
         let h = CommandHandler::with_options(vec!["start".into()], noop_callback(), None, true)
             .with_filter(Arc::new(|u| {
-                u.message.is_some() || u.edited_message.is_some()
+                u.message().is_some() || u.edited_message().is_some()
             }));
         assert!(h.check_update(&update).is_some());
     }

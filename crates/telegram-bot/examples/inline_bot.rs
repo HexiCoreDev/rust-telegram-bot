@@ -16,7 +16,7 @@
 //! TELEGRAM_BOT_TOKEN="your-token-here" cargo run -p telegram-bot --example inline_bot
 //! ```
 use telegram_bot::ext::prelude::{
-    ApplicationBuilder, CommandHandler, Context, FnHandler, HandlerResult, ParseMode, Update, Arc,
+    ApplicationBuilder, Arc, CommandHandler, Context, FnHandler, HandlerResult, ParseMode, Update,
 };
 use telegram_bot::raw::types::inline::inline_query_result_article::InlineQueryResultArticle;
 use telegram_bot::raw::types::inline::input_message_content::InputMessageContent;
@@ -49,7 +49,7 @@ async fn help_command(update: Arc<Update>, context: Context) -> HandlerResult {
 
 /// Handle inline queries by offering three text transformations.
 async fn inline_query_handler(update: Arc<Update>, context: Context) -> HandlerResult {
-    let iq = match &update.inline_query {
+    let iq = match update.inline_query() {
         Some(q) => q,
         None => return Ok(()),
     };
@@ -68,8 +68,7 @@ async fn inline_query_handler(update: Arc<Update>, context: Context) -> HandlerR
         .replace('>', "&gt;");
 
     let caps_content = InputTextMessageContent::new(query.to_uppercase());
-    let bold_content =
-        InputTextMessageContent::new(format!("<b>{escaped}</b>")).parse_mode("HTML");
+    let bold_content = InputTextMessageContent::new(format!("<b>{escaped}</b>")).parse_mode("HTML");
     let italic_content =
         InputTextMessageContent::new(format!("<i>{escaped}</i>")).parse_mode("HTML");
 

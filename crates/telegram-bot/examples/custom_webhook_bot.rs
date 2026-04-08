@@ -31,8 +31,8 @@ use tokio::net::TcpListener;
 use tokio::sync::mpsc;
 
 use telegram_bot::ext::prelude::{
-    Application, ApplicationBuilder, ChatId, CommandHandler, Context, HandlerResult, ParseMode,
-    Update, Arc,
+    Application, ApplicationBuilder, Arc, ChatId, CommandHandler, Context, HandlerResult,
+    ParseMode, Update,
 };
 use telegram_bot::raw::types::chat_member::ChatMember;
 use telegram_bot::raw::types::update::Update as RawUpdate;

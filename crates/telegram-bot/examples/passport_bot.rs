@@ -20,7 +20,7 @@
 //! TELEGRAM_BOT_TOKEN="your-token-here" cargo run -p telegram-bot --example passport_bot
 //! ```
 use telegram_bot::ext::prelude::{
-    Application, ApplicationBuilder, Context, FnHandler, HandlerResult, Update, Arc,
+    Application, ApplicationBuilder, Arc, Context, FnHandler, HandlerResult, Update,
 };
 
 // ---------------------------------------------------------------------------

@@ -1,10 +1,8 @@
-
 use serde::{Deserialize, Serialize};
 
 /// The withdrawal is in progress.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct RevenueWithdrawalStatePending {
-}
+pub struct RevenueWithdrawalStatePending {}
 
 /// The withdrawal succeeded.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -18,8 +16,7 @@ pub struct RevenueWithdrawalStateSucceeded {
 
 /// The withdrawal failed and the transaction was refunded.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct RevenueWithdrawalStateFailed {
-}
+pub struct RevenueWithdrawalStateFailed {}
 
 /// State of a revenue withdrawal operation.
 ///

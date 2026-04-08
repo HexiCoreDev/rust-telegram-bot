@@ -35,7 +35,7 @@ impl PreCheckoutQueryHandler {
 
 impl Handler for PreCheckoutQueryHandler {
     fn check_update(&self, update: &Update) -> Option<MatchResult> {
-        let pcq = update.pre_checkout_query.as_ref()?;
+        let pcq = update.pre_checkout_query()?;
 
         if let Some(ref re) = self.pattern {
             let payload = &pcq.invoice_payload;

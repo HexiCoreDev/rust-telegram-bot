@@ -26,7 +26,6 @@ use super::user_rating::UserRating;
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ChatFullInfo {
     // ── Fields inherited from _ChatBase ──────────────────────────────────────
-
     /// Unique identifier for this chat.
     pub id: i64,
 
@@ -59,7 +58,6 @@ pub struct ChatFullInfo {
     pub is_direct_messages: Option<bool>,
 
     // ── Fields unique to ChatFullInfo ─────────────────────────────────────────
-
     /// The maximum number of reactions that can be set on a message in the chat.
     pub max_reaction_count: i32,
 

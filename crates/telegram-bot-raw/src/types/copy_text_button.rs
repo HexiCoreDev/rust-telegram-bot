@@ -1,4 +1,3 @@
-
 use serde::{Deserialize, Serialize};
 
 /// Inline keyboard button that copies specified text to the clipboard.

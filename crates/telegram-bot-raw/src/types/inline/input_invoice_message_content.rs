@@ -1,4 +1,3 @@
-
 use serde::{Deserialize, Serialize};
 
 use crate::types::payment::labeled_price::LabeledPrice;

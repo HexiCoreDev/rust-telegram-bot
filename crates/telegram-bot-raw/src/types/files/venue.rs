@@ -1,4 +1,3 @@
-
 use serde::{Deserialize, Serialize};
 
 use crate::types::files::location::Location;
@@ -34,11 +33,7 @@ pub struct Venue {
 
 impl Venue {
     /// Creates a new `Venue` with the given location, title, and address.
-    pub fn new(
-        location: Location,
-        title: impl Into<String>,
-        address: impl Into<String>,
-    ) -> Self {
+    pub fn new(location: Location, title: impl Into<String>, address: impl Into<String>) -> Self {
         Self {
             location,
             title: title.into(),

@@ -23,8 +23,8 @@
 //! - `/noshipping` -- sends an invoice without shipping
 
 use telegram_bot::ext::prelude::{
-    Application, ApplicationBuilder, CommandHandler, Context, FnHandler, HandlerError,
-    HandlerResult, MessageEntityType, Update, Arc,
+    Application, ApplicationBuilder, Arc, CommandHandler, Context, FnHandler, HandlerError,
+    HandlerResult, MessageEntityType, Update,
 };
 use telegram_bot::raw::types::payment::labeled_price::LabeledPrice;
 use telegram_bot::raw::types::payment::shipping_option::ShippingOption;
@@ -144,8 +144,7 @@ async fn start_without_shipping(
 /// Handle incoming shipping queries.
 async fn shipping_callback(update: Arc<Update>, context: Context) -> HandlerResult {
     let query = update
-        .shipping_query
-        .as_ref()
+        .shipping_query()
         .expect("shipping query handler requires shipping_query");
 
     // Verify the payload matches our bot.
@@ -171,10 +170,7 @@ async fn shipping_callback(update: Arc<Update>, context: Context) -> HandlerResu
         serde_json::to_value(ShippingOption::new(
             "2",
             "Shipping Option B",
-            vec![
-                LabeledPrice::new("B1", 150),
-                LabeledPrice::new("B2", 200),
-            ],
+            vec![LabeledPrice::new("B1", 150), LabeledPrice::new("B2", 200)],
         ))
         .expect("shipping option serialization"),
     ];
@@ -193,8 +189,7 @@ async fn shipping_callback(update: Arc<Update>, context: Context) -> HandlerResu
 /// Handle pre-checkout queries (final confirmation).
 async fn precheckout_callback(update: Arc<Update>, context: Context) -> HandlerResult {
     let query = update
-        .pre_checkout_query
-        .as_ref()
+        .pre_checkout_query()
         .expect("pre-checkout query handler requires pre_checkout_query");
 
     if query.invoice_payload != INVOICE_PAYLOAD {

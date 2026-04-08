@@ -1,4 +1,3 @@
-
 use serde::{Deserialize, Serialize};
 
 use crate::types::chat::Chat;
@@ -84,13 +83,11 @@ pub struct TransactionPartnerUser {
 
 /// Describes a transaction with an unknown partner.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct TransactionPartnerOther {
-}
+pub struct TransactionPartnerOther {}
 
 /// Describes a withdrawal transaction to the Telegram Ads platform.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct TransactionPartnerTelegramAds {
-}
+pub struct TransactionPartnerTelegramAds {}
 
 /// Describes a transaction with payment for paid broadcasting.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]

@@ -1,4 +1,3 @@
-
 use serde::{Deserialize, Serialize};
 
 use super::labeled_price::LabeledPrice;
@@ -18,11 +17,7 @@ pub struct ShippingOption {
 
 impl ShippingOption {
     /// Creates a new `ShippingOption` with the given id, title, and prices.
-    pub fn new(
-        id: impl Into<String>,
-        title: impl Into<String>,
-        prices: Vec<LabeledPrice>,
-    ) -> Self {
+    pub fn new(id: impl Into<String>, title: impl Into<String>, prices: Vec<LabeledPrice>) -> Self {
         Self {
             id: id.into(),
             title: title.into(),

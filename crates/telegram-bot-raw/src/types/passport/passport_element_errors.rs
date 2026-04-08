@@ -1,4 +1,3 @@
-
 use serde::{Deserialize, Serialize};
 
 /// Represents an issue in one of the data fields provided by the user.

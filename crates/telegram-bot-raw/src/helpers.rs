@@ -47,7 +47,10 @@ fn html_escape(s: &str) -> String {
 
 /// Creates an HTML mention `<a href="tg://user?id=...">name</a>` for a user.
 pub fn mention_html(user_id: i64, name: &str) -> String {
-    format!("<a href=\"tg://user?id={user_id}\">{}</a>", html_escape(name))
+    format!(
+        "<a href=\"tg://user?id={user_id}\">{}</a>",
+        html_escape(name)
+    )
 }
 
 /// Creates a Markdown mention link for a user.

@@ -234,10 +234,7 @@ impl WebhookServer {
     ///
     /// The server runs until [`shutdown`](Self::shutdown) is called. In-flight
     /// requests are drained before the server exits (graceful shutdown).
-    pub async fn serve_forever(
-        &self,
-        ready: Option<Arc<Notify>>,
-    ) -> Result<(), std::io::Error> {
+    pub async fn serve_forever(&self, ready: Option<Arc<Notify>>) -> Result<(), std::io::Error> {
         let addr: SocketAddr = format!("{}:{}", self.listen, self.port)
             .parse()
             .map_err(|e| std::io::Error::new(std::io::ErrorKind::InvalidInput, e))?;
@@ -429,12 +426,7 @@ mod tests {
         let mut headers = HeaderMap::new();
         headers.insert("content-type", "text/plain".parse().unwrap());
 
-        let resp = handle_webhook(
-            State(state),
-            headers,
-            Bytes::from_static(b"{}"),
-        )
-        .await;
+        let resp = handle_webhook(State(state), headers, Bytes::from_static(b"{}")).await;
         assert_eq!(resp.status(), StatusCode::FORBIDDEN);
     }
 
@@ -448,12 +440,7 @@ mod tests {
         let mut headers = HeaderMap::new();
         headers.insert("content-type", "application/json".parse().unwrap());
 
-        let resp = handle_webhook(
-            State(state),
-            headers,
-            Bytes::from_static(b"{}"),
-        )
-        .await;
+        let resp = handle_webhook(State(state), headers, Bytes::from_static(b"{}")).await;
         assert_eq!(resp.status(), StatusCode::FORBIDDEN);
     }
 
@@ -466,17 +453,9 @@ mod tests {
         };
         let mut headers = HeaderMap::new();
         headers.insert("content-type", "application/json".parse().unwrap());
-        headers.insert(
-            "x-telegram-bot-api-secret-token",
-            "wrong".parse().unwrap(),
-        );
+        headers.insert("x-telegram-bot-api-secret-token", "wrong".parse().unwrap());
 
-        let resp = handle_webhook(
-            State(state),
-            headers,
-            Bytes::from_static(b"{}"),
-        )
-        .await;
+        let resp = handle_webhook(State(state), headers, Bytes::from_static(b"{}")).await;
         assert_eq!(resp.status(), StatusCode::FORBIDDEN);
     }
 

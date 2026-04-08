@@ -53,8 +53,8 @@ impl ChatMemberHandler {
 
 impl Handler for ChatMemberHandler {
     fn check_update(&self, update: &Update) -> Option<MatchResult> {
-        let has_my = update.my_chat_member.is_some();
-        let has_other = update.chat_member.is_some();
+        let has_my = update.my_chat_member().is_some();
+        let has_other = update.chat_member().is_some();
 
         if !has_my && !has_other {
             return None;

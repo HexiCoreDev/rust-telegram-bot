@@ -1,4 +1,3 @@
-
 use serde::{Deserialize, Serialize};
 
 /// Basic information about a refunded payment.

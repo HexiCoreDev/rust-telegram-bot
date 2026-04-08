@@ -67,7 +67,7 @@ fn eval(kind: FilterKind, update: &Update) -> bool {
     match kind {
         FilterKind::AlwaysTrue => true,
         FilterKind::AlwaysFalse => false,
-        FilterKind::HasMessage => update.message.is_some(),
+        FilterKind::HasMessage => update.message().is_some(),
     }
 }
 
@@ -77,7 +77,7 @@ fn make_filter(kind: FilterKind) -> F {
         FilterKind::AlwaysTrue => F::new(FnFilter::new("always_true", |_| true)),
         FilterKind::AlwaysFalse => F::new(FnFilter::new("always_false", |_| false)),
         FilterKind::HasMessage => F::new(FnFilter::new("has_message", |u: &Update| {
-            u.message.is_some()
+            u.message().is_some()
         })),
     }
 }

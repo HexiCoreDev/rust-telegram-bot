@@ -24,9 +24,8 @@
 //! - Select a color in the Web App; the bot will display the chosen color
 
 use telegram_bot::ext::prelude::{
-    Application, ApplicationBuilder, CommandHandler, Context, FnHandler, HandlerError,
-    HandlerResult, KeyboardButton, ReplyKeyboardMarkup, ReplyKeyboardRemove, Update, Arc,
-    json,
+    json, Application, ApplicationBuilder, Arc, CommandHandler, Context, FnHandler, HandlerError,
+    HandlerResult, KeyboardButton, ReplyKeyboardMarkup, ReplyKeyboardRemove, Update,
 };
 use telegram_bot::types::web_app_info::WebAppInfo;
 

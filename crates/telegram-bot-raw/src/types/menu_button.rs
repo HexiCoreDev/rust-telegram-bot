@@ -1,12 +1,10 @@
-
 use serde::{Deserialize, Serialize};
 
 use super::web_app_info::WebAppInfo;
 
 /// Payload for `MenuButtonCommands` — no additional fields beyond the tag.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct MenuButtonCommandsData {
-}
+pub struct MenuButtonCommandsData {}
 
 /// Payload for `MenuButtonWebApp`.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -20,8 +18,7 @@ pub struct MenuButtonWebAppData {
 
 /// Payload for `MenuButtonDefault` — no additional fields beyond the tag.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct MenuButtonDefaultData {
-}
+pub struct MenuButtonDefaultData {}
 
 /// The bot's menu button in a private chat.
 ///

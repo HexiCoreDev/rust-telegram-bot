@@ -1,4 +1,3 @@
-
 use serde::{Deserialize, Serialize};
 
 use crate::types::files::input_file::InputFile;

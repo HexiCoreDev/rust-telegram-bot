@@ -28,7 +28,7 @@ impl ShippingQueryHandler {
 
 impl Handler for ShippingQueryHandler {
     fn check_update(&self, update: &Update) -> Option<MatchResult> {
-        if update.shipping_query.is_some() {
+        if update.shipping_query().is_some() {
             Some(MatchResult::Empty)
         } else {
             None

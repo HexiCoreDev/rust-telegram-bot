@@ -243,7 +243,11 @@ impl CallbackDataCache {
     /// Returns the data that needs to be persisted.
     #[must_use]
     pub fn persistence_data(&self) -> CdcData {
-        let kbd_list: Vec<_> = self.keyboard_data.values().map(KeyboardData::to_tuple).collect();
+        let kbd_list: Vec<_> = self
+            .keyboard_data
+            .values()
+            .map(KeyboardData::to_tuple)
+            .collect();
         let query_map: HashMap<String, String> = self
             .callback_queries
             .iter()
@@ -257,7 +261,10 @@ impl CallbackDataCache {
     /// If any of the buttons have `callback_data`, stores that data and builds a new keyboard
     /// with the correspondingly replaced buttons.  Otherwise, returns the original reply markup
     /// unchanged.
-    pub fn process_keyboard(&mut self, reply_markup: &InlineKeyboardMarkup) -> InlineKeyboardMarkup {
+    pub fn process_keyboard(
+        &mut self,
+        reply_markup: &InlineKeyboardMarkup,
+    ) -> InlineKeyboardMarkup {
         let keyboard_uuid = generate_uuid();
         let mut kbd_data = KeyboardData::new(keyboard_uuid.clone());
 
@@ -313,17 +320,20 @@ impl CallbackDataCache {
     ) -> Result<(String, Value), InvalidCallbackData> {
         let (keyboard_uuid, button_uuid) = Self::extract_uuids(callback_data);
 
-        let kbd = self.keyboard_data.get_mut(keyboard_uuid).ok_or_else(|| InvalidCallbackData {
-            callback_data: Some(callback_data.to_owned()),
-        })?;
-
-        let btn_data = kbd
-            .button_data
-            .get(button_uuid)
-            .cloned()
+        let kbd = self
+            .keyboard_data
+            .get_mut(keyboard_uuid)
             .ok_or_else(|| InvalidCallbackData {
                 callback_data: Some(callback_data.to_owned()),
             })?;
+
+        let btn_data =
+            kbd.button_data
+                .get(button_uuid)
+                .cloned()
+                .ok_or_else(|| InvalidCallbackData {
+                    callback_data: Some(callback_data.to_owned()),
+                })?;
 
         kbd.update_access_time();
 
@@ -397,7 +407,10 @@ impl CallbackDataCache {
             // We need to convert to a Value, process it, and write it back.
             if let Ok(mut msg_val) = serde_json::to_value(&**msg) {
                 self.process_message_value(&mut msg_val);
-                if let Ok(processed_msg) = serde_json::from_value::<telegram_bot_raw::types::message::MaybeInaccessibleMessage>(msg_val) {
+                if let Ok(processed_msg) = serde_json::from_value::<
+                    telegram_bot_raw::types::message::MaybeInaccessibleMessage,
+                >(msg_val)
+                {
                     **msg = processed_msg;
                 }
             }
@@ -410,12 +423,12 @@ impl CallbackDataCache {
     ///
     /// Returns `Err` if the callback query is not found in the cache.
     pub fn drop_data(&mut self, callback_query_id: &str) -> Result<(), InvalidCallbackData> {
-        let kbd_uuid = self
-            .callback_queries
-            .remove(callback_query_id)
-            .ok_or(InvalidCallbackData {
-                callback_data: None,
-            })?;
+        let kbd_uuid =
+            self.callback_queries
+                .remove(callback_query_id)
+                .ok_or(InvalidCallbackData {
+                    callback_data: None,
+                })?;
 
         // Silently ignore if the keyboard itself is already gone.
         let _ = self.keyboard_data.remove(&kbd_uuid);
@@ -429,8 +442,7 @@ impl CallbackDataCache {
         match time_cutoff {
             None => self.keyboard_data.clear(),
             Some(cutoff) => {
-                self.keyboard_data
-                    .retain(|_, v| v.access_time >= cutoff);
+                self.keyboard_data.retain(|_, v| v.access_time >= cutoff);
             }
         }
     }
@@ -497,7 +509,10 @@ mod tests {
         };
 
         let new_markup = cache.process_keyboard(&markup);
-        assert_eq!(new_markup.inline_keyboard[0][0].url, markup.inline_keyboard[0][0].url);
+        assert_eq!(
+            new_markup.inline_keyboard[0][0].url,
+            markup.inline_keyboard[0][0].url
+        );
     }
 
     #[test]

@@ -20,7 +20,8 @@ use crate::filters::base::{effective_message_val, to_value, Filter, FilterResult
 pub struct TextAny;
 
 impl Filter for TextAny {
-    fn check_update(&self, update: &Update) -> FilterResult { let __v = to_value(update);
+    fn check_update(&self, update: &Update) -> FilterResult {
+        let __v = to_value(update);
         if effective_message_val(&__v)
             .and_then(|m| m.get("text"))
             .and_then(|v| v.as_str())
@@ -65,8 +66,12 @@ impl TextFilter {
 }
 
 impl Filter for TextFilter {
-    fn check_update(&self, update: &Update) -> FilterResult { let __v = to_value(update);
-        let text = match effective_message_val(&__v).and_then(|m| m.get("text")).and_then(|v| v.as_str()) {
+    fn check_update(&self, update: &Update) -> FilterResult {
+        let __v = to_value(update);
+        let text = match effective_message_val(&__v)
+            .and_then(|m| m.get("text"))
+            .and_then(|v| v.as_str())
+        {
             Some(t) => t,
             None => return FilterResult::NoMatch,
         };
@@ -93,7 +98,8 @@ impl Filter for TextFilter {
 pub struct CaptionAny;
 
 impl Filter for CaptionAny {
-    fn check_update(&self, update: &Update) -> FilterResult { let __v = to_value(update);
+    fn check_update(&self, update: &Update) -> FilterResult {
+        let __v = to_value(update);
         if effective_message_val(&__v)
             .and_then(|m| m.get("caption"))
             .and_then(|v| v.as_str())
@@ -136,7 +142,8 @@ impl CaptionFilter {
 }
 
 impl Filter for CaptionFilter {
-    fn check_update(&self, update: &Update) -> FilterResult { let __v = to_value(update);
+    fn check_update(&self, update: &Update) -> FilterResult {
+        let __v = to_value(update);
         let caption = match effective_message_val(&__v)
             .and_then(|m| m.get("caption"))
             .and_then(|v| v.as_str())
@@ -193,7 +200,8 @@ impl CaptionRegexFilter {
 }
 
 impl Filter for CaptionRegexFilter {
-    fn check_update(&self, update: &Update) -> FilterResult { let __v = to_value(update);
+    fn check_update(&self, update: &Update) -> FilterResult {
+        let __v = to_value(update);
         let caption = match effective_message_val(&__v)
             .and_then(|m| m.get("caption"))
             .and_then(|v| v.as_str())
@@ -208,10 +216,7 @@ impl Filter for CaptionRegexFilter {
                     .iter()
                     .filter_map(|m| m.map(|mat| mat.as_str().to_owned()))
                     .collect();
-                FilterResult::MatchWithData(HashMap::from([(
-                    "matches".to_owned(),
-                    captures_vec,
-                )]))
+                FilterResult::MatchWithData(HashMap::from([("matches".to_owned(), captures_vec)]))
             }
             None => FilterResult::NoMatch,
         }
@@ -244,7 +249,8 @@ impl LanguageFilter {
 }
 
 impl Filter for LanguageFilter {
-    fn check_update(&self, update: &Update) -> FilterResult { let __v = to_value(update);
+    fn check_update(&self, update: &Update) -> FilterResult {
+        let __v = to_value(update);
         let code = match effective_message_val(&__v)
             .and_then(|m| m.get("from"))
             .and_then(|u| u.get("language_code"))
@@ -253,7 +259,11 @@ impl Filter for LanguageFilter {
             Some(c) => c,
             None => return FilterResult::NoMatch,
         };
-        if self.langs.iter().any(|prefix| code.starts_with(prefix.as_str())) {
+        if self
+            .langs
+            .iter()
+            .any(|prefix| code.starts_with(prefix.as_str()))
+        {
             FilterResult::Match
         } else {
             FilterResult::NoMatch
@@ -297,7 +307,8 @@ impl SuccessfulPaymentFilter {
 }
 
 impl Filter for SuccessfulPaymentFilter {
-    fn check_update(&self, update: &Update) -> FilterResult { let __v = to_value(update);
+    fn check_update(&self, update: &Update) -> FilterResult {
+        let __v = to_value(update);
         let payment = match effective_message_val(&__v).and_then(|m| m.get("successful_payment")) {
             Some(p) if !p.is_null() => p,
             _ => return FilterResult::NoMatch,
@@ -451,7 +462,8 @@ fn emoji_label(emoji: &str) -> &'static str {
 }
 
 impl Filter for DiceFilter {
-    fn check_update(&self, update: &Update) -> FilterResult { let __v = to_value(update);
+    fn check_update(&self, update: &Update) -> FilterResult {
+        let __v = to_value(update);
         let dice = match effective_message_val(&__v).and_then(|m| m.get("dice")) {
             Some(d) if !d.is_null() => d,
             _ => return FilterResult::NoMatch,
@@ -535,7 +547,10 @@ impl MentionFilter {
     }
 
     /// Create a mention filter from mixed IDs and usernames.
-    pub fn new(ids: impl IntoIterator<Item = i64>, usernames: impl IntoIterator<Item = impl Into<String>>) -> Self {
+    pub fn new(
+        ids: impl IntoIterator<Item = i64>,
+        usernames: impl IntoIterator<Item = impl Into<String>>,
+    ) -> Self {
         let ids: HashSet<i64> = ids.into_iter().collect();
         let usernames: HashSet<String> = usernames
             .into_iter()
@@ -554,7 +569,8 @@ impl MentionFilter {
 }
 
 impl Filter for MentionFilter {
-    fn check_update(&self, update: &Update) -> FilterResult { let __v = to_value(update);
+    fn check_update(&self, update: &Update) -> FilterResult {
+        let __v = to_value(update);
         let msg = match effective_message_val(&__v) {
             Some(m) => m,
             None => return FilterResult::NoMatch,
@@ -622,7 +638,8 @@ mod tests {
                 "chat": {"id": 1, "type": "private"},
                 "text": text
             }
-        })).unwrap()
+        }))
+        .unwrap()
     }
 
     #[test]
@@ -658,7 +675,8 @@ mod tests {
                 "chat": {"id": 1, "type": "private"},
                 "caption": "look at this"
             }
-        })).unwrap();
+        }))
+        .unwrap();
         assert!(CAPTION.check_update(&update).is_match());
     }
 
@@ -672,7 +690,8 @@ mod tests {
                 "chat": {"id": 1, "type": "private"},
                 "caption": "PTB rocks!"
             }
-        })).unwrap();
+        }))
+        .unwrap();
         assert!(f.check_update(&update).is_match());
     }
 
@@ -686,7 +705,8 @@ mod tests {
                 "chat": {"id": 1, "type": "private"},
                 "caption": "I need help please"
             }
-        })).unwrap();
+        }))
+        .unwrap();
         assert!(f.check_update(&update).is_match());
     }
 
@@ -701,7 +721,8 @@ mod tests {
                 "from": {"id": 1, "is_bot": false, "first_name": "A", "language_code": "en_US"},
                 "text": "hi"
             }
-        })).unwrap();
+        }))
+        .unwrap();
         assert!(f.check_update(&update).is_match());
     }
 
@@ -716,7 +737,8 @@ mod tests {
                 "from": {"id": 1, "is_bot": false, "first_name": "A", "language_code": "en_US"},
                 "text": "hi"
             }
-        })).unwrap();
+        }))
+        .unwrap();
         assert!(!f.check_update(&update).is_match());
     }
 
@@ -736,7 +758,8 @@ mod tests {
                     "provider_payment_charge_id": "y"
                 }
             }
-        })).unwrap();
+        }))
+        .unwrap();
         assert!(f.check_update(&update).is_match());
     }
 
@@ -756,7 +779,8 @@ mod tests {
                     "provider_payment_charge_id": "y"
                 }
             }
-        })).unwrap();
+        }))
+        .unwrap();
         assert!(f.check_update(&update).is_match());
         let f2 = SuccessfulPaymentFilter::with_payloads(["other"]);
         assert!(!f2.check_update(&update).is_match());
@@ -772,7 +796,8 @@ mod tests {
                 "chat": {"id": 1, "type": "private"},
                 "dice": {"emoji": "\u{1F3B2}", "value": 3}
             }
-        })).unwrap();
+        }))
+        .unwrap();
         assert!(f.check_update(&update).is_match());
     }
 
@@ -786,7 +811,8 @@ mod tests {
                 "chat": {"id": 1, "type": "private"},
                 "dice": {"emoji": "\u{1F3B2}", "value": 3}
             }
-        })).unwrap();
+        }))
+        .unwrap();
         assert!(f.check_update(&update).is_match());
         let f2 = DiceFilter::with_values([5, 6]);
         assert!(!f2.check_update(&update).is_match());
@@ -802,7 +828,8 @@ mod tests {
                 "chat": {"id": 1, "type": "private"},
                 "dice": {"emoji": "\u{1F3AF}", "value": 6}
             }
-        })).unwrap();
+        }))
+        .unwrap();
         assert!(f.check_update(&update).is_match());
     }
 
@@ -816,7 +843,8 @@ mod tests {
                 "chat": {"id": 1, "type": "private"},
                 "dice": {"emoji": "\u{1F3B2}", "value": 3}
             }
-        })).unwrap();
+        }))
+        .unwrap();
         assert!(!f.check_update(&update).is_match());
     }
 
@@ -831,7 +859,8 @@ mod tests {
                 "text": "Hello @testbot!",
                 "entities": [{"type": "mention", "offset": 6, "length": 8}]
             }
-        })).unwrap();
+        }))
+        .unwrap();
         assert!(f.check_update(&update).is_match());
     }
 

@@ -339,9 +339,9 @@ fn decode_callback_data(val: &Value) -> Result<CdcData, PersistenceError> {
             "callback_data_json must have exactly 2 elements".into(),
         ));
     }
-    let entries_raw = arr[0].as_array().ok_or_else(|| {
-        PersistenceError::Custom("callback_data entries must be an array".into())
-    })?;
+    let entries_raw = arr[0]
+        .as_array()
+        .ok_or_else(|| PersistenceError::Custom("callback_data entries must be an array".into()))?;
     let mut entries = Vec::with_capacity(entries_raw.len());
     for entry in entries_raw {
         let triple = entry.as_array().ok_or_else(|| {
@@ -356,9 +356,9 @@ fn decode_callback_data(val: &Value) -> Result<CdcData, PersistenceError> {
             .as_str()
             .ok_or_else(|| PersistenceError::Custom("entry[0] must be a string".into()))?
             .to_owned();
-        let ts = triple[1].as_f64().ok_or_else(|| {
-            PersistenceError::Custom("entry[1] must be a number".into())
-        })?;
+        let ts = triple[1]
+            .as_f64()
+            .ok_or_else(|| PersistenceError::Custom("entry[1] must be a number".into()))?;
         let data_map: HashMap<String, Value> = match &triple[2] {
             Value::Object(m) => m.iter().map(|(k, v)| (k.clone(), v.clone())).collect(),
             _ => {
@@ -375,9 +375,7 @@ fn decode_callback_data(val: &Value) -> Result<CdcData, PersistenceError> {
 
 /// Decode conversations from JSON. Conversation keys are stored as
 /// JSON-serialized arrays under each handler name.
-fn decode_conversations(
-    json: &str,
-) -> Result<HashMap<String, ConversationDict>, PersistenceError> {
+fn decode_conversations(json: &str) -> Result<HashMap<String, ConversationDict>, PersistenceError> {
     let raw: HashMap<String, HashMap<String, Value>> = serde_json::from_str(json)?;
     let mut out = HashMap::with_capacity(raw.len());
     for (handler, states) in raw {
@@ -465,7 +463,9 @@ mod tests {
     #[tokio::test]
     async fn skips_update_when_unchanged() {
         let p = DictPersistence::new();
-        let data: JsonMap = [("x".into(), Value::Number(1.into()))].into_iter().collect();
+        let data: JsonMap = [("x".into(), Value::Number(1.into()))]
+            .into_iter()
+            .collect();
         p.update_bot_data(&data).await.unwrap();
         // Invalidate the JSON cache.
         {

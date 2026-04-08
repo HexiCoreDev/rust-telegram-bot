@@ -1,4 +1,3 @@
-
 use serde::{Deserialize, Serialize};
 
 /// Current status of a webhook.

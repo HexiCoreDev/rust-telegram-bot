@@ -1,4 +1,3 @@
-
 use serde::{Deserialize, Serialize};
 
 use super::user::User;
@@ -7,8 +6,7 @@ use super::user::User;
 ///
 /// Currently holds no information beyond unknown extra fields.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct VideoChatStarted {
-}
+pub struct VideoChatStarted {}
 
 /// Service message about a video chat ended in the chat.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]

@@ -1,4 +1,3 @@
-
 use serde::{Deserialize, Serialize};
 
 /// Service message: a user has allowed the bot to write messages.

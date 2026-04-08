@@ -1,4 +1,3 @@
-
 use serde::{Deserialize, Serialize};
 
 /// Describes the birthdate of a user.

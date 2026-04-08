@@ -1,4 +1,3 @@
-
 use serde::{Deserialize, Serialize};
 
 use super::keyboard_button_poll_type::KeyboardButtonPollType;

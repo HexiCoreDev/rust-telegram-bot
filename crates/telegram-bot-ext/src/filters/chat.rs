@@ -103,7 +103,8 @@ impl ChatFilter {
 }
 
 impl Filter for ChatFilter {
-    fn check_update(&self, update: &Update) -> FilterResult { let __v = to_value(update);
+    fn check_update(&self, update: &Update) -> FilterResult {
+        let __v = to_value(update);
         let chat = match effective_message_val(&__v).and_then(|m| m.get("chat")) {
             Some(c) if !c.is_null() => c,
             _ => return FilterResult::NoMatch,
@@ -203,7 +204,8 @@ chat_type_filter!(
 pub struct ChatTypeGroups;
 
 impl Filter for ChatTypeGroups {
-    fn check_update(&self, update: &Update) -> FilterResult { let __v = to_value(update);
+    fn check_update(&self, update: &Update) -> FilterResult {
+        let __v = to_value(update);
         let chat_type = effective_message_val(&__v)
             .and_then(|m| m.get("chat"))
             .and_then(|c| c.get("type"))
@@ -314,7 +316,8 @@ impl SenderChatFilter {
 }
 
 impl Filter for SenderChatFilter {
-    fn check_update(&self, update: &Update) -> FilterResult { let __v = to_value(update);
+    fn check_update(&self, update: &Update) -> FilterResult {
+        let __v = to_value(update);
         let sender_chat = match effective_message_val(&__v).and_then(|m| m.get("sender_chat")) {
             Some(sc) if !sc.is_null() => sc,
             _ => return FilterResult::NoMatch,
@@ -368,7 +371,8 @@ impl Filter for SenderChatFilter {
 pub struct SenderChatChannel;
 
 impl Filter for SenderChatChannel {
-    fn check_update(&self, update: &Update) -> FilterResult { let __v = to_value(update);
+    fn check_update(&self, update: &Update) -> FilterResult {
+        let __v = to_value(update);
         if effective_message_val(&__v)
             .and_then(|m| m.get("sender_chat"))
             .and_then(|sc| sc.get("type"))
@@ -390,7 +394,8 @@ impl Filter for SenderChatChannel {
 pub struct SenderChatSuperGroup;
 
 impl Filter for SenderChatSuperGroup {
-    fn check_update(&self, update: &Update) -> FilterResult { let __v = to_value(update);
+    fn check_update(&self, update: &Update) -> FilterResult {
+        let __v = to_value(update);
         if effective_message_val(&__v)
             .and_then(|m| m.get("sender_chat"))
             .and_then(|sc| sc.get("type"))
@@ -431,7 +436,9 @@ mod tests {
     fn chat_update(chat_id: i64, chat_type: &str, username: Option<&str>) -> Update {
         let mut chat = json!({"id": chat_id, "type": chat_type});
         if let Some(u) = username {
-            chat.as_object_mut().unwrap().insert("username".to_owned(), json!(u));
+            chat.as_object_mut()
+                .unwrap()
+                .insert("username".to_owned(), json!(u));
         }
         serde_json::from_value(json!({
             "update_id": 1,
@@ -440,21 +447,30 @@ mod tests {
                 "chat": chat,
                 "text": "hi"
             }
-        })).unwrap()
+        }))
+        .unwrap()
     }
 
     #[test]
     fn chat_filter_by_id() {
         let f = ChatFilter::from_ids([-1234]);
-        assert!(f.check_update(&chat_update(-1234, "supergroup", None)).is_match());
-        assert!(!f.check_update(&chat_update(-5678, "supergroup", None)).is_match());
+        assert!(f
+            .check_update(&chat_update(-1234, "supergroup", None))
+            .is_match());
+        assert!(!f
+            .check_update(&chat_update(-5678, "supergroup", None))
+            .is_match());
     }
 
     #[test]
     fn chat_filter_by_username() {
         let f = ChatFilter::from_usernames(["mychat"]);
-        assert!(f.check_update(&chat_update(-1, "supergroup", Some("mychat"))).is_match());
-        assert!(!f.check_update(&chat_update(-1, "supergroup", Some("other"))).is_match());
+        assert!(f
+            .check_update(&chat_update(-1, "supergroup", Some("mychat")))
+            .is_match());
+        assert!(!f
+            .check_update(&chat_update(-1, "supergroup", Some("other")))
+            .is_match());
     }
 
     #[test]
@@ -475,31 +491,49 @@ mod tests {
 
     #[test]
     fn chat_type_channel() {
-        assert!(chat_type::CHANNEL.check_update(&chat_update(1, "channel", None)).is_match());
-        assert!(!chat_type::CHANNEL.check_update(&chat_update(1, "private", None)).is_match());
+        assert!(chat_type::CHANNEL
+            .check_update(&chat_update(1, "channel", None))
+            .is_match());
+        assert!(!chat_type::CHANNEL
+            .check_update(&chat_update(1, "private", None))
+            .is_match());
     }
 
     #[test]
     fn chat_type_group() {
-        assert!(chat_type::GROUP.check_update(&chat_update(1, "group", None)).is_match());
-        assert!(!chat_type::GROUP.check_update(&chat_update(1, "supergroup", None)).is_match());
+        assert!(chat_type::GROUP
+            .check_update(&chat_update(1, "group", None))
+            .is_match());
+        assert!(!chat_type::GROUP
+            .check_update(&chat_update(1, "supergroup", None))
+            .is_match());
     }
 
     #[test]
     fn chat_type_groups() {
-        assert!(chat_type::GROUPS.check_update(&chat_update(1, "group", None)).is_match());
-        assert!(chat_type::GROUPS.check_update(&chat_update(1, "supergroup", None)).is_match());
-        assert!(!chat_type::GROUPS.check_update(&chat_update(1, "private", None)).is_match());
+        assert!(chat_type::GROUPS
+            .check_update(&chat_update(1, "group", None))
+            .is_match());
+        assert!(chat_type::GROUPS
+            .check_update(&chat_update(1, "supergroup", None))
+            .is_match());
+        assert!(!chat_type::GROUPS
+            .check_update(&chat_update(1, "private", None))
+            .is_match());
     }
 
     #[test]
     fn chat_type_private() {
-        assert!(chat_type::PRIVATE.check_update(&chat_update(1, "private", None)).is_match());
+        assert!(chat_type::PRIVATE
+            .check_update(&chat_update(1, "private", None))
+            .is_match());
     }
 
     #[test]
     fn chat_type_supergroup() {
-        assert!(chat_type::SUPERGROUP.check_update(&chat_update(1, "supergroup", None)).is_match());
+        assert!(chat_type::SUPERGROUP
+            .check_update(&chat_update(1, "supergroup", None))
+            .is_match());
     }
 
     #[test]
@@ -512,7 +546,8 @@ mod tests {
                 "sender_chat": {"id": -100, "type": "channel"},
                 "text": "forwarded"
             }
-        })).unwrap();
+        }))
+        .unwrap();
         assert!(SenderChatChannel.check_update(&update).is_match());
         assert!(!SenderChatSuperGroup.check_update(&update).is_match());
     }
@@ -528,7 +563,8 @@ mod tests {
                 "sender_chat": {"id": -100, "type": "channel"},
                 "text": "hi"
             }
-        })).unwrap();
+        }))
+        .unwrap();
         assert!(f.check_update(&update).is_match());
     }
 }

@@ -1,4 +1,3 @@
-
 use serde::{Deserialize, Serialize};
 
 /// A keyboard button to be used by a user of a Mini App.

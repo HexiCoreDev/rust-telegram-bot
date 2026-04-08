@@ -26,9 +26,7 @@ pub fn parse_message_entities<'a>(
 ) -> Vec<(&'a EntitySpan, String)> {
     entities
         .iter()
-        .filter(|e| {
-            types.map_or(true, |ts| ts.contains(&e.entity_type.as_str()))
-        })
+        .filter(|e| types.map_or(true, |ts| ts.contains(&e.entity_type.as_str())))
         .map(|e| {
             let extracted = parse_message_entity(text, e.offset, e.length);
             (e, extracted)

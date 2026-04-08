@@ -15,7 +15,10 @@ impl EntityFilter {
     pub fn new(entity_type: impl Into<String>) -> Self {
         let et: String = entity_type.into();
         let display = format!("filters.Entity({})", et);
-        Self { entity_type: et, display }
+        Self {
+            entity_type: et,
+            display,
+        }
     }
 
     pub fn entity_type(&self) -> &str {
@@ -24,7 +27,8 @@ impl EntityFilter {
 }
 
 impl Filter for EntityFilter {
-    fn check_update(&self, update: &Update) -> FilterResult { let __v = to_value(update);
+    fn check_update(&self, update: &Update) -> FilterResult {
+        let __v = to_value(update);
         let msg = match effective_message_val(&__v) {
             Some(m) => m,
             None => return FilterResult::NoMatch,
@@ -33,9 +37,10 @@ impl Filter for EntityFilter {
             Some(arr) => arr,
             None => return FilterResult::NoMatch,
         };
-        if entities.iter().any(|e| {
-            e.get("type").and_then(|v| v.as_str()) == Some(&self.entity_type)
-        }) {
+        if entities
+            .iter()
+            .any(|e| e.get("type").and_then(|v| v.as_str()) == Some(&self.entity_type))
+        {
             FilterResult::Match
         } else {
             FilterResult::NoMatch
@@ -60,12 +65,16 @@ impl CaptionEntityFilter {
     pub fn new(entity_type: impl Into<String>) -> Self {
         let et: String = entity_type.into();
         let display = format!("filters.CaptionEntity({})", et);
-        Self { entity_type: et, display }
+        Self {
+            entity_type: et,
+            display,
+        }
     }
 }
 
 impl Filter for CaptionEntityFilter {
-    fn check_update(&self, update: &Update) -> FilterResult { let __v = to_value(update);
+    fn check_update(&self, update: &Update) -> FilterResult {
+        let __v = to_value(update);
         let msg = match effective_message_val(&__v) {
             Some(m) => m,
             None => return FilterResult::NoMatch,
@@ -74,9 +83,10 @@ impl Filter for CaptionEntityFilter {
             Some(arr) => arr,
             None => return FilterResult::NoMatch,
         };
-        if entities.iter().any(|e| {
-            e.get("type").and_then(|v| v.as_str()) == Some(&self.entity_type)
-        }) {
+        if entities
+            .iter()
+            .any(|e| e.get("type").and_then(|v| v.as_str()) == Some(&self.entity_type))
+        {
             FilterResult::Match
         } else {
             FilterResult::NoMatch
@@ -108,7 +118,8 @@ mod tests {
                 "text": "#rust",
                 "entities": [{"type": "hashtag", "offset": 0, "length": 5}]
             }
-        })).unwrap();
+        }))
+        .unwrap();
         assert!(f.check_update(&update).is_match());
     }
 
@@ -123,7 +134,8 @@ mod tests {
                 "text": "#rust",
                 "entities": [{"type": "hashtag", "offset": 0, "length": 5}]
             }
-        })).unwrap();
+        }))
+        .unwrap();
         assert!(!f.check_update(&update).is_match());
     }
 
@@ -137,7 +149,8 @@ mod tests {
                 "chat": {"id": 1, "type": "private"},
                 "text": "hello"
             }
-        })).unwrap();
+        }))
+        .unwrap();
         assert!(!f.check_update(&update).is_match());
     }
 
@@ -152,7 +165,8 @@ mod tests {
                 "caption": "Look at **this**",
                 "caption_entities": [{"type": "bold", "offset": 8, "length": 6}]
             }
-        })).unwrap();
+        }))
+        .unwrap();
         assert!(f.check_update(&update).is_match());
     }
 
@@ -167,7 +181,8 @@ mod tests {
                 "caption": "plain text",
                 "caption_entities": [{"type": "bold", "offset": 0, "length": 5}]
             }
-        })).unwrap();
+        }))
+        .unwrap();
         assert!(!f.check_update(&update).is_match());
     }
 }

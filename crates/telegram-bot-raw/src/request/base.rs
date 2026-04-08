@@ -100,6 +100,7 @@ pub struct ResolvedTimeouts {
 /// - [`BaseRequest::initialize`] — open connections / warm up resources.
 /// - [`BaseRequest::shutdown`] — close connections / release resources.
 /// - [`BaseRequest::do_request`] — the raw HTTP round-trip.
+/// - [`BaseRequest::do_request_json_bytes`] — POST pre-serialized JSON bytes.
 /// - [`BaseRequest::default_read_timeout`] — the default read timeout so that
 ///   provided methods can forward it downstream.
 ///
@@ -149,6 +150,22 @@ pub trait BaseRequest: Send + Sync {
         timeouts: TimeoutOverride,
     ) -> Result<(u16, bytes::Bytes)>;
 
+    /// POST pre-serialized JSON bytes directly, bypassing [`RequestData`]
+    /// construction.
+    ///
+    /// This eliminates the double-serialization overhead for text-only API
+    /// methods: the caller serializes a typed struct to `Vec<u8>` once via
+    /// `serde_json::to_vec`, and this method sends those bytes with
+    /// `Content-Type: application/json`.
+    ///
+    /// Returns `(status_code, response_body)`.
+    async fn do_request_json_bytes(
+        &self,
+        url: &str,
+        body: &[u8],
+        timeouts: TimeoutOverride,
+    ) -> Result<(u16, bytes::Bytes)>;
+
     // ------------------------------------------------------------------
     // Provided methods
     // ------------------------------------------------------------------
@@ -178,14 +195,55 @@ pub trait BaseRequest: Send + Sync {
             .ok_or_else(|| TelegramError::Network("Missing 'result' field in API response".into()))
     }
 
+    /// High-level POST call that sends pre-serialized JSON bytes.
+    ///
+    /// Eliminates double serialization for text-only API methods by sending
+    /// raw bytes directly with `Content-Type: application/json`, then
+    /// extracting `result` from the Telegram JSON envelope.
+    async fn post_json(&self, url: &str, body: &[u8], timeouts: TimeoutOverride) -> Result<Value> {
+        let (code, payload) = self.do_request_json_bytes(url, body, timeouts).await?;
+
+        if (200..=299).contains(&code) {
+            let json_data = parse_json_payload_impl(&payload)?;
+            return json_data.get("result").cloned().ok_or_else(|| {
+                TelegramError::Network("Missing 'result' field in API response".into())
+            });
+        }
+
+        // Reuse the same error-handling logic as request_wrapper.
+        let (message, migrate_chat_id, retry_after, extra_params) =
+            parse_error_body(&payload, code);
+
+        if let Some(new_chat_id) = migrate_chat_id {
+            return Err(TelegramError::ChatMigrated { new_chat_id });
+        }
+        if let Some(secs) = retry_after {
+            return Err(TelegramError::RetryAfter {
+                retry_after: Duration::from_secs(secs),
+            });
+        }
+
+        let full_message = if let Some(params) = extra_params {
+            format!("{message}. The server response contained unknown parameters: {params}")
+        } else {
+            message
+        };
+
+        let err = match code {
+            403 => TelegramError::Forbidden(full_message),
+            401 | 404 => TelegramError::InvalidToken(full_message),
+            400 => TelegramError::BadRequest(full_message),
+            409 => TelegramError::Conflict(full_message),
+            _ => TelegramError::Network(full_message),
+        };
+
+        Err(err)
+    }
+
     /// File download helper — issues a GET request and returns raw bytes.
     ///
     /// Mirrors `BaseRequest.retrieve` in Python.
-    async fn retrieve(
-        &self,
-        url: &str,
-        timeouts: TimeoutOverride,
-    ) -> Result<bytes::Bytes> {
+    async fn retrieve(&self, url: &str, timeouts: TimeoutOverride) -> Result<bytes::Bytes> {
         self.request_wrapper(url, HttpMethod::Get, None, timeouts)
             .await
     }
@@ -201,10 +259,7 @@ pub trait BaseRequest: Send + Sync {
         request_data: Option<&RequestData>,
         timeouts: TimeoutOverride,
     ) -> Result<bytes::Bytes> {
-        let (code, payload) = match self
-            .do_request(url, method, request_data, timeouts)
-            .await
-        {
+        let (code, payload) = match self.do_request(url, method, request_data, timeouts).await {
             Ok(pair) => pair,
             // TelegramErrors that bubbled up from do_request are re-raised as-is.
             Err(e) => return Err(e),
@@ -302,9 +357,7 @@ fn parse_error_body(
         Err(_) => {
             // Body is not valid JSON — return a descriptive fallback.
             let raw = String::from_utf8_lossy(payload);
-            let msg = format!(
-                "{fallback_message}. Parsing the server response {raw:?} failed"
-            );
+            let msg = format!("{fallback_message}. Parsing the server response {raw:?} failed");
             (msg, None, None, None)
         }
         Ok(body) => {
@@ -331,8 +384,7 @@ fn parse_error_body(
                     let unknown: serde_json::Map<String, Value> = map
                         .iter()
                         .filter(|(k, _)| {
-                            k.as_str() != "migrate_to_chat_id"
-                                && k.as_str() != "retry_after"
+                            k.as_str() != "migrate_to_chat_id" && k.as_str() != "retry_after"
                         })
                         .map(|(k, v)| (k.clone(), v.clone()))
                         .collect();
@@ -435,8 +487,7 @@ mod tests {
 
     #[test]
     fn parse_error_body_extracts_description() {
-        let body =
-            br#"{"ok":false,"error_code":400,"description":"Bad Request: chat not found"}"#;
+        let body = br#"{"ok":false,"error_code":400,"description":"Bad Request: chat not found"}"#;
         let (msg, migrate, retry, extra) = parse_error_body(body, 400);
         assert_eq!(msg, "Bad Request: chat not found");
         assert!(migrate.is_none());
@@ -467,8 +518,7 @@ mod tests {
 
     #[test]
     fn parse_error_body_unknown_parameters() {
-        let body =
-            br#"{"ok":false,"description":"err","parameters":{"some_future_field":1}}"#;
+        let body = br#"{"ok":false,"description":"err","parameters":{"some_future_field":1}}"#;
         let (msg, _, _, extra) = parse_error_body(body, 400);
         assert_eq!(msg, "err");
         assert!(extra.is_some(), "expected extra params, got none");

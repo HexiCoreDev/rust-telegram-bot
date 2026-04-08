@@ -1,4 +1,3 @@
-
 use serde::{Deserialize, Serialize};
 
 /// Information about an inline message sent by a Web App on behalf of a user.

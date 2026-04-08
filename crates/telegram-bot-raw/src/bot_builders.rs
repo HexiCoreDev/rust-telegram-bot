@@ -20,14 +20,18 @@
 use crate::bot::{Bot, ChatId, MessageOrBool};
 use crate::error::Result;
 use crate::request::request_parameter::{InputFileRef, RequestParameter};
-use crate::types::{files, inline, link_preview_options, message, message_entity, prepared_keyboard_button, reply, suggested_post};
+use crate::types::{
+    files, inline, link_preview_options, message, message_entity, prepared_keyboard_button, reply,
+    suggested_post,
+};
 use serde::Serialize;
 
 macro_rules! impl_into_future {
     ($builder:ident, $output:ty) => {
         impl<'a> std::future::IntoFuture for $builder<'a> {
             type Output = Result<$output>;
-            type IntoFuture = std::pin::Pin<Box<dyn std::future::Future<Output = Self::Output> + Send + 'a>>;
+            type IntoFuture =
+                std::pin::Pin<Box<dyn std::future::Future<Output = Self::Output> + Send + 'a>>;
             fn into_future(self) -> Self::IntoFuture {
                 Box::pin(self.send())
             }
@@ -101,7 +105,9 @@ fn input_file_param(name: &'static str, file: files::input_file::InputFile) -> R
             };
             RequestParameter {
                 name: std::borrow::Cow::Borrowed(name),
-                value: Some(serde_json::Value::String(format!("__filepath__:{path_str}"))),
+                value: Some(serde_json::Value::String(format!(
+                    "__filepath__:{path_str}"
+                ))),
                 input_files: Some(vec![file_ref]),
             }
         }
@@ -112,59 +118,100 @@ fn input_file_param(name: &'static str, file: files::input_file::InputFile) -> R
 // SendMessageBuilder
 // =========================================================================
 
+#[derive(Serialize)]
 pub struct SendMessageBuilder<'a> {
+    #[serde(skip)]
     bot: &'a Bot,
     chat_id: ChatId,
     text: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     parse_mode: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     entities: Option<Vec<message_entity::MessageEntity>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     link_preview_options: Option<link_preview_options::LinkPreviewOptions>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     disable_notification: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     protect_content: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     reply_parameters: Option<reply::ReplyParameters>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     reply_markup: Option<serde_json::Value>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     message_thread_id: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     business_connection_id: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     message_effect_id: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     allow_paid_broadcast: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     direct_messages_topic_id: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     suggested_post_parameters: Option<suggested_post::SuggestedPostParameters>,
 }
 
 impl<'a> SendMessageBuilder<'a> {
-    pub fn parse_mode(mut self, val: impl Into<String>) -> Self { self.parse_mode = Some(val.into()); self }
-    pub fn entities(mut self, val: Vec<message_entity::MessageEntity>) -> Self { self.entities = Some(val); self }
-    pub fn link_preview_options(mut self, val: link_preview_options::LinkPreviewOptions) -> Self { self.link_preview_options = Some(val); self }
-    pub fn disable_notification(mut self, val: bool) -> Self { self.disable_notification = Some(val); self }
-    pub fn protect_content(mut self, val: bool) -> Self { self.protect_content = Some(val); self }
-    pub fn reply_parameters(mut self, val: reply::ReplyParameters) -> Self { self.reply_parameters = Some(val); self }
-    pub fn reply_markup(mut self, val: serde_json::Value) -> Self { self.reply_markup = Some(val); self }
-    pub fn message_thread_id(mut self, val: i64) -> Self { self.message_thread_id = Some(val); self }
-    pub fn business_connection_id(mut self, val: impl Into<String>) -> Self { self.business_connection_id = Some(val.into()); self }
-    pub fn message_effect_id(mut self, val: impl Into<String>) -> Self { self.message_effect_id = Some(val.into()); self }
-    pub fn allow_paid_broadcast(mut self, val: bool) -> Self { self.allow_paid_broadcast = Some(val); self }
-    pub fn direct_messages_topic_id(mut self, val: i64) -> Self { self.direct_messages_topic_id = Some(val); self }
-    pub fn suggested_post_parameters(mut self, val: suggested_post::SuggestedPostParameters) -> Self { self.suggested_post_parameters = Some(val); self }
+    pub fn parse_mode(mut self, val: impl Into<String>) -> Self {
+        self.parse_mode = Some(val.into());
+        self
+    }
+    pub fn entities(mut self, val: Vec<message_entity::MessageEntity>) -> Self {
+        self.entities = Some(val);
+        self
+    }
+    pub fn link_preview_options(mut self, val: link_preview_options::LinkPreviewOptions) -> Self {
+        self.link_preview_options = Some(val);
+        self
+    }
+    pub fn disable_notification(mut self, val: bool) -> Self {
+        self.disable_notification = Some(val);
+        self
+    }
+    pub fn protect_content(mut self, val: bool) -> Self {
+        self.protect_content = Some(val);
+        self
+    }
+    pub fn reply_parameters(mut self, val: reply::ReplyParameters) -> Self {
+        self.reply_parameters = Some(val);
+        self
+    }
+    pub fn reply_markup(mut self, val: serde_json::Value) -> Self {
+        self.reply_markup = Some(val);
+        self
+    }
+    pub fn message_thread_id(mut self, val: i64) -> Self {
+        self.message_thread_id = Some(val);
+        self
+    }
+    pub fn business_connection_id(mut self, val: impl Into<String>) -> Self {
+        self.business_connection_id = Some(val.into());
+        self
+    }
+    pub fn message_effect_id(mut self, val: impl Into<String>) -> Self {
+        self.message_effect_id = Some(val.into());
+        self
+    }
+    pub fn allow_paid_broadcast(mut self, val: bool) -> Self {
+        self.allow_paid_broadcast = Some(val);
+        self
+    }
+    pub fn direct_messages_topic_id(mut self, val: i64) -> Self {
+        self.direct_messages_topic_id = Some(val);
+        self
+    }
+    pub fn suggested_post_parameters(
+        mut self,
+        val: suggested_post::SuggestedPostParameters,
+    ) -> Self {
+        self.suggested_post_parameters = Some(val);
+        self
+    }
 
     pub async fn send(self) -> Result<message::Message> {
-        let mut params = vec![
-            RequestParameter::new("chat_id", serde_json::to_value(&self.chat_id)?),
-            RequestParameter::new("text", serde_json::Value::String(self.text)),
-        ];
-        push_opt_str(&mut params, "parse_mode", &self.parse_mode);
-        push_opt(&mut params, "entities", &self.entities)?;
-        push_opt(&mut params, "link_preview_options", &self.link_preview_options)?;
-        push_opt(&mut params, "disable_notification", &self.disable_notification)?;
-        push_opt(&mut params, "protect_content", &self.protect_content)?;
-        push_opt(&mut params, "reply_parameters", &self.reply_parameters)?;
-        push_opt(&mut params, "reply_markup", &self.reply_markup)?;
-        push_opt(&mut params, "message_thread_id", &self.message_thread_id)?;
-        push_opt_str(&mut params, "business_connection_id", &self.business_connection_id);
-        push_opt_str(&mut params, "message_effect_id", &self.message_effect_id);
-        push_opt(&mut params, "allow_paid_broadcast", &self.allow_paid_broadcast)?;
-        push_opt(&mut params, "direct_messages_topic_id", &self.direct_messages_topic_id)?;
-        push_opt(&mut params, "suggested_post_parameters", &self.suggested_post_parameters)?;
-        self.bot.do_api_request("sendMessage", params).await
+        let payload = serde_json::to_vec(&self)?;
+        self.bot.do_post_json("sendMessage", &payload).await
     }
 }
 
@@ -196,21 +243,69 @@ pub struct SendPhotoBuilder<'a> {
 }
 
 impl<'a> SendPhotoBuilder<'a> {
-    pub fn caption(mut self, val: impl Into<String>) -> Self { self.caption = Some(val.into()); self }
-    pub fn parse_mode(mut self, val: impl Into<String>) -> Self { self.parse_mode = Some(val.into()); self }
-    pub fn caption_entities(mut self, val: Vec<message_entity::MessageEntity>) -> Self { self.caption_entities = Some(val); self }
-    pub fn disable_notification(mut self, val: bool) -> Self { self.disable_notification = Some(val); self }
-    pub fn protect_content(mut self, val: bool) -> Self { self.protect_content = Some(val); self }
-    pub fn reply_parameters(mut self, val: reply::ReplyParameters) -> Self { self.reply_parameters = Some(val); self }
-    pub fn reply_markup(mut self, val: serde_json::Value) -> Self { self.reply_markup = Some(val); self }
-    pub fn message_thread_id(mut self, val: i64) -> Self { self.message_thread_id = Some(val); self }
-    pub fn has_spoiler(mut self, val: bool) -> Self { self.has_spoiler = Some(val); self }
-    pub fn business_connection_id(mut self, val: impl Into<String>) -> Self { self.business_connection_id = Some(val.into()); self }
-    pub fn message_effect_id(mut self, val: impl Into<String>) -> Self { self.message_effect_id = Some(val.into()); self }
-    pub fn allow_paid_broadcast(mut self, val: bool) -> Self { self.allow_paid_broadcast = Some(val); self }
-    pub fn show_caption_above_media(mut self, val: bool) -> Self { self.show_caption_above_media = Some(val); self }
-    pub fn direct_messages_topic_id(mut self, val: i64) -> Self { self.direct_messages_topic_id = Some(val); self }
-    pub fn suggested_post_parameters(mut self, val: suggested_post::SuggestedPostParameters) -> Self { self.suggested_post_parameters = Some(val); self }
+    pub fn caption(mut self, val: impl Into<String>) -> Self {
+        self.caption = Some(val.into());
+        self
+    }
+    pub fn parse_mode(mut self, val: impl Into<String>) -> Self {
+        self.parse_mode = Some(val.into());
+        self
+    }
+    pub fn caption_entities(mut self, val: Vec<message_entity::MessageEntity>) -> Self {
+        self.caption_entities = Some(val);
+        self
+    }
+    pub fn disable_notification(mut self, val: bool) -> Self {
+        self.disable_notification = Some(val);
+        self
+    }
+    pub fn protect_content(mut self, val: bool) -> Self {
+        self.protect_content = Some(val);
+        self
+    }
+    pub fn reply_parameters(mut self, val: reply::ReplyParameters) -> Self {
+        self.reply_parameters = Some(val);
+        self
+    }
+    pub fn reply_markup(mut self, val: serde_json::Value) -> Self {
+        self.reply_markup = Some(val);
+        self
+    }
+    pub fn message_thread_id(mut self, val: i64) -> Self {
+        self.message_thread_id = Some(val);
+        self
+    }
+    pub fn has_spoiler(mut self, val: bool) -> Self {
+        self.has_spoiler = Some(val);
+        self
+    }
+    pub fn business_connection_id(mut self, val: impl Into<String>) -> Self {
+        self.business_connection_id = Some(val.into());
+        self
+    }
+    pub fn message_effect_id(mut self, val: impl Into<String>) -> Self {
+        self.message_effect_id = Some(val.into());
+        self
+    }
+    pub fn allow_paid_broadcast(mut self, val: bool) -> Self {
+        self.allow_paid_broadcast = Some(val);
+        self
+    }
+    pub fn show_caption_above_media(mut self, val: bool) -> Self {
+        self.show_caption_above_media = Some(val);
+        self
+    }
+    pub fn direct_messages_topic_id(mut self, val: i64) -> Self {
+        self.direct_messages_topic_id = Some(val);
+        self
+    }
+    pub fn suggested_post_parameters(
+        mut self,
+        val: suggested_post::SuggestedPostParameters,
+    ) -> Self {
+        self.suggested_post_parameters = Some(val);
+        self
+    }
 
     pub async fn send(self) -> Result<message::Message> {
         let mut params = vec![
@@ -220,18 +315,42 @@ impl<'a> SendPhotoBuilder<'a> {
         push_opt_str(&mut params, "caption", &self.caption);
         push_opt_str(&mut params, "parse_mode", &self.parse_mode);
         push_opt(&mut params, "caption_entities", &self.caption_entities)?;
-        push_opt(&mut params, "disable_notification", &self.disable_notification)?;
+        push_opt(
+            &mut params,
+            "disable_notification",
+            &self.disable_notification,
+        )?;
         push_opt(&mut params, "protect_content", &self.protect_content)?;
         push_opt(&mut params, "reply_parameters", &self.reply_parameters)?;
         push_opt(&mut params, "reply_markup", &self.reply_markup)?;
         push_opt(&mut params, "message_thread_id", &self.message_thread_id)?;
         push_opt(&mut params, "has_spoiler", &self.has_spoiler)?;
-        push_opt_str(&mut params, "business_connection_id", &self.business_connection_id);
+        push_opt_str(
+            &mut params,
+            "business_connection_id",
+            &self.business_connection_id,
+        );
         push_opt_str(&mut params, "message_effect_id", &self.message_effect_id);
-        push_opt(&mut params, "allow_paid_broadcast", &self.allow_paid_broadcast)?;
-        push_opt(&mut params, "show_caption_above_media", &self.show_caption_above_media)?;
-        push_opt(&mut params, "direct_messages_topic_id", &self.direct_messages_topic_id)?;
-        push_opt(&mut params, "suggested_post_parameters", &self.suggested_post_parameters)?;
+        push_opt(
+            &mut params,
+            "allow_paid_broadcast",
+            &self.allow_paid_broadcast,
+        )?;
+        push_opt(
+            &mut params,
+            "show_caption_above_media",
+            &self.show_caption_above_media,
+        )?;
+        push_opt(
+            &mut params,
+            "direct_messages_topic_id",
+            &self.direct_messages_topic_id,
+        )?;
+        push_opt(
+            &mut params,
+            "suggested_post_parameters",
+            &self.suggested_post_parameters,
+        )?;
         self.bot.do_api_request("sendPhoto", params).await
     }
 }
@@ -264,21 +383,69 @@ pub struct SendDocumentBuilder<'a> {
 }
 
 impl<'a> SendDocumentBuilder<'a> {
-    pub fn caption(mut self, val: impl Into<String>) -> Self { self.caption = Some(val.into()); self }
-    pub fn parse_mode(mut self, val: impl Into<String>) -> Self { self.parse_mode = Some(val.into()); self }
-    pub fn caption_entities(mut self, val: Vec<message_entity::MessageEntity>) -> Self { self.caption_entities = Some(val); self }
-    pub fn disable_content_type_detection(mut self, val: bool) -> Self { self.disable_content_type_detection = Some(val); self }
-    pub fn thumbnail(mut self, val: files::input_file::InputFile) -> Self { self.thumbnail = Some(val); self }
-    pub fn disable_notification(mut self, val: bool) -> Self { self.disable_notification = Some(val); self }
-    pub fn protect_content(mut self, val: bool) -> Self { self.protect_content = Some(val); self }
-    pub fn reply_parameters(mut self, val: reply::ReplyParameters) -> Self { self.reply_parameters = Some(val); self }
-    pub fn reply_markup(mut self, val: serde_json::Value) -> Self { self.reply_markup = Some(val); self }
-    pub fn message_thread_id(mut self, val: i64) -> Self { self.message_thread_id = Some(val); self }
-    pub fn business_connection_id(mut self, val: impl Into<String>) -> Self { self.business_connection_id = Some(val.into()); self }
-    pub fn message_effect_id(mut self, val: impl Into<String>) -> Self { self.message_effect_id = Some(val.into()); self }
-    pub fn allow_paid_broadcast(mut self, val: bool) -> Self { self.allow_paid_broadcast = Some(val); self }
-    pub fn direct_messages_topic_id(mut self, val: i64) -> Self { self.direct_messages_topic_id = Some(val); self }
-    pub fn suggested_post_parameters(mut self, val: suggested_post::SuggestedPostParameters) -> Self { self.suggested_post_parameters = Some(val); self }
+    pub fn caption(mut self, val: impl Into<String>) -> Self {
+        self.caption = Some(val.into());
+        self
+    }
+    pub fn parse_mode(mut self, val: impl Into<String>) -> Self {
+        self.parse_mode = Some(val.into());
+        self
+    }
+    pub fn caption_entities(mut self, val: Vec<message_entity::MessageEntity>) -> Self {
+        self.caption_entities = Some(val);
+        self
+    }
+    pub fn disable_content_type_detection(mut self, val: bool) -> Self {
+        self.disable_content_type_detection = Some(val);
+        self
+    }
+    pub fn thumbnail(mut self, val: files::input_file::InputFile) -> Self {
+        self.thumbnail = Some(val);
+        self
+    }
+    pub fn disable_notification(mut self, val: bool) -> Self {
+        self.disable_notification = Some(val);
+        self
+    }
+    pub fn protect_content(mut self, val: bool) -> Self {
+        self.protect_content = Some(val);
+        self
+    }
+    pub fn reply_parameters(mut self, val: reply::ReplyParameters) -> Self {
+        self.reply_parameters = Some(val);
+        self
+    }
+    pub fn reply_markup(mut self, val: serde_json::Value) -> Self {
+        self.reply_markup = Some(val);
+        self
+    }
+    pub fn message_thread_id(mut self, val: i64) -> Self {
+        self.message_thread_id = Some(val);
+        self
+    }
+    pub fn business_connection_id(mut self, val: impl Into<String>) -> Self {
+        self.business_connection_id = Some(val.into());
+        self
+    }
+    pub fn message_effect_id(mut self, val: impl Into<String>) -> Self {
+        self.message_effect_id = Some(val.into());
+        self
+    }
+    pub fn allow_paid_broadcast(mut self, val: bool) -> Self {
+        self.allow_paid_broadcast = Some(val);
+        self
+    }
+    pub fn direct_messages_topic_id(mut self, val: i64) -> Self {
+        self.direct_messages_topic_id = Some(val);
+        self
+    }
+    pub fn suggested_post_parameters(
+        mut self,
+        val: suggested_post::SuggestedPostParameters,
+    ) -> Self {
+        self.suggested_post_parameters = Some(val);
+        self
+    }
 
     pub async fn send(self) -> Result<message::Message> {
         let mut params = vec![
@@ -288,18 +455,42 @@ impl<'a> SendDocumentBuilder<'a> {
         push_opt_str(&mut params, "caption", &self.caption);
         push_opt_str(&mut params, "parse_mode", &self.parse_mode);
         push_opt(&mut params, "caption_entities", &self.caption_entities)?;
-        push_opt(&mut params, "disable_content_type_detection", &self.disable_content_type_detection)?;
+        push_opt(
+            &mut params,
+            "disable_content_type_detection",
+            &self.disable_content_type_detection,
+        )?;
         push_opt_file(&mut params, "thumbnail", self.thumbnail);
-        push_opt(&mut params, "disable_notification", &self.disable_notification)?;
+        push_opt(
+            &mut params,
+            "disable_notification",
+            &self.disable_notification,
+        )?;
         push_opt(&mut params, "protect_content", &self.protect_content)?;
         push_opt(&mut params, "reply_parameters", &self.reply_parameters)?;
         push_opt(&mut params, "reply_markup", &self.reply_markup)?;
         push_opt(&mut params, "message_thread_id", &self.message_thread_id)?;
-        push_opt_str(&mut params, "business_connection_id", &self.business_connection_id);
+        push_opt_str(
+            &mut params,
+            "business_connection_id",
+            &self.business_connection_id,
+        );
         push_opt_str(&mut params, "message_effect_id", &self.message_effect_id);
-        push_opt(&mut params, "allow_paid_broadcast", &self.allow_paid_broadcast)?;
-        push_opt(&mut params, "direct_messages_topic_id", &self.direct_messages_topic_id)?;
-        push_opt(&mut params, "suggested_post_parameters", &self.suggested_post_parameters)?;
+        push_opt(
+            &mut params,
+            "allow_paid_broadcast",
+            &self.allow_paid_broadcast,
+        )?;
+        push_opt(
+            &mut params,
+            "direct_messages_topic_id",
+            &self.direct_messages_topic_id,
+        )?;
+        push_opt(
+            &mut params,
+            "suggested_post_parameters",
+            &self.suggested_post_parameters,
+        )?;
         self.bot.do_api_request("sendDocument", params).await
     }
 }
@@ -339,28 +530,97 @@ pub struct SendVideoBuilder<'a> {
 }
 
 impl<'a> SendVideoBuilder<'a> {
-    pub fn duration(mut self, val: i64) -> Self { self.duration = Some(val); self }
-    pub fn width(mut self, val: i64) -> Self { self.width = Some(val); self }
-    pub fn height(mut self, val: i64) -> Self { self.height = Some(val); self }
-    pub fn caption(mut self, val: impl Into<String>) -> Self { self.caption = Some(val.into()); self }
-    pub fn parse_mode(mut self, val: impl Into<String>) -> Self { self.parse_mode = Some(val.into()); self }
-    pub fn caption_entities(mut self, val: Vec<message_entity::MessageEntity>) -> Self { self.caption_entities = Some(val); self }
-    pub fn supports_streaming(mut self, val: bool) -> Self { self.supports_streaming = Some(val); self }
-    pub fn thumbnail(mut self, val: files::input_file::InputFile) -> Self { self.thumbnail = Some(val); self }
-    pub fn has_spoiler(mut self, val: bool) -> Self { self.has_spoiler = Some(val); self }
-    pub fn show_caption_above_media(mut self, val: bool) -> Self { self.show_caption_above_media = Some(val); self }
-    pub fn cover(mut self, val: files::input_file::InputFile) -> Self { self.cover = Some(val); self }
-    pub fn start_timestamp(mut self, val: i64) -> Self { self.start_timestamp = Some(val); self }
-    pub fn disable_notification(mut self, val: bool) -> Self { self.disable_notification = Some(val); self }
-    pub fn protect_content(mut self, val: bool) -> Self { self.protect_content = Some(val); self }
-    pub fn reply_parameters(mut self, val: reply::ReplyParameters) -> Self { self.reply_parameters = Some(val); self }
-    pub fn reply_markup(mut self, val: serde_json::Value) -> Self { self.reply_markup = Some(val); self }
-    pub fn message_thread_id(mut self, val: i64) -> Self { self.message_thread_id = Some(val); self }
-    pub fn business_connection_id(mut self, val: impl Into<String>) -> Self { self.business_connection_id = Some(val.into()); self }
-    pub fn message_effect_id(mut self, val: impl Into<String>) -> Self { self.message_effect_id = Some(val.into()); self }
-    pub fn allow_paid_broadcast(mut self, val: bool) -> Self { self.allow_paid_broadcast = Some(val); self }
-    pub fn direct_messages_topic_id(mut self, val: i64) -> Self { self.direct_messages_topic_id = Some(val); self }
-    pub fn suggested_post_parameters(mut self, val: suggested_post::SuggestedPostParameters) -> Self { self.suggested_post_parameters = Some(val); self }
+    pub fn duration(mut self, val: i64) -> Self {
+        self.duration = Some(val);
+        self
+    }
+    pub fn width(mut self, val: i64) -> Self {
+        self.width = Some(val);
+        self
+    }
+    pub fn height(mut self, val: i64) -> Self {
+        self.height = Some(val);
+        self
+    }
+    pub fn caption(mut self, val: impl Into<String>) -> Self {
+        self.caption = Some(val.into());
+        self
+    }
+    pub fn parse_mode(mut self, val: impl Into<String>) -> Self {
+        self.parse_mode = Some(val.into());
+        self
+    }
+    pub fn caption_entities(mut self, val: Vec<message_entity::MessageEntity>) -> Self {
+        self.caption_entities = Some(val);
+        self
+    }
+    pub fn supports_streaming(mut self, val: bool) -> Self {
+        self.supports_streaming = Some(val);
+        self
+    }
+    pub fn thumbnail(mut self, val: files::input_file::InputFile) -> Self {
+        self.thumbnail = Some(val);
+        self
+    }
+    pub fn has_spoiler(mut self, val: bool) -> Self {
+        self.has_spoiler = Some(val);
+        self
+    }
+    pub fn show_caption_above_media(mut self, val: bool) -> Self {
+        self.show_caption_above_media = Some(val);
+        self
+    }
+    pub fn cover(mut self, val: files::input_file::InputFile) -> Self {
+        self.cover = Some(val);
+        self
+    }
+    pub fn start_timestamp(mut self, val: i64) -> Self {
+        self.start_timestamp = Some(val);
+        self
+    }
+    pub fn disable_notification(mut self, val: bool) -> Self {
+        self.disable_notification = Some(val);
+        self
+    }
+    pub fn protect_content(mut self, val: bool) -> Self {
+        self.protect_content = Some(val);
+        self
+    }
+    pub fn reply_parameters(mut self, val: reply::ReplyParameters) -> Self {
+        self.reply_parameters = Some(val);
+        self
+    }
+    pub fn reply_markup(mut self, val: serde_json::Value) -> Self {
+        self.reply_markup = Some(val);
+        self
+    }
+    pub fn message_thread_id(mut self, val: i64) -> Self {
+        self.message_thread_id = Some(val);
+        self
+    }
+    pub fn business_connection_id(mut self, val: impl Into<String>) -> Self {
+        self.business_connection_id = Some(val.into());
+        self
+    }
+    pub fn message_effect_id(mut self, val: impl Into<String>) -> Self {
+        self.message_effect_id = Some(val.into());
+        self
+    }
+    pub fn allow_paid_broadcast(mut self, val: bool) -> Self {
+        self.allow_paid_broadcast = Some(val);
+        self
+    }
+    pub fn direct_messages_topic_id(mut self, val: i64) -> Self {
+        self.direct_messages_topic_id = Some(val);
+        self
+    }
+    pub fn suggested_post_parameters(
+        mut self,
+        val: suggested_post::SuggestedPostParameters,
+    ) -> Self {
+        self.suggested_post_parameters = Some(val);
+        self
+    }
 
     pub async fn send(self) -> Result<message::Message> {
         let mut params = vec![
@@ -376,19 +636,43 @@ impl<'a> SendVideoBuilder<'a> {
         push_opt(&mut params, "supports_streaming", &self.supports_streaming)?;
         push_opt_file(&mut params, "thumbnail", self.thumbnail);
         push_opt(&mut params, "has_spoiler", &self.has_spoiler)?;
-        push_opt(&mut params, "show_caption_above_media", &self.show_caption_above_media)?;
+        push_opt(
+            &mut params,
+            "show_caption_above_media",
+            &self.show_caption_above_media,
+        )?;
         push_opt_file(&mut params, "cover", self.cover);
         push_opt(&mut params, "start_timestamp", &self.start_timestamp)?;
-        push_opt(&mut params, "disable_notification", &self.disable_notification)?;
+        push_opt(
+            &mut params,
+            "disable_notification",
+            &self.disable_notification,
+        )?;
         push_opt(&mut params, "protect_content", &self.protect_content)?;
         push_opt(&mut params, "reply_parameters", &self.reply_parameters)?;
         push_opt(&mut params, "reply_markup", &self.reply_markup)?;
         push_opt(&mut params, "message_thread_id", &self.message_thread_id)?;
-        push_opt_str(&mut params, "business_connection_id", &self.business_connection_id);
+        push_opt_str(
+            &mut params,
+            "business_connection_id",
+            &self.business_connection_id,
+        );
         push_opt_str(&mut params, "message_effect_id", &self.message_effect_id);
-        push_opt(&mut params, "allow_paid_broadcast", &self.allow_paid_broadcast)?;
-        push_opt(&mut params, "direct_messages_topic_id", &self.direct_messages_topic_id)?;
-        push_opt(&mut params, "suggested_post_parameters", &self.suggested_post_parameters)?;
+        push_opt(
+            &mut params,
+            "allow_paid_broadcast",
+            &self.allow_paid_broadcast,
+        )?;
+        push_opt(
+            &mut params,
+            "direct_messages_topic_id",
+            &self.direct_messages_topic_id,
+        )?;
+        push_opt(
+            &mut params,
+            "suggested_post_parameters",
+            &self.suggested_post_parameters,
+        )?;
         self.bot.do_api_request("sendVideo", params).await
     }
 }
@@ -423,23 +707,77 @@ pub struct SendAudioBuilder<'a> {
 }
 
 impl<'a> SendAudioBuilder<'a> {
-    pub fn caption(mut self, val: impl Into<String>) -> Self { self.caption = Some(val.into()); self }
-    pub fn parse_mode(mut self, val: impl Into<String>) -> Self { self.parse_mode = Some(val.into()); self }
-    pub fn caption_entities(mut self, val: Vec<message_entity::MessageEntity>) -> Self { self.caption_entities = Some(val); self }
-    pub fn duration(mut self, val: i64) -> Self { self.duration = Some(val); self }
-    pub fn performer(mut self, val: impl Into<String>) -> Self { self.performer = Some(val.into()); self }
-    pub fn title(mut self, val: impl Into<String>) -> Self { self.title = Some(val.into()); self }
-    pub fn thumbnail(mut self, val: files::input_file::InputFile) -> Self { self.thumbnail = Some(val); self }
-    pub fn disable_notification(mut self, val: bool) -> Self { self.disable_notification = Some(val); self }
-    pub fn protect_content(mut self, val: bool) -> Self { self.protect_content = Some(val); self }
-    pub fn reply_parameters(mut self, val: reply::ReplyParameters) -> Self { self.reply_parameters = Some(val); self }
-    pub fn reply_markup(mut self, val: serde_json::Value) -> Self { self.reply_markup = Some(val); self }
-    pub fn message_thread_id(mut self, val: i64) -> Self { self.message_thread_id = Some(val); self }
-    pub fn business_connection_id(mut self, val: impl Into<String>) -> Self { self.business_connection_id = Some(val.into()); self }
-    pub fn message_effect_id(mut self, val: impl Into<String>) -> Self { self.message_effect_id = Some(val.into()); self }
-    pub fn allow_paid_broadcast(mut self, val: bool) -> Self { self.allow_paid_broadcast = Some(val); self }
-    pub fn direct_messages_topic_id(mut self, val: i64) -> Self { self.direct_messages_topic_id = Some(val); self }
-    pub fn suggested_post_parameters(mut self, val: suggested_post::SuggestedPostParameters) -> Self { self.suggested_post_parameters = Some(val); self }
+    pub fn caption(mut self, val: impl Into<String>) -> Self {
+        self.caption = Some(val.into());
+        self
+    }
+    pub fn parse_mode(mut self, val: impl Into<String>) -> Self {
+        self.parse_mode = Some(val.into());
+        self
+    }
+    pub fn caption_entities(mut self, val: Vec<message_entity::MessageEntity>) -> Self {
+        self.caption_entities = Some(val);
+        self
+    }
+    pub fn duration(mut self, val: i64) -> Self {
+        self.duration = Some(val);
+        self
+    }
+    pub fn performer(mut self, val: impl Into<String>) -> Self {
+        self.performer = Some(val.into());
+        self
+    }
+    pub fn title(mut self, val: impl Into<String>) -> Self {
+        self.title = Some(val.into());
+        self
+    }
+    pub fn thumbnail(mut self, val: files::input_file::InputFile) -> Self {
+        self.thumbnail = Some(val);
+        self
+    }
+    pub fn disable_notification(mut self, val: bool) -> Self {
+        self.disable_notification = Some(val);
+        self
+    }
+    pub fn protect_content(mut self, val: bool) -> Self {
+        self.protect_content = Some(val);
+        self
+    }
+    pub fn reply_parameters(mut self, val: reply::ReplyParameters) -> Self {
+        self.reply_parameters = Some(val);
+        self
+    }
+    pub fn reply_markup(mut self, val: serde_json::Value) -> Self {
+        self.reply_markup = Some(val);
+        self
+    }
+    pub fn message_thread_id(mut self, val: i64) -> Self {
+        self.message_thread_id = Some(val);
+        self
+    }
+    pub fn business_connection_id(mut self, val: impl Into<String>) -> Self {
+        self.business_connection_id = Some(val.into());
+        self
+    }
+    pub fn message_effect_id(mut self, val: impl Into<String>) -> Self {
+        self.message_effect_id = Some(val.into());
+        self
+    }
+    pub fn allow_paid_broadcast(mut self, val: bool) -> Self {
+        self.allow_paid_broadcast = Some(val);
+        self
+    }
+    pub fn direct_messages_topic_id(mut self, val: i64) -> Self {
+        self.direct_messages_topic_id = Some(val);
+        self
+    }
+    pub fn suggested_post_parameters(
+        mut self,
+        val: suggested_post::SuggestedPostParameters,
+    ) -> Self {
+        self.suggested_post_parameters = Some(val);
+        self
+    }
 
     pub async fn send(self) -> Result<message::Message> {
         let mut params = vec![
@@ -453,16 +791,36 @@ impl<'a> SendAudioBuilder<'a> {
         push_opt_str(&mut params, "performer", &self.performer);
         push_opt_str(&mut params, "title", &self.title);
         push_opt_file(&mut params, "thumbnail", self.thumbnail);
-        push_opt(&mut params, "disable_notification", &self.disable_notification)?;
+        push_opt(
+            &mut params,
+            "disable_notification",
+            &self.disable_notification,
+        )?;
         push_opt(&mut params, "protect_content", &self.protect_content)?;
         push_opt(&mut params, "reply_parameters", &self.reply_parameters)?;
         push_opt(&mut params, "reply_markup", &self.reply_markup)?;
         push_opt(&mut params, "message_thread_id", &self.message_thread_id)?;
-        push_opt_str(&mut params, "business_connection_id", &self.business_connection_id);
+        push_opt_str(
+            &mut params,
+            "business_connection_id",
+            &self.business_connection_id,
+        );
         push_opt_str(&mut params, "message_effect_id", &self.message_effect_id);
-        push_opt(&mut params, "allow_paid_broadcast", &self.allow_paid_broadcast)?;
-        push_opt(&mut params, "direct_messages_topic_id", &self.direct_messages_topic_id)?;
-        push_opt(&mut params, "suggested_post_parameters", &self.suggested_post_parameters)?;
+        push_opt(
+            &mut params,
+            "allow_paid_broadcast",
+            &self.allow_paid_broadcast,
+        )?;
+        push_opt(
+            &mut params,
+            "direct_messages_topic_id",
+            &self.direct_messages_topic_id,
+        )?;
+        push_opt(
+            &mut params,
+            "suggested_post_parameters",
+            &self.suggested_post_parameters,
+        )?;
         self.bot.do_api_request("sendAudio", params).await
     }
 }
@@ -499,25 +857,85 @@ pub struct SendAnimationBuilder<'a> {
 }
 
 impl<'a> SendAnimationBuilder<'a> {
-    pub fn duration(mut self, val: i64) -> Self { self.duration = Some(val); self }
-    pub fn width(mut self, val: i64) -> Self { self.width = Some(val); self }
-    pub fn height(mut self, val: i64) -> Self { self.height = Some(val); self }
-    pub fn caption(mut self, val: impl Into<String>) -> Self { self.caption = Some(val.into()); self }
-    pub fn parse_mode(mut self, val: impl Into<String>) -> Self { self.parse_mode = Some(val.into()); self }
-    pub fn caption_entities(mut self, val: Vec<message_entity::MessageEntity>) -> Self { self.caption_entities = Some(val); self }
-    pub fn thumbnail(mut self, val: files::input_file::InputFile) -> Self { self.thumbnail = Some(val); self }
-    pub fn has_spoiler(mut self, val: bool) -> Self { self.has_spoiler = Some(val); self }
-    pub fn show_caption_above_media(mut self, val: bool) -> Self { self.show_caption_above_media = Some(val); self }
-    pub fn disable_notification(mut self, val: bool) -> Self { self.disable_notification = Some(val); self }
-    pub fn protect_content(mut self, val: bool) -> Self { self.protect_content = Some(val); self }
-    pub fn reply_parameters(mut self, val: reply::ReplyParameters) -> Self { self.reply_parameters = Some(val); self }
-    pub fn reply_markup(mut self, val: serde_json::Value) -> Self { self.reply_markup = Some(val); self }
-    pub fn message_thread_id(mut self, val: i64) -> Self { self.message_thread_id = Some(val); self }
-    pub fn business_connection_id(mut self, val: impl Into<String>) -> Self { self.business_connection_id = Some(val.into()); self }
-    pub fn message_effect_id(mut self, val: impl Into<String>) -> Self { self.message_effect_id = Some(val.into()); self }
-    pub fn allow_paid_broadcast(mut self, val: bool) -> Self { self.allow_paid_broadcast = Some(val); self }
-    pub fn direct_messages_topic_id(mut self, val: i64) -> Self { self.direct_messages_topic_id = Some(val); self }
-    pub fn suggested_post_parameters(mut self, val: suggested_post::SuggestedPostParameters) -> Self { self.suggested_post_parameters = Some(val); self }
+    pub fn duration(mut self, val: i64) -> Self {
+        self.duration = Some(val);
+        self
+    }
+    pub fn width(mut self, val: i64) -> Self {
+        self.width = Some(val);
+        self
+    }
+    pub fn height(mut self, val: i64) -> Self {
+        self.height = Some(val);
+        self
+    }
+    pub fn caption(mut self, val: impl Into<String>) -> Self {
+        self.caption = Some(val.into());
+        self
+    }
+    pub fn parse_mode(mut self, val: impl Into<String>) -> Self {
+        self.parse_mode = Some(val.into());
+        self
+    }
+    pub fn caption_entities(mut self, val: Vec<message_entity::MessageEntity>) -> Self {
+        self.caption_entities = Some(val);
+        self
+    }
+    pub fn thumbnail(mut self, val: files::input_file::InputFile) -> Self {
+        self.thumbnail = Some(val);
+        self
+    }
+    pub fn has_spoiler(mut self, val: bool) -> Self {
+        self.has_spoiler = Some(val);
+        self
+    }
+    pub fn show_caption_above_media(mut self, val: bool) -> Self {
+        self.show_caption_above_media = Some(val);
+        self
+    }
+    pub fn disable_notification(mut self, val: bool) -> Self {
+        self.disable_notification = Some(val);
+        self
+    }
+    pub fn protect_content(mut self, val: bool) -> Self {
+        self.protect_content = Some(val);
+        self
+    }
+    pub fn reply_parameters(mut self, val: reply::ReplyParameters) -> Self {
+        self.reply_parameters = Some(val);
+        self
+    }
+    pub fn reply_markup(mut self, val: serde_json::Value) -> Self {
+        self.reply_markup = Some(val);
+        self
+    }
+    pub fn message_thread_id(mut self, val: i64) -> Self {
+        self.message_thread_id = Some(val);
+        self
+    }
+    pub fn business_connection_id(mut self, val: impl Into<String>) -> Self {
+        self.business_connection_id = Some(val.into());
+        self
+    }
+    pub fn message_effect_id(mut self, val: impl Into<String>) -> Self {
+        self.message_effect_id = Some(val.into());
+        self
+    }
+    pub fn allow_paid_broadcast(mut self, val: bool) -> Self {
+        self.allow_paid_broadcast = Some(val);
+        self
+    }
+    pub fn direct_messages_topic_id(mut self, val: i64) -> Self {
+        self.direct_messages_topic_id = Some(val);
+        self
+    }
+    pub fn suggested_post_parameters(
+        mut self,
+        val: suggested_post::SuggestedPostParameters,
+    ) -> Self {
+        self.suggested_post_parameters = Some(val);
+        self
+    }
 
     pub async fn send(self) -> Result<message::Message> {
         let mut params = vec![
@@ -532,17 +950,41 @@ impl<'a> SendAnimationBuilder<'a> {
         push_opt(&mut params, "caption_entities", &self.caption_entities)?;
         push_opt_file(&mut params, "thumbnail", self.thumbnail);
         push_opt(&mut params, "has_spoiler", &self.has_spoiler)?;
-        push_opt(&mut params, "show_caption_above_media", &self.show_caption_above_media)?;
-        push_opt(&mut params, "disable_notification", &self.disable_notification)?;
+        push_opt(
+            &mut params,
+            "show_caption_above_media",
+            &self.show_caption_above_media,
+        )?;
+        push_opt(
+            &mut params,
+            "disable_notification",
+            &self.disable_notification,
+        )?;
         push_opt(&mut params, "protect_content", &self.protect_content)?;
         push_opt(&mut params, "reply_parameters", &self.reply_parameters)?;
         push_opt(&mut params, "reply_markup", &self.reply_markup)?;
         push_opt(&mut params, "message_thread_id", &self.message_thread_id)?;
-        push_opt_str(&mut params, "business_connection_id", &self.business_connection_id);
+        push_opt_str(
+            &mut params,
+            "business_connection_id",
+            &self.business_connection_id,
+        );
         push_opt_str(&mut params, "message_effect_id", &self.message_effect_id);
-        push_opt(&mut params, "allow_paid_broadcast", &self.allow_paid_broadcast)?;
-        push_opt(&mut params, "direct_messages_topic_id", &self.direct_messages_topic_id)?;
-        push_opt(&mut params, "suggested_post_parameters", &self.suggested_post_parameters)?;
+        push_opt(
+            &mut params,
+            "allow_paid_broadcast",
+            &self.allow_paid_broadcast,
+        )?;
+        push_opt(
+            &mut params,
+            "direct_messages_topic_id",
+            &self.direct_messages_topic_id,
+        )?;
+        push_opt(
+            &mut params,
+            "suggested_post_parameters",
+            &self.suggested_post_parameters,
+        )?;
         self.bot.do_api_request("sendAnimation", params).await
     }
 }
@@ -574,20 +1016,65 @@ pub struct SendVoiceBuilder<'a> {
 }
 
 impl<'a> SendVoiceBuilder<'a> {
-    pub fn caption(mut self, val: impl Into<String>) -> Self { self.caption = Some(val.into()); self }
-    pub fn parse_mode(mut self, val: impl Into<String>) -> Self { self.parse_mode = Some(val.into()); self }
-    pub fn caption_entities(mut self, val: Vec<message_entity::MessageEntity>) -> Self { self.caption_entities = Some(val); self }
-    pub fn duration(mut self, val: i64) -> Self { self.duration = Some(val); self }
-    pub fn disable_notification(mut self, val: bool) -> Self { self.disable_notification = Some(val); self }
-    pub fn protect_content(mut self, val: bool) -> Self { self.protect_content = Some(val); self }
-    pub fn reply_parameters(mut self, val: reply::ReplyParameters) -> Self { self.reply_parameters = Some(val); self }
-    pub fn reply_markup(mut self, val: serde_json::Value) -> Self { self.reply_markup = Some(val); self }
-    pub fn message_thread_id(mut self, val: i64) -> Self { self.message_thread_id = Some(val); self }
-    pub fn business_connection_id(mut self, val: impl Into<String>) -> Self { self.business_connection_id = Some(val.into()); self }
-    pub fn message_effect_id(mut self, val: impl Into<String>) -> Self { self.message_effect_id = Some(val.into()); self }
-    pub fn allow_paid_broadcast(mut self, val: bool) -> Self { self.allow_paid_broadcast = Some(val); self }
-    pub fn direct_messages_topic_id(mut self, val: i64) -> Self { self.direct_messages_topic_id = Some(val); self }
-    pub fn suggested_post_parameters(mut self, val: suggested_post::SuggestedPostParameters) -> Self { self.suggested_post_parameters = Some(val); self }
+    pub fn caption(mut self, val: impl Into<String>) -> Self {
+        self.caption = Some(val.into());
+        self
+    }
+    pub fn parse_mode(mut self, val: impl Into<String>) -> Self {
+        self.parse_mode = Some(val.into());
+        self
+    }
+    pub fn caption_entities(mut self, val: Vec<message_entity::MessageEntity>) -> Self {
+        self.caption_entities = Some(val);
+        self
+    }
+    pub fn duration(mut self, val: i64) -> Self {
+        self.duration = Some(val);
+        self
+    }
+    pub fn disable_notification(mut self, val: bool) -> Self {
+        self.disable_notification = Some(val);
+        self
+    }
+    pub fn protect_content(mut self, val: bool) -> Self {
+        self.protect_content = Some(val);
+        self
+    }
+    pub fn reply_parameters(mut self, val: reply::ReplyParameters) -> Self {
+        self.reply_parameters = Some(val);
+        self
+    }
+    pub fn reply_markup(mut self, val: serde_json::Value) -> Self {
+        self.reply_markup = Some(val);
+        self
+    }
+    pub fn message_thread_id(mut self, val: i64) -> Self {
+        self.message_thread_id = Some(val);
+        self
+    }
+    pub fn business_connection_id(mut self, val: impl Into<String>) -> Self {
+        self.business_connection_id = Some(val.into());
+        self
+    }
+    pub fn message_effect_id(mut self, val: impl Into<String>) -> Self {
+        self.message_effect_id = Some(val.into());
+        self
+    }
+    pub fn allow_paid_broadcast(mut self, val: bool) -> Self {
+        self.allow_paid_broadcast = Some(val);
+        self
+    }
+    pub fn direct_messages_topic_id(mut self, val: i64) -> Self {
+        self.direct_messages_topic_id = Some(val);
+        self
+    }
+    pub fn suggested_post_parameters(
+        mut self,
+        val: suggested_post::SuggestedPostParameters,
+    ) -> Self {
+        self.suggested_post_parameters = Some(val);
+        self
+    }
 
     pub async fn send(self) -> Result<message::Message> {
         let mut params = vec![
@@ -598,16 +1085,36 @@ impl<'a> SendVoiceBuilder<'a> {
         push_opt_str(&mut params, "parse_mode", &self.parse_mode);
         push_opt(&mut params, "caption_entities", &self.caption_entities)?;
         push_opt(&mut params, "duration", &self.duration)?;
-        push_opt(&mut params, "disable_notification", &self.disable_notification)?;
+        push_opt(
+            &mut params,
+            "disable_notification",
+            &self.disable_notification,
+        )?;
         push_opt(&mut params, "protect_content", &self.protect_content)?;
         push_opt(&mut params, "reply_parameters", &self.reply_parameters)?;
         push_opt(&mut params, "reply_markup", &self.reply_markup)?;
         push_opt(&mut params, "message_thread_id", &self.message_thread_id)?;
-        push_opt_str(&mut params, "business_connection_id", &self.business_connection_id);
+        push_opt_str(
+            &mut params,
+            "business_connection_id",
+            &self.business_connection_id,
+        );
         push_opt_str(&mut params, "message_effect_id", &self.message_effect_id);
-        push_opt(&mut params, "allow_paid_broadcast", &self.allow_paid_broadcast)?;
-        push_opt(&mut params, "direct_messages_topic_id", &self.direct_messages_topic_id)?;
-        push_opt(&mut params, "suggested_post_parameters", &self.suggested_post_parameters)?;
+        push_opt(
+            &mut params,
+            "allow_paid_broadcast",
+            &self.allow_paid_broadcast,
+        )?;
+        push_opt(
+            &mut params,
+            "direct_messages_topic_id",
+            &self.direct_messages_topic_id,
+        )?;
+        push_opt(
+            &mut params,
+            "suggested_post_parameters",
+            &self.suggested_post_parameters,
+        )?;
         self.bot.do_api_request("sendVoice", params).await
     }
 }
@@ -638,19 +1145,61 @@ pub struct SendVideoNoteBuilder<'a> {
 }
 
 impl<'a> SendVideoNoteBuilder<'a> {
-    pub fn duration(mut self, val: i64) -> Self { self.duration = Some(val); self }
-    pub fn length(mut self, val: i64) -> Self { self.length = Some(val); self }
-    pub fn thumbnail(mut self, val: files::input_file::InputFile) -> Self { self.thumbnail = Some(val); self }
-    pub fn disable_notification(mut self, val: bool) -> Self { self.disable_notification = Some(val); self }
-    pub fn protect_content(mut self, val: bool) -> Self { self.protect_content = Some(val); self }
-    pub fn reply_parameters(mut self, val: reply::ReplyParameters) -> Self { self.reply_parameters = Some(val); self }
-    pub fn reply_markup(mut self, val: serde_json::Value) -> Self { self.reply_markup = Some(val); self }
-    pub fn message_thread_id(mut self, val: i64) -> Self { self.message_thread_id = Some(val); self }
-    pub fn business_connection_id(mut self, val: impl Into<String>) -> Self { self.business_connection_id = Some(val.into()); self }
-    pub fn message_effect_id(mut self, val: impl Into<String>) -> Self { self.message_effect_id = Some(val.into()); self }
-    pub fn allow_paid_broadcast(mut self, val: bool) -> Self { self.allow_paid_broadcast = Some(val); self }
-    pub fn direct_messages_topic_id(mut self, val: i64) -> Self { self.direct_messages_topic_id = Some(val); self }
-    pub fn suggested_post_parameters(mut self, val: suggested_post::SuggestedPostParameters) -> Self { self.suggested_post_parameters = Some(val); self }
+    pub fn duration(mut self, val: i64) -> Self {
+        self.duration = Some(val);
+        self
+    }
+    pub fn length(mut self, val: i64) -> Self {
+        self.length = Some(val);
+        self
+    }
+    pub fn thumbnail(mut self, val: files::input_file::InputFile) -> Self {
+        self.thumbnail = Some(val);
+        self
+    }
+    pub fn disable_notification(mut self, val: bool) -> Self {
+        self.disable_notification = Some(val);
+        self
+    }
+    pub fn protect_content(mut self, val: bool) -> Self {
+        self.protect_content = Some(val);
+        self
+    }
+    pub fn reply_parameters(mut self, val: reply::ReplyParameters) -> Self {
+        self.reply_parameters = Some(val);
+        self
+    }
+    pub fn reply_markup(mut self, val: serde_json::Value) -> Self {
+        self.reply_markup = Some(val);
+        self
+    }
+    pub fn message_thread_id(mut self, val: i64) -> Self {
+        self.message_thread_id = Some(val);
+        self
+    }
+    pub fn business_connection_id(mut self, val: impl Into<String>) -> Self {
+        self.business_connection_id = Some(val.into());
+        self
+    }
+    pub fn message_effect_id(mut self, val: impl Into<String>) -> Self {
+        self.message_effect_id = Some(val.into());
+        self
+    }
+    pub fn allow_paid_broadcast(mut self, val: bool) -> Self {
+        self.allow_paid_broadcast = Some(val);
+        self
+    }
+    pub fn direct_messages_topic_id(mut self, val: i64) -> Self {
+        self.direct_messages_topic_id = Some(val);
+        self
+    }
+    pub fn suggested_post_parameters(
+        mut self,
+        val: suggested_post::SuggestedPostParameters,
+    ) -> Self {
+        self.suggested_post_parameters = Some(val);
+        self
+    }
 
     pub async fn send(self) -> Result<message::Message> {
         let mut params = vec![
@@ -660,16 +1209,36 @@ impl<'a> SendVideoNoteBuilder<'a> {
         push_opt(&mut params, "duration", &self.duration)?;
         push_opt(&mut params, "length", &self.length)?;
         push_opt_file(&mut params, "thumbnail", self.thumbnail);
-        push_opt(&mut params, "disable_notification", &self.disable_notification)?;
+        push_opt(
+            &mut params,
+            "disable_notification",
+            &self.disable_notification,
+        )?;
         push_opt(&mut params, "protect_content", &self.protect_content)?;
         push_opt(&mut params, "reply_parameters", &self.reply_parameters)?;
         push_opt(&mut params, "reply_markup", &self.reply_markup)?;
         push_opt(&mut params, "message_thread_id", &self.message_thread_id)?;
-        push_opt_str(&mut params, "business_connection_id", &self.business_connection_id);
+        push_opt_str(
+            &mut params,
+            "business_connection_id",
+            &self.business_connection_id,
+        );
         push_opt_str(&mut params, "message_effect_id", &self.message_effect_id);
-        push_opt(&mut params, "allow_paid_broadcast", &self.allow_paid_broadcast)?;
-        push_opt(&mut params, "direct_messages_topic_id", &self.direct_messages_topic_id)?;
-        push_opt(&mut params, "suggested_post_parameters", &self.suggested_post_parameters)?;
+        push_opt(
+            &mut params,
+            "allow_paid_broadcast",
+            &self.allow_paid_broadcast,
+        )?;
+        push_opt(
+            &mut params,
+            "direct_messages_topic_id",
+            &self.direct_messages_topic_id,
+        )?;
+        push_opt(
+            &mut params,
+            "suggested_post_parameters",
+            &self.suggested_post_parameters,
+        )?;
         self.bot.do_api_request("sendVideoNote", params).await
     }
 }
@@ -680,64 +1249,107 @@ impl_into_future!(SendVideoNoteBuilder, message::Message);
 // SendLocationBuilder
 // =========================================================================
 
+#[derive(Serialize)]
 pub struct SendLocationBuilder<'a> {
+    #[serde(skip)]
     bot: &'a Bot,
     chat_id: ChatId,
     latitude: f64,
     longitude: f64,
+    #[serde(skip_serializing_if = "Option::is_none")]
     horizontal_accuracy: Option<f64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     live_period: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     heading: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     proximity_alert_radius: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     disable_notification: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     protect_content: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     reply_parameters: Option<reply::ReplyParameters>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     reply_markup: Option<serde_json::Value>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     message_thread_id: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     business_connection_id: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     message_effect_id: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     allow_paid_broadcast: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     direct_messages_topic_id: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     suggested_post_parameters: Option<suggested_post::SuggestedPostParameters>,
 }
 
 impl<'a> SendLocationBuilder<'a> {
-    pub fn horizontal_accuracy(mut self, val: f64) -> Self { self.horizontal_accuracy = Some(val); self }
-    pub fn live_period(mut self, val: i64) -> Self { self.live_period = Some(val); self }
-    pub fn heading(mut self, val: i64) -> Self { self.heading = Some(val); self }
-    pub fn proximity_alert_radius(mut self, val: i64) -> Self { self.proximity_alert_radius = Some(val); self }
-    pub fn disable_notification(mut self, val: bool) -> Self { self.disable_notification = Some(val); self }
-    pub fn protect_content(mut self, val: bool) -> Self { self.protect_content = Some(val); self }
-    pub fn reply_parameters(mut self, val: reply::ReplyParameters) -> Self { self.reply_parameters = Some(val); self }
-    pub fn reply_markup(mut self, val: serde_json::Value) -> Self { self.reply_markup = Some(val); self }
-    pub fn message_thread_id(mut self, val: i64) -> Self { self.message_thread_id = Some(val); self }
-    pub fn business_connection_id(mut self, val: impl Into<String>) -> Self { self.business_connection_id = Some(val.into()); self }
-    pub fn message_effect_id(mut self, val: impl Into<String>) -> Self { self.message_effect_id = Some(val.into()); self }
-    pub fn allow_paid_broadcast(mut self, val: bool) -> Self { self.allow_paid_broadcast = Some(val); self }
-    pub fn direct_messages_topic_id(mut self, val: i64) -> Self { self.direct_messages_topic_id = Some(val); self }
-    pub fn suggested_post_parameters(mut self, val: suggested_post::SuggestedPostParameters) -> Self { self.suggested_post_parameters = Some(val); self }
+    pub fn horizontal_accuracy(mut self, val: f64) -> Self {
+        self.horizontal_accuracy = Some(val);
+        self
+    }
+    pub fn live_period(mut self, val: i64) -> Self {
+        self.live_period = Some(val);
+        self
+    }
+    pub fn heading(mut self, val: i64) -> Self {
+        self.heading = Some(val);
+        self
+    }
+    pub fn proximity_alert_radius(mut self, val: i64) -> Self {
+        self.proximity_alert_radius = Some(val);
+        self
+    }
+    pub fn disable_notification(mut self, val: bool) -> Self {
+        self.disable_notification = Some(val);
+        self
+    }
+    pub fn protect_content(mut self, val: bool) -> Self {
+        self.protect_content = Some(val);
+        self
+    }
+    pub fn reply_parameters(mut self, val: reply::ReplyParameters) -> Self {
+        self.reply_parameters = Some(val);
+        self
+    }
+    pub fn reply_markup(mut self, val: serde_json::Value) -> Self {
+        self.reply_markup = Some(val);
+        self
+    }
+    pub fn message_thread_id(mut self, val: i64) -> Self {
+        self.message_thread_id = Some(val);
+        self
+    }
+    pub fn business_connection_id(mut self, val: impl Into<String>) -> Self {
+        self.business_connection_id = Some(val.into());
+        self
+    }
+    pub fn message_effect_id(mut self, val: impl Into<String>) -> Self {
+        self.message_effect_id = Some(val.into());
+        self
+    }
+    pub fn allow_paid_broadcast(mut self, val: bool) -> Self {
+        self.allow_paid_broadcast = Some(val);
+        self
+    }
+    pub fn direct_messages_topic_id(mut self, val: i64) -> Self {
+        self.direct_messages_topic_id = Some(val);
+        self
+    }
+    pub fn suggested_post_parameters(
+        mut self,
+        val: suggested_post::SuggestedPostParameters,
+    ) -> Self {
+        self.suggested_post_parameters = Some(val);
+        self
+    }
 
     pub async fn send(self) -> Result<message::Message> {
-        let mut params = vec![
-            RequestParameter::new("chat_id", serde_json::to_value(&self.chat_id)?),
-            RequestParameter::new("latitude", serde_json::to_value(self.latitude)?),
-            RequestParameter::new("longitude", serde_json::to_value(self.longitude)?),
-        ];
-        push_opt(&mut params, "horizontal_accuracy", &self.horizontal_accuracy)?;
-        push_opt(&mut params, "live_period", &self.live_period)?;
-        push_opt(&mut params, "heading", &self.heading)?;
-        push_opt(&mut params, "proximity_alert_radius", &self.proximity_alert_radius)?;
-        push_opt(&mut params, "disable_notification", &self.disable_notification)?;
-        push_opt(&mut params, "protect_content", &self.protect_content)?;
-        push_opt(&mut params, "reply_parameters", &self.reply_parameters)?;
-        push_opt(&mut params, "reply_markup", &self.reply_markup)?;
-        push_opt(&mut params, "message_thread_id", &self.message_thread_id)?;
-        push_opt_str(&mut params, "business_connection_id", &self.business_connection_id);
-        push_opt_str(&mut params, "message_effect_id", &self.message_effect_id);
-        push_opt(&mut params, "allow_paid_broadcast", &self.allow_paid_broadcast)?;
-        push_opt(&mut params, "direct_messages_topic_id", &self.direct_messages_topic_id)?;
-        push_opt(&mut params, "suggested_post_parameters", &self.suggested_post_parameters)?;
-        self.bot.do_api_request("sendLocation", params).await
+        let payload = serde_json::to_vec(&self)?;
+        self.bot.do_post_json("sendLocation", &payload).await
     }
 }
 
@@ -747,68 +1359,109 @@ impl_into_future!(SendLocationBuilder, message::Message);
 // SendVenueBuilder
 // =========================================================================
 
+#[derive(Serialize)]
 pub struct SendVenueBuilder<'a> {
+    #[serde(skip)]
     bot: &'a Bot,
     chat_id: ChatId,
     latitude: f64,
     longitude: f64,
     title: String,
     address: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     foursquare_id: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     foursquare_type: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     google_place_id: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     google_place_type: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     disable_notification: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     protect_content: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     reply_parameters: Option<reply::ReplyParameters>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     reply_markup: Option<serde_json::Value>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     message_thread_id: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     business_connection_id: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     message_effect_id: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     allow_paid_broadcast: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     direct_messages_topic_id: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     suggested_post_parameters: Option<suggested_post::SuggestedPostParameters>,
 }
 
 impl<'a> SendVenueBuilder<'a> {
-    pub fn foursquare_id(mut self, val: impl Into<String>) -> Self { self.foursquare_id = Some(val.into()); self }
-    pub fn foursquare_type(mut self, val: impl Into<String>) -> Self { self.foursquare_type = Some(val.into()); self }
-    pub fn google_place_id(mut self, val: impl Into<String>) -> Self { self.google_place_id = Some(val.into()); self }
-    pub fn google_place_type(mut self, val: impl Into<String>) -> Self { self.google_place_type = Some(val.into()); self }
-    pub fn disable_notification(mut self, val: bool) -> Self { self.disable_notification = Some(val); self }
-    pub fn protect_content(mut self, val: bool) -> Self { self.protect_content = Some(val); self }
-    pub fn reply_parameters(mut self, val: reply::ReplyParameters) -> Self { self.reply_parameters = Some(val); self }
-    pub fn reply_markup(mut self, val: serde_json::Value) -> Self { self.reply_markup = Some(val); self }
-    pub fn message_thread_id(mut self, val: i64) -> Self { self.message_thread_id = Some(val); self }
-    pub fn business_connection_id(mut self, val: impl Into<String>) -> Self { self.business_connection_id = Some(val.into()); self }
-    pub fn message_effect_id(mut self, val: impl Into<String>) -> Self { self.message_effect_id = Some(val.into()); self }
-    pub fn allow_paid_broadcast(mut self, val: bool) -> Self { self.allow_paid_broadcast = Some(val); self }
-    pub fn direct_messages_topic_id(mut self, val: i64) -> Self { self.direct_messages_topic_id = Some(val); self }
-    pub fn suggested_post_parameters(mut self, val: suggested_post::SuggestedPostParameters) -> Self { self.suggested_post_parameters = Some(val); self }
+    pub fn foursquare_id(mut self, val: impl Into<String>) -> Self {
+        self.foursquare_id = Some(val.into());
+        self
+    }
+    pub fn foursquare_type(mut self, val: impl Into<String>) -> Self {
+        self.foursquare_type = Some(val.into());
+        self
+    }
+    pub fn google_place_id(mut self, val: impl Into<String>) -> Self {
+        self.google_place_id = Some(val.into());
+        self
+    }
+    pub fn google_place_type(mut self, val: impl Into<String>) -> Self {
+        self.google_place_type = Some(val.into());
+        self
+    }
+    pub fn disable_notification(mut self, val: bool) -> Self {
+        self.disable_notification = Some(val);
+        self
+    }
+    pub fn protect_content(mut self, val: bool) -> Self {
+        self.protect_content = Some(val);
+        self
+    }
+    pub fn reply_parameters(mut self, val: reply::ReplyParameters) -> Self {
+        self.reply_parameters = Some(val);
+        self
+    }
+    pub fn reply_markup(mut self, val: serde_json::Value) -> Self {
+        self.reply_markup = Some(val);
+        self
+    }
+    pub fn message_thread_id(mut self, val: i64) -> Self {
+        self.message_thread_id = Some(val);
+        self
+    }
+    pub fn business_connection_id(mut self, val: impl Into<String>) -> Self {
+        self.business_connection_id = Some(val.into());
+        self
+    }
+    pub fn message_effect_id(mut self, val: impl Into<String>) -> Self {
+        self.message_effect_id = Some(val.into());
+        self
+    }
+    pub fn allow_paid_broadcast(mut self, val: bool) -> Self {
+        self.allow_paid_broadcast = Some(val);
+        self
+    }
+    pub fn direct_messages_topic_id(mut self, val: i64) -> Self {
+        self.direct_messages_topic_id = Some(val);
+        self
+    }
+    pub fn suggested_post_parameters(
+        mut self,
+        val: suggested_post::SuggestedPostParameters,
+    ) -> Self {
+        self.suggested_post_parameters = Some(val);
+        self
+    }
 
     pub async fn send(self) -> Result<message::Message> {
-        let mut params = vec![
-            RequestParameter::new("chat_id", serde_json::to_value(&self.chat_id)?),
-            RequestParameter::new("latitude", serde_json::to_value(self.latitude)?),
-            RequestParameter::new("longitude", serde_json::to_value(self.longitude)?),
-            RequestParameter::new("title", serde_json::Value::String(self.title)),
-            RequestParameter::new("address", serde_json::Value::String(self.address)),
-        ];
-        push_opt_str(&mut params, "foursquare_id", &self.foursquare_id);
-        push_opt_str(&mut params, "foursquare_type", &self.foursquare_type);
-        push_opt_str(&mut params, "google_place_id", &self.google_place_id);
-        push_opt_str(&mut params, "google_place_type", &self.google_place_type);
-        push_opt(&mut params, "disable_notification", &self.disable_notification)?;
-        push_opt(&mut params, "protect_content", &self.protect_content)?;
-        push_opt(&mut params, "reply_parameters", &self.reply_parameters)?;
-        push_opt(&mut params, "reply_markup", &self.reply_markup)?;
-        push_opt(&mut params, "message_thread_id", &self.message_thread_id)?;
-        push_opt_str(&mut params, "business_connection_id", &self.business_connection_id);
-        push_opt_str(&mut params, "message_effect_id", &self.message_effect_id);
-        push_opt(&mut params, "allow_paid_broadcast", &self.allow_paid_broadcast)?;
-        push_opt(&mut params, "direct_messages_topic_id", &self.direct_messages_topic_id)?;
-        push_opt(&mut params, "suggested_post_parameters", &self.suggested_post_parameters)?;
-        self.bot.do_api_request("sendVenue", params).await
+        let payload = serde_json::to_vec(&self)?;
+        self.bot.do_post_json("sendVenue", &payload).await
     }
 }
 
@@ -818,58 +1471,95 @@ impl_into_future!(SendVenueBuilder, message::Message);
 // SendContactBuilder
 // =========================================================================
 
+#[derive(Serialize)]
 pub struct SendContactBuilder<'a> {
+    #[serde(skip)]
     bot: &'a Bot,
     chat_id: ChatId,
     phone_number: String,
     first_name: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     last_name: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     vcard: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     disable_notification: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     protect_content: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     reply_parameters: Option<reply::ReplyParameters>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     reply_markup: Option<serde_json::Value>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     message_thread_id: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     business_connection_id: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     message_effect_id: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     allow_paid_broadcast: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     direct_messages_topic_id: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     suggested_post_parameters: Option<suggested_post::SuggestedPostParameters>,
 }
 
 impl<'a> SendContactBuilder<'a> {
-    pub fn last_name(mut self, val: impl Into<String>) -> Self { self.last_name = Some(val.into()); self }
-    pub fn vcard(mut self, val: impl Into<String>) -> Self { self.vcard = Some(val.into()); self }
-    pub fn disable_notification(mut self, val: bool) -> Self { self.disable_notification = Some(val); self }
-    pub fn protect_content(mut self, val: bool) -> Self { self.protect_content = Some(val); self }
-    pub fn reply_parameters(mut self, val: reply::ReplyParameters) -> Self { self.reply_parameters = Some(val); self }
-    pub fn reply_markup(mut self, val: serde_json::Value) -> Self { self.reply_markup = Some(val); self }
-    pub fn message_thread_id(mut self, val: i64) -> Self { self.message_thread_id = Some(val); self }
-    pub fn business_connection_id(mut self, val: impl Into<String>) -> Self { self.business_connection_id = Some(val.into()); self }
-    pub fn message_effect_id(mut self, val: impl Into<String>) -> Self { self.message_effect_id = Some(val.into()); self }
-    pub fn allow_paid_broadcast(mut self, val: bool) -> Self { self.allow_paid_broadcast = Some(val); self }
-    pub fn direct_messages_topic_id(mut self, val: i64) -> Self { self.direct_messages_topic_id = Some(val); self }
-    pub fn suggested_post_parameters(mut self, val: suggested_post::SuggestedPostParameters) -> Self { self.suggested_post_parameters = Some(val); self }
+    pub fn last_name(mut self, val: impl Into<String>) -> Self {
+        self.last_name = Some(val.into());
+        self
+    }
+    pub fn vcard(mut self, val: impl Into<String>) -> Self {
+        self.vcard = Some(val.into());
+        self
+    }
+    pub fn disable_notification(mut self, val: bool) -> Self {
+        self.disable_notification = Some(val);
+        self
+    }
+    pub fn protect_content(mut self, val: bool) -> Self {
+        self.protect_content = Some(val);
+        self
+    }
+    pub fn reply_parameters(mut self, val: reply::ReplyParameters) -> Self {
+        self.reply_parameters = Some(val);
+        self
+    }
+    pub fn reply_markup(mut self, val: serde_json::Value) -> Self {
+        self.reply_markup = Some(val);
+        self
+    }
+    pub fn message_thread_id(mut self, val: i64) -> Self {
+        self.message_thread_id = Some(val);
+        self
+    }
+    pub fn business_connection_id(mut self, val: impl Into<String>) -> Self {
+        self.business_connection_id = Some(val.into());
+        self
+    }
+    pub fn message_effect_id(mut self, val: impl Into<String>) -> Self {
+        self.message_effect_id = Some(val.into());
+        self
+    }
+    pub fn allow_paid_broadcast(mut self, val: bool) -> Self {
+        self.allow_paid_broadcast = Some(val);
+        self
+    }
+    pub fn direct_messages_topic_id(mut self, val: i64) -> Self {
+        self.direct_messages_topic_id = Some(val);
+        self
+    }
+    pub fn suggested_post_parameters(
+        mut self,
+        val: suggested_post::SuggestedPostParameters,
+    ) -> Self {
+        self.suggested_post_parameters = Some(val);
+        self
+    }
 
     pub async fn send(self) -> Result<message::Message> {
-        let mut params = vec![
-            RequestParameter::new("chat_id", serde_json::to_value(&self.chat_id)?),
-            RequestParameter::new("phone_number", serde_json::Value::String(self.phone_number)),
-            RequestParameter::new("first_name", serde_json::Value::String(self.first_name)),
-        ];
-        push_opt_str(&mut params, "last_name", &self.last_name);
-        push_opt_str(&mut params, "vcard", &self.vcard);
-        push_opt(&mut params, "disable_notification", &self.disable_notification)?;
-        push_opt(&mut params, "protect_content", &self.protect_content)?;
-        push_opt(&mut params, "reply_parameters", &self.reply_parameters)?;
-        push_opt(&mut params, "reply_markup", &self.reply_markup)?;
-        push_opt(&mut params, "message_thread_id", &self.message_thread_id)?;
-        push_opt_str(&mut params, "business_connection_id", &self.business_connection_id);
-        push_opt_str(&mut params, "message_effect_id", &self.message_effect_id);
-        push_opt(&mut params, "allow_paid_broadcast", &self.allow_paid_broadcast)?;
-        push_opt(&mut params, "direct_messages_topic_id", &self.direct_messages_topic_id)?;
-        push_opt(&mut params, "suggested_post_parameters", &self.suggested_post_parameters)?;
-        self.bot.do_api_request("sendContact", params).await
+        let payload = serde_json::to_vec(&self)?;
+        self.bot.do_post_json("sendContact", &payload).await
     }
 }
 
@@ -879,89 +1569,155 @@ impl_into_future!(SendContactBuilder, message::Message);
 // SendPollBuilder
 // =========================================================================
 
+#[derive(Serialize)]
 pub struct SendPollBuilder<'a> {
+    #[serde(skip)]
     bot: &'a Bot,
     chat_id: ChatId,
     question: String,
     options: Vec<serde_json::Value>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     is_anonymous: Option<bool>,
+    #[serde(rename = "type", skip_serializing_if = "Option::is_none")]
     poll_type: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     allows_multiple_answers: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     correct_option_id: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     explanation: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     explanation_parse_mode: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     explanation_entities: Option<Vec<message_entity::MessageEntity>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     open_period: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     close_date: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     is_closed: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     disable_notification: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     protect_content: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     reply_parameters: Option<reply::ReplyParameters>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     reply_markup: Option<serde_json::Value>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     message_thread_id: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     business_connection_id: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     question_parse_mode: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     question_entities: Option<Vec<message_entity::MessageEntity>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     message_effect_id: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     allow_paid_broadcast: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     direct_messages_topic_id: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     suggested_post_parameters: Option<suggested_post::SuggestedPostParameters>,
 }
 
 impl<'a> SendPollBuilder<'a> {
-    pub fn is_anonymous(mut self, val: bool) -> Self { self.is_anonymous = Some(val); self }
-    pub fn poll_type(mut self, val: impl Into<String>) -> Self { self.poll_type = Some(val.into()); self }
-    pub fn allows_multiple_answers(mut self, val: bool) -> Self { self.allows_multiple_answers = Some(val); self }
-    pub fn correct_option_id(mut self, val: i64) -> Self { self.correct_option_id = Some(val); self }
-    pub fn explanation(mut self, val: impl Into<String>) -> Self { self.explanation = Some(val.into()); self }
-    pub fn explanation_parse_mode(mut self, val: impl Into<String>) -> Self { self.explanation_parse_mode = Some(val.into()); self }
-    pub fn explanation_entities(mut self, val: Vec<message_entity::MessageEntity>) -> Self { self.explanation_entities = Some(val); self }
-    pub fn open_period(mut self, val: i64) -> Self { self.open_period = Some(val); self }
-    pub fn close_date(mut self, val: i64) -> Self { self.close_date = Some(val); self }
-    pub fn is_closed(mut self, val: bool) -> Self { self.is_closed = Some(val); self }
-    pub fn disable_notification(mut self, val: bool) -> Self { self.disable_notification = Some(val); self }
-    pub fn protect_content(mut self, val: bool) -> Self { self.protect_content = Some(val); self }
-    pub fn reply_parameters(mut self, val: reply::ReplyParameters) -> Self { self.reply_parameters = Some(val); self }
-    pub fn reply_markup(mut self, val: serde_json::Value) -> Self { self.reply_markup = Some(val); self }
-    pub fn message_thread_id(mut self, val: i64) -> Self { self.message_thread_id = Some(val); self }
-    pub fn business_connection_id(mut self, val: impl Into<String>) -> Self { self.business_connection_id = Some(val.into()); self }
-    pub fn question_parse_mode(mut self, val: impl Into<String>) -> Self { self.question_parse_mode = Some(val.into()); self }
-    pub fn question_entities(mut self, val: Vec<message_entity::MessageEntity>) -> Self { self.question_entities = Some(val); self }
-    pub fn message_effect_id(mut self, val: impl Into<String>) -> Self { self.message_effect_id = Some(val.into()); self }
-    pub fn allow_paid_broadcast(mut self, val: bool) -> Self { self.allow_paid_broadcast = Some(val); self }
-    pub fn direct_messages_topic_id(mut self, val: i64) -> Self { self.direct_messages_topic_id = Some(val); self }
-    pub fn suggested_post_parameters(mut self, val: suggested_post::SuggestedPostParameters) -> Self { self.suggested_post_parameters = Some(val); self }
+    pub fn is_anonymous(mut self, val: bool) -> Self {
+        self.is_anonymous = Some(val);
+        self
+    }
+    pub fn poll_type(mut self, val: impl Into<String>) -> Self {
+        self.poll_type = Some(val.into());
+        self
+    }
+    pub fn allows_multiple_answers(mut self, val: bool) -> Self {
+        self.allows_multiple_answers = Some(val);
+        self
+    }
+    pub fn correct_option_id(mut self, val: i64) -> Self {
+        self.correct_option_id = Some(val);
+        self
+    }
+    pub fn explanation(mut self, val: impl Into<String>) -> Self {
+        self.explanation = Some(val.into());
+        self
+    }
+    pub fn explanation_parse_mode(mut self, val: impl Into<String>) -> Self {
+        self.explanation_parse_mode = Some(val.into());
+        self
+    }
+    pub fn explanation_entities(mut self, val: Vec<message_entity::MessageEntity>) -> Self {
+        self.explanation_entities = Some(val);
+        self
+    }
+    pub fn open_period(mut self, val: i64) -> Self {
+        self.open_period = Some(val);
+        self
+    }
+    pub fn close_date(mut self, val: i64) -> Self {
+        self.close_date = Some(val);
+        self
+    }
+    pub fn is_closed(mut self, val: bool) -> Self {
+        self.is_closed = Some(val);
+        self
+    }
+    pub fn disable_notification(mut self, val: bool) -> Self {
+        self.disable_notification = Some(val);
+        self
+    }
+    pub fn protect_content(mut self, val: bool) -> Self {
+        self.protect_content = Some(val);
+        self
+    }
+    pub fn reply_parameters(mut self, val: reply::ReplyParameters) -> Self {
+        self.reply_parameters = Some(val);
+        self
+    }
+    pub fn reply_markup(mut self, val: serde_json::Value) -> Self {
+        self.reply_markup = Some(val);
+        self
+    }
+    pub fn message_thread_id(mut self, val: i64) -> Self {
+        self.message_thread_id = Some(val);
+        self
+    }
+    pub fn business_connection_id(mut self, val: impl Into<String>) -> Self {
+        self.business_connection_id = Some(val.into());
+        self
+    }
+    pub fn question_parse_mode(mut self, val: impl Into<String>) -> Self {
+        self.question_parse_mode = Some(val.into());
+        self
+    }
+    pub fn question_entities(mut self, val: Vec<message_entity::MessageEntity>) -> Self {
+        self.question_entities = Some(val);
+        self
+    }
+    pub fn message_effect_id(mut self, val: impl Into<String>) -> Self {
+        self.message_effect_id = Some(val.into());
+        self
+    }
+    pub fn allow_paid_broadcast(mut self, val: bool) -> Self {
+        self.allow_paid_broadcast = Some(val);
+        self
+    }
+    pub fn direct_messages_topic_id(mut self, val: i64) -> Self {
+        self.direct_messages_topic_id = Some(val);
+        self
+    }
+    pub fn suggested_post_parameters(
+        mut self,
+        val: suggested_post::SuggestedPostParameters,
+    ) -> Self {
+        self.suggested_post_parameters = Some(val);
+        self
+    }
 
     pub async fn send(self) -> Result<message::Message> {
-        let mut params = vec![
-            RequestParameter::new("chat_id", serde_json::to_value(&self.chat_id)?),
-            RequestParameter::new("question", serde_json::Value::String(self.question)),
-            RequestParameter::new("options", serde_json::to_value(&self.options)?),
-        ];
-        push_opt(&mut params, "is_anonymous", &self.is_anonymous)?;
-        // `poll_type` maps to "type" in the API
-        push_opt_str(&mut params, "type", &self.poll_type);
-        push_opt(&mut params, "allows_multiple_answers", &self.allows_multiple_answers)?;
-        push_opt(&mut params, "correct_option_id", &self.correct_option_id)?;
-        push_opt_str(&mut params, "explanation", &self.explanation);
-        push_opt_str(&mut params, "explanation_parse_mode", &self.explanation_parse_mode);
-        push_opt(&mut params, "explanation_entities", &self.explanation_entities)?;
-        push_opt(&mut params, "open_period", &self.open_period)?;
-        push_opt(&mut params, "close_date", &self.close_date)?;
-        push_opt(&mut params, "is_closed", &self.is_closed)?;
-        push_opt(&mut params, "disable_notification", &self.disable_notification)?;
-        push_opt(&mut params, "protect_content", &self.protect_content)?;
-        push_opt(&mut params, "reply_parameters", &self.reply_parameters)?;
-        push_opt(&mut params, "reply_markup", &self.reply_markup)?;
-        push_opt(&mut params, "message_thread_id", &self.message_thread_id)?;
-        push_opt_str(&mut params, "business_connection_id", &self.business_connection_id);
-        push_opt_str(&mut params, "question_parse_mode", &self.question_parse_mode);
-        push_opt(&mut params, "question_entities", &self.question_entities)?;
-        push_opt_str(&mut params, "message_effect_id", &self.message_effect_id);
-        push_opt(&mut params, "allow_paid_broadcast", &self.allow_paid_broadcast)?;
-        push_opt(&mut params, "direct_messages_topic_id", &self.direct_messages_topic_id)?;
-        push_opt(&mut params, "suggested_post_parameters", &self.suggested_post_parameters)?;
-        self.bot.do_api_request("sendPoll", params).await
+        let payload = serde_json::to_vec(&self)?;
+        self.bot.do_post_json("sendPoll", &payload).await
     }
 }
 
@@ -971,51 +1727,87 @@ impl_into_future!(SendPollBuilder, message::Message);
 // SendDiceBuilder
 // =========================================================================
 
+#[derive(Serialize)]
 pub struct SendDiceBuilder<'a> {
+    #[serde(skip)]
     bot: &'a Bot,
     chat_id: ChatId,
+    #[serde(skip_serializing_if = "Option::is_none")]
     emoji: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     disable_notification: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     protect_content: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     reply_parameters: Option<reply::ReplyParameters>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     reply_markup: Option<serde_json::Value>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     message_thread_id: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     business_connection_id: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     message_effect_id: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     allow_paid_broadcast: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     direct_messages_topic_id: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     suggested_post_parameters: Option<suggested_post::SuggestedPostParameters>,
 }
 
 impl<'a> SendDiceBuilder<'a> {
-    pub fn emoji(mut self, val: impl Into<String>) -> Self { self.emoji = Some(val.into()); self }
-    pub fn disable_notification(mut self, val: bool) -> Self { self.disable_notification = Some(val); self }
-    pub fn protect_content(mut self, val: bool) -> Self { self.protect_content = Some(val); self }
-    pub fn reply_parameters(mut self, val: reply::ReplyParameters) -> Self { self.reply_parameters = Some(val); self }
-    pub fn reply_markup(mut self, val: serde_json::Value) -> Self { self.reply_markup = Some(val); self }
-    pub fn message_thread_id(mut self, val: i64) -> Self { self.message_thread_id = Some(val); self }
-    pub fn business_connection_id(mut self, val: impl Into<String>) -> Self { self.business_connection_id = Some(val.into()); self }
-    pub fn message_effect_id(mut self, val: impl Into<String>) -> Self { self.message_effect_id = Some(val.into()); self }
-    pub fn allow_paid_broadcast(mut self, val: bool) -> Self { self.allow_paid_broadcast = Some(val); self }
-    pub fn direct_messages_topic_id(mut self, val: i64) -> Self { self.direct_messages_topic_id = Some(val); self }
-    pub fn suggested_post_parameters(mut self, val: suggested_post::SuggestedPostParameters) -> Self { self.suggested_post_parameters = Some(val); self }
+    pub fn emoji(mut self, val: impl Into<String>) -> Self {
+        self.emoji = Some(val.into());
+        self
+    }
+    pub fn disable_notification(mut self, val: bool) -> Self {
+        self.disable_notification = Some(val);
+        self
+    }
+    pub fn protect_content(mut self, val: bool) -> Self {
+        self.protect_content = Some(val);
+        self
+    }
+    pub fn reply_parameters(mut self, val: reply::ReplyParameters) -> Self {
+        self.reply_parameters = Some(val);
+        self
+    }
+    pub fn reply_markup(mut self, val: serde_json::Value) -> Self {
+        self.reply_markup = Some(val);
+        self
+    }
+    pub fn message_thread_id(mut self, val: i64) -> Self {
+        self.message_thread_id = Some(val);
+        self
+    }
+    pub fn business_connection_id(mut self, val: impl Into<String>) -> Self {
+        self.business_connection_id = Some(val.into());
+        self
+    }
+    pub fn message_effect_id(mut self, val: impl Into<String>) -> Self {
+        self.message_effect_id = Some(val.into());
+        self
+    }
+    pub fn allow_paid_broadcast(mut self, val: bool) -> Self {
+        self.allow_paid_broadcast = Some(val);
+        self
+    }
+    pub fn direct_messages_topic_id(mut self, val: i64) -> Self {
+        self.direct_messages_topic_id = Some(val);
+        self
+    }
+    pub fn suggested_post_parameters(
+        mut self,
+        val: suggested_post::SuggestedPostParameters,
+    ) -> Self {
+        self.suggested_post_parameters = Some(val);
+        self
+    }
 
     pub async fn send(self) -> Result<message::Message> {
-        let mut params = vec![
-            RequestParameter::new("chat_id", serde_json::to_value(&self.chat_id)?),
-        ];
-        push_opt_str(&mut params, "emoji", &self.emoji);
-        push_opt(&mut params, "disable_notification", &self.disable_notification)?;
-        push_opt(&mut params, "protect_content", &self.protect_content)?;
-        push_opt(&mut params, "reply_parameters", &self.reply_parameters)?;
-        push_opt(&mut params, "reply_markup", &self.reply_markup)?;
-        push_opt(&mut params, "message_thread_id", &self.message_thread_id)?;
-        push_opt_str(&mut params, "business_connection_id", &self.business_connection_id);
-        push_opt_str(&mut params, "message_effect_id", &self.message_effect_id);
-        push_opt(&mut params, "allow_paid_broadcast", &self.allow_paid_broadcast)?;
-        push_opt(&mut params, "direct_messages_topic_id", &self.direct_messages_topic_id)?;
-        push_opt(&mut params, "suggested_post_parameters", &self.suggested_post_parameters)?;
-        self.bot.do_api_request("sendDice", params).await
+        let payload = serde_json::to_vec(&self)?;
+        self.bot.do_post_json("sendDice", &payload).await
     }
 }
 
@@ -1043,17 +1835,53 @@ pub struct SendStickerBuilder<'a> {
 }
 
 impl<'a> SendStickerBuilder<'a> {
-    pub fn emoji(mut self, val: impl Into<String>) -> Self { self.emoji = Some(val.into()); self }
-    pub fn disable_notification(mut self, val: bool) -> Self { self.disable_notification = Some(val); self }
-    pub fn protect_content(mut self, val: bool) -> Self { self.protect_content = Some(val); self }
-    pub fn reply_parameters(mut self, val: reply::ReplyParameters) -> Self { self.reply_parameters = Some(val); self }
-    pub fn reply_markup(mut self, val: serde_json::Value) -> Self { self.reply_markup = Some(val); self }
-    pub fn message_thread_id(mut self, val: i64) -> Self { self.message_thread_id = Some(val); self }
-    pub fn business_connection_id(mut self, val: impl Into<String>) -> Self { self.business_connection_id = Some(val.into()); self }
-    pub fn message_effect_id(mut self, val: impl Into<String>) -> Self { self.message_effect_id = Some(val.into()); self }
-    pub fn allow_paid_broadcast(mut self, val: bool) -> Self { self.allow_paid_broadcast = Some(val); self }
-    pub fn direct_messages_topic_id(mut self, val: i64) -> Self { self.direct_messages_topic_id = Some(val); self }
-    pub fn suggested_post_parameters(mut self, val: suggested_post::SuggestedPostParameters) -> Self { self.suggested_post_parameters = Some(val); self }
+    pub fn emoji(mut self, val: impl Into<String>) -> Self {
+        self.emoji = Some(val.into());
+        self
+    }
+    pub fn disable_notification(mut self, val: bool) -> Self {
+        self.disable_notification = Some(val);
+        self
+    }
+    pub fn protect_content(mut self, val: bool) -> Self {
+        self.protect_content = Some(val);
+        self
+    }
+    pub fn reply_parameters(mut self, val: reply::ReplyParameters) -> Self {
+        self.reply_parameters = Some(val);
+        self
+    }
+    pub fn reply_markup(mut self, val: serde_json::Value) -> Self {
+        self.reply_markup = Some(val);
+        self
+    }
+    pub fn message_thread_id(mut self, val: i64) -> Self {
+        self.message_thread_id = Some(val);
+        self
+    }
+    pub fn business_connection_id(mut self, val: impl Into<String>) -> Self {
+        self.business_connection_id = Some(val.into());
+        self
+    }
+    pub fn message_effect_id(mut self, val: impl Into<String>) -> Self {
+        self.message_effect_id = Some(val.into());
+        self
+    }
+    pub fn allow_paid_broadcast(mut self, val: bool) -> Self {
+        self.allow_paid_broadcast = Some(val);
+        self
+    }
+    pub fn direct_messages_topic_id(mut self, val: i64) -> Self {
+        self.direct_messages_topic_id = Some(val);
+        self
+    }
+    pub fn suggested_post_parameters(
+        mut self,
+        val: suggested_post::SuggestedPostParameters,
+    ) -> Self {
+        self.suggested_post_parameters = Some(val);
+        self
+    }
 
     pub async fn send(self) -> Result<message::Message> {
         let mut params = vec![
@@ -1061,16 +1889,36 @@ impl<'a> SendStickerBuilder<'a> {
             input_file_param("sticker", self.sticker),
         ];
         push_opt_str(&mut params, "emoji", &self.emoji);
-        push_opt(&mut params, "disable_notification", &self.disable_notification)?;
+        push_opt(
+            &mut params,
+            "disable_notification",
+            &self.disable_notification,
+        )?;
         push_opt(&mut params, "protect_content", &self.protect_content)?;
         push_opt(&mut params, "reply_parameters", &self.reply_parameters)?;
         push_opt(&mut params, "reply_markup", &self.reply_markup)?;
         push_opt(&mut params, "message_thread_id", &self.message_thread_id)?;
-        push_opt_str(&mut params, "business_connection_id", &self.business_connection_id);
+        push_opt_str(
+            &mut params,
+            "business_connection_id",
+            &self.business_connection_id,
+        );
         push_opt_str(&mut params, "message_effect_id", &self.message_effect_id);
-        push_opt(&mut params, "allow_paid_broadcast", &self.allow_paid_broadcast)?;
-        push_opt(&mut params, "direct_messages_topic_id", &self.direct_messages_topic_id)?;
-        push_opt(&mut params, "suggested_post_parameters", &self.suggested_post_parameters)?;
+        push_opt(
+            &mut params,
+            "allow_paid_broadcast",
+            &self.allow_paid_broadcast,
+        )?;
+        push_opt(
+            &mut params,
+            "direct_messages_topic_id",
+            &self.direct_messages_topic_id,
+        )?;
+        push_opt(
+            &mut params,
+            "suggested_post_parameters",
+            &self.suggested_post_parameters,
+        )?;
         self.bot.do_api_request("sendSticker", params).await
     }
 }
@@ -1081,42 +1929,66 @@ impl_into_future!(SendStickerBuilder, message::Message);
 // EditMessageTextBuilder
 // =========================================================================
 
+#[derive(Serialize)]
 pub struct EditMessageTextBuilder<'a> {
+    #[serde(skip)]
     bot: &'a Bot,
     text: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     chat_id: Option<ChatId>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     message_id: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     inline_message_id: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     parse_mode: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     entities: Option<Vec<message_entity::MessageEntity>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     link_preview_options: Option<link_preview_options::LinkPreviewOptions>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     reply_markup: Option<serde_json::Value>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     business_connection_id: Option<String>,
 }
 
 impl<'a> EditMessageTextBuilder<'a> {
-    pub fn chat_id(mut self, val: impl Into<ChatId>) -> Self { self.chat_id = Some(val.into()); self }
-    pub fn message_id(mut self, val: i64) -> Self { self.message_id = Some(val); self }
-    pub fn inline_message_id(mut self, val: impl Into<String>) -> Self { self.inline_message_id = Some(val.into()); self }
-    pub fn parse_mode(mut self, val: impl Into<String>) -> Self { self.parse_mode = Some(val.into()); self }
-    pub fn entities(mut self, val: Vec<message_entity::MessageEntity>) -> Self { self.entities = Some(val); self }
-    pub fn link_preview_options(mut self, val: link_preview_options::LinkPreviewOptions) -> Self { self.link_preview_options = Some(val); self }
-    pub fn reply_markup(mut self, val: serde_json::Value) -> Self { self.reply_markup = Some(val); self }
-    pub fn business_connection_id(mut self, val: impl Into<String>) -> Self { self.business_connection_id = Some(val.into()); self }
+    pub fn chat_id(mut self, val: impl Into<ChatId>) -> Self {
+        self.chat_id = Some(val.into());
+        self
+    }
+    pub fn message_id(mut self, val: i64) -> Self {
+        self.message_id = Some(val);
+        self
+    }
+    pub fn inline_message_id(mut self, val: impl Into<String>) -> Self {
+        self.inline_message_id = Some(val.into());
+        self
+    }
+    pub fn parse_mode(mut self, val: impl Into<String>) -> Self {
+        self.parse_mode = Some(val.into());
+        self
+    }
+    pub fn entities(mut self, val: Vec<message_entity::MessageEntity>) -> Self {
+        self.entities = Some(val);
+        self
+    }
+    pub fn link_preview_options(mut self, val: link_preview_options::LinkPreviewOptions) -> Self {
+        self.link_preview_options = Some(val);
+        self
+    }
+    pub fn reply_markup(mut self, val: serde_json::Value) -> Self {
+        self.reply_markup = Some(val);
+        self
+    }
+    pub fn business_connection_id(mut self, val: impl Into<String>) -> Self {
+        self.business_connection_id = Some(val.into());
+        self
+    }
 
     pub async fn send(self) -> Result<MessageOrBool> {
-        let mut params = vec![
-            RequestParameter::new("text", serde_json::Value::String(self.text)),
-        ];
-        push_opt(&mut params, "chat_id", &self.chat_id)?;
-        push_opt(&mut params, "message_id", &self.message_id)?;
-        push_opt_str(&mut params, "inline_message_id", &self.inline_message_id);
-        push_opt_str(&mut params, "parse_mode", &self.parse_mode);
-        push_opt(&mut params, "entities", &self.entities)?;
-        push_opt(&mut params, "link_preview_options", &self.link_preview_options)?;
-        push_opt(&mut params, "reply_markup", &self.reply_markup)?;
-        push_opt_str(&mut params, "business_connection_id", &self.business_connection_id);
-        self.bot.do_api_request("editMessageText", params).await
+        let payload = serde_json::to_vec(&self)?;
+        self.bot.do_post_json("editMessageText", &payload).await
     }
 }
 
@@ -1126,42 +1998,71 @@ impl_into_future!(EditMessageTextBuilder, MessageOrBool);
 // EditMessageCaptionBuilder
 // =========================================================================
 
+#[derive(Serialize)]
 pub struct EditMessageCaptionBuilder<'a> {
+    #[serde(skip)]
     bot: &'a Bot,
+    #[serde(skip_serializing_if = "Option::is_none")]
     chat_id: Option<ChatId>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     message_id: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     inline_message_id: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     caption: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     parse_mode: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     caption_entities: Option<Vec<message_entity::MessageEntity>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     reply_markup: Option<serde_json::Value>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     show_caption_above_media: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     business_connection_id: Option<String>,
 }
 
 impl<'a> EditMessageCaptionBuilder<'a> {
-    pub fn chat_id(mut self, val: impl Into<ChatId>) -> Self { self.chat_id = Some(val.into()); self }
-    pub fn message_id(mut self, val: i64) -> Self { self.message_id = Some(val); self }
-    pub fn inline_message_id(mut self, val: impl Into<String>) -> Self { self.inline_message_id = Some(val.into()); self }
-    pub fn caption(mut self, val: impl Into<String>) -> Self { self.caption = Some(val.into()); self }
-    pub fn parse_mode(mut self, val: impl Into<String>) -> Self { self.parse_mode = Some(val.into()); self }
-    pub fn caption_entities(mut self, val: Vec<message_entity::MessageEntity>) -> Self { self.caption_entities = Some(val); self }
-    pub fn reply_markup(mut self, val: serde_json::Value) -> Self { self.reply_markup = Some(val); self }
-    pub fn show_caption_above_media(mut self, val: bool) -> Self { self.show_caption_above_media = Some(val); self }
-    pub fn business_connection_id(mut self, val: impl Into<String>) -> Self { self.business_connection_id = Some(val.into()); self }
+    pub fn chat_id(mut self, val: impl Into<ChatId>) -> Self {
+        self.chat_id = Some(val.into());
+        self
+    }
+    pub fn message_id(mut self, val: i64) -> Self {
+        self.message_id = Some(val);
+        self
+    }
+    pub fn inline_message_id(mut self, val: impl Into<String>) -> Self {
+        self.inline_message_id = Some(val.into());
+        self
+    }
+    pub fn caption(mut self, val: impl Into<String>) -> Self {
+        self.caption = Some(val.into());
+        self
+    }
+    pub fn parse_mode(mut self, val: impl Into<String>) -> Self {
+        self.parse_mode = Some(val.into());
+        self
+    }
+    pub fn caption_entities(mut self, val: Vec<message_entity::MessageEntity>) -> Self {
+        self.caption_entities = Some(val);
+        self
+    }
+    pub fn reply_markup(mut self, val: serde_json::Value) -> Self {
+        self.reply_markup = Some(val);
+        self
+    }
+    pub fn show_caption_above_media(mut self, val: bool) -> Self {
+        self.show_caption_above_media = Some(val);
+        self
+    }
+    pub fn business_connection_id(mut self, val: impl Into<String>) -> Self {
+        self.business_connection_id = Some(val.into());
+        self
+    }
 
     pub async fn send(self) -> Result<MessageOrBool> {
-        let mut params = Vec::new();
-        push_opt(&mut params, "chat_id", &self.chat_id)?;
-        push_opt(&mut params, "message_id", &self.message_id)?;
-        push_opt_str(&mut params, "inline_message_id", &self.inline_message_id);
-        push_opt_str(&mut params, "caption", &self.caption);
-        push_opt_str(&mut params, "parse_mode", &self.parse_mode);
-        push_opt(&mut params, "caption_entities", &self.caption_entities)?;
-        push_opt(&mut params, "reply_markup", &self.reply_markup)?;
-        push_opt(&mut params, "show_caption_above_media", &self.show_caption_above_media)?;
-        push_opt_str(&mut params, "business_connection_id", &self.business_connection_id);
-        self.bot.do_api_request("editMessageCaption", params).await
+        let payload = serde_json::to_vec(&self)?;
+        self.bot.do_post_json("editMessageCaption", &payload).await
     }
 }
 
@@ -1171,31 +2072,48 @@ impl_into_future!(EditMessageCaptionBuilder, MessageOrBool);
 // EditMessageMediaBuilder
 // =========================================================================
 
+#[derive(Serialize)]
 pub struct EditMessageMediaBuilder<'a> {
+    #[serde(skip)]
     bot: &'a Bot,
     media: serde_json::Value,
+    #[serde(skip_serializing_if = "Option::is_none")]
     chat_id: Option<ChatId>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     message_id: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     inline_message_id: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     reply_markup: Option<serde_json::Value>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     business_connection_id: Option<String>,
 }
 
 impl<'a> EditMessageMediaBuilder<'a> {
-    pub fn chat_id(mut self, val: impl Into<ChatId>) -> Self { self.chat_id = Some(val.into()); self }
-    pub fn message_id(mut self, val: i64) -> Self { self.message_id = Some(val); self }
-    pub fn inline_message_id(mut self, val: impl Into<String>) -> Self { self.inline_message_id = Some(val.into()); self }
-    pub fn reply_markup(mut self, val: serde_json::Value) -> Self { self.reply_markup = Some(val); self }
-    pub fn business_connection_id(mut self, val: impl Into<String>) -> Self { self.business_connection_id = Some(val.into()); self }
+    pub fn chat_id(mut self, val: impl Into<ChatId>) -> Self {
+        self.chat_id = Some(val.into());
+        self
+    }
+    pub fn message_id(mut self, val: i64) -> Self {
+        self.message_id = Some(val);
+        self
+    }
+    pub fn inline_message_id(mut self, val: impl Into<String>) -> Self {
+        self.inline_message_id = Some(val.into());
+        self
+    }
+    pub fn reply_markup(mut self, val: serde_json::Value) -> Self {
+        self.reply_markup = Some(val);
+        self
+    }
+    pub fn business_connection_id(mut self, val: impl Into<String>) -> Self {
+        self.business_connection_id = Some(val.into());
+        self
+    }
 
     pub async fn send(self) -> Result<MessageOrBool> {
-        let mut params = vec![RequestParameter::new("media", self.media)];
-        push_opt(&mut params, "chat_id", &self.chat_id)?;
-        push_opt(&mut params, "message_id", &self.message_id)?;
-        push_opt_str(&mut params, "inline_message_id", &self.inline_message_id);
-        push_opt(&mut params, "reply_markup", &self.reply_markup)?;
-        push_opt_str(&mut params, "business_connection_id", &self.business_connection_id);
-        self.bot.do_api_request("editMessageMedia", params).await
+        let payload = serde_json::to_vec(&self)?;
+        self.bot.do_post_json("editMessageMedia", &payload).await
     }
 }
 
@@ -1205,30 +2123,49 @@ impl_into_future!(EditMessageMediaBuilder, MessageOrBool);
 // EditMessageReplyMarkupBuilder
 // =========================================================================
 
+#[derive(Serialize)]
 pub struct EditMessageReplyMarkupBuilder<'a> {
+    #[serde(skip)]
     bot: &'a Bot,
+    #[serde(skip_serializing_if = "Option::is_none")]
     chat_id: Option<ChatId>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     message_id: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     inline_message_id: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     reply_markup: Option<serde_json::Value>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     business_connection_id: Option<String>,
 }
 
 impl<'a> EditMessageReplyMarkupBuilder<'a> {
-    pub fn chat_id(mut self, val: impl Into<ChatId>) -> Self { self.chat_id = Some(val.into()); self }
-    pub fn message_id(mut self, val: i64) -> Self { self.message_id = Some(val); self }
-    pub fn inline_message_id(mut self, val: impl Into<String>) -> Self { self.inline_message_id = Some(val.into()); self }
-    pub fn reply_markup(mut self, val: serde_json::Value) -> Self { self.reply_markup = Some(val); self }
-    pub fn business_connection_id(mut self, val: impl Into<String>) -> Self { self.business_connection_id = Some(val.into()); self }
+    pub fn chat_id(mut self, val: impl Into<ChatId>) -> Self {
+        self.chat_id = Some(val.into());
+        self
+    }
+    pub fn message_id(mut self, val: i64) -> Self {
+        self.message_id = Some(val);
+        self
+    }
+    pub fn inline_message_id(mut self, val: impl Into<String>) -> Self {
+        self.inline_message_id = Some(val.into());
+        self
+    }
+    pub fn reply_markup(mut self, val: serde_json::Value) -> Self {
+        self.reply_markup = Some(val);
+        self
+    }
+    pub fn business_connection_id(mut self, val: impl Into<String>) -> Self {
+        self.business_connection_id = Some(val.into());
+        self
+    }
 
     pub async fn send(self) -> Result<MessageOrBool> {
-        let mut params = Vec::new();
-        push_opt(&mut params, "chat_id", &self.chat_id)?;
-        push_opt(&mut params, "message_id", &self.message_id)?;
-        push_opt_str(&mut params, "inline_message_id", &self.inline_message_id);
-        push_opt(&mut params, "reply_markup", &self.reply_markup)?;
-        push_opt_str(&mut params, "business_connection_id", &self.business_connection_id);
-        self.bot.do_api_request("editMessageReplyMarkup", params).await
+        let payload = serde_json::to_vec(&self)?;
+        self.bot
+            .do_post_json("editMessageReplyMarkup", &payload)
+            .await
     }
 }
 
@@ -1238,30 +2175,42 @@ impl_into_future!(EditMessageReplyMarkupBuilder, MessageOrBool);
 // AnswerCallbackQueryBuilder
 // =========================================================================
 
+#[derive(Serialize)]
 pub struct AnswerCallbackQueryBuilder<'a> {
+    #[serde(skip)]
     bot: &'a Bot,
     callback_query_id: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     text: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     show_alert: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     url: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     cache_time: Option<i64>,
 }
 
 impl<'a> AnswerCallbackQueryBuilder<'a> {
-    pub fn text(mut self, val: impl Into<String>) -> Self { self.text = Some(val.into()); self }
-    pub fn show_alert(mut self, val: bool) -> Self { self.show_alert = Some(val); self }
-    pub fn url(mut self, val: impl Into<String>) -> Self { self.url = Some(val.into()); self }
-    pub fn cache_time(mut self, val: i64) -> Self { self.cache_time = Some(val); self }
+    pub fn text(mut self, val: impl Into<String>) -> Self {
+        self.text = Some(val.into());
+        self
+    }
+    pub fn show_alert(mut self, val: bool) -> Self {
+        self.show_alert = Some(val);
+        self
+    }
+    pub fn url(mut self, val: impl Into<String>) -> Self {
+        self.url = Some(val.into());
+        self
+    }
+    pub fn cache_time(mut self, val: i64) -> Self {
+        self.cache_time = Some(val);
+        self
+    }
 
     pub async fn send(self) -> Result<bool> {
-        let mut params = vec![
-            RequestParameter::new("callback_query_id", serde_json::Value::String(self.callback_query_id)),
-        ];
-        push_opt_str(&mut params, "text", &self.text);
-        push_opt(&mut params, "show_alert", &self.show_alert)?;
-        push_opt_str(&mut params, "url", &self.url);
-        push_opt(&mut params, "cache_time", &self.cache_time)?;
-        self.bot.do_api_request("answerCallbackQuery", params).await
+        let payload = serde_json::to_vec(&self)?;
+        self.bot.do_post_json("answerCallbackQuery", &payload).await
     }
 }
 
@@ -1271,32 +2220,43 @@ impl_into_future!(AnswerCallbackQueryBuilder, bool);
 // AnswerInlineQueryBuilder
 // =========================================================================
 
+#[derive(Serialize)]
 pub struct AnswerInlineQueryBuilder<'a> {
+    #[serde(skip)]
     bot: &'a Bot,
     inline_query_id: String,
     results: Vec<serde_json::Value>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     cache_time: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     is_personal: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     next_offset: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     button: Option<serde_json::Value>,
 }
 
 impl<'a> AnswerInlineQueryBuilder<'a> {
-    pub fn cache_time(mut self, val: i64) -> Self { self.cache_time = Some(val); self }
-    pub fn is_personal(mut self, val: bool) -> Self { self.is_personal = Some(val); self }
-    pub fn next_offset(mut self, val: impl Into<String>) -> Self { self.next_offset = Some(val.into()); self }
-    pub fn button(mut self, val: serde_json::Value) -> Self { self.button = Some(val); self }
+    pub fn cache_time(mut self, val: i64) -> Self {
+        self.cache_time = Some(val);
+        self
+    }
+    pub fn is_personal(mut self, val: bool) -> Self {
+        self.is_personal = Some(val);
+        self
+    }
+    pub fn next_offset(mut self, val: impl Into<String>) -> Self {
+        self.next_offset = Some(val.into());
+        self
+    }
+    pub fn button(mut self, val: serde_json::Value) -> Self {
+        self.button = Some(val);
+        self
+    }
 
     pub async fn send(self) -> Result<bool> {
-        let mut params = vec![
-            RequestParameter::new("inline_query_id", serde_json::Value::String(self.inline_query_id)),
-            RequestParameter::new("results", serde_json::to_value(&self.results)?),
-        ];
-        push_opt(&mut params, "cache_time", &self.cache_time)?;
-        push_opt(&mut params, "is_personal", &self.is_personal)?;
-        push_opt_str(&mut params, "next_offset", &self.next_offset);
-        push_opt(&mut params, "button", &self.button)?;
-        self.bot.do_api_request("answerInlineQuery", params).await
+        let payload = serde_json::to_vec(&self)?;
+        self.bot.do_post_json("answerInlineQuery", &payload).await
     }
 }
 
@@ -1318,22 +2278,45 @@ pub struct SetWebhookBuilder<'a> {
 }
 
 impl<'a> SetWebhookBuilder<'a> {
-    pub fn certificate(mut self, val: files::input_file::InputFile) -> Self { self.certificate = Some(val); self }
-    pub fn ip_address(mut self, val: impl Into<String>) -> Self { self.ip_address = Some(val.into()); self }
-    pub fn max_connections(mut self, val: i32) -> Self { self.max_connections = Some(val); self }
-    pub fn allowed_updates(mut self, val: Vec<String>) -> Self { self.allowed_updates = Some(val); self }
-    pub fn drop_pending_updates(mut self, val: bool) -> Self { self.drop_pending_updates = Some(val); self }
-    pub fn secret_token(mut self, val: impl Into<String>) -> Self { self.secret_token = Some(val.into()); self }
+    pub fn certificate(mut self, val: files::input_file::InputFile) -> Self {
+        self.certificate = Some(val);
+        self
+    }
+    pub fn ip_address(mut self, val: impl Into<String>) -> Self {
+        self.ip_address = Some(val.into());
+        self
+    }
+    pub fn max_connections(mut self, val: i32) -> Self {
+        self.max_connections = Some(val);
+        self
+    }
+    pub fn allowed_updates(mut self, val: Vec<String>) -> Self {
+        self.allowed_updates = Some(val);
+        self
+    }
+    pub fn drop_pending_updates(mut self, val: bool) -> Self {
+        self.drop_pending_updates = Some(val);
+        self
+    }
+    pub fn secret_token(mut self, val: impl Into<String>) -> Self {
+        self.secret_token = Some(val.into());
+        self
+    }
 
     pub async fn send(self) -> Result<bool> {
-        let mut params = vec![
-            RequestParameter::new("url", serde_json::Value::String(self.url)),
-        ];
+        let mut params = vec![RequestParameter::new(
+            "url",
+            serde_json::Value::String(self.url),
+        )];
         push_opt_file(&mut params, "certificate", self.certificate);
         push_opt_str(&mut params, "ip_address", &self.ip_address);
         push_opt(&mut params, "max_connections", &self.max_connections)?;
         push_opt(&mut params, "allowed_updates", &self.allowed_updates)?;
-        push_opt(&mut params, "drop_pending_updates", &self.drop_pending_updates)?;
+        push_opt(
+            &mut params,
+            "drop_pending_updates",
+            &self.drop_pending_updates,
+        )?;
         push_opt_str(&mut params, "secret_token", &self.secret_token);
         self.bot.do_api_request("setWebhook", params).await
     }
@@ -1345,18 +2328,23 @@ impl_into_future!(SetWebhookBuilder, bool);
 // DeleteWebhookBuilder
 // =========================================================================
 
+#[derive(Serialize)]
 pub struct DeleteWebhookBuilder<'a> {
+    #[serde(skip)]
     bot: &'a Bot,
+    #[serde(skip_serializing_if = "Option::is_none")]
     drop_pending_updates: Option<bool>,
 }
 
 impl<'a> DeleteWebhookBuilder<'a> {
-    pub fn drop_pending_updates(mut self, val: bool) -> Self { self.drop_pending_updates = Some(val); self }
+    pub fn drop_pending_updates(mut self, val: bool) -> Self {
+        self.drop_pending_updates = Some(val);
+        self
+    }
 
     pub async fn send(self) -> Result<bool> {
-        let mut params = Vec::new();
-        push_opt(&mut params, "drop_pending_updates", &self.drop_pending_updates)?;
-        self.bot.do_api_request("deleteWebhook", params).await
+        let payload = serde_json::to_vec(&self)?;
+        self.bot.do_post_json("deleteWebhook", &payload).await
     }
 }
 
@@ -1366,17 +2354,17 @@ impl_into_future!(DeleteWebhookBuilder, bool);
 // GetFileBuilder
 // =========================================================================
 
+#[derive(Serialize)]
 pub struct GetFileBuilder<'a> {
+    #[serde(skip)]
     bot: &'a Bot,
     file_id: String,
 }
 
 impl<'a> GetFileBuilder<'a> {
     pub async fn send(self) -> Result<files::file::File> {
-        let params = vec![
-            RequestParameter::new("file_id", serde_json::Value::String(self.file_id)),
-        ];
-        self.bot.do_api_request("getFile", params).await
+        let payload = serde_json::to_vec(&self)?;
+        self.bot.do_post_json("getFile", &payload).await
     }
 }
 
@@ -1386,7 +2374,9 @@ impl_into_future!(GetFileBuilder, files::file::File);
 // SendInvoiceBuilder
 // =========================================================================
 
+#[derive(Serialize)]
 pub struct SendInvoiceBuilder<'a> {
+    #[serde(skip)]
     bot: &'a Bot,
     chat_id: ChatId,
     title: String,
@@ -1394,95 +2384,166 @@ pub struct SendInvoiceBuilder<'a> {
     payload: String,
     currency: String,
     prices: Vec<serde_json::Value>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     provider_token: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     max_tip_amount: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     suggested_tip_amounts: Option<Vec<i64>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     start_parameter: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     provider_data: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     photo_url: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     photo_size: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     photo_width: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     photo_height: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     need_name: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     need_phone_number: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     need_email: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     need_shipping_address: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     send_phone_number_to_provider: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     send_email_to_provider: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     is_flexible: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     disable_notification: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     protect_content: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     reply_parameters: Option<reply::ReplyParameters>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     reply_markup: Option<serde_json::Value>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     message_thread_id: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     message_effect_id: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     allow_paid_broadcast: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     direct_messages_topic_id: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     suggested_post_parameters: Option<suggested_post::SuggestedPostParameters>,
 }
 
 impl<'a> SendInvoiceBuilder<'a> {
-    pub fn provider_token(mut self, val: impl Into<String>) -> Self { self.provider_token = Some(val.into()); self }
-    pub fn max_tip_amount(mut self, val: i64) -> Self { self.max_tip_amount = Some(val); self }
-    pub fn suggested_tip_amounts(mut self, val: Vec<i64>) -> Self { self.suggested_tip_amounts = Some(val); self }
-    pub fn start_parameter(mut self, val: impl Into<String>) -> Self { self.start_parameter = Some(val.into()); self }
-    pub fn provider_data(mut self, val: impl Into<String>) -> Self { self.provider_data = Some(val.into()); self }
-    pub fn photo_url(mut self, val: impl Into<String>) -> Self { self.photo_url = Some(val.into()); self }
-    pub fn photo_size(mut self, val: i64) -> Self { self.photo_size = Some(val); self }
-    pub fn photo_width(mut self, val: i64) -> Self { self.photo_width = Some(val); self }
-    pub fn photo_height(mut self, val: i64) -> Self { self.photo_height = Some(val); self }
-    pub fn need_name(mut self, val: bool) -> Self { self.need_name = Some(val); self }
-    pub fn need_phone_number(mut self, val: bool) -> Self { self.need_phone_number = Some(val); self }
-    pub fn need_email(mut self, val: bool) -> Self { self.need_email = Some(val); self }
-    pub fn need_shipping_address(mut self, val: bool) -> Self { self.need_shipping_address = Some(val); self }
-    pub fn send_phone_number_to_provider(mut self, val: bool) -> Self { self.send_phone_number_to_provider = Some(val); self }
-    pub fn send_email_to_provider(mut self, val: bool) -> Self { self.send_email_to_provider = Some(val); self }
-    pub fn is_flexible(mut self, val: bool) -> Self { self.is_flexible = Some(val); self }
-    pub fn disable_notification(mut self, val: bool) -> Self { self.disable_notification = Some(val); self }
-    pub fn protect_content(mut self, val: bool) -> Self { self.protect_content = Some(val); self }
-    pub fn reply_parameters(mut self, val: reply::ReplyParameters) -> Self { self.reply_parameters = Some(val); self }
-    pub fn reply_markup(mut self, val: serde_json::Value) -> Self { self.reply_markup = Some(val); self }
-    pub fn message_thread_id(mut self, val: i64) -> Self { self.message_thread_id = Some(val); self }
-    pub fn message_effect_id(mut self, val: impl Into<String>) -> Self { self.message_effect_id = Some(val.into()); self }
-    pub fn allow_paid_broadcast(mut self, val: bool) -> Self { self.allow_paid_broadcast = Some(val); self }
-    pub fn direct_messages_topic_id(mut self, val: i64) -> Self { self.direct_messages_topic_id = Some(val); self }
-    pub fn suggested_post_parameters(mut self, val: suggested_post::SuggestedPostParameters) -> Self { self.suggested_post_parameters = Some(val); self }
+    pub fn provider_token(mut self, val: impl Into<String>) -> Self {
+        self.provider_token = Some(val.into());
+        self
+    }
+    pub fn max_tip_amount(mut self, val: i64) -> Self {
+        self.max_tip_amount = Some(val);
+        self
+    }
+    pub fn suggested_tip_amounts(mut self, val: Vec<i64>) -> Self {
+        self.suggested_tip_amounts = Some(val);
+        self
+    }
+    pub fn start_parameter(mut self, val: impl Into<String>) -> Self {
+        self.start_parameter = Some(val.into());
+        self
+    }
+    pub fn provider_data(mut self, val: impl Into<String>) -> Self {
+        self.provider_data = Some(val.into());
+        self
+    }
+    pub fn photo_url(mut self, val: impl Into<String>) -> Self {
+        self.photo_url = Some(val.into());
+        self
+    }
+    pub fn photo_size(mut self, val: i64) -> Self {
+        self.photo_size = Some(val);
+        self
+    }
+    pub fn photo_width(mut self, val: i64) -> Self {
+        self.photo_width = Some(val);
+        self
+    }
+    pub fn photo_height(mut self, val: i64) -> Self {
+        self.photo_height = Some(val);
+        self
+    }
+    pub fn need_name(mut self, val: bool) -> Self {
+        self.need_name = Some(val);
+        self
+    }
+    pub fn need_phone_number(mut self, val: bool) -> Self {
+        self.need_phone_number = Some(val);
+        self
+    }
+    pub fn need_email(mut self, val: bool) -> Self {
+        self.need_email = Some(val);
+        self
+    }
+    pub fn need_shipping_address(mut self, val: bool) -> Self {
+        self.need_shipping_address = Some(val);
+        self
+    }
+    pub fn send_phone_number_to_provider(mut self, val: bool) -> Self {
+        self.send_phone_number_to_provider = Some(val);
+        self
+    }
+    pub fn send_email_to_provider(mut self, val: bool) -> Self {
+        self.send_email_to_provider = Some(val);
+        self
+    }
+    pub fn is_flexible(mut self, val: bool) -> Self {
+        self.is_flexible = Some(val);
+        self
+    }
+    pub fn disable_notification(mut self, val: bool) -> Self {
+        self.disable_notification = Some(val);
+        self
+    }
+    pub fn protect_content(mut self, val: bool) -> Self {
+        self.protect_content = Some(val);
+        self
+    }
+    pub fn reply_parameters(mut self, val: reply::ReplyParameters) -> Self {
+        self.reply_parameters = Some(val);
+        self
+    }
+    pub fn reply_markup(mut self, val: serde_json::Value) -> Self {
+        self.reply_markup = Some(val);
+        self
+    }
+    pub fn message_thread_id(mut self, val: i64) -> Self {
+        self.message_thread_id = Some(val);
+        self
+    }
+    pub fn message_effect_id(mut self, val: impl Into<String>) -> Self {
+        self.message_effect_id = Some(val.into());
+        self
+    }
+    pub fn allow_paid_broadcast(mut self, val: bool) -> Self {
+        self.allow_paid_broadcast = Some(val);
+        self
+    }
+    pub fn direct_messages_topic_id(mut self, val: i64) -> Self {
+        self.direct_messages_topic_id = Some(val);
+        self
+    }
+    pub fn suggested_post_parameters(
+        mut self,
+        val: suggested_post::SuggestedPostParameters,
+    ) -> Self {
+        self.suggested_post_parameters = Some(val);
+        self
+    }
 
     pub async fn send(self) -> Result<message::Message> {
-        let mut params = vec![
-            RequestParameter::new("chat_id", serde_json::to_value(&self.chat_id)?),
-            RequestParameter::new("title", serde_json::Value::String(self.title)),
-            RequestParameter::new("description", serde_json::Value::String(self.description)),
-            RequestParameter::new("payload", serde_json::Value::String(self.payload)),
-            RequestParameter::new("currency", serde_json::Value::String(self.currency)),
-            RequestParameter::new("prices", serde_json::to_value(&self.prices)?),
-        ];
-        push_opt_str(&mut params, "provider_token", &self.provider_token);
-        push_opt(&mut params, "max_tip_amount", &self.max_tip_amount)?;
-        push_opt(&mut params, "suggested_tip_amounts", &self.suggested_tip_amounts)?;
-        push_opt_str(&mut params, "start_parameter", &self.start_parameter);
-        push_opt_str(&mut params, "provider_data", &self.provider_data);
-        push_opt_str(&mut params, "photo_url", &self.photo_url);
-        push_opt(&mut params, "photo_size", &self.photo_size)?;
-        push_opt(&mut params, "photo_width", &self.photo_width)?;
-        push_opt(&mut params, "photo_height", &self.photo_height)?;
-        push_opt(&mut params, "need_name", &self.need_name)?;
-        push_opt(&mut params, "need_phone_number", &self.need_phone_number)?;
-        push_opt(&mut params, "need_email", &self.need_email)?;
-        push_opt(&mut params, "need_shipping_address", &self.need_shipping_address)?;
-        push_opt(&mut params, "send_phone_number_to_provider", &self.send_phone_number_to_provider)?;
-        push_opt(&mut params, "send_email_to_provider", &self.send_email_to_provider)?;
-        push_opt(&mut params, "is_flexible", &self.is_flexible)?;
-        push_opt(&mut params, "disable_notification", &self.disable_notification)?;
-        push_opt(&mut params, "protect_content", &self.protect_content)?;
-        push_opt(&mut params, "reply_parameters", &self.reply_parameters)?;
-        push_opt(&mut params, "reply_markup", &self.reply_markup)?;
-        push_opt(&mut params, "message_thread_id", &self.message_thread_id)?;
-        push_opt_str(&mut params, "message_effect_id", &self.message_effect_id);
-        push_opt(&mut params, "allow_paid_broadcast", &self.allow_paid_broadcast)?;
-        push_opt(&mut params, "direct_messages_topic_id", &self.direct_messages_topic_id)?;
-        push_opt(&mut params, "suggested_post_parameters", &self.suggested_post_parameters)?;
-        self.bot.do_api_request("sendInvoice", params).await
+        let payload = serde_json::to_vec(&self)?;
+        self.bot.do_post_json("sendInvoice", &payload).await
     }
 }
 
@@ -1492,26 +2553,31 @@ impl_into_future!(SendInvoiceBuilder, message::Message);
 // AnswerShippingQueryBuilder
 // =========================================================================
 
+#[derive(Serialize)]
 pub struct AnswerShippingQueryBuilder<'a> {
+    #[serde(skip)]
     bot: &'a Bot,
     shipping_query_id: String,
     ok: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
     shipping_options: Option<Vec<serde_json::Value>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     error_message: Option<String>,
 }
 
 impl<'a> AnswerShippingQueryBuilder<'a> {
-    pub fn shipping_options(mut self, val: Vec<serde_json::Value>) -> Self { self.shipping_options = Some(val); self }
-    pub fn error_message(mut self, val: impl Into<String>) -> Self { self.error_message = Some(val.into()); self }
+    pub fn shipping_options(mut self, val: Vec<serde_json::Value>) -> Self {
+        self.shipping_options = Some(val);
+        self
+    }
+    pub fn error_message(mut self, val: impl Into<String>) -> Self {
+        self.error_message = Some(val.into());
+        self
+    }
 
     pub async fn send(self) -> Result<bool> {
-        let mut params = vec![
-            RequestParameter::new("shipping_query_id", serde_json::Value::String(self.shipping_query_id)),
-            RequestParameter::new("ok", serde_json::to_value(self.ok)?),
-        ];
-        push_opt(&mut params, "shipping_options", &self.shipping_options)?;
-        push_opt_str(&mut params, "error_message", &self.error_message);
-        self.bot.do_api_request("answerShippingQuery", params).await
+        let payload = serde_json::to_vec(&self)?;
+        self.bot.do_post_json("answerShippingQuery", &payload).await
     }
 }
 
@@ -1521,23 +2587,27 @@ impl_into_future!(AnswerShippingQueryBuilder, bool);
 // AnswerPreCheckoutQueryBuilder
 // =========================================================================
 
+#[derive(Serialize)]
 pub struct AnswerPreCheckoutQueryBuilder<'a> {
+    #[serde(skip)]
     bot: &'a Bot,
     pre_checkout_query_id: String,
     ok: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
     error_message: Option<String>,
 }
 
 impl<'a> AnswerPreCheckoutQueryBuilder<'a> {
-    pub fn error_message(mut self, val: impl Into<String>) -> Self { self.error_message = Some(val.into()); self }
+    pub fn error_message(mut self, val: impl Into<String>) -> Self {
+        self.error_message = Some(val.into());
+        self
+    }
 
     pub async fn send(self) -> Result<bool> {
-        let mut params = vec![
-            RequestParameter::new("pre_checkout_query_id", serde_json::Value::String(self.pre_checkout_query_id)),
-            RequestParameter::new("ok", serde_json::to_value(self.ok)?),
-        ];
-        push_opt_str(&mut params, "error_message", &self.error_message);
-        self.bot.do_api_request("answerPreCheckoutQuery", params).await
+        let payload = serde_json::to_vec(&self)?;
+        self.bot
+            .do_post_json("answerPreCheckoutQuery", &payload)
+            .await
     }
 }
 
@@ -1960,10 +3030,7 @@ impl Bot {
     // -- Editing messages -------------------------------------------------
 
     /// Build an `editMessageText` request.
-    pub fn edit_message_text(
-        &self,
-        text: impl Into<String>,
-    ) -> EditMessageTextBuilder<'_> {
+    pub fn edit_message_text(&self, text: impl Into<String>) -> EditMessageTextBuilder<'_> {
         EditMessageTextBuilder {
             bot: self,
             text: text.into(),
@@ -1995,10 +3062,7 @@ impl Bot {
     }
 
     /// Build an `editMessageMedia` request.
-    pub fn edit_message_media(
-        &self,
-        media: serde_json::Value,
-    ) -> EditMessageMediaBuilder<'_> {
+    pub fn edit_message_media(&self, media: serde_json::Value) -> EditMessageMediaBuilder<'_> {
         EditMessageMediaBuilder {
             bot: self,
             media,
@@ -2059,10 +3123,7 @@ impl Bot {
     // -- Webhooks ------------------------------------------------------------
 
     /// Build a `setWebhook` request.
-    pub fn set_webhook(
-        &self,
-        url: impl Into<String>,
-    ) -> SetWebhookBuilder<'_> {
+    pub fn set_webhook(&self, url: impl Into<String>) -> SetWebhookBuilder<'_> {
         SetWebhookBuilder {
             bot: self,
             url: url.into(),
@@ -2086,10 +3147,7 @@ impl Bot {
     // -- Files ---------------------------------------------------------------
 
     /// Build a `getFile` request.
-    pub fn get_file(
-        &self,
-        file_id: impl Into<String>,
-    ) -> GetFileBuilder<'_> {
+    pub fn get_file(&self, file_id: impl Into<String>) -> GetFileBuilder<'_> {
         GetFileBuilder {
             bot: self,
             file_id: file_id.into(),
@@ -2172,24 +3230,23 @@ impl Bot {
             error_message: None,
         }
     }
-
 }
 
 // =========================================================================
 // GetManagedBotTokenBuilder
 // =========================================================================
 
+#[derive(Serialize)]
 pub struct GetManagedBotTokenBuilder<'a> {
+    #[serde(skip)]
     bot: &'a Bot,
     bot_user_id: i64,
 }
 
 impl<'a> GetManagedBotTokenBuilder<'a> {
     pub async fn send(self) -> Result<String> {
-        let params = vec![
-            RequestParameter::new("bot_user_id", serde_json::to_value(self.bot_user_id)?),
-        ];
-        self.bot.do_api_request("getManagedBotToken", params).await
+        let payload = serde_json::to_vec(&self)?;
+        self.bot.do_post_json("getManagedBotToken", &payload).await
     }
 }
 
@@ -2199,17 +3256,19 @@ impl_into_future!(GetManagedBotTokenBuilder, String);
 // ReplaceManagedBotTokenBuilder
 // =========================================================================
 
+#[derive(Serialize)]
 pub struct ReplaceManagedBotTokenBuilder<'a> {
+    #[serde(skip)]
     bot: &'a Bot,
     bot_user_id: i64,
 }
 
 impl<'a> ReplaceManagedBotTokenBuilder<'a> {
     pub async fn send(self) -> Result<String> {
-        let params = vec![
-            RequestParameter::new("bot_user_id", serde_json::to_value(self.bot_user_id)?),
-        ];
-        self.bot.do_api_request("replaceManagedBotToken", params).await
+        let payload = serde_json::to_vec(&self)?;
+        self.bot
+            .do_post_json("replaceManagedBotToken", &payload)
+            .await
     }
 }
 
@@ -2219,36 +3278,52 @@ impl_into_future!(ReplaceManagedBotTokenBuilder, String);
 // SavePreparedKeyboardButtonBuilder
 // =========================================================================
 
+#[derive(Serialize)]
 pub struct SavePreparedKeyboardButtonBuilder<'a> {
+    #[serde(skip)]
     bot: &'a Bot,
     user_id: i64,
     button: inline::inline_keyboard_button::InlineKeyboardButton,
+    #[serde(skip_serializing_if = "Option::is_none")]
     allow_user_chats: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     allow_bot_chats: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     allow_group_chats: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     allow_channel_chats: Option<bool>,
 }
 
 impl<'a> SavePreparedKeyboardButtonBuilder<'a> {
-    pub fn allow_user_chats(mut self, val: bool) -> Self { self.allow_user_chats = Some(val); self }
-    pub fn allow_bot_chats(mut self, val: bool) -> Self { self.allow_bot_chats = Some(val); self }
-    pub fn allow_group_chats(mut self, val: bool) -> Self { self.allow_group_chats = Some(val); self }
-    pub fn allow_channel_chats(mut self, val: bool) -> Self { self.allow_channel_chats = Some(val); self }
+    pub fn allow_user_chats(mut self, val: bool) -> Self {
+        self.allow_user_chats = Some(val);
+        self
+    }
+    pub fn allow_bot_chats(mut self, val: bool) -> Self {
+        self.allow_bot_chats = Some(val);
+        self
+    }
+    pub fn allow_group_chats(mut self, val: bool) -> Self {
+        self.allow_group_chats = Some(val);
+        self
+    }
+    pub fn allow_channel_chats(mut self, val: bool) -> Self {
+        self.allow_channel_chats = Some(val);
+        self
+    }
 
     pub async fn send(self) -> Result<prepared_keyboard_button::PreparedKeyboardButton> {
-        let mut params = vec![
-            RequestParameter::new("user_id", serde_json::to_value(self.user_id)?),
-            RequestParameter::new("button", serde_json::to_value(&self.button)?),
-        ];
-        push_opt(&mut params, "allow_user_chats", &self.allow_user_chats)?;
-        push_opt(&mut params, "allow_bot_chats", &self.allow_bot_chats)?;
-        push_opt(&mut params, "allow_group_chats", &self.allow_group_chats)?;
-        push_opt(&mut params, "allow_channel_chats", &self.allow_channel_chats)?;
-        self.bot.do_api_request("savePreparedKeyboardButton", params).await
+        let payload = serde_json::to_vec(&self)?;
+        self.bot
+            .do_post_json("savePreparedKeyboardButton", &payload)
+            .await
     }
 }
 
-impl_into_future!(SavePreparedKeyboardButtonBuilder, prepared_keyboard_button::PreparedKeyboardButton);
+impl_into_future!(
+    SavePreparedKeyboardButtonBuilder,
+    prepared_keyboard_button::PreparedKeyboardButton
+);
 
 // =========================================================================
 // Builder factory methods on Bot for the new API methods
@@ -2307,26 +3382,31 @@ impl Bot {
 // SendChatActionBuilder
 // ---------------------------------------------------------------------------
 
+#[derive(Serialize)]
 pub struct SendChatActionBuilder<'a> {
+    #[serde(skip)]
     bot: &'a Bot,
     chat_id: ChatId,
     action: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     message_thread_id: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     business_connection_id: Option<String>,
 }
 
 impl<'a> SendChatActionBuilder<'a> {
-    pub fn message_thread_id(mut self, id: i64) -> Self { self.message_thread_id = Some(id); self }
-    pub fn business_connection_id(mut self, id: impl Into<String>) -> Self { self.business_connection_id = Some(id.into()); self }
+    pub fn message_thread_id(mut self, id: i64) -> Self {
+        self.message_thread_id = Some(id);
+        self
+    }
+    pub fn business_connection_id(mut self, id: impl Into<String>) -> Self {
+        self.business_connection_id = Some(id.into());
+        self
+    }
 
     pub async fn send(self) -> Result<bool> {
-        let mut params = vec![
-            RequestParameter::new("chat_id", serde_json::to_value(&self.chat_id)?),
-            RequestParameter::new("action", serde_json::Value::String(self.action)),
-        ];
-        push_opt(&mut params, "message_thread_id", &self.message_thread_id);
-        push_opt_str(&mut params, "business_connection_id", &self.business_connection_id);
-        self.bot.do_api_request("sendChatAction", params).await
+        let payload = serde_json::to_vec(&self)?;
+        self.bot.do_post_json("sendChatAction", &payload).await
     }
 }
 

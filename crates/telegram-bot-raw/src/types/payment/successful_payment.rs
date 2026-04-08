@@ -1,4 +1,3 @@
-
 use serde::{Deserialize, Serialize};
 
 use super::order_info::OrderInfo;

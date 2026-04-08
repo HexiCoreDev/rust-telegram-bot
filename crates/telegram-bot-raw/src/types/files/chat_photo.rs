@@ -1,4 +1,3 @@
-
 use serde::{Deserialize, Serialize};
 
 /// A chat photo containing references to both the small and big variants.

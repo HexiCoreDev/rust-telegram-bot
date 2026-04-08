@@ -1,4 +1,3 @@
-
 use serde::{Deserialize, Serialize};
 
 /// A point on the map.

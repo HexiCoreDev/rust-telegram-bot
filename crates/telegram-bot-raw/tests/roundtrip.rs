@@ -536,7 +536,7 @@ fn roundtrip_update_with_text_message() {
         });
         let update: Update = roundtrip_check(json);
         assert_eq!(update.update_id, 100000001);
-        let msg = update.message.as_ref().unwrap();
+        let msg = update.message().unwrap();
         assert_eq!(msg.message_id, 42);
         assert_eq!(msg.text.as_deref(), Some("/start"));
 
@@ -596,7 +596,7 @@ fn roundtrip_update_with_callback_query() {
         });
         let update: Update = roundtrip_check(json);
         assert_eq!(update.update_id, 100000002);
-        let cbq = update.callback_query.as_ref().unwrap();
+        let cbq = update.callback_query().unwrap();
         assert_eq!(cbq.id, "4382bfdwdsb323b2d9");
         assert_eq!(cbq.from_user.id, 123456789);
         assert_eq!(cbq.from_user.username.as_deref(), Some("johndoe"));
@@ -640,7 +640,7 @@ fn roundtrip_update_with_inline_query() {
         });
         let update: Update = roundtrip_check(json);
         assert_eq!(update.update_id, 100000003);
-        let iq = update.inline_query.as_ref().unwrap();
+        let iq = update.inline_query().unwrap();
         assert_eq!(iq.id, "12345678901234567");
         assert_eq!(iq.from_user.id, 123456789);
         assert_eq!(iq.query, "search term");
@@ -795,8 +795,7 @@ fn roundtrip_update_edited_message() {
         });
         let update: Update = roundtrip_check(json);
         assert_eq!(update.update_id, 100000004);
-        assert!(update.message.is_none());
-        let msg = update.edited_message.as_ref().unwrap();
+        let msg = update.edited_message().unwrap();
         assert_eq!(msg.message_id, 60);
         assert_eq!(msg.text.as_deref(), Some("Edited text"));
         assert_eq!(msg.edit_date, Some(1700000600));
@@ -830,7 +829,7 @@ fn roundtrip_update_channel_post() {
         });
         let update: Update = roundtrip_check(json);
         assert_eq!(update.update_id, 100000005);
-        let post = update.channel_post.as_ref().unwrap();
+        let post = update.channel_post().unwrap();
         assert_eq!(post.message_id, 70);
         assert_eq!(post.chat.chat_type, "channel");
         assert_eq!(post.text.as_deref(), Some("Breaking news!"));
@@ -874,7 +873,7 @@ fn roundtrip_update_callback_query_inaccessible_message() {
             }
         });
         let update: Update = roundtrip_check(json);
-        let cbq = update.callback_query.as_ref().unwrap();
+        let cbq = update.callback_query().unwrap();
         let msg = cbq.message.as_ref().unwrap();
         assert_eq!(msg.message_id(), 80);
     });
@@ -934,7 +933,7 @@ fn roundtrip_update_minimal_message() {
         });
         let update: Update = roundtrip_check(json);
         assert_eq!(update.update_id, 1);
-        let msg = update.message.as_ref().unwrap();
+        let msg = update.message().unwrap();
         assert_eq!(msg.message_id, 1);
         assert!(msg.from_user.is_none());
         assert!(msg.text.is_none());
@@ -988,7 +987,7 @@ fn roundtrip_complex_message_with_reply_markup() {
             }
         });
         let update: Update = roundtrip_check(json);
-        let msg = update.message.as_ref().unwrap();
+        let msg = update.message().unwrap();
         assert_eq!(msg.message_id, 999);
         assert_eq!(msg.message_thread_id, Some(42));
         assert!(msg.is_topic_message);

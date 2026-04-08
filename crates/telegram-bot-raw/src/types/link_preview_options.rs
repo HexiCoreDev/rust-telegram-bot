@@ -1,4 +1,3 @@
-
 use serde::{Deserialize, Serialize};
 
 /// Options used for link preview generation.

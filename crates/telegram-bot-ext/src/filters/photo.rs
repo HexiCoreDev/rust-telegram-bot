@@ -6,7 +6,8 @@ use crate::filters::base::{effective_message_val, to_value, Filter, FilterResult
 
 pub struct PhotoFilter;
 impl Filter for PhotoFilter {
-    fn check_update(&self, update: &Update) -> FilterResult { let __v = to_value(update);
+    fn check_update(&self, update: &Update) -> FilterResult {
+        let __v = to_value(update);
         if effective_message_val(&__v)
             .and_then(|m| m.get("photo"))
             .and_then(|v| v.as_array())
@@ -26,7 +27,8 @@ pub const PHOTO: PhotoFilter = PhotoFilter;
 
 pub struct StickerAll;
 impl Filter for StickerAll {
-    fn check_update(&self, update: &Update) -> FilterResult { let __v = to_value(update);
+    fn check_update(&self, update: &Update) -> FilterResult {
+        let __v = to_value(update);
         if effective_message_val(&__v)
             .and_then(|m| m.get("sticker"))
             .map(|v| !v.is_null())
@@ -44,7 +46,8 @@ impl Filter for StickerAll {
 
 pub struct StickerAnimated;
 impl Filter for StickerAnimated {
-    fn check_update(&self, update: &Update) -> FilterResult { let __v = to_value(update);
+    fn check_update(&self, update: &Update) -> FilterResult {
+        let __v = to_value(update);
         if effective_message_val(&__v)
             .and_then(|m| m.get("sticker"))
             .filter(|s| !s.is_null())
@@ -64,7 +67,8 @@ impl Filter for StickerAnimated {
 
 pub struct StickerStatic;
 impl Filter for StickerStatic {
-    fn check_update(&self, update: &Update) -> FilterResult { let __v = to_value(update);
+    fn check_update(&self, update: &Update) -> FilterResult {
+        let __v = to_value(update);
         let sticker = match effective_message_val(&__v).and_then(|m| m.get("sticker")) {
             Some(s) if !s.is_null() => s,
             _ => return FilterResult::NoMatch,
@@ -90,7 +94,8 @@ impl Filter for StickerStatic {
 
 pub struct StickerVideo;
 impl Filter for StickerVideo {
-    fn check_update(&self, update: &Update) -> FilterResult { let __v = to_value(update);
+    fn check_update(&self, update: &Update) -> FilterResult {
+        let __v = to_value(update);
         if effective_message_val(&__v)
             .and_then(|m| m.get("sticker"))
             .filter(|s| !s.is_null())
@@ -110,7 +115,8 @@ impl Filter for StickerVideo {
 
 pub struct StickerPremium;
 impl Filter for StickerPremium {
-    fn check_update(&self, update: &Update) -> FilterResult { let __v = to_value(update);
+    fn check_update(&self, update: &Update) -> FilterResult {
+        let __v = to_value(update);
         if effective_message_val(&__v)
             .and_then(|m| m.get("sticker"))
             .filter(|s| !s.is_null())
@@ -146,7 +152,8 @@ impl StickerEmoji {
 }
 
 impl Filter for StickerEmoji {
-    fn check_update(&self, update: &Update) -> FilterResult { let __v = to_value(update);
+    fn check_update(&self, update: &Update) -> FilterResult {
+        let __v = to_value(update);
         let emoji = effective_message_val(&__v)
             .and_then(|m| m.get("sticker"))
             .filter(|s| !s.is_null())

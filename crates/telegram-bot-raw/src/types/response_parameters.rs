@@ -1,4 +1,3 @@
-
 use serde::{Deserialize, Serialize};
 
 /// Describes why a request was unsuccessful.

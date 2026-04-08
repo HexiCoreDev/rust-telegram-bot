@@ -64,12 +64,8 @@ impl Serialize for InputFile {
         match self {
             InputFile::FileId(id) => s.serialize_str(id),
             InputFile::Url(url) => s.serialize_str(url),
-            InputFile::Bytes { filename, .. } => {
-                s.serialize_str(&format!("attach://{filename}"))
-            }
-            InputFile::Path(p) => {
-                s.serialize_str(&format!("attach://{}", p.display()))
-            }
+            InputFile::Bytes { filename, .. } => s.serialize_str(&format!("attach://{filename}")),
+            InputFile::Path(p) => s.serialize_str(&format!("attach://{}", p.display())),
         }
     }
 }

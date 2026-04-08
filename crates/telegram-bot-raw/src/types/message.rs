@@ -273,15 +273,15 @@ pub struct Message {
 
     /// Message is a game, information about the game.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub game: Option<Game>,
+    pub game: Option<Box<Game>>,
 
     /// Message is a native poll, information about the poll.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub poll: Option<Poll>,
+    pub poll: Option<Box<Poll>>,
 
     /// Message is a venue, information about the venue.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub venue: Option<Venue>,
+    pub venue: Option<Box<Venue>>,
 
     /// Message is a shared location, information about the location.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -339,15 +339,15 @@ pub struct Message {
 
     /// Message is an invoice for a payment, information about the invoice.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub invoice: Option<Invoice>,
+    pub invoice: Option<Box<Invoice>>,
 
     /// Message is a service message about a successful payment.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub successful_payment: Option<SuccessfulPayment>,
+    pub successful_payment: Option<Box<SuccessfulPayment>>,
 
     /// Message is a service message about a refunded payment.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub refunded_payment: Option<RefundedPayment>,
+    pub refunded_payment: Option<Box<RefundedPayment>>,
 
     /// Message is a service message about the paid message price changing.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -368,7 +368,7 @@ pub struct Message {
 
     /// Telegram Passport data.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub passport_data: Option<PassportData>,
+    pub passport_data: Option<Box<PassportData>>,
 
     // ── Proximity alert ───────────────────────────────────────────────────────
     /// Service message: a user in the chat triggered another user's proximity alert
@@ -418,15 +418,15 @@ pub struct Message {
 
     /// The message is a scheduled giveaway message.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub giveaway: Option<Giveaway>,
+    pub giveaway: Option<Box<Giveaway>>,
 
     /// A giveaway with public winners was completed.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub giveaway_winners: Option<GiveawayWinners>,
+    pub giveaway_winners: Option<Box<GiveawayWinners>>,
 
     /// Service message: a giveaway without public winners was completed.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub giveaway_completed: Option<GiveawayCompleted>,
+    pub giveaway_completed: Option<Box<GiveawayCompleted>>,
 
     // ── Video chat ────────────────────────────────────────────────────────────
     /// Service message: video chat scheduled.

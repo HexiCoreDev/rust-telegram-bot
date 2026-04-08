@@ -1,4 +1,3 @@
-
 use serde::{Deserialize, Serialize};
 
 use crate::types::link_preview_options::LinkPreviewOptions;
@@ -20,7 +19,9 @@ pub struct InputTextMessageContent {
     pub link_preview_options: Option<LinkPreviewOptions>,
 }
 
-impl_new!(InputTextMessageContent { message_text: String });
+impl_new!(InputTextMessageContent {
+    message_text: String
+});
 
 impl InputTextMessageContent {
     /// Set the parse mode.

@@ -109,9 +109,15 @@ pub fn effective_user_val(v: &Value) -> Option<&Value> {
         }
     }
     for key in &[
-        "callback_query", "inline_query", "chosen_inline_result",
-        "shipping_query", "pre_checkout_query", "poll_answer",
-        "my_chat_member", "chat_member", "chat_join_request",
+        "callback_query",
+        "inline_query",
+        "chosen_inline_result",
+        "shipping_query",
+        "pre_checkout_query",
+        "poll_answer",
+        "my_chat_member",
+        "chat_member",
+        "chat_join_request",
     ] {
         if let Some(obj) = v.get(key) {
             if let Some(u) = obj.get("from") {
@@ -130,8 +136,10 @@ pub fn effective_chat_val(v: &Value) -> Option<&Value> {
         }
     }
     for key in &[
-        "callback_query", "my_chat_member",
-        "chat_member", "chat_join_request",
+        "callback_query",
+        "my_chat_member",
+        "chat_member",
+        "chat_join_request",
     ] {
         if let Some(obj) = v.get(key) {
             if let Some(c) = obj.get("chat") {
@@ -237,7 +245,6 @@ pub trait Filter: Send + Sync + 'static {
     }
 }
 
-
 // ---------------------------------------------------------------------------
 // F wrapper
 // ---------------------------------------------------------------------------
@@ -278,7 +285,6 @@ impl Filter for F {
         self.0.name()
     }
 }
-
 
 // ---------------------------------------------------------------------------
 // Combinators (private structs)
@@ -924,7 +930,8 @@ mod tests {
                 "chat": {"id": 1, "type": "private"},
                 "text": text
             }
-        })).unwrap()
+        }))
+        .unwrap()
     }
 
     fn empty_update() -> Update {
@@ -994,7 +1001,8 @@ mod tests {
                 "chat": {"id": 1, "type": "private"},
                 "document": {"file_id": "d", "file_unique_id": "e"}
             }
-        })).unwrap();
+        }))
+        .unwrap();
         assert!(ATTACHMENT.check_update(&update).is_match());
     }
 
@@ -1003,7 +1011,8 @@ mod tests {
         let update: Update = serde_json::from_value(json!({
             "update_id": 1,
             "edited_message": {"message_id": 2, "chat": {"id": 1, "type": "private"}, "date": 0}
-        })).unwrap();
+        }))
+        .unwrap();
         assert!(effective_message(&update).is_some());
     }
 
@@ -1016,7 +1025,8 @@ mod tests {
                 "from": {"id": 42, "is_bot": false, "first_name": "Test"},
                 "chat_instance": "ci"
             }
-        })).unwrap();
+        }))
+        .unwrap();
         let user = effective_user(&update).unwrap();
         assert_eq!(user.get("id").unwrap().as_i64().unwrap(), 42);
     }
@@ -1030,7 +1040,8 @@ mod tests {
                 "chat": {"id": 1, "type": "supergroup", "is_forum": true},
                 "text": "hello"
             }
-        })).unwrap();
+        }))
+        .unwrap();
         assert!(FORUM.check_update(&update).is_match());
     }
 
@@ -1044,7 +1055,8 @@ mod tests {
                 "from": {"id": 1, "is_bot": false, "first_name": "A", "is_premium": true},
                 "text": "hi"
             }
-        })).unwrap();
+        }))
+        .unwrap();
         assert!(PREMIUM_USER.check_update(&update).is_match());
     }
 

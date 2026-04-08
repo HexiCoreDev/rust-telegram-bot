@@ -1,4 +1,3 @@
-
 use serde::{Deserialize, Serialize};
 
 /// Represents the rights of an administrator in a chat.

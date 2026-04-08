@@ -16,7 +16,7 @@
 //! ```
 
 use telegram_bot::ext::prelude::{
-    ApplicationBuilder, CommandHandler, Context, HandlerResult, MessageHandler, Update, Arc,
+    ApplicationBuilder, Arc, CommandHandler, Context, HandlerResult, MessageHandler, Update,
     COMMAND, TEXT,
 };
 
@@ -81,9 +81,12 @@ async fn main() {
 
     let app = ApplicationBuilder::new().token(token).build();
 
-    app.add_typed_handler(CommandHandler::new("start", start), 0).await;
-    app.add_typed_handler(CommandHandler::new("help", help), 0).await;
-    app.add_typed_handler(MessageHandler::new(TEXT() & !COMMAND(), echo), 0).await;
+    app.add_typed_handler(CommandHandler::new("start", start), 0)
+        .await;
+    app.add_typed_handler(CommandHandler::new("help", help), 0)
+        .await;
+    app.add_typed_handler(MessageHandler::new(TEXT() & !COMMAND(), echo), 0)
+        .await;
 
     println!("Echo bot is running. Press Ctrl+C to stop.");
 

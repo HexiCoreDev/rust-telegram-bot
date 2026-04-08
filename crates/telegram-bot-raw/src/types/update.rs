@@ -4,7 +4,11 @@
 //! The three computed properties from Python (`effective_user`, `effective_chat`,
 //! `effective_message`) are provided as plain `fn` methods returning `Option` references.
 
-use serde::{Deserialize, Serialize};
+use std::fmt;
+
+use serde::de::{IgnoredAny, MapAccess, Visitor};
+use serde::ser::SerializeMap;
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 use super::business::{BusinessConnection, BusinessMessagesDeleted};
 use super::callback_query::CallbackQuery;
@@ -26,136 +30,334 @@ use super::user::User;
 /// This object represents an incoming update.
 ///
 /// Corresponds to the Bot API [`Update`](https://core.telegram.org/bots/api#update) object.
-///
-/// At most one of the optional fields can be present in any given update.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Update {
-    // ── Required ──────────────────────────────────────────────────────────────
-
     /// The update's unique identifier. Update identifiers start from a certain positive number
     /// and increase sequentially.
     pub update_id: i64,
 
-    // ── Message variants ──────────────────────────────────────────────────────
+    /// The payload carried by the update.
+    #[serde(flatten, default)]
+    pub kind: UpdateKind,
+}
 
+/// The payload carried by an incoming [`Update`].
+///
+/// Telegram sends update kinds as a single top-level key such as `message`,
+/// `callback_query`, or `poll`. This enum preserves that wire format via a
+/// custom serde implementation.
+#[derive(Debug, Clone, PartialEq)]
+pub enum UpdateKind {
     /// New incoming message of any kind — text, photo, sticker, etc.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub message: Option<Message>,
-
+    Message(Message),
     /// New version of a message that is known to the bot and was edited.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub edited_message: Option<Message>,
-
+    EditedMessage(Message),
     /// New incoming channel post of any kind — text, photo, sticker, etc.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub channel_post: Option<Message>,
-
+    ChannelPost(Message),
     /// New version of a channel post that is known to the bot and was edited.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub edited_channel_post: Option<Message>,
-
-    // ── Business messages ─────────────────────────────────────────────────────
-
-    /// The bot was connected to or disconnected from a business account, or a user edited an
-    /// existing connection with the bot.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub business_connection: Option<BusinessConnection>,
-
+    EditedChannelPost(Message),
+    /// The bot was connected to or disconnected from a business account.
+    BusinessConnection(BusinessConnection),
     /// New non-service message from a connected business account.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub business_message: Option<Message>,
-
+    BusinessMessage(Message),
     /// New version of a message from a connected business account.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub edited_business_message: Option<Message>,
-
+    EditedBusinessMessage(Message),
     /// Messages were deleted from a connected business account.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub deleted_business_messages: Option<BusinessMessagesDeleted>,
-
-    // ── Queries & results ─────────────────────────────────────────────────────
-
+    DeletedBusinessMessages(BusinessMessagesDeleted),
     /// New incoming inline query.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub inline_query: Option<InlineQuery>,
-
-    /// The result of an inline query that was chosen by a user and sent to their chat partner.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub chosen_inline_result: Option<ChosenInlineResult>,
-
+    InlineQuery(InlineQuery),
+    /// The result of an inline query that was chosen by a user.
+    ChosenInlineResult(ChosenInlineResult),
     /// New incoming callback query.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub callback_query: Option<CallbackQuery>,
-
-    /// New incoming shipping query; only for invoices with flexible price.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub shipping_query: Option<ShippingQuery>,
-
-    /// New incoming pre-checkout query; contains full information about checkout.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub pre_checkout_query: Option<PreCheckoutQuery>,
-
-    /// A user purchased paid media with a non-empty payload sent by the bot in a non-channel chat.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub purchased_paid_media: Option<PaidMediaPurchased>,
-
-    // ── Polls ─────────────────────────────────────────────────────────────────
-
-    /// New poll state. Bots receive only updates about stopped polls and polls which are
-    /// sent by the bot.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub poll: Option<Poll>,
-
+    CallbackQuery(CallbackQuery),
+    /// New incoming shipping query.
+    ShippingQuery(ShippingQuery),
+    /// New incoming pre-checkout query.
+    PreCheckoutQuery(PreCheckoutQuery),
+    /// A user purchased paid media.
+    PurchasedPaidMedia(PaidMediaPurchased),
+    /// New poll state.
+    Poll(Poll),
     /// A user changed their answer in a non-anonymous poll.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub poll_answer: Option<PollAnswer>,
-
-    // ── Chat member events ────────────────────────────────────────────────────
-
+    PollAnswer(PollAnswer),
     /// The bot's chat member status was updated in a chat.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub my_chat_member: Option<ChatMemberUpdated>,
-
+    MyChatMember(ChatMemberUpdated),
     /// A chat member's status was updated in a chat.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub chat_member: Option<ChatMemberUpdated>,
-
+    ChatMember(ChatMemberUpdated),
     /// A request to join the chat has been sent.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub chat_join_request: Option<ChatJoinRequest>,
-
-    // ── Chat boost events ─────────────────────────────────────────────────────
-
+    ChatJoinRequest(ChatJoinRequest),
     /// A chat boost was added or changed.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub chat_boost: Option<ChatBoostUpdated>,
-
+    ChatBoost(ChatBoostUpdated),
     /// A boost was removed from a chat.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub removed_chat_boost: Option<ChatBoostRemoved>,
-
-    // ── Reaction events ───────────────────────────────────────────────────────
-
+    RemovedChatBoost(ChatBoostRemoved),
     /// A reaction to a message was changed by a user.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub message_reaction: Option<MessageReactionUpdated>,
-
+    MessageReaction(MessageReactionUpdated),
     /// Reactions to a message with anonymous reactions were changed.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub message_reaction_count: Option<MessageReactionCountUpdated>,
+    MessageReactionCount(MessageReactionCountUpdated),
+    /// A managed bot was created or updated.
+    ManagedBot(ManagedBotUpdated),
+    /// Unknown or unsupported update types, or an update with no payload fields.
+    Unknown,
+}
 
-    // ── Managed bots ──────────────────────────────────────────────────────────
+impl Default for UpdateKind {
+    fn default() -> Self {
+        Self::Unknown
+    }
+}
 
-    /// A new bot was created to be managed by the bot, or the token of a managed bot was changed.
-    ///
-    /// Added in Bot API 9.6.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub managed_bot: Option<ManagedBotUpdated>,
+impl Serialize for UpdateKind {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        match self {
+            Self::Message(value) => {
+                serializer.serialize_newtype_variant("UpdateKind", 0, "message", value)
+            }
+            Self::EditedMessage(value) => {
+                serializer.serialize_newtype_variant("UpdateKind", 1, "edited_message", value)
+            }
+            Self::ChannelPost(value) => {
+                serializer.serialize_newtype_variant("UpdateKind", 2, "channel_post", value)
+            }
+            Self::EditedChannelPost(value) => {
+                serializer.serialize_newtype_variant("UpdateKind", 3, "edited_channel_post", value)
+            }
+            Self::BusinessConnection(value) => {
+                serializer.serialize_newtype_variant("UpdateKind", 4, "business_connection", value)
+            }
+            Self::BusinessMessage(value) => {
+                serializer.serialize_newtype_variant("UpdateKind", 5, "business_message", value)
+            }
+            Self::EditedBusinessMessage(value) => serializer.serialize_newtype_variant(
+                "UpdateKind",
+                6,
+                "edited_business_message",
+                value,
+            ),
+            Self::DeletedBusinessMessages(value) => serializer.serialize_newtype_variant(
+                "UpdateKind",
+                7,
+                "deleted_business_messages",
+                value,
+            ),
+            Self::InlineQuery(value) => {
+                serializer.serialize_newtype_variant("UpdateKind", 8, "inline_query", value)
+            }
+            Self::ChosenInlineResult(value) => {
+                serializer.serialize_newtype_variant("UpdateKind", 9, "chosen_inline_result", value)
+            }
+            Self::CallbackQuery(value) => {
+                serializer.serialize_newtype_variant("UpdateKind", 10, "callback_query", value)
+            }
+            Self::ShippingQuery(value) => {
+                serializer.serialize_newtype_variant("UpdateKind", 11, "shipping_query", value)
+            }
+            Self::PreCheckoutQuery(value) => {
+                serializer.serialize_newtype_variant("UpdateKind", 12, "pre_checkout_query", value)
+            }
+            Self::PurchasedPaidMedia(value) => serializer.serialize_newtype_variant(
+                "UpdateKind",
+                13,
+                "purchased_paid_media",
+                value,
+            ),
+            Self::Poll(value) => {
+                serializer.serialize_newtype_variant("UpdateKind", 14, "poll", value)
+            }
+            Self::PollAnswer(value) => {
+                serializer.serialize_newtype_variant("UpdateKind", 15, "poll_answer", value)
+            }
+            Self::MyChatMember(value) => {
+                serializer.serialize_newtype_variant("UpdateKind", 16, "my_chat_member", value)
+            }
+            Self::ChatMember(value) => {
+                serializer.serialize_newtype_variant("UpdateKind", 17, "chat_member", value)
+            }
+            Self::ChatJoinRequest(value) => {
+                serializer.serialize_newtype_variant("UpdateKind", 18, "chat_join_request", value)
+            }
+            Self::ChatBoost(value) => {
+                serializer.serialize_newtype_variant("UpdateKind", 19, "chat_boost", value)
+            }
+            Self::RemovedChatBoost(value) => {
+                serializer.serialize_newtype_variant("UpdateKind", 20, "removed_chat_boost", value)
+            }
+            Self::MessageReaction(value) => {
+                serializer.serialize_newtype_variant("UpdateKind", 21, "message_reaction", value)
+            }
+            Self::MessageReactionCount(value) => serializer.serialize_newtype_variant(
+                "UpdateKind",
+                22,
+                "message_reaction_count",
+                value,
+            ),
+            Self::ManagedBot(value) => {
+                serializer.serialize_newtype_variant("UpdateKind", 23, "managed_bot", value)
+            }
+            Self::Unknown => {
+                let map = serializer.serialize_map(Some(0))?;
+                map.end()
+            }
+        }
+    }
+}
 
-    // ── Catch-all ─────────────────────────────────────────────────────────────
+impl<'de> Deserialize<'de> for UpdateKind {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        deserializer.deserialize_map(UpdateKindVisitor)
+    }
+}
+
+struct UpdateKindVisitor;
+
+impl<'de> Visitor<'de> for UpdateKindVisitor {
+    type Value = UpdateKind;
+
+    fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter.write_str("a Telegram update payload")
+    }
+
+    fn visit_map<A>(self, mut map: A) -> Result<Self::Value, A::Error>
+    where
+        A: MapAccess<'de>,
+    {
+        let mut kind = None;
+
+        macro_rules! parse_kind {
+            ($variant:ident, $ty:ty) => {{
+                if kind.is_none() {
+                    kind = Some(UpdateKind::$variant(map.next_value::<$ty>()?));
+                } else {
+                    map.next_value::<IgnoredAny>()?;
+                }
+            }};
+        }
+
+        while let Some(key) = map.next_key::<String>()? {
+            match key.as_str() {
+                "message" => parse_kind!(Message, Message),
+                "edited_message" => parse_kind!(EditedMessage, Message),
+                "channel_post" => parse_kind!(ChannelPost, Message),
+                "edited_channel_post" => parse_kind!(EditedChannelPost, Message),
+                "business_connection" => {
+                    parse_kind!(BusinessConnection, BusinessConnection)
+                }
+                "business_message" => parse_kind!(BusinessMessage, Message),
+                "edited_business_message" => {
+                    parse_kind!(EditedBusinessMessage, Message)
+                }
+                "deleted_business_messages" => {
+                    parse_kind!(DeletedBusinessMessages, BusinessMessagesDeleted)
+                }
+                "inline_query" => parse_kind!(InlineQuery, InlineQuery),
+                "chosen_inline_result" => {
+                    parse_kind!(ChosenInlineResult, ChosenInlineResult)
+                }
+                "callback_query" => parse_kind!(CallbackQuery, CallbackQuery),
+                "shipping_query" => parse_kind!(ShippingQuery, ShippingQuery),
+                "pre_checkout_query" => {
+                    parse_kind!(PreCheckoutQuery, PreCheckoutQuery)
+                }
+                "purchased_paid_media" => {
+                    parse_kind!(PurchasedPaidMedia, PaidMediaPurchased)
+                }
+                "poll" => parse_kind!(Poll, Poll),
+                "poll_answer" => parse_kind!(PollAnswer, PollAnswer),
+                "my_chat_member" => parse_kind!(MyChatMember, ChatMemberUpdated),
+                "chat_member" => parse_kind!(ChatMember, ChatMemberUpdated),
+                "chat_join_request" => parse_kind!(ChatJoinRequest, ChatJoinRequest),
+                "chat_boost" => parse_kind!(ChatBoost, ChatBoostUpdated),
+                "removed_chat_boost" => {
+                    parse_kind!(RemovedChatBoost, ChatBoostRemoved)
+                }
+                "message_reaction" => {
+                    parse_kind!(MessageReaction, MessageReactionUpdated)
+                }
+                "message_reaction_count" => {
+                    parse_kind!(MessageReactionCount, MessageReactionCountUpdated)
+                }
+                "managed_bot" => parse_kind!(ManagedBot, ManagedBotUpdated),
+                "update_id" => {
+                    map.next_value::<IgnoredAny>()?;
+                }
+                _ => {
+                    map.next_value::<IgnoredAny>()?;
+                }
+            }
+        }
+
+        Ok(kind.unwrap_or(UpdateKind::Unknown))
+    }
+}
+
+macro_rules! update_kind_accessors {
+    ($(($name:ident, $variant:ident, $ty:ty)),* $(,)?) => {
+        $(
+            #[must_use]
+            pub fn $name(&self) -> Option<&$ty> {
+                match &self.kind {
+                    UpdateKind::$variant(value) => Some(value),
+                    _ => None,
+                }
+            }
+        )*
+    };
 }
 
 impl Update {
+    /// Returns the message payload for message-like update kinds.
+    #[must_use]
+    pub fn message(&self) -> Option<&Message> {
+        match &self.kind {
+            UpdateKind::Message(message)
+            | UpdateKind::EditedMessage(message)
+            | UpdateKind::ChannelPost(message)
+            | UpdateKind::EditedChannelPost(message)
+            | UpdateKind::BusinessMessage(message)
+            | UpdateKind::EditedBusinessMessage(message) => Some(message),
+            _ => None,
+        }
+    }
+
+    update_kind_accessors!(
+        (edited_message, EditedMessage, Message),
+        (channel_post, ChannelPost, Message),
+        (edited_channel_post, EditedChannelPost, Message),
+        (business_connection, BusinessConnection, BusinessConnection),
+        (business_message, BusinessMessage, Message),
+        (edited_business_message, EditedBusinessMessage, Message),
+        (
+            deleted_business_messages,
+            DeletedBusinessMessages,
+            BusinessMessagesDeleted
+        ),
+        (inline_query, InlineQuery, InlineQuery),
+        (chosen_inline_result, ChosenInlineResult, ChosenInlineResult),
+        (callback_query, CallbackQuery, CallbackQuery),
+        (shipping_query, ShippingQuery, ShippingQuery),
+        (pre_checkout_query, PreCheckoutQuery, PreCheckoutQuery),
+        (purchased_paid_media, PurchasedPaidMedia, PaidMediaPurchased),
+        (poll, Poll, Poll),
+        (poll_answer, PollAnswer, PollAnswer),
+        (my_chat_member, MyChatMember, ChatMemberUpdated),
+        (chat_member, ChatMember, ChatMemberUpdated),
+        (chat_join_request, ChatJoinRequest, ChatJoinRequest),
+        (chat_boost, ChatBoost, ChatBoostUpdated),
+        (removed_chat_boost, RemovedChatBoost, ChatBoostRemoved),
+        (message_reaction, MessageReaction, MessageReactionUpdated),
+        (
+            message_reaction_count,
+            MessageReactionCount,
+            MessageReactionCountUpdated
+        ),
+        (managed_bot, ManagedBot, ManagedBotUpdated),
+    );
+
     /// Returns a reference to the [`User`] that sent this update, regardless of update type.
     ///
     /// Returns `None` for updates that have no associated user (channel posts, polls, chat
@@ -164,70 +366,32 @@ impl Update {
     /// Mirrors Python's `Update.effective_user` property.
     #[must_use]
     pub fn effective_user(&self) -> Option<&User> {
-        if let Some(msg) = &self.message {
-            if let Some(user) = &msg.from_user {
-                return Some(user);
-            }
+        match &self.kind {
+            UpdateKind::Message(msg)
+            | UpdateKind::EditedMessage(msg)
+            | UpdateKind::BusinessMessage(msg)
+            | UpdateKind::EditedBusinessMessage(msg) => msg.from_user.as_ref(),
+            UpdateKind::CallbackQuery(cbq) => Some(&cbq.from_user),
+            UpdateKind::ChosenInlineResult(cir) => Some(&cir.from_user),
+            UpdateKind::InlineQuery(iq) => Some(&iq.from_user),
+            UpdateKind::ShippingQuery(sq) => Some(&sq.from_user),
+            UpdateKind::PreCheckoutQuery(pq) => Some(&pq.from_user),
+            UpdateKind::PollAnswer(pa) => pa.user.as_ref(),
+            UpdateKind::MyChatMember(cmu) | UpdateKind::ChatMember(cmu) => Some(&cmu.from_user),
+            UpdateKind::ChatJoinRequest(cjr) => Some(&cjr.from_user),
+            UpdateKind::MessageReaction(mru) => mru.user.as_ref(),
+            UpdateKind::BusinessConnection(bc) => Some(&bc.user),
+            UpdateKind::PurchasedPaidMedia(ppm) => Some(&ppm.from_user),
+            UpdateKind::ManagedBot(mbu) => Some(&mbu.user),
+            UpdateKind::ChannelPost(_)
+            | UpdateKind::EditedChannelPost(_)
+            | UpdateKind::DeletedBusinessMessages(_)
+            | UpdateKind::Poll(_)
+            | UpdateKind::ChatBoost(_)
+            | UpdateKind::RemovedChatBoost(_)
+            | UpdateKind::MessageReactionCount(_)
+            | UpdateKind::Unknown => None,
         }
-        if let Some(msg) = &self.edited_message {
-            if let Some(user) = &msg.from_user {
-                return Some(user);
-            }
-        }
-        if let Some(cbq) = &self.callback_query {
-            return Some(&cbq.from_user);
-        }
-        if let Some(cir) = &self.chosen_inline_result {
-            return Some(&cir.from_user);
-        }
-        if let Some(msg) = &self.business_message {
-            if let Some(user) = &msg.from_user {
-                return Some(user);
-            }
-        }
-        if let Some(msg) = &self.edited_business_message {
-            if let Some(user) = &msg.from_user {
-                return Some(user);
-            }
-        }
-        if let Some(iq) = &self.inline_query {
-            return Some(&iq.from_user);
-        }
-        if let Some(sq) = &self.shipping_query {
-            return Some(&sq.from_user);
-        }
-        if let Some(pq) = &self.pre_checkout_query {
-            return Some(&pq.from_user);
-        }
-        if let Some(pa) = &self.poll_answer {
-            if let Some(user) = &pa.user {
-                return Some(user);
-            }
-        }
-        if let Some(cmu) = &self.my_chat_member {
-            return Some(&cmu.from_user);
-        }
-        if let Some(cmu) = &self.chat_member {
-            return Some(&cmu.from_user);
-        }
-        if let Some(cjr) = &self.chat_join_request {
-            return Some(&cjr.from_user);
-        }
-        if let Some(mru) = &self.message_reaction {
-            if let Some(user) = &mru.user {
-                return Some(user);
-            }
-        }
-        if let Some(bc) = &self.business_connection {
-            return Some(&bc.user);
-        }
-        if let Some(ppm) = &self.purchased_paid_media {
-            return Some(&ppm.from_user);
-        }
-        if let Some(mbu) = &self.managed_bot {
-            return Some(&mbu.user);
-        }
-        None
     }
 
     /// Returns a reference to the [`Chat`] in which this update occurred, if any.
@@ -239,54 +403,32 @@ impl Update {
     /// Mirrors Python's `Update.effective_chat` property.
     #[must_use]
     pub fn effective_chat(&self) -> Option<&Chat> {
-        if let Some(msg) = &self.message {
-            return Some(&msg.chat);
+        match &self.kind {
+            UpdateKind::Message(msg)
+            | UpdateKind::EditedMessage(msg)
+            | UpdateKind::ChannelPost(msg)
+            | UpdateKind::EditedChannelPost(msg)
+            | UpdateKind::BusinessMessage(msg)
+            | UpdateKind::EditedBusinessMessage(msg) => Some(&msg.chat),
+            UpdateKind::CallbackQuery(cbq) => cbq.message.as_deref().map(|message| message.chat()),
+            UpdateKind::MyChatMember(cmu) | UpdateKind::ChatMember(cmu) => Some(&cmu.chat),
+            UpdateKind::ChatJoinRequest(cjr) => Some(&cjr.chat),
+            UpdateKind::ChatBoost(cbu) => Some(&cbu.chat),
+            UpdateKind::RemovedChatBoost(cbr) => Some(&cbr.chat),
+            UpdateKind::MessageReaction(mru) => Some(&mru.chat),
+            UpdateKind::MessageReactionCount(mrcu) => Some(&mrcu.chat),
+            UpdateKind::DeletedBusinessMessages(dbm) => Some(&dbm.chat),
+            UpdateKind::BusinessConnection(_)
+            | UpdateKind::InlineQuery(_)
+            | UpdateKind::ChosenInlineResult(_)
+            | UpdateKind::ShippingQuery(_)
+            | UpdateKind::PreCheckoutQuery(_)
+            | UpdateKind::PurchasedPaidMedia(_)
+            | UpdateKind::Poll(_)
+            | UpdateKind::PollAnswer(_)
+            | UpdateKind::ManagedBot(_)
+            | UpdateKind::Unknown => None,
         }
-        if let Some(msg) = &self.edited_message {
-            return Some(&msg.chat);
-        }
-        if let Some(cbq) = &self.callback_query {
-            if let Some(msg) = cbq.message.as_deref() {
-                return Some(msg.chat());
-            }
-        }
-        if let Some(msg) = &self.channel_post {
-            return Some(&msg.chat);
-        }
-        if let Some(msg) = &self.edited_channel_post {
-            return Some(&msg.chat);
-        }
-        if let Some(msg) = &self.business_message {
-            return Some(&msg.chat);
-        }
-        if let Some(msg) = &self.edited_business_message {
-            return Some(&msg.chat);
-        }
-        if let Some(cmu) = &self.my_chat_member {
-            return Some(&cmu.chat);
-        }
-        if let Some(cmu) = &self.chat_member {
-            return Some(&cmu.chat);
-        }
-        if let Some(cjr) = &self.chat_join_request {
-            return Some(&cjr.chat);
-        }
-        if let Some(cbu) = &self.chat_boost {
-            return Some(&cbu.chat);
-        }
-        if let Some(cbr) = &self.removed_chat_boost {
-            return Some(&cbr.chat);
-        }
-        if let Some(mru) = &self.message_reaction {
-            return Some(&mru.chat);
-        }
-        if let Some(mrcu) = &self.message_reaction_count {
-            return Some(&mrcu.chat);
-        }
-        if let Some(dbm) = &self.deleted_business_messages {
-            return Some(&dbm.chat);
-        }
-        None
     }
 
     /// Returns a reference to the [`Message`] carried by this update, if any.
@@ -301,29 +443,35 @@ impl Update {
     /// Mirrors Python's `Update.effective_message` property.
     #[must_use]
     pub fn effective_message(&self) -> Option<&Message> {
-        if let Some(msg) = &self.message {
-            return Some(msg);
+        match &self.kind {
+            UpdateKind::Message(msg)
+            | UpdateKind::EditedMessage(msg)
+            | UpdateKind::ChannelPost(msg)
+            | UpdateKind::EditedChannelPost(msg)
+            | UpdateKind::BusinessMessage(msg)
+            | UpdateKind::EditedBusinessMessage(msg) => Some(msg),
+            UpdateKind::CallbackQuery(cbq) => cbq
+                .message
+                .as_ref()
+                .and_then(|message| message.as_message()),
+            UpdateKind::BusinessConnection(_)
+            | UpdateKind::DeletedBusinessMessages(_)
+            | UpdateKind::InlineQuery(_)
+            | UpdateKind::ChosenInlineResult(_)
+            | UpdateKind::ShippingQuery(_)
+            | UpdateKind::PreCheckoutQuery(_)
+            | UpdateKind::PurchasedPaidMedia(_)
+            | UpdateKind::Poll(_)
+            | UpdateKind::PollAnswer(_)
+            | UpdateKind::MyChatMember(_)
+            | UpdateKind::ChatMember(_)
+            | UpdateKind::ChatJoinRequest(_)
+            | UpdateKind::ChatBoost(_)
+            | UpdateKind::RemovedChatBoost(_)
+            | UpdateKind::MessageReaction(_)
+            | UpdateKind::MessageReactionCount(_)
+            | UpdateKind::ManagedBot(_)
+            | UpdateKind::Unknown => None,
         }
-        if let Some(msg) = &self.edited_message {
-            return Some(msg);
-        }
-        if let Some(cbq) = &self.callback_query {
-            if let Some(msg) = &cbq.message {
-                return msg.as_message();
-            }
-        }
-        if let Some(msg) = &self.channel_post {
-            return Some(msg);
-        }
-        if let Some(msg) = &self.edited_channel_post {
-            return Some(msg);
-        }
-        if let Some(msg) = &self.business_message {
-            return Some(msg);
-        }
-        if let Some(msg) = &self.edited_business_message {
-            return Some(msg);
-        }
-        None
     }
 }

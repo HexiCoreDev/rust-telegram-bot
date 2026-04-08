@@ -33,17 +33,26 @@ use telegram_bot_raw::types::update::Update;
 /// A function that fetches updates from the Telegram API.
 /// Signature: `(offset, timeout, allowed_updates) -> Result<Vec<Value>>`.
 pub type GetUpdatesFn = Arc<
-    dyn Fn(i64, Duration, Option<Vec<String>>) -> std::pin::Pin<
-        Box<dyn std::future::Future<Output = Result<Vec<serde_json::Value>, TelegramError>> + Send>,
-    > + Send
+    dyn Fn(
+            i64,
+            Duration,
+            Option<Vec<String>>,
+        ) -> std::pin::Pin<
+            Box<
+                dyn std::future::Future<Output = Result<Vec<serde_json::Value>, TelegramError>>
+                    + Send,
+            >,
+        > + Send
         + Sync,
 >;
 
 /// A function that deletes the webhook. Signature: `(drop_pending) -> Result<()>`.
 pub type DeleteWebhookFn = Arc<
-    dyn Fn(bool) -> std::pin::Pin<
-        Box<dyn std::future::Future<Output = Result<(), TelegramError>> + Send>,
-    > + Send
+    dyn Fn(
+            bool,
+        )
+            -> std::pin::Pin<Box<dyn std::future::Future<Output = Result<(), TelegramError>> + Send>>
+        + Send
         + Sync,
 >;
 
@@ -122,9 +131,7 @@ impl std::fmt::Debug for Updater {
             .field("running", &self.is_running())
             .field(
                 "initialized",
-                &self
-                    .initialized
-                    .load(std::sync::atomic::Ordering::Relaxed),
+                &self.initialized.load(std::sync::atomic::Ordering::Relaxed),
             )
             .finish()
     }
@@ -165,10 +172,7 @@ impl Updater {
 
     /// Initialize the updater.
     pub async fn initialize(&self) {
-        if self
-            .initialized
-            .load(std::sync::atomic::Ordering::Relaxed)
-        {
+        if self.initialized.load(std::sync::atomic::Ordering::Relaxed) {
             debug!("Updater already initialized");
             return;
         }
@@ -182,10 +186,7 @@ impl Updater {
         if self.is_running() {
             return Err(UpdaterError::StillRunning);
         }
-        if !self
-            .initialized
-            .load(std::sync::atomic::Ordering::Relaxed)
-        {
+        if !self.initialized.load(std::sync::atomic::Ordering::Relaxed) {
             debug!("Updater already shut down");
             return Ok(());
         }
@@ -210,10 +211,7 @@ impl Updater {
         if self.is_running() {
             return Err(UpdaterError::AlreadyRunning);
         }
-        if !self
-            .initialized
-            .load(std::sync::atomic::Ordering::Relaxed)
-        {
+        if !self.initialized.load(std::sync::atomic::Ordering::Relaxed) {
             return Err(UpdaterError::NotInitialized);
         }
 
@@ -273,9 +271,7 @@ impl Updater {
                                 }
                             }
                             if let Some(last) = updates.last() {
-                                if let Some(uid) =
-                                    last.get("update_id").and_then(|v| v.as_i64())
-                                {
+                                if let Some(uid) = last.get("update_id").and_then(|v| v.as_i64()) {
                                     *updater_inner.last_update_id.lock().await = uid + 1;
                                 }
                             }
@@ -319,10 +315,7 @@ impl Updater {
         if self.is_running() {
             return Err(UpdaterError::AlreadyRunning);
         }
-        if !self
-            .initialized
-            .load(std::sync::atomic::Ordering::Relaxed)
-        {
+        if !self.initialized.load(std::sync::atomic::Ordering::Relaxed) {
             return Err(UpdaterError::NotInitialized);
         }
 
@@ -337,8 +330,12 @@ impl Updater {
         tokio::spawn(async move {
             while let Some(update) = typed_rx.recv().await {
                 match serde_json::to_value(&update) {
-                    Ok(v) => { let _ = value_tx.send(v).await; }
-                    Err(e) => { error!("Failed to serialize Update to Value: {e}"); }
+                    Ok(v) => {
+                        let _ = value_tx.send(v).await;
+                    }
+                    Err(e) => {
+                        error!("Failed to serialize Update to Value: {e}");
+                    }
                 }
             }
         });

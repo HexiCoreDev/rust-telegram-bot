@@ -23,9 +23,8 @@
 //! ```
 
 use telegram_bot::ext::prelude::{
-    Application, ApplicationBuilder, Context, FnHandler, HandlerError, HandlerResult,
-    InlineKeyboardButton, InlineKeyboardMarkup, MessageEntityType, Update, Arc, HashMap,
-    JsonValue, RwLock,
+    Application, ApplicationBuilder, Arc, Context, FnHandler, HandlerError, HandlerResult, HashMap,
+    InlineKeyboardButton, InlineKeyboardMarkup, JsonValue, MessageEntityType, RwLock, Update,
 };
 
 // ---------------------------------------------------------------------------
@@ -315,10 +314,7 @@ async fn handle_top_action(
     store: StateStore,
 ) -> HandlerResult {
     let user_id = extract_user_id(&update);
-    let cq = update
-        .callback_query
-        .as_ref()
-        .expect("must have callback_query");
+    let cq = update.callback_query().expect("must have callback_query");
     let data = cq.data.as_deref().unwrap_or("");
 
     // Answer callback query
@@ -328,7 +324,7 @@ async fn handle_top_action(
         .await
         .map_err(|e| HandlerError::Other(Box::new(e)))?;
 
-    let msg = cq.message.as_ref().expect("must have message");
+    let msg = cq.message.as_deref().expect("must have message");
     let chat_id = msg.chat().id;
 
     match data {
@@ -430,10 +426,7 @@ async fn handle_member_action(
     store: StateStore,
 ) -> HandlerResult {
     let user_id = extract_user_id(&update);
-    let cq = update
-        .callback_query
-        .as_ref()
-        .expect("must have callback_query");
+    let cq = update.callback_query().expect("must have callback_query");
     let data = cq.data.as_deref().unwrap_or("");
 
     context
@@ -442,7 +435,7 @@ async fn handle_member_action(
         .await
         .map_err(|e| HandlerError::Other(Box::new(e)))?;
 
-    let msg = cq.message.as_ref().expect("must have message");
+    let msg = cq.message.as_deref().expect("must have message");
     let chat_id = msg.chat().id;
 
     match data {
@@ -520,10 +513,7 @@ async fn handle_feature_action(
     store: StateStore,
 ) -> HandlerResult {
     let user_id = extract_user_id(&update);
-    let cq = update
-        .callback_query
-        .as_ref()
-        .expect("must have callback_query");
+    let cq = update.callback_query().expect("must have callback_query");
     let data = cq.data.as_deref().unwrap_or("");
 
     context
@@ -532,7 +522,7 @@ async fn handle_feature_action(
         .await
         .map_err(|e| HandlerError::Other(Box::new(e)))?;
 
-    let msg = cq.message.as_ref().expect("must have message");
+    let msg = cq.message.as_deref().expect("must have message");
     let chat_id = msg.chat().id;
 
     match data {
@@ -691,7 +681,7 @@ fn is_in_state(store: &StateStore, user_id: i64, expected: &ConvState) -> bool {
 }
 
 fn is_callback_in_top_state(update: &Update, store: &StateStore) -> bool {
-    if update.callback_query.is_none() {
+    if update.callback_query().is_none() {
         return false;
     }
     let user_id = match update.effective_user() {
@@ -703,7 +693,7 @@ fn is_callback_in_top_state(update: &Update, store: &StateStore) -> bool {
 }
 
 fn is_callback_in_member_state(update: &Update, store: &StateStore) -> bool {
-    if update.callback_query.is_none() {
+    if update.callback_query().is_none() {
         return false;
     }
     let user_id = match update.effective_user() {
@@ -718,7 +708,7 @@ fn is_callback_in_member_state(update: &Update, store: &StateStore) -> bool {
 }
 
 fn is_callback_in_gender_or_feature_state(update: &Update, store: &StateStore) -> bool {
-    if update.callback_query.is_none() {
+    if update.callback_query().is_none() {
         return false;
     }
     let user_id = match update.effective_user() {

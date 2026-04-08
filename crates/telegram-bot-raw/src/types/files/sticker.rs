@@ -1,4 +1,3 @@
-
 use serde::{Deserialize, Serialize};
 
 use crate::types::files::base_medium::BaseMedium;
@@ -154,11 +153,7 @@ pub struct InputSticker {
 
 impl InputSticker {
     /// Creates a new `InputSticker`.
-    pub fn new(
-        sticker: InputFile,
-        emoji_list: Vec<String>,
-        format: impl Into<String>,
-    ) -> Self {
+    pub fn new(sticker: InputFile, emoji_list: Vec<String>, format: impl Into<String>) -> Self {
         Self {
             sticker,
             emoji_list,

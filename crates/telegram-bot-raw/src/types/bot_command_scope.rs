@@ -1,25 +1,20 @@
-
 use serde::{Deserialize, Serialize};
 
 /// Scope covering the default commands visible to all users.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct BotCommandScopeDefault {
-}
+pub struct BotCommandScopeDefault {}
 
 /// Scope covering all private chats.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct BotCommandScopeAllPrivateChats {
-}
+pub struct BotCommandScopeAllPrivateChats {}
 
 /// Scope covering all group and supergroup chats.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct BotCommandScopeAllGroupChats {
-}
+pub struct BotCommandScopeAllGroupChats {}
 
 /// Scope covering all group and supergroup chat administrators.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct BotCommandScopeAllChatAdministrators {
-}
+pub struct BotCommandScopeAllChatAdministrators {}
 
 /// Scope covering a specific chat.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]

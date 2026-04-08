@@ -95,8 +95,8 @@ impl MessageReactionHandler {
 
 impl Handler for MessageReactionHandler {
     fn check_update(&self, update: &Update) -> Option<MatchResult> {
-        let has_reaction = update.message_reaction.is_some();
-        let has_count = update.message_reaction_count.is_some();
+        let has_reaction = update.message_reaction().is_some();
+        let has_count = update.message_reaction_count().is_some();
 
         if !has_reaction && !has_count {
             return None;

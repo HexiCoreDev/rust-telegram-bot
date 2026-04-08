@@ -54,15 +54,15 @@ impl InputFileRef {
 
     /// The `attach://` URI string, if this file has an attach name.
     pub fn attach_uri(&self) -> Option<String> {
-        self.attach_name
-            .as_deref()
-            .map(|n| format!("attach://{n}"))
+        self.attach_name.as_deref().map(|n| format!("attach://{n}"))
     }
 
     /// The MIME type string used when building the multipart part, falling back
     /// to `application/octet-stream`.
     pub fn effective_mime(&self) -> &str {
-        self.mime_type.as_deref().unwrap_or("application/octet-stream")
+        self.mime_type
+            .as_deref()
+            .unwrap_or("application/octet-stream")
     }
 }
 

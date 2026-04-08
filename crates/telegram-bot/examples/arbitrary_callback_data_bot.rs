@@ -26,9 +26,8 @@
 //! - `/clear` -- clears the callback data cache (demonstrates invalid data handling)
 
 use telegram_bot::ext::prelude::{
-    Application, ApplicationBuilder, CommandHandler, Context, FnHandler, HandlerError,
-    HandlerResult, InlineKeyboardButton, InlineKeyboardMarkup, Update, Arc,
-    JsonValue,
+    Application, ApplicationBuilder, Arc, CommandHandler, Context, FnHandler, HandlerError,
+    HandlerResult, InlineKeyboardButton, InlineKeyboardMarkup, JsonValue, Update,
 };
 
 // ---------------------------------------------------------------------------
@@ -129,8 +128,7 @@ async fn clear(update: Arc<Update>, context: Context) -> HandlerResult {
 /// list, appends the new number, and updates the message with a fresh keyboard.
 async fn list_button(update: Arc<Update>, context: Context) -> HandlerResult {
     let cq = update
-        .callback_query
-        .as_ref()
+        .callback_query()
         .expect("callback query handler requires callback_query");
 
     // Answer the callback query.
@@ -144,12 +142,11 @@ async fn list_button(update: Arc<Update>, context: Context) -> HandlerResult {
     let data_str = cq.data.as_deref().unwrap_or("[]");
 
     // Try to parse the callback data as [number, [list...]].
-    let parsed: JsonValue =
-        serde_json::from_str(data_str).unwrap_or(JsonValue::Null);
+    let parsed: JsonValue = serde_json::from_str(data_str).unwrap_or(JsonValue::Null);
 
     if parsed.is_null() || !parsed.is_array() {
         // Invalid callback data -- the cache was likely cleared.
-        if let Some(ref msg) = cq.message {
+        if let Some(msg) = cq.message.as_deref() {
             context
                 .bot()
                 .edit_message_text(
@@ -179,7 +176,7 @@ async fn list_button(update: Arc<Update>, context: Context) -> HandlerResult {
         number_list
     );
 
-    if let Some(ref msg) = cq.message {
+    if let Some(msg) = cq.message.as_deref() {
         context
             .bot()
             .edit_message_text(&text)

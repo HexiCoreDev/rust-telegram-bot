@@ -1,4 +1,3 @@
-
 use serde::{Deserialize, Serialize};
 
 /// Personal details as stored in a Telegram Passport document.

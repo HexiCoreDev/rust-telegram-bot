@@ -20,8 +20,8 @@
 //! - Reply "Age", "Favourite colour", "Number of siblings", "Something else...", or "Done"
 
 use telegram_bot::ext::prelude::{
-    ApplicationBuilder, Context, FnHandler, HandlerError, HandlerResult, KeyboardButton,
-    MessageEntityType, ReplyKeyboardMarkup, ReplyKeyboardRemove, Update, Arc, HashMap, RwLock,
+    ApplicationBuilder, Arc, Context, FnHandler, HandlerError, HandlerResult, HashMap,
+    KeyboardButton, MessageEntityType, ReplyKeyboardMarkup, ReplyKeyboardRemove, RwLock, Update,
 };
 
 // ---------------------------------------------------------------------------
@@ -135,7 +135,10 @@ fn facts_to_str(facts: &HashMap<String, String>) -> String {
 fn reply_keyboard() -> serde_json::Value {
     serde_json::to_value(
         ReplyKeyboardMarkup::new(vec![
-            vec![KeyboardButton::text("Age"), KeyboardButton::text("Favourite colour")],
+            vec![
+                KeyboardButton::text("Age"),
+                KeyboardButton::text("Favourite colour"),
+            ],
             vec![
                 KeyboardButton::text("Number of siblings"),
                 KeyboardButton::text("Something else..."),

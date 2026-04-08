@@ -1,4 +1,3 @@
-
 use serde::{Deserialize, Serialize};
 
 /// Service message about a change in auto-delete timer settings.

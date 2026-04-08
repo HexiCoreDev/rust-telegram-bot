@@ -1,4 +1,3 @@
-
 use serde::{Deserialize, Serialize};
 
 /// Upon receiving a message with this object, Telegram clients will remove the current custom

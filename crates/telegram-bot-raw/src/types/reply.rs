@@ -1,4 +1,3 @@
-
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
@@ -149,7 +148,10 @@ pub struct TextQuote {
     pub is_manual: Option<bool>,
 }
 
-impl_new!(TextQuote { text: String, position: i64 });
+impl_new!(TextQuote {
+    text: String,
+    position: i64
+});
 
 /// Reply parameters for the message that is being sent.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]

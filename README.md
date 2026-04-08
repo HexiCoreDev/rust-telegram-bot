@@ -78,7 +78,7 @@ tracing-subscriber = "0.3"
 ```rust,no_run
 use telegram_bot::ext::prelude::*;
 
-async fn start(update: Update, context: Context) -> HandlerResult {
+async fn start(update: Arc<Update>, context: Context) -> HandlerResult {
     let name = update
         .effective_user()
         .map(|u| u.first_name.as_str())
@@ -89,7 +89,7 @@ async fn start(update: Update, context: Context) -> HandlerResult {
     Ok(())
 }
 
-async fn echo(update: Update, context: Context) -> HandlerResult {
+async fn echo(update: Arc<Update>, context: Context) -> HandlerResult {
     let text = update
         .effective_message()
         .and_then(|m| m.text.as_deref())

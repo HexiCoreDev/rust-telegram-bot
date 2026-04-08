@@ -94,7 +94,10 @@ impl std::fmt::Debug for ExtBot {
         f.debug_struct("ExtBot")
             .field("token", &self.bot.token())
             .field("defaults", &self.defaults)
-            .field("has_callback_data_cache", &self.callback_data_cache.is_some())
+            .field(
+                "has_callback_data_cache",
+                &self.callback_data_cache.is_some(),
+            )
             .field("rate_limiter", &self.rate_limiter)
             .finish()
     }
@@ -190,10 +193,7 @@ impl ExtBot {
 
     /// Convenience builder entry point.
     #[must_use]
-    pub fn builder(
-        token: impl Into<String>,
-        request: Arc<dyn BaseRequest>,
-    ) -> ExtBotBuilder {
+    pub fn builder(token: impl Into<String>, request: Arc<dyn BaseRequest>) -> ExtBotBuilder {
         ExtBotBuilder::new(token, request)
     }
 
@@ -346,6 +346,16 @@ pub(crate) mod test_support {
             _url: &str,
             _method: HttpMethod,
             _request_data: Option<&RequestData>,
+            _timeouts: TimeoutOverride,
+        ) -> telegram_bot_raw::error::Result<(u16, bytes::Bytes)> {
+            let body = br#"{"ok":true,"result":[]}"#;
+            Ok((200, bytes::Bytes::from_static(body)))
+        }
+
+        async fn do_request_json_bytes(
+            &self,
+            _url: &str,
+            _body: &[u8],
             _timeouts: TimeoutOverride,
         ) -> telegram_bot_raw::error::Result<(u16, bytes::Bytes)> {
             let body = br#"{"ok":true,"result":[]}"#;

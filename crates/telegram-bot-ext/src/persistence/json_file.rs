@@ -161,10 +161,7 @@ impl JsonFilePersistence {
         Ok(())
     }
 
-    fn load_category_typed(
-        &self,
-        suffix: &str,
-    ) -> PersistenceResult<HashMap<i64, JsonMap>> {
+    fn load_category_typed(&self, suffix: &str) -> PersistenceResult<HashMap<i64, JsonMap>> {
         let raw: Option<HashMap<String, JsonMap>> = self.load_category(suffix)?;
         match raw {
             Some(m) => int_key_map(m),
@@ -401,9 +398,9 @@ fn atomic_write(path: &Path, data: &[u8]) -> PersistenceResult<()> {
 fn int_key_map<V>(src: HashMap<String, V>) -> PersistenceResult<HashMap<i64, V>> {
     let mut out = HashMap::with_capacity(src.len());
     for (k, v) in src {
-        let id: i64 = k.parse().map_err(|_| {
-            PersistenceError::Custom(format!("non-integer key: {k}"))
-        })?;
+        let id: i64 = k
+            .parse()
+            .map_err(|_| PersistenceError::Custom(format!("non-integer key: {k}")))?;
         out.insert(id, v);
     }
     Ok(out)
@@ -486,8 +483,10 @@ mod tests {
 
         let p2 = JsonFilePersistence::new(&base, false, false);
         let loaded = p2.get_user_data().await.unwrap();
-        assert_eq!(loaded.get(&1).and_then(|m| m.get("name")),
-            Some(&Value::String("alice".into())));
+        assert_eq!(
+            loaded.get(&1).and_then(|m| m.get("name")),
+            Some(&Value::String("alice".into()))
+        );
 
         let _ = std::fs::remove_dir_all(&dir);
     }

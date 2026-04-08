@@ -26,9 +26,7 @@ async fn main() {
         .expect("TELEGRAM_BOT_TOKEN environment variable must be set");
 
     // Create the HTTP request backend and the raw Bot.
-    let request = Arc::new(
-        ReqwestRequest::new().expect("Failed to create HTTP client"),
-    );
+    let request = Arc::new(ReqwestRequest::new().expect("Failed to create HTTP client"));
     let mut bot = Bot::new(&token, request);
 
     // Initialize the bot (calls getMe to verify the token).
@@ -58,10 +56,7 @@ async fn main() {
     let mut offset: Option<i64> = None;
 
     loop {
-        let updates = match bot
-            .get_updates(offset, Some(100), Some(30), None)
-            .await
-        {
+        let updates = match bot.get_updates(offset, Some(100), Some(30), None).await {
             Ok(u) => u,
             Err(e) => {
                 eprintln!("Error fetching updates: {e}");
@@ -75,7 +70,7 @@ async fn main() {
             offset = Some(update.update_id + 1);
 
             // Process only message updates.
-            let message = match &update.message {
+            let message = match update.message() {
                 Some(msg) => msg,
                 None => continue,
             };
@@ -122,19 +117,14 @@ async fn main() {
                              Send any text and I will echo it back."
                         );
 
-                        if let Err(e) = bot
-                            .send_message(chat_id, &greeting)
-                            .send()
-                            .await
-                        {
+                        if let Err(e) = bot.send_message(chat_id, &greeting).send().await {
                             eprintln!("Failed to send message: {e}");
                         }
                     }
                     "photo" => {
                         // Send a photo from a URL.
-                        let photo = InputFile::Url(
-                            "https://telegram.org/img/t_logo.png".to_string(),
-                        );
+                        let photo =
+                            InputFile::Url("https://telegram.org/img/t_logo.png".to_string());
 
                         match bot
                             .send_photo(chat_id, photo)
@@ -162,19 +152,12 @@ async fn main() {
                     }
                     _ => {
                         let reply = format!("Unknown command: /{cmd_name}\nTry /start or /photo.");
-                        let _ = bot
-                            .send_message(chat_id, &reply)
-                            .send()
-                            .await;
+                        let _ = bot.send_message(chat_id, &reply).send().await;
                     }
                 }
             } else if !text.is_empty() {
                 // Echo non-command text.
-                if let Err(e) = bot
-                    .send_message(chat_id, text)
-                    .send()
-                    .await
-                {
+                if let Err(e) = bot.send_message(chat_id, text).send().await {
                     eprintln!("Failed to echo message: {e}");
                 }
             }

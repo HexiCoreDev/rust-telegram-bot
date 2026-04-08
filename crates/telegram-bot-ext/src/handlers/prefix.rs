@@ -9,8 +9,8 @@
 //! ## Filter integration
 //!
 //! An optional `filter_fn` runs *before* prefix matching. The default filter
-//! accepts updates with `message` or `edited_message`, matching Python's
-//! `filters.UpdateType.MESSAGES` default.
+//! accepts message-like updates via
+//! [`Update::message`](telegram_bot_raw::types::update::Update::message).
 
 use std::collections::HashSet;
 use std::future::Future;
@@ -24,10 +24,9 @@ use super::base::{Handler, HandlerCallback, HandlerResult, MatchResult};
 /// Type alias for the optional update filter closure.
 pub type UpdateFilter = Arc<dyn Fn(&Update) -> bool + Send + Sync>;
 
-/// The default update filter: accepts updates with `message` or
-/// `edited_message`, matching Python's `filters.UpdateType.MESSAGES`.
+/// The default update filter: accepts message-like updates.
 fn default_update_filter(update: &Update) -> bool {
-    update.message.is_some() || update.edited_message.is_some()
+    update.message().is_some()
 }
 
 /// Handler for custom prefix commands (e.g. `!help`, `#info`).
@@ -88,9 +87,8 @@ impl PrefixHandler {
     /// The filter runs *before* any prefix matching. If it returns `false`
     /// the update is immediately rejected.
     ///
-    /// When no custom filter is supplied the default behaviour is to require
-    /// `update.message` or `update.edited_message` to be `Some`, matching
-    /// Python's `UpdateType.MESSAGES`.
+    /// When no custom filter is supplied the default behaviour is to accept
+    /// message-like updates via [`Update::message`](Update::message).
     pub fn with_filter(mut self, filter: UpdateFilter) -> Self {
         self.filter_fn = Some(filter);
         self
@@ -194,7 +192,7 @@ mod tests {
     }
 
     #[test]
-    fn default_filter_rejects_channel_post() {
+    fn default_filter_accepts_channel_post() {
         let h = PrefixHandler::new(vec!["!".into()], vec!["test".into()], noop_callback(), true);
         let update: Update = serde_json::from_value(json!({
             "update_id": 1,
@@ -206,7 +204,7 @@ mod tests {
             }
         }))
         .expect("valid");
-        assert!(h.check_update(&update).is_none());
+        assert!(h.check_update(&update).is_some());
     }
 
     #[test]
@@ -230,7 +228,7 @@ mod tests {
     fn custom_filter_allows_channel_post() {
         let h = PrefixHandler::new(vec!["!".into()], vec!["test".into()], noop_callback(), true)
             .with_filter(Arc::new(|u| {
-                u.message.is_some() || u.channel_post.is_some()
+                u.message().is_some() || u.channel_post().is_some()
             }));
         let update: Update = serde_json::from_value(json!({
             "update_id": 1,

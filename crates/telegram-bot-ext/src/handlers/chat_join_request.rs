@@ -49,7 +49,7 @@ impl ChatJoinRequestHandler {
 
 impl Handler for ChatJoinRequestHandler {
     fn check_update(&self, update: &Update) -> Option<MatchResult> {
-        let cjr = update.chat_join_request.as_ref()?;
+        let cjr = update.chat_join_request()?;
 
         // No filters -> accept all.
         if self.chat_ids.is_empty() && self.usernames.is_empty() {

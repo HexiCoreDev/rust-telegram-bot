@@ -46,7 +46,7 @@ impl BusinessConnectionHandler {
 
 impl Handler for BusinessConnectionHandler {
     fn check_update(&self, update: &Update) -> Option<MatchResult> {
-        let bc = update.business_connection.as_ref()?;
+        let bc = update.business_connection()?;
 
         // No filters -> accept all.
         if self.user_ids.is_empty() && self.usernames.is_empty() {

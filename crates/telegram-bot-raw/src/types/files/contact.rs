@@ -1,4 +1,3 @@
-
 use serde::{Deserialize, Serialize};
 
 /// A phone contact shared in a message.
@@ -23,4 +22,7 @@ pub struct Contact {
     pub vcard: Option<String>,
 }
 
-impl_new!(Contact { phone_number: String, first_name: String });
+impl_new!(Contact {
+    phone_number: String,
+    first_name: String
+});

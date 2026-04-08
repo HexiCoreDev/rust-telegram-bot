@@ -1,4 +1,3 @@
-
 use serde::{Deserialize, Serialize};
 
 /// The bot's full description.

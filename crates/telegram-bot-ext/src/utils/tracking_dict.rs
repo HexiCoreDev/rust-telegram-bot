@@ -217,10 +217,8 @@ mod tests {
 
     #[test]
     fn clear_marks_all_dirty() {
-        let mut td = TrackingDict::from_map(HashMap::from([
-            ("a".to_owned(), 1),
-            ("b".to_owned(), 2),
-        ]));
+        let mut td =
+            TrackingDict::from_map(HashMap::from([("a".to_owned(), 1), ("b".to_owned(), 2)]));
         td.clear();
         let keys = td.pop_accessed_keys();
         assert!(keys.contains("a"));

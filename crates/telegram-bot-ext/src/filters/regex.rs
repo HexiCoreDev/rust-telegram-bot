@@ -47,7 +47,8 @@ impl RegexFilter {
 }
 
 impl Filter for RegexFilter {
-    fn check_update(&self, update: &Update) -> FilterResult { let __v = to_value(update);
+    fn check_update(&self, update: &Update) -> FilterResult {
+        let __v = to_value(update);
         let text = match effective_message_val(&__v)
             .and_then(|m| m.get("text"))
             .and_then(|v| v.as_str())
@@ -62,10 +63,7 @@ impl Filter for RegexFilter {
                     .iter()
                     .filter_map(|m| m.map(|mat| mat.as_str().to_owned()))
                     .collect();
-                FilterResult::MatchWithData(HashMap::from([(
-                    "matches".to_owned(),
-                    captures_vec,
-                )]))
+                FilterResult::MatchWithData(HashMap::from([("matches".to_owned(), captures_vec)]))
             }
             None => FilterResult::NoMatch,
         }
@@ -93,7 +91,8 @@ mod tests {
                 "chat": {"id": 1, "type": "private"},
                 "text": text
             }
-        })).unwrap()
+        }))
+        .unwrap()
     }
 
     #[test]
@@ -117,7 +116,8 @@ mod tests {
                 "message_id": 1, "date": 0,
                 "chat": {"id": 1, "type": "private"}
             }
-        })).unwrap();
+        }))
+        .unwrap();
         assert!(!f.check_update(&update).is_match());
     }
 

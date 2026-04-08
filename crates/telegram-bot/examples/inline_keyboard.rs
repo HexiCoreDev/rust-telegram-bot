@@ -15,8 +15,8 @@
 //! ```
 
 use telegram_bot::ext::prelude::{
-    ApplicationBuilder, CommandHandler, Context, FnHandler, HandlerError, HandlerResult,
-    InlineKeyboardButton, InlineKeyboardMarkup, Update, Arc,
+    ApplicationBuilder, Arc, CommandHandler, Context, FnHandler, HandlerError, HandlerResult,
+    InlineKeyboardButton, InlineKeyboardMarkup, Update,
 };
 
 // ---------------------------------------------------------------------------
@@ -30,9 +30,7 @@ fn build_keyboard() -> InlineKeyboardMarkup {
             InlineKeyboardButton::callback("Option 1", "1"),
             InlineKeyboardButton::callback("Option 2", "2"),
         ],
-        vec![
-            InlineKeyboardButton::callback("Option 3", "3"),
-        ],
+        vec![InlineKeyboardButton::callback("Option 3", "3")],
     ])
 }
 
@@ -72,8 +70,7 @@ async fn help(update: Arc<Update>, context: Context) -> HandlerResult {
 /// Handle callback queries from inline keyboard button presses.
 async fn button_callback(update: Arc<Update>, context: Context) -> HandlerResult {
     let cq = update
-        .callback_query
-        .as_ref()
+        .callback_query()
         .expect("callback query handler received update without callback_query");
 
     let data = cq.data.as_deref().unwrap_or("unknown");
@@ -82,7 +79,7 @@ async fn button_callback(update: Arc<Update>, context: Context) -> HandlerResult
     context.bot().answer_callback_query(&cq.id).send().await?;
 
     // Edit the original message to show which option was selected.
-    if let Some(ref msg) = cq.message {
+    if let Some(msg) = cq.message.as_deref() {
         let response_text = format!("You selected: Option {data}");
         context
             .bot()

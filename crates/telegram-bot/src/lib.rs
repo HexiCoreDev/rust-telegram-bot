@@ -28,9 +28,15 @@ impl Default for RuntimeConfig {
 
 impl RuntimeConfig {
     /// Set the number of worker threads.
-    pub fn workers(mut self, n: usize) -> Self { self.worker_threads = Some(n); self }
+    pub fn workers(mut self, n: usize) -> Self {
+        self.worker_threads = Some(n);
+        self
+    }
     /// Set the stack size per worker thread in bytes.
-    pub fn stack_size(mut self, bytes: usize) -> Self { self.thread_stack_size = bytes; self }
+    pub fn stack_size(mut self, bytes: usize) -> Self {
+        self.thread_stack_size = bytes;
+        self
+    }
 }
 
 /// Run an async entry point with a tokio runtime configured for Telegram bot workloads.

@@ -53,7 +53,9 @@ async fn dict_concurrent_user_data_writes() {
     );
 
     for i in 0..task_count {
-        let entry = user_data.get(&i).unwrap_or_else(|| panic!("Missing user_data for user {i}"));
+        let entry = user_data
+            .get(&i)
+            .unwrap_or_else(|| panic!("Missing user_data for user {i}"));
         assert_eq!(
             entry.get("task"),
             Some(&Value::Number(i.into())),
@@ -172,7 +174,9 @@ async fn dict_drop_user_data_under_concurrent_access() {
 
     // All odd users should have the updated data.
     for i in (1..50i64).step_by(2) {
-        let entry = user_data.get(&i).unwrap_or_else(|| panic!("Missing user {i}"));
+        let entry = user_data
+            .get(&i)
+            .unwrap_or_else(|| panic!("Missing user {i}"));
         assert_eq!(entry.get("updated"), Some(&Value::Bool(true)));
     }
 }
@@ -213,11 +217,16 @@ async fn dict_drop_chat_data_under_concurrent_access() {
     let chat_data = persistence.get_chat_data().await.unwrap();
 
     for i in (0..50i64).step_by(2) {
-        assert!(!chat_data.contains_key(&i), "Chat {i} should have been dropped");
+        assert!(
+            !chat_data.contains_key(&i),
+            "Chat {i} should have been dropped"
+        );
     }
 
     for i in (1..50i64).step_by(2) {
-        let entry = chat_data.get(&i).unwrap_or_else(|| panic!("Missing chat {i}"));
+        let entry = chat_data
+            .get(&i)
+            .unwrap_or_else(|| panic!("Missing chat {i}"));
         assert_eq!(entry.get("updated"), Some(&Value::Bool(true)));
     }
 }
@@ -280,7 +289,9 @@ mod json_file_stress {
         assert_eq!(reloaded.len(), task_count as usize);
 
         for i in 0..task_count {
-            let entry = reloaded.get(&i).unwrap_or_else(|| panic!("Missing user {i}"));
+            let entry = reloaded
+                .get(&i)
+                .unwrap_or_else(|| panic!("Missing user {i}"));
             assert_eq!(entry.get("worker"), Some(&Value::Number(i.into())));
         }
 
@@ -433,11 +444,16 @@ mod json_file_stress {
         let user_data = persistence.get_user_data().await.unwrap();
 
         for i in (0..40i64).step_by(2) {
-            assert!(!user_data.contains_key(&i), "User {i} should have been dropped");
+            assert!(
+                !user_data.contains_key(&i),
+                "User {i} should have been dropped"
+            );
         }
 
         for i in (1..40i64).step_by(2) {
-            let entry = user_data.get(&i).unwrap_or_else(|| panic!("Missing user {i}"));
+            let entry = user_data
+                .get(&i)
+                .unwrap_or_else(|| panic!("Missing user {i}"));
             assert_eq!(entry.get("updated"), Some(&Value::Bool(true)));
         }
 

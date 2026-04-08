@@ -425,6 +425,24 @@ impl Bot {
         })
     }
 
+    /// Send pre-serialized JSON bytes directly to the API, bypassing the
+    /// `RequestParameter` → `RequestData` → double-serialize path.
+    ///
+    /// This is the fast path for text-only API methods whose builders
+    /// derive `Serialize` and produce a `Vec<u8>` via `serde_json::to_vec`.
+    pub(crate) async fn do_post_json<T: serde::de::DeserializeOwned>(
+        &self,
+        method: &str,
+        payload: &[u8],
+    ) -> Result<T> {
+        let url = self.api_url(method);
+        let result = self
+            .request
+            .post_json(&url, payload, TimeoutOverride::default_none())
+            .await?;
+        serde_json::from_value(result).map_err(Into::into)
+    }
+
     /// Downloads a file from the Telegram servers given its `file_path`.
     pub async fn download_file(&self, file_path: &str) -> Result<Vec<u8>> {
         let url = format!("{}/{file_path}", self.base_file_url);
