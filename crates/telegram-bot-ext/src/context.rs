@@ -360,16 +360,21 @@ impl CallbackContext {
 
     // -- Accessors ------------------------------------------------------------
 
+    // -- Accessors ------------------------------------------------------------
+
+    /// Returns a reference to the bot associated with this context.
     #[must_use]
     pub fn bot(&self) -> &Arc<ExtBot> {
         &self.bot
     }
 
+    /// Returns the chat ID extracted from the update, if available.
     #[must_use]
     pub fn chat_id(&self) -> Option<i64> {
         self.chat_id
     }
 
+    /// Returns the user ID extracted from the update, if available.
     #[must_use]
     pub fn user_id(&self) -> Option<i64> {
         self.user_id
@@ -393,18 +398,21 @@ impl CallbackContext {
 
     // -- user_data / chat_data (unchanged API, returns cloned snapshot) --------
 
+    /// Returns a cloned snapshot of the current user's data, if a user ID is set.
     pub async fn user_data(&self) -> Option<DefaultData> {
         let uid = self.user_id?;
         let store = self.user_data_store.read().await;
         store.get(&uid).cloned()
     }
 
+    /// Returns a cloned snapshot of the current chat's data, if a chat ID is set.
     pub async fn chat_data(&self) -> Option<DefaultData> {
         let cid = self.chat_id?;
         let store = self.chat_data_store.read().await;
         store.get(&cid).cloned()
     }
 
+    /// Insert a key-value pair into the current user's data store. Returns `false` if no user ID.
     pub async fn set_user_data(&self, key: String, value: Value) -> bool {
         let uid = match self.user_id {
             Some(id) => id,
@@ -415,6 +423,7 @@ impl CallbackContext {
         true
     }
 
+    /// Insert a key-value pair into the current chat's data store. Returns `false` if no chat ID.
     pub async fn set_chat_data(&self, key: String, value: Value) -> bool {
         let cid = match self.chat_id {
             Some(id) => id,
@@ -425,11 +434,13 @@ impl CallbackContext {
         true
     }
 
+    /// Returns the first positional regex match, if available.
     #[must_use]
     pub fn match_result(&self) -> Option<&str> {
         self.matches.as_ref().and_then(|m| m.first().map(String::as_str))
     }
 
+    /// Drop the cached callback data for a given callback query ID.
     pub async fn drop_callback_data(
         &self,
         callback_query_id: &str,
@@ -449,6 +460,7 @@ impl CallbackContext {
         self.job_queue = Some(jq);
         self
     }
+
 
     // -- Convenience methods (mirrors python-telegram-bot patterns) -----------
 

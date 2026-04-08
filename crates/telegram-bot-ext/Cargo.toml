@@ -31,6 +31,9 @@ reqwest.workspace = true
 axum = { workspace = true, optional = true }
 rusqlite = { workspace = true, optional = true }
 
+[dev-dependencies]
+proptest = "1"
+
 [features]
 default = ["polling"]
 full = ["polling", "webhooks", "job-queue", "persistence-json", "rate-limiter"]

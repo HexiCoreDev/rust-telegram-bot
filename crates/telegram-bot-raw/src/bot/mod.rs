@@ -64,17 +64,37 @@ pub enum MessageOrBool {
 /// caller has not provided an explicit value.
 #[derive(Debug, Clone, Default)]
 pub struct Defaults {
+    /// Default parse mode for text formatting (e.g. `"HTML"`, `"MarkdownV2"`).
     pub parse_mode: Option<String>,
+    /// Whether to send messages silently by default.
     pub disable_notification: Option<bool>,
+    /// Whether to protect forwarded messages from being saved by default.
     pub protect_content: Option<bool>,
+    /// Whether to allow sending without a reply by default.
     pub allow_sending_without_reply: Option<bool>,
+    /// Default link preview options.
     pub link_preview_options: Option<link_preview_options::LinkPreviewOptions>,
+    /// Whether to quote the original message by default when replying.
     pub quote: Option<bool>,
 }
 
 // ---------------------------------------------------------------------------
 // Bot struct
 // ---------------------------------------------------------------------------
+/// The core Telegram Bot API client.
+///
+/// `Bot` holds the API token, HTTP request backend, and optional defaults.
+/// It provides async methods for every Telegram Bot API endpoint (sending
+/// messages, managing chats, uploading files, etc.).
+///
+/// # Construction
+///
+/// Use [`Bot::new`] for the simplest case or [`Bot::with_options`] for full
+/// control over request backends and defaults.
+///
+/// # Thread safety
+///
+/// `Bot` is `Send + Sync` and can be shared across tasks via `Arc<Bot>`.
 pub struct Bot {
     token: String,
     base_url: String,
@@ -188,6 +208,10 @@ fn push_opt_file(
 
 #[allow(dead_code)]
 impl Bot {
+    /// Creates a new `Bot` with the given token and HTTP request backend.
+    ///
+    /// Uses the Telegram production API endpoint (`https://api.telegram.org`).
+    /// For custom endpoints (e.g. a local Bot API server), use [`Bot::with_options`].
     pub fn new(token: impl Into<String>, request: Arc<dyn BaseRequest>) -> Self {
         let token = token.into();
         let base_url = format!("https://api.telegram.org/bot{token}");
@@ -204,6 +228,10 @@ impl Bot {
         }
     }
 
+    /// Creates a `Bot` with full configuration options.
+    ///
+    /// Allows a separate HTTP backend for `getUpdates` long-polling and
+    /// optional [`Defaults`] to merge into every API call.
     pub fn with_options(
         token: impl Into<String>,
         request: Arc<dyn BaseRequest>,
@@ -226,18 +254,23 @@ impl Bot {
         }
     }
 
+    /// Returns the bot token.
     pub fn token(&self) -> &str {
         &self.token
     }
+    /// Returns the base API URL.
     pub fn base_url(&self) -> &str {
         &self.base_url
     }
+    /// Returns the base file-download URL.
     pub fn base_file_url(&self) -> &str {
         &self.base_file_url
     }
+    /// Returns the user-configured defaults, if any.
     pub fn defaults(&self) -> Option<&Defaults> {
         self.defaults.as_ref()
     }
+    /// Returns the cached bot user data from `get_me()`, if initialized.
     pub async fn bot_data(&self) -> Option<user::User> {
         self.cached_bot_data.read().await.clone()
     }
@@ -385,6 +418,7 @@ impl Bot {
         })
     }
 
+    /// Downloads a file from the Telegram servers given its `file_path`.
     pub async fn download_file(&self, file_path: &str) -> Result<Vec<u8>> {
         let url = format!("{}/{file_path}", self.base_file_url);
         let bytes = self
@@ -394,6 +428,7 @@ impl Bot {
         Ok(bytes.to_vec())
     }
 
+    /// Initializes the bot by calling `get_me()` and caching the result.
     pub async fn initialize(&mut self) -> Result<()> {
         self.request.initialize().await?;
         if !Arc::ptr_eq(&self.request, &self.request_for_updates) {
@@ -404,8 +439,9 @@ impl Bot {
         Ok(())
     }
 
+    /// Shuts down the bot and releases the HTTP request backend.
+    /// Shuts down the bot and releases the HTTP request backend.
     pub async fn shutdown(&self) -> Result<()> {
-        self.request.shutdown().await?;
         if !Arc::ptr_eq(&self.request, &self.request_for_updates) {
             self.request_for_updates.shutdown().await?;
         }
@@ -434,6 +470,7 @@ impl Bot {
     // Getting updates
     // ======================================================================
 
+    /// Calls the Telegram `getUpdates` long-polling endpoint.
     pub async fn get_updates(
         &self,
         offset: Option<i64>,
@@ -505,6 +542,7 @@ impl Bot {
     // Basic methods
     // ======================================================================
 
+    /// Calls the `getMe` endpoint, returning the bot's own [`User`](user::User) object.
     pub async fn get_me(&self) -> Result<user::User> {
         self.do_post("getMe", Vec::new()).await
     }

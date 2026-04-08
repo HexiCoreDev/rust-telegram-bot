@@ -175,8 +175,11 @@ pub fn boxed_persistence<T: BasePersistence + std::fmt::Debug + 'static>(
 
 /// A registered handler: the `check_update` predicate + callback + blocking flag.
 pub struct Handler {
+    /// Predicate that determines whether this handler matches an update.
     pub check_update: Arc<dyn Fn(&Update) -> bool + Send + Sync>,
+    /// The async callback invoked when the handler matches.
     pub callback: HandlerCallback,
+    /// If `true`, the application awaits this handler before moving to the next group.
     pub block: bool,
 }
 
@@ -306,41 +309,52 @@ impl Application {
 
     // -- Accessors --
     #[must_use]
+    /// Returns a reference to the [`ExtBot`] used by this application.
     pub fn bot(&self) -> &Arc<ExtBot> {
         &self.bot
     }
     pub async fn is_initialized(&self) -> bool {
+    /// Returns `true` if the application has been initialized.
         *self.initialized.read().await
     }
     pub async fn is_running(&self) -> bool {
+    /// Returns `true` if the application is currently running.
         *self.running.read().await
     }
     #[must_use]
+    /// Returns the maximum number of concurrent update processing tasks.
     pub fn concurrent_updates(&self) -> usize {
         self.update_processor.max_concurrent_updates()
     }
     #[must_use]
+    /// Returns a reference to the per-user data store.
     pub fn user_data(&self) -> &Arc<RwLock<HashMap<i64, DefaultData>>> {
         &self.user_data
     }
     #[must_use]
+    /// Returns a reference to the per-chat data store.
     pub fn chat_data(&self) -> &Arc<RwLock<HashMap<i64, DefaultData>>> {
         &self.chat_data
     }
     #[must_use]
+    /// Returns a reference to the bot-wide data store.
     pub fn bot_data(&self) -> &Arc<RwLock<DefaultData>> {
         &self.bot_data
     }
     #[must_use]
+    /// Returns a clone of the update sender channel.
     pub fn update_sender(&self) -> mpsc::UnboundedSender<Arc<Update>> {
         self.update_tx.clone()
     }
     #[must_use]
+    /// Returns a reference to the job queue, if configured.
     pub fn job_queue(&self) -> Option<&Arc<JobQueue>> {
         self.job_queue.as_ref()
     }
 
     // -- Lifecycle: initialize --
+    /// Initialize the application: starts the bot, loads persisted data, and
+    /// starts the job queue.
     pub async fn initialize(&self) -> Result<(), ApplicationError> {
         let mut init = self.initialized.write().await;
         if *init {
@@ -405,6 +419,7 @@ impl Application {
     }
 
     // -- Lifecycle: start / stop --
+    /// Start the update dispatch loop. Must be called after [`initialize`](Self::initialize).
     pub async fn start(self: &Arc<Self>) -> Result<(), ApplicationError> {
         if *self.running.read().await {
             return Err(ApplicationError::AlreadyRunning);
@@ -477,6 +492,7 @@ impl Application {
         Ok(())
     }
 
+    /// Stop the application's update dispatch loop and flush persistence.
     pub async fn stop(&self) -> Result<(), ApplicationError> {
         if !*self.running.read().await {
             return Err(ApplicationError::NotRunning);
@@ -764,6 +780,10 @@ impl Application {
     }
 
     // -- Handler registration --
+    /// Register a single handler in the given dispatch group.
+    ///
+    /// Handlers are dispatched in group order (ascending).  Within a group,
+    /// the first matching handler wins.
     pub async fn add_handler(&self, handler: Handler, group: i32) {
         self.handlers
             .write()
@@ -772,6 +792,7 @@ impl Application {
             .or_default()
             .push(handler);
     }
+    /// Register multiple handlers at once into the given dispatch group.
     pub async fn add_handlers(&self, new_handlers: Vec<Handler>, group: i32) {
         self.handlers
             .write()
@@ -780,6 +801,7 @@ impl Application {
             .or_default()
             .extend(new_handlers);
     }
+    /// Remove the handler at `index` from `group`. Returns the removed handler, if found.
     pub async fn remove_handler(&self, group: i32, index: usize) -> Option<Handler> {
         let mut handlers = self.handlers.write().await;
         if let Some(gh) = handlers.get_mut(&group) {
@@ -793,6 +815,7 @@ impl Application {
         }
         None
     }
+    /// Register an error handler that is invoked when a handler returns an error.
     pub async fn add_error_handler(&self, callback: ErrorHandlerCallback, block: bool) {
         self.error_handlers.write().await.push((callback, block));
     }
