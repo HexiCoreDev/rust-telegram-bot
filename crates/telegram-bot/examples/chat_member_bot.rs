@@ -23,7 +23,6 @@ use telegram_bot::raw::types::chat_member::ChatMember;
 // Helpers
 // ---------------------------------------------------------------------------
 
-
 /// Determine whether the old/new status represents a "member" of the chat.
 fn is_member_status(status: &ChatMember) -> bool {
     matches!(
@@ -34,10 +33,7 @@ fn is_member_status(status: &ChatMember) -> bool {
 
 /// Extract (was_member, is_member) from a `ChatMemberUpdated`.
 /// Returns `None` if the status didn't effectively change.
-fn extract_status_change(
-    old: &ChatMember,
-    new: &ChatMember,
-) -> Option<(bool, bool)> {
+fn extract_status_change(old: &ChatMember, new: &ChatMember) -> Option<(bool, bool)> {
     let was = is_member_status(old);
     let is = is_member_status(new);
     if was == is {
@@ -59,7 +55,7 @@ fn extract_status_change(
 ///
 /// Uses typed `add_to_id_set` / `remove_from_id_set` instead of manual JSON
 /// array manipulation.
-async fn track_chats(update: Update, context: Context) -> HandlerResult {
+async fn track_chats(update: Arc<Update>, context: Context) -> HandlerResult {
     let cmu = match &update.my_chat_member {
         Some(c) => c,
         None => return Ok(()),
@@ -80,32 +76,32 @@ async fn track_chats(update: Update, context: Context) -> HandlerResult {
     let mut bd = context.bot_data_mut().await;
 
     if chat.chat_type == ChatType::Private {
-            if !was_member && is_member {
-                tracing::info!("{cause_name} unblocked the bot");
-                bd.add_to_id_set("user_ids", chat.id);
-            } else if was_member && !is_member {
-                tracing::info!("{cause_name} blocked the bot");
-                bd.remove_from_id_set("user_ids", chat.id);
-            }
+        if !was_member && is_member {
+            tracing::info!("{cause_name} unblocked the bot");
+            bd.add_to_id_set("user_ids", chat.id);
+        } else if was_member && !is_member {
+            tracing::info!("{cause_name} blocked the bot");
+            bd.remove_from_id_set("user_ids", chat.id);
+        }
     } else if chat.chat_type == ChatType::Group || chat.chat_type == ChatType::Supergroup {
-            let title = chat.title.as_deref().unwrap_or("unknown");
-            if !was_member && is_member {
-                tracing::info!("{cause_name} added the bot to the group {title}");
-                bd.add_to_id_set("group_ids", chat.id);
-            } else if was_member && !is_member {
-                tracing::info!("{cause_name} removed the bot from the group {title}");
-                bd.remove_from_id_set("group_ids", chat.id);
-            }
+        let title = chat.title.as_deref().unwrap_or("unknown");
+        if !was_member && is_member {
+            tracing::info!("{cause_name} added the bot to the group {title}");
+            bd.add_to_id_set("group_ids", chat.id);
+        } else if was_member && !is_member {
+            tracing::info!("{cause_name} removed the bot from the group {title}");
+            bd.remove_from_id_set("group_ids", chat.id);
+        }
     } else {
         // Channel or other.
-            let title = chat.title.as_deref().unwrap_or("unknown");
-            if !was_member && is_member {
-                tracing::info!("{cause_name} added the bot to the channel {title}");
-                bd.add_to_id_set("channel_ids", chat.id);
-            } else if was_member && !is_member {
-                tracing::info!("{cause_name} removed the bot from the channel {title}");
-                bd.remove_from_id_set("channel_ids", chat.id);
-            }
+        let title = chat.title.as_deref().unwrap_or("unknown");
+        if !was_member && is_member {
+            tracing::info!("{cause_name} added the bot to the channel {title}");
+            bd.add_to_id_set("channel_ids", chat.id);
+        } else if was_member && !is_member {
+            tracing::info!("{cause_name} removed the bot from the channel {title}");
+            bd.remove_from_id_set("channel_ids", chat.id);
+        }
     }
 
     Ok(())
@@ -114,13 +110,17 @@ async fn track_chats(update: Update, context: Context) -> HandlerResult {
 /// `/show_chats` -- display which chats the bot is tracking.
 ///
 /// Uses typed `get_id_set` instead of manual `.get().and_then(|v| v.as_array())` chains.
-async fn show_chats(update: Update, context: Context) -> HandlerResult {
+async fn show_chats(update: Arc<Update>, context: Context) -> HandlerResult {
     let bd = context.bot_data().await;
 
     let format_ids = |ids: std::collections::HashSet<i64>| -> String {
         let mut sorted: Vec<_> = ids.into_iter().collect();
         sorted.sort_unstable();
-        sorted.iter().map(|id| id.to_string()).collect::<Vec<_>>().join(", ")
+        sorted
+            .iter()
+            .map(|id| id.to_string())
+            .collect::<Vec<_>>()
+            .join(", ")
     };
 
     let user_ids = format_ids(bd.get_id_set("user_ids"));
@@ -139,7 +139,7 @@ async fn show_chats(update: Update, context: Context) -> HandlerResult {
 
 /// Greet new users in chats and announce when someone leaves.
 /// Handles `chat_member` updates (not `my_chat_member`).
-async fn greet_chat_members(update: Update, context: Context) -> HandlerResult {
+async fn greet_chat_members(update: Arc<Update>, context: Context) -> HandlerResult {
     let cmu = match &update.chat_member {
         Some(c) => c,
         None => return Ok(()),
@@ -167,18 +167,10 @@ async fn greet_chat_members(update: Update, context: Context) -> HandlerResult {
 
     if !was_member && is_member {
         let text = format!("{member_name} was added by {cause_name}. Welcome!");
-        let _ = context
-            .bot()
-            .send_message(chat_id, &text)
-            .send()
-            .await;
+        let _ = context.bot().send_message(chat_id, &text).send().await;
     } else if was_member && !is_member {
         let text = format!("{member_name} is no longer with us. Thanks a lot, {cause_name} ...");
-        let _ = context
-            .bot()
-            .send_message(chat_id, &text)
-            .send()
-            .await;
+        let _ = context.bot().send_message(chat_id, &text).send().await;
     }
 
     Ok(())
@@ -187,7 +179,7 @@ async fn greet_chat_members(update: Update, context: Context) -> HandlerResult {
 /// Any message or command in a private chat triggers recording the user.
 ///
 /// Uses typed `get_id_set` for membership checks and `add_to_id_set` for insertion.
-async fn start_private_chat(update: Update, context: Context) -> HandlerResult {
+async fn start_private_chat(update: Arc<Update>, context: Context) -> HandlerResult {
     let chat = match update.effective_chat() {
         Some(c) => c,
         None => return Ok(()),
@@ -241,17 +233,20 @@ fn main() {
         let app = ApplicationBuilder::new().token(token).build();
 
         // Track which chats the bot is in (my_chat_member updates).
-        app.add_typed_handler(FnHandler::on_my_chat_member(track_chats), 0).await;
+        app.add_typed_handler(FnHandler::on_my_chat_member(track_chats), 0)
+            .await;
 
         // /show_chats command.
         app.add_typed_handler(CommandHandler::new("show_chats", show_chats), 0)
             .await;
 
         // Greet members joining/leaving (chat_member updates).
-        app.add_typed_handler(FnHandler::on_chat_member(greet_chat_members), 0).await;
+        app.add_typed_handler(FnHandler::on_chat_member(greet_chat_members), 0)
+            .await;
 
         // Catch-all: record private chats.
-        app.add_typed_handler(FnHandler::on_message(start_private_chat), 1).await;
+        app.add_typed_handler(FnHandler::on_message(start_private_chat), 1)
+            .await;
 
         println!("Chat member bot is running. Press Ctrl+C to stop.");
 

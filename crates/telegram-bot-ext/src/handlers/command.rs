@@ -21,11 +21,11 @@ use std::pin::Pin;
 use std::sync::Arc;
 
 use regex::Regex;
-use telegram_bot_raw::types::update::Update;
 use telegram_bot_raw::constants::MessageEntityType;
+use telegram_bot_raw::types::update::Update;
 
-use crate::context::CallbackContext;
 use super::base::{ContextCallback, Handler, HandlerCallback, HandlerResult, MatchResult};
+use crate::context::CallbackContext;
 
 /// Specifies how many arguments a command must have to match.
 #[derive(Debug, Clone)]
@@ -139,20 +139,22 @@ impl CommandHandler {
     /// ```
     pub fn new<Cb, Fut>(command: impl Into<String>, callback: Cb) -> Self
     where
-        Cb: Fn(Update, CallbackContext) -> Fut + Send + Sync + 'static,
+        Cb: Fn(Arc<Update>, CallbackContext) -> Fut + Send + Sync + 'static,
         Fut: Future<Output = Result<(), crate::application::HandlerError>> + Send + 'static,
     {
         let cmd = command.into();
         let cb = Arc::new(callback);
         let context_cb: ContextCallback = Arc::new(move |update, ctx| {
             let fut = cb(update, ctx);
-            Box::pin(fut) as Pin<Box<dyn Future<Output = Result<(), crate::application::HandlerError>> + Send>>
+            Box::pin(fut)
+                as Pin<
+                    Box<dyn Future<Output = Result<(), crate::application::HandlerError>> + Send>,
+                >
         });
 
         // The raw callback is a no-op; handle_update_with_context is used instead.
-        let noop_callback: HandlerCallback = Arc::new(|_update, _mr| {
-            Box::pin(async { HandlerResult::Continue })
-        });
+        let noop_callback: HandlerCallback =
+            Arc::new(|_update, _mr| Box::pin(async { HandlerResult::Continue }));
 
         let commands: HashSet<String> = {
             let lower = cmd.to_lowercase();
@@ -293,11 +295,7 @@ impl Handler for CommandHandler {
         }
 
         // Extract arguments: everything after the command, split on whitespace.
-        let args: Vec<String> = text
-            .split_whitespace()
-            .skip(1)
-            .map(String::from)
-            .collect();
+        let args: Vec<String> = text.split_whitespace().skip(1).map(String::from).collect();
 
         if !self.check_args(&args) {
             return None;
@@ -308,7 +306,7 @@ impl Handler for CommandHandler {
 
     fn handle_update(
         &self,
-        update: Update,
+        update: Arc<Update>,
         match_result: MatchResult,
     ) -> Pin<Box<dyn Future<Output = HandlerResult> + Send>> {
         (self.callback)(update, match_result)
@@ -335,7 +333,7 @@ impl Handler for CommandHandler {
 
     fn handle_update_with_context(
         &self,
-        update: Update,
+        update: Arc<Update>,
         match_result: MatchResult,
         context: CallbackContext,
     ) -> Pin<Box<dyn Future<Output = HandlerResult> + Send>> {
@@ -344,7 +342,9 @@ impl Handler for CommandHandler {
             Box::pin(async move {
                 match fut.await {
                     Ok(()) => HandlerResult::Continue,
-                    Err(crate::application::HandlerError::HandlerStop { .. }) => HandlerResult::Stop,
+                    Err(crate::application::HandlerError::HandlerStop { .. }) => {
+                        HandlerResult::Stop
+                    }
                     Err(crate::application::HandlerError::Other(e)) => HandlerResult::Error(e),
                 }
             })
@@ -413,12 +413,7 @@ mod tests {
     #[test]
     #[should_panic(expected = "not a valid bot command")]
     fn invalid_command_panics() {
-        CommandHandler::with_options(
-            vec!["invalid command!".into()],
-            noop_callback(),
-            None,
-            true,
-        );
+        CommandHandler::with_options(vec!["invalid command!".into()], noop_callback(), None, true);
     }
 
     #[test]
@@ -534,9 +529,10 @@ mod tests {
         use std::collections::HashMap;
         use telegram_bot_raw::bot::Bot;
 
-        let bot = Arc::new(crate::ext_bot::ExtBot::from_bot(
-            Bot::new("test", mock_request()),
-        ));
+        let bot = Arc::new(crate::ext_bot::ExtBot::from_bot(Bot::new(
+            "test",
+            mock_request(),
+        )));
         let stores = (
             Arc::new(tokio::sync::RwLock::new(HashMap::new())),
             Arc::new(tokio::sync::RwLock::new(HashMap::new())),
@@ -558,9 +554,10 @@ mod tests {
         use std::collections::HashMap;
         use telegram_bot_raw::bot::Bot;
 
-        let bot = Arc::new(crate::ext_bot::ExtBot::from_bot(
-            Bot::new("test", mock_request()),
-        ));
+        let bot = Arc::new(crate::ext_bot::ExtBot::from_bot(Bot::new(
+            "test",
+            mock_request(),
+        )));
         let stores = (
             Arc::new(tokio::sync::RwLock::new(HashMap::new())),
             Arc::new(tokio::sync::RwLock::new(HashMap::new())),
@@ -578,7 +575,10 @@ mod tests {
 
     #[test]
     fn ergonomic_new_check_update_works() {
-        async fn dummy(_update: Update, _ctx: CallbackContext) -> Result<(), crate::application::HandlerError> {
+        async fn dummy(
+            _update: Arc<Update>,
+            _ctx: CallbackContext,
+        ) -> Result<(), crate::application::HandlerError> {
             Ok(())
         }
         let h = CommandHandler::new("start", dummy);
@@ -588,7 +588,10 @@ mod tests {
 
     #[test]
     fn ergonomic_new_rejects_wrong_command() {
-        async fn dummy(_update: Update, _ctx: CallbackContext) -> Result<(), crate::application::HandlerError> {
+        async fn dummy(
+            _update: Arc<Update>,
+            _ctx: CallbackContext,
+        ) -> Result<(), crate::application::HandlerError> {
             Ok(())
         }
         let h = CommandHandler::new("start", dummy);

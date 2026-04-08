@@ -25,13 +25,18 @@ use telegram_bot::ext::prelude::*;
 // ---------------------------------------------------------------------------
 
 /// `/start` -- simple greeting.
-async fn start(update: Update, context: Context) -> HandlerResult {
-    context.reply_text(&update, "Hi! Use me inline by typing @botusername <query> in any chat.").await?;
+async fn start(update: Arc<Update>, context: Context) -> HandlerResult {
+    context
+        .reply_text(
+            &update,
+            "Hi! Use me inline by typing @botusername <query> in any chat.",
+        )
+        .await?;
     Ok(())
 }
 
 /// `/help` -- usage info.
-async fn help_command(update: Update, context: Context) -> HandlerResult {
+async fn help_command(update: Arc<Update>, context: Context) -> HandlerResult {
     context.reply_text(&update, "Type @botusername <text> in any chat. I will offer CAPS, Bold, and Italic transformations.").await?;
     Ok(())
 }
@@ -41,7 +46,7 @@ async fn help_command(update: Update, context: Context) -> HandlerResult {
 // ---------------------------------------------------------------------------
 
 /// Handle inline queries by offering three text transformations.
-async fn inline_query_handler(update: Update, context: Context) -> HandlerResult {
+async fn inline_query_handler(update: Arc<Update>, context: Context) -> HandlerResult {
     let iq = match &update.inline_query {
         Some(q) => q,
         None => return Ok(()),

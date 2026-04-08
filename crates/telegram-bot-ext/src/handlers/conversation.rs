@@ -97,10 +97,9 @@ pub enum ConversationResult<S> {
 /// alongside the `HandlerResult`.
 pub type ConversationCallback<S> = Arc<
     dyn Fn(
-            Update,
+            Arc<Update>,
             MatchResult,
-        )
-            -> Pin<Box<dyn Future<Output = (HandlerResult, ConversationResult<S>)> + Send>>
+        ) -> Pin<Box<dyn Future<Output = (HandlerResult, ConversationResult<S>)> + Send>>
         + Send
         + Sync,
 >;
@@ -239,7 +238,6 @@ impl<S: Hash + Eq + Clone + Send + Sync + 'static> ConversationHandler<S> {
         self.conversations.read().await.clone()
     }
 
-
     // -- C6: Persistence --------------------------------------------------
 
     /// Load previously-persisted conversations into this handler.
@@ -306,7 +304,7 @@ impl<S: Hash + Eq + Clone + Send + Sync + 'static> ConversationHandler<S> {
         pending_callbacks: Arc<RwLock<HashSet<ConversationKey>>>,
         timeout_cancellers: Arc<RwLock<HashMap<ConversationKey, watch::Sender<bool>>>>,
         key: ConversationKey,
-        update: Update,
+        update: Arc<Update>,
         duration: Duration,
         timeout_cbs: Vec<ConversationCallback<S>>,
     ) -> watch::Sender<bool> {
@@ -373,9 +371,7 @@ impl<S: Hash + Eq + Clone + Send + Sync + 'static> Handler for ConversationHandl
                 }
             }
             Some(ref state) => {
-                if self.allow_reentry
-                    && Self::find_matching(&self.entry_points, update).is_some()
-                {
+                if self.allow_reentry && Self::find_matching(&self.entry_points, update).is_some() {
                     return Some(MatchResult::Empty);
                 }
 
@@ -396,7 +392,7 @@ impl<S: Hash + Eq + Clone + Send + Sync + 'static> Handler for ConversationHandl
 
     fn handle_update(
         &self,
-        update: Update,
+        update: Arc<Update>,
         _match_result: MatchResult,
     ) -> Pin<Box<dyn Future<Output = HandlerResult> + Send>> {
         let conversations = Arc::clone(&self.conversations);
@@ -469,9 +465,7 @@ impl<S: Hash + Eq + Clone + Send + Sync + 'static> Handler for ConversationHandl
                     })
                 })
             }
-            Some(HandlerSource::Fallback(idx)) => {
-                Arc::clone(&self.fallbacks[idx].conv_callback)
-            }
+            Some(HandlerSource::Fallback(idx)) => Arc::clone(&self.fallbacks[idx].conv_callback),
             None => {
                 return Box::pin(async { HandlerResult::Continue });
             }
@@ -482,13 +476,11 @@ impl<S: Hash + Eq + Clone + Send + Sync + 'static> Handler for ConversationHandl
         // Determine if the matched step handler is non-blocking.
         let is_blocking = match source {
             Some(HandlerSource::EntryPoint(idx)) => self.entry_points[idx].handler.block(),
-            Some(HandlerSource::State(idx)) => {
-                current_state
-                    .as_ref()
-                    .and_then(|s| self.states.get(s))
-                    .and_then(|handlers| handlers.get(idx))
-                    .map_or(true, |step| step.handler.block())
-            }
+            Some(HandlerSource::State(idx)) => current_state
+                .as_ref()
+                .and_then(|s| self.states.get(s))
+                .and_then(|handlers| handlers.get(idx))
+                .map_or(true, |step| step.handler.block()),
             Some(HandlerSource::Fallback(idx)) => self.fallbacks[idx].handler.block(),
             None => true,
         };
@@ -515,10 +507,7 @@ impl<S: Hash + Eq + Clone + Send + Sync + 'static> Handler for ConversationHandl
             let current_state = conversations.read().await.get(&key).cloned();
 
             if is_entry && current_state.is_some() && !allow_reentry {
-                debug!(
-                    "ConversationHandler: ignoring re-entry for key {:?}",
-                    key
-                );
+                debug!("ConversationHandler: ignoring re-entry for key {:?}", key);
                 return HandlerResult::Continue;
             }
 

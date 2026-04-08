@@ -96,19 +96,21 @@ impl MessageHandler {
     /// ```
     pub fn new<Cb, Fut>(filter: base::F, callback: Cb) -> Self
     where
-        Cb: Fn(Update, CallbackContext) -> Fut + Send + Sync + 'static,
+        Cb: Fn(Arc<Update>, CallbackContext) -> Fut + Send + Sync + 'static,
         Fut: Future<Output = Result<(), crate::application::HandlerError>> + Send + 'static,
     {
         let cb = Arc::new(callback);
         let context_cb: ContextCallback = Arc::new(move |update, ctx| {
             let fut = cb(update, ctx);
-            Box::pin(fut) as Pin<Box<dyn Future<Output = Result<(), crate::application::HandlerError>> + Send>>
+            Box::pin(fut)
+                as Pin<
+                    Box<dyn Future<Output = Result<(), crate::application::HandlerError>> + Send>,
+                >
         });
 
         // The raw callback is a no-op; handle_update_with_context is used instead.
-        let noop_callback: HandlerCallback = Arc::new(|_update, _mr| {
-            Box::pin(async { HandlerResult::Continue })
-        });
+        let noop_callback: HandlerCallback =
+            Arc::new(|_update, _mr| Box::pin(async { HandlerResult::Continue }));
 
         Self {
             filter: Some(filter),
@@ -135,14 +137,8 @@ impl MessageHandler {
     ///
     /// This is a convenience constructor for backward compatibility with code
     /// that uses `Fn(&Update) -> bool` closures instead of the `Filter` trait.
-    pub fn from_fn(
-        filter: Option<FilterFn>,
-        callback: HandlerCallback,
-        block: bool,
-    ) -> Self {
-        let f = filter.map(|closure| {
-            base::F::new(ClosureFilter(closure))
-        });
+    pub fn from_fn(filter: Option<FilterFn>, callback: HandlerCallback, block: bool) -> Self {
+        let f = filter.map(|closure| base::F::new(ClosureFilter(closure)));
         Self {
             filter: f,
             callback,
@@ -180,9 +176,7 @@ impl Handler for MessageHandler {
                 match result {
                     FilterResult::NoMatch => None,
                     FilterResult::Match => Some(MatchResult::Empty),
-                    FilterResult::MatchWithData(data) => {
-                        Some(MatchResult::Custom(Box::new(data)))
-                    }
+                    FilterResult::MatchWithData(data) => Some(MatchResult::Custom(Box::new(data))),
                 }
             }
             None => Some(MatchResult::Empty),
@@ -191,7 +185,7 @@ impl Handler for MessageHandler {
 
     fn handle_update(
         &self,
-        update: Update,
+        update: Arc<Update>,
         match_result: MatchResult,
     ) -> Pin<Box<dyn Future<Output = HandlerResult> + Send>> {
         (self.callback)(update, match_result)
@@ -203,7 +197,7 @@ impl Handler for MessageHandler {
 
     fn handle_update_with_context(
         &self,
-        update: Update,
+        update: Arc<Update>,
         match_result: MatchResult,
         context: CallbackContext,
     ) -> Pin<Box<dyn Future<Output = HandlerResult> + Send>> {
@@ -212,7 +206,9 @@ impl Handler for MessageHandler {
             Box::pin(async move {
                 match fut.await {
                     Ok(()) => HandlerResult::Continue,
-                    Err(crate::application::HandlerError::HandlerStop { .. }) => HandlerResult::Stop,
+                    Err(crate::application::HandlerError::HandlerStop { .. }) => {
+                        HandlerResult::Stop
+                    }
                     Err(crate::application::HandlerError::Other(e)) => HandlerResult::Error(e),
                 }
             })
@@ -277,21 +273,13 @@ mod tests {
 
     #[test]
     fn from_fn_filter_rejects() {
-        let h = MessageHandler::from_fn(
-            Some(Arc::new(|_u| false)),
-            noop_callback(),
-            true,
-        );
+        let h = MessageHandler::from_fn(Some(Arc::new(|_u| false)), noop_callback(), true);
         assert!(h.check_update(&empty_update()).is_none());
     }
 
     #[test]
     fn from_fn_filter_accepts() {
-        let h = MessageHandler::from_fn(
-            Some(Arc::new(|_u| true)),
-            noop_callback(),
-            true,
-        );
+        let h = MessageHandler::from_fn(Some(Arc::new(|_u| true)), noop_callback(), true);
         assert!(h.check_update(&empty_update()).is_some());
     }
 

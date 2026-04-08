@@ -279,11 +279,7 @@ fn back_keyboard() -> serde_json::Value {
 // ---------------------------------------------------------------------------
 
 /// `/start` -- begin the conversation.
-async fn start_command(
-    update: Update,
-    context: Context,
-    store: StateStore,
-) -> HandlerResult {
+async fn start_command(update: Arc<Update>, context: Context, store: StateStore) -> HandlerResult {
     let chat_id = extract_chat_id(&update);
     let user_id = extract_user_id(&update);
 
@@ -320,16 +316,22 @@ async fn start_command(
 
 /// Handle top-level actions from inline keyboard.
 async fn handle_top_action(
-    update: Update,
+    update: Arc<Update>,
     context: Context,
     store: StateStore,
 ) -> HandlerResult {
     let user_id = extract_user_id(&update);
-    let cq = update.callback_query.as_ref().expect("must have callback_query");
+    let cq = update
+        .callback_query
+        .as_ref()
+        .expect("must have callback_query");
     let data = cq.data.as_deref().unwrap_or("");
 
     // Answer callback query
-    context.bot().answer_callback_query(&cq.id).await
+    context
+        .bot()
+        .answer_callback_query(&cq.id)
+        .await
         .map_err(|e| HandlerError::Other(Box::new(e)))?;
 
     let msg = cq.message.as_ref().expect("must have message");
@@ -354,11 +356,14 @@ async fn handle_top_action(
             us.current_person = PersonInfo::default();
             us.conv = ConvState::Feature(FeatureState::SelectingFeature);
 
-            context.bot()
+            context
+                .bot()
                 .edit_message_text("Please select a feature to update.")
-                .chat_id(chat_id).message_id(msg.message_id())
+                .chat_id(chat_id)
+                .message_id(msg.message_id())
                 .reply_markup(feature_keyboard())
-                .await.map_err(|e| HandlerError::Other(Box::new(e)))?;
+                .await
+                .map_err(|e| HandlerError::Other(Box::new(e)))?;
         }
         CB_SHOW => {
             let s = store.read().await;
@@ -381,21 +386,27 @@ async fn handle_top_action(
                 us.conv = ConvState::Top(TopState::ShowingData);
             }
 
-            context.bot()
+            context
+                .bot()
                 .edit_message_text(&text)
-                .chat_id(chat_id).message_id(msg.message_id())
+                .chat_id(chat_id)
+                .message_id(msg.message_id())
                 .reply_markup(back_keyboard())
-                .await.map_err(|e| HandlerError::Other(Box::new(e)))?;
+                .await
+                .map_err(|e| HandlerError::Other(Box::new(e)))?;
         }
         CB_DONE => {
             let mut s = store.write().await;
             let us = s.entry(user_id).or_default();
             us.conv = ConvState::End;
 
-            context.bot()
+            context
+                .bot()
                 .edit_message_text("See you around!")
-                .chat_id(chat_id).message_id(msg.message_id())
-                .await.map_err(|e| HandlerError::Other(Box::new(e)))?;
+                .chat_id(chat_id)
+                .message_id(msg.message_id())
+                .await
+                .map_err(|e| HandlerError::Other(Box::new(e)))?;
         }
         CB_BACK => {
             // "Back" from showing data -- return to top menu.
@@ -420,15 +431,21 @@ async fn handle_top_action(
 
 /// Handle second-level member selection.
 async fn handle_member_action(
-    update: Update,
+    update: Arc<Update>,
     context: Context,
     store: StateStore,
 ) -> HandlerResult {
     let user_id = extract_user_id(&update);
-    let cq = update.callback_query.as_ref().expect("must have callback_query");
+    let cq = update
+        .callback_query
+        .as_ref()
+        .expect("must have callback_query");
     let data = cq.data.as_deref().unwrap_or("");
 
-    context.bot().answer_callback_query(&cq.id).await
+    context
+        .bot()
+        .answer_callback_query(&cq.id)
+        .await
         .map_err(|e| HandlerError::Other(Box::new(e)))?;
 
     let msg = cq.message.as_ref().expect("must have message");
@@ -442,11 +459,14 @@ async fn handle_member_action(
             us.conv = ConvState::Member(MemberState::SelectingGender);
 
             let kb = gender_keyboard(data);
-            context.bot()
+            context
+                .bot()
                 .edit_message_text("Please choose whom to add.")
-                .chat_id(chat_id).message_id(msg.message_id())
+                .chat_id(chat_id)
+                .message_id(msg.message_id())
                 .reply_markup(kb)
-                .await.map_err(|e| HandlerError::Other(Box::new(e)))?;
+                .await
+                .map_err(|e| HandlerError::Other(Box::new(e)))?;
         }
         CB_SHOW => {
             let s = store.read().await;
@@ -469,11 +489,14 @@ async fn handle_member_action(
                 us.conv = ConvState::Top(TopState::ShowingData);
             }
 
-            context.bot()
+            context
+                .bot()
                 .edit_message_text(&text)
-                .chat_id(chat_id).message_id(msg.message_id())
+                .chat_id(chat_id)
+                .message_id(msg.message_id())
                 .reply_markup(back_keyboard())
-                .await.map_err(|e| HandlerError::Other(Box::new(e)))?;
+                .await
+                .map_err(|e| HandlerError::Other(Box::new(e)))?;
         }
         CB_BACK => {
             // Return to top level.
@@ -498,15 +521,21 @@ async fn handle_member_action(
 
 /// Handle gender selection and feature-level callbacks.
 async fn handle_feature_action(
-    update: Update,
+    update: Arc<Update>,
     context: Context,
     store: StateStore,
 ) -> HandlerResult {
     let user_id = extract_user_id(&update);
-    let cq = update.callback_query.as_ref().expect("must have callback_query");
+    let cq = update
+        .callback_query
+        .as_ref()
+        .expect("must have callback_query");
     let data = cq.data.as_deref().unwrap_or("");
 
-    context.bot().answer_callback_query(&cq.id).await
+    context
+        .bot()
+        .answer_callback_query(&cq.id)
+        .await
         .map_err(|e| HandlerError::Other(Box::new(e)))?;
 
     let msg = cq.message.as_ref().expect("must have message");
@@ -524,11 +553,14 @@ async fn handle_feature_action(
             };
             us.conv = ConvState::Feature(FeatureState::SelectingFeature);
 
-            context.bot()
+            context
+                .bot()
                 .edit_message_text("Please select a feature to update.")
-                .chat_id(chat_id).message_id(msg.message_id())
+                .chat_id(chat_id)
+                .message_id(msg.message_id())
                 .reply_markup(feature_keyboard())
-                .await.map_err(|e| HandlerError::Other(Box::new(e)))?;
+                .await
+                .map_err(|e| HandlerError::Other(Box::new(e)))?;
         }
         CB_NAME | CB_AGE => {
             // Feature selected -- prompt for input.
@@ -537,10 +569,13 @@ async fn handle_feature_action(
             us.current_feature = data.to_string();
             us.conv = ConvState::Feature(FeatureState::Typing);
 
-            context.bot()
+            context
+                .bot()
                 .edit_message_text("Okay, tell me.")
-                .chat_id(chat_id).message_id(msg.message_id())
-                .await.map_err(|e| HandlerError::Other(Box::new(e)))?;
+                .chat_id(chat_id)
+                .message_id(msg.message_id())
+                .await
+                .map_err(|e| HandlerError::Other(Box::new(e)))?;
         }
         CB_DONE => {
             // Save the current person and return to the appropriate level.
@@ -594,7 +629,7 @@ async fn handle_feature_action(
 
 /// Handle free-text input for features (name, age).
 async fn handle_text_input(
-    update: Update,
+    update: Arc<Update>,
     context: Context,
     store: StateStore,
 ) -> HandlerResult {
@@ -625,11 +660,7 @@ async fn handle_text_input(
 }
 
 /// `/stop` -- end the conversation.
-async fn stop_command(
-    update: Update,
-    context: Context,
-    store: StateStore,
-) -> HandlerResult {
+async fn stop_command(update: Arc<Update>, context: Context, store: StateStore) -> HandlerResult {
     let chat_id = extract_chat_id(&update);
     let user_id = extract_user_id(&update);
 
@@ -685,7 +716,11 @@ fn is_callback_in_member_state(update: &Update, store: &StateStore) -> bool {
         Some(u) => u.id,
         None => return false,
     };
-    is_in_state(store, user_id, &ConvState::Member(MemberState::SelectingLevel))
+    is_in_state(
+        store,
+        user_id,
+        &ConvState::Member(MemberState::SelectingLevel),
+    )
 }
 
 fn is_callback_in_gender_or_feature_state(update: &Update, store: &StateStore) -> bool {
@@ -696,8 +731,15 @@ fn is_callback_in_gender_or_feature_state(update: &Update, store: &StateStore) -
         Some(u) => u.id,
         None => return false,
     };
-    is_in_state(store, user_id, &ConvState::Member(MemberState::SelectingGender))
-        || is_in_state(store, user_id, &ConvState::Feature(FeatureState::SelectingFeature))
+    is_in_state(
+        store,
+        user_id,
+        &ConvState::Member(MemberState::SelectingGender),
+    ) || is_in_state(
+        store,
+        user_id,
+        &ConvState::Feature(FeatureState::SelectingFeature),
+    )
 }
 
 fn is_text_in_typing_state(update: &Update, store: &StateStore) -> bool {

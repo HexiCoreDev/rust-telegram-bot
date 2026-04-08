@@ -49,10 +49,7 @@ fn build_click_keyboard() -> serde_json::Value {
 // ---------------------------------------------------------------------------
 
 /// Track every user that interacts with the bot in bot_data.
-async fn track_users(
-    update: Update,
-    context: Context,
-) -> HandlerResult {
+async fn track_users(update: Arc<Update>, context: Context) -> HandlerResult {
     if let Some(user) = update.effective_user() {
         let user_id_str = user.id.to_string();
         let mut bd = context.bot_data_mut().await;
@@ -70,10 +67,7 @@ async fn track_users(
 }
 
 /// `/start` -- send a message with a click counter button.
-async fn start(
-    update: Update,
-    context: Context,
-) -> HandlerResult {
+async fn start(update: Arc<Update>, context: Context) -> HandlerResult {
     let chat_id = extract_chat_id(&update);
 
     context
@@ -88,10 +82,7 @@ async fn start(
 }
 
 /// Handle button clicks -- increment a per-message click counter stored in chat_data.
-async fn count_click(
-    update: Update,
-    context: Context,
-) -> HandlerResult {
+async fn count_click(update: Arc<Update>, context: Context) -> HandlerResult {
     let cq = update
         .callback_query
         .as_ref()
@@ -106,7 +97,10 @@ async fn count_click(
         .map_err(|e| HandlerError::Other(Box::new(e)))?;
 
     // Get the message ID to use as the key for click counting.
-    let msg = cq.message.as_ref().expect("callback query must have a message");
+    let msg = cq
+        .message
+        .as_ref()
+        .expect("callback query must have a message");
     let msg_id = msg.message_id();
     let chat_id = msg.chat().id;
     let key = format!("{CLICKS_KEY_PREFIX}{msg_id}");
@@ -140,10 +134,7 @@ async fn count_click(
 }
 
 /// `/print_users` -- show all user IDs that have interacted with the bot.
-async fn print_users(
-    update: Update,
-    context: Context,
-) -> HandlerResult {
+async fn print_users(update: Arc<Update>, context: Context) -> HandlerResult {
     let chat_id = extract_chat_id(&update);
 
     let bd = context.bot_data().await;
@@ -184,10 +175,12 @@ fn main() {
         let app: Arc<Application> = ApplicationBuilder::new().token(token).build();
 
         // Group -1: track all users before any other handler runs.
-        app.add_typed_handler(FnHandler::on_any(track_users), -1).await;
+        app.add_typed_handler(FnHandler::on_any(track_users), -1)
+            .await;
 
         // /start -- send a button
-        app.add_typed_handler(CommandHandler::new("start", start), 0).await;
+        app.add_typed_handler(CommandHandler::new("start", start), 0)
+            .await;
 
         // Callback query handler for button clicks
         app.add_typed_handler(
@@ -205,7 +198,8 @@ fn main() {
         .await;
 
         // /print_users -- show tracked user IDs
-        app.add_typed_handler(CommandHandler::new("print_users", print_users), 0).await;
+        app.add_typed_handler(CommandHandler::new("print_users", print_users), 0)
+            .await;
 
         println!("Context types bot is running. Press Ctrl+C to stop.");
         println!("Commands: /start, /print_users");

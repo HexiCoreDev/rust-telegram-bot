@@ -95,10 +95,7 @@ const TRANSLATION_TYPES: &[&str] = &[
 /// 3. Decrypt each element's data using the decrypted credentials
 ///
 /// This example demonstrates the handler structure and element inspection.
-async fn handle_passport_data(
-    update: Update,
-    _context: Context,
-) -> HandlerResult {
+async fn handle_passport_data(update: Arc<Update>, _context: Context) -> HandlerResult {
     let msg = update
         .effective_message()
         .expect("passport handler requires a message");

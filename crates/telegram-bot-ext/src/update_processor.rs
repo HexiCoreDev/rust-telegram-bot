@@ -52,7 +52,7 @@ pub trait UpdateProcessor: Send + Sync {
     /// manually.
     async fn do_process_update(
         &self,
-        update: Update,
+        update: Arc<Update>,
         coroutine: Pin<Box<dyn Future<Output = ()> + Send>>,
     );
 
@@ -123,7 +123,7 @@ impl BaseUpdateProcessor {
     /// Acquires the semaphore and then delegates to [`UpdateProcessor::do_process_update`].
     pub async fn process_update(
         &self,
-        update: Update,
+        update: Arc<Update>,
         coroutine: Pin<Box<dyn Future<Output = ()> + Send>>,
     ) {
         let _permit = self
@@ -162,7 +162,7 @@ pub struct SimpleUpdateProcessor;
 impl UpdateProcessor for SimpleUpdateProcessor {
     async fn do_process_update(
         &self,
-        _update: Update,
+        _update: Arc<Update>,
         coroutine: Pin<Box<dyn Future<Output = ()> + Send>>,
     ) {
         coroutine.await;
@@ -201,7 +201,7 @@ mod tests {
             flag2.store(true, Ordering::Relaxed);
         });
 
-        proc.process_update(dummy_update(), fut).await;
+        proc.process_update(Arc::new(dummy_update()), fut).await;
         assert!(flag.load(Ordering::Relaxed));
 
         proc.shutdown().await;
@@ -242,7 +242,7 @@ mod tests {
                     tokio::task::yield_now().await;
                     cc.fetch_sub(1, Ordering::SeqCst);
                 });
-                p.process_update(dummy_update(), fut).await;
+                p.process_update(Arc::new(dummy_update()), fut).await;
             }));
         }
 

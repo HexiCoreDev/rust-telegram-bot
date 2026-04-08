@@ -42,8 +42,11 @@ fn build_keyboard() -> serde_json::Value {
 // ---------------------------------------------------------------------------
 
 /// Handle the `/start` command -- send a message with an inline keyboard.
-async fn start(update: Update, context: Context) -> HandlerResult {
-    let chat_id = update.effective_chat().map(|c| c.id).expect("start requires a chat");
+async fn start(update: Arc<Update>, context: Context) -> HandlerResult {
+    let chat_id = update
+        .effective_chat()
+        .map(|c| c.id)
+        .expect("start requires a chat");
     let keyboard = build_keyboard();
 
     context
@@ -57,23 +60,27 @@ async fn start(update: Update, context: Context) -> HandlerResult {
 }
 
 /// Handle the `/help` command.
-async fn help(update: Update, context: Context) -> HandlerResult {
-    context.reply_text(&update, "Use /start to get an inline keyboard with options.").await?;
+async fn help(update: Arc<Update>, context: Context) -> HandlerResult {
+    context
+        .reply_text(
+            &update,
+            "Use /start to get an inline keyboard with options.",
+        )
+        .await?;
     Ok(())
 }
 
 /// Handle callback queries from inline keyboard button presses.
-async fn button_callback(update: Update, context: Context) -> HandlerResult {
-    let cq = update.callback_query.as_ref().expect("callback query handler received update without callback_query");
+async fn button_callback(update: Arc<Update>, context: Context) -> HandlerResult {
+    let cq = update
+        .callback_query
+        .as_ref()
+        .expect("callback query handler received update without callback_query");
 
     let data = cq.data.as_deref().unwrap_or("unknown");
 
     // Answer the callback query (removes the loading indicator on the client).
-    context
-        .bot()
-        .answer_callback_query(&cq.id)
-        .send()
-        .await?;
+    context.bot().answer_callback_query(&cq.id).send().await?;
 
     // Edit the original message to show which option was selected.
     if let Some(ref msg) = cq.message {
@@ -96,21 +103,24 @@ async fn button_callback(update: Update, context: Context) -> HandlerResult {
 
 fn main() {
     telegram_bot::run(async {
-    tracing_subscriber::fmt::init();
+        tracing_subscriber::fmt::init();
 
-    let token = std::env::var("TELEGRAM_BOT_TOKEN")
-        .expect("TELEGRAM_BOT_TOKEN environment variable must be set");
+        let token = std::env::var("TELEGRAM_BOT_TOKEN")
+            .expect("TELEGRAM_BOT_TOKEN environment variable must be set");
 
-    let app = ApplicationBuilder::new().token(token).build();
+        let app = ApplicationBuilder::new().token(token).build();
 
-    app.add_typed_handler(CommandHandler::new("start", start), 0).await;
-    app.add_typed_handler(CommandHandler::new("help", help), 0).await;
-    app.add_typed_handler(FnHandler::on_callback_query(button_callback), 0).await;
+        app.add_typed_handler(CommandHandler::new("start", start), 0)
+            .await;
+        app.add_typed_handler(CommandHandler::new("help", help), 0)
+            .await;
+        app.add_typed_handler(FnHandler::on_callback_query(button_callback), 0)
+            .await;
 
-    println!("Inline keyboard bot is running. Press Ctrl+C to stop.");
+        println!("Inline keyboard bot is running. Press Ctrl+C to stop.");
 
-    if let Err(e) = app.run_polling().await {
-        eprintln!("Error running bot: {e}");
-    }
+        if let Err(e) = app.run_polling().await {
+            eprintln!("Error running bot: {e}");
+        }
     });
 }

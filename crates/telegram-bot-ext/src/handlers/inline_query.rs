@@ -7,12 +7,13 @@
 use std::collections::HashMap;
 use std::future::Future;
 use std::pin::Pin;
+use std::sync::Arc;
 
 use regex::Regex;
 use telegram_bot_raw::types::update::Update;
 
-use crate::context::CallbackContext;
 use super::base::{Handler, HandlerCallback, HandlerResult, MatchResult};
+use crate::context::CallbackContext;
 
 /// Handler for `Update.inline_query`.
 ///
@@ -91,7 +92,7 @@ impl Handler for InlineQueryHandler {
 
     fn handle_update(
         &self,
-        update: Update,
+        update: Arc<Update>,
         match_result: MatchResult,
     ) -> Pin<Box<dyn Future<Output = HandlerResult> + Send>> {
         (self.callback)(update, match_result)

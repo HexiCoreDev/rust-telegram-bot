@@ -65,7 +65,7 @@ impl Handler for TypeHandler {
 
     fn handle_update(
         &self,
-        update: Update,
+        update: Arc<Update>,
         match_result: MatchResult,
     ) -> Pin<Box<dyn Future<Output = HandlerResult> + Send>> {
         (self.callback)(update, match_result)
@@ -86,22 +86,14 @@ mod tests {
 
     #[test]
     fn predicate_true_matches() {
-        let h = TypeHandler::new(
-            Arc::new(|_u| true),
-            noop_callback(),
-            true,
-        );
+        let h = TypeHandler::new(Arc::new(|_u| true), noop_callback(), true);
         let update: Update = serde_json::from_str(r#"{"update_id": 1}"#).unwrap();
         assert!(h.check_update(&update).is_some());
     }
 
     #[test]
     fn predicate_false_rejects() {
-        let h = TypeHandler::new(
-            Arc::new(|_u| false),
-            noop_callback(),
-            true,
-        );
+        let h = TypeHandler::new(Arc::new(|_u| false), noop_callback(), true);
         let update: Update = serde_json::from_str(r#"{"update_id": 1}"#).unwrap();
         assert!(h.check_update(&update).is_none());
     }

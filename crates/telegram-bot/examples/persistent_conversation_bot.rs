@@ -32,8 +32,8 @@ use std::sync::Arc;
 use serde_json::json;
 use tokio::sync::RwLock;
 
-use telegram_bot::ext::prelude::*;
 use telegram_bot::ext::persistence::json_file::JsonFilePersistence;
+use telegram_bot::ext::prelude::*;
 
 // ---------------------------------------------------------------------------
 // Conversation states
@@ -103,11 +103,7 @@ fn check_command(update: &Update, expected: &str) -> bool {
 fn build_reply_keyboard() -> serde_json::Value {
     let keyboard: Vec<Vec<serde_json::Value>> = REPLY_KEYBOARD
         .iter()
-        .map(|row| {
-            row.iter()
-                .map(|btn| json!({"text": btn}))
-                .collect()
-        })
+        .map(|row| row.iter().map(|btn| json!({"text": btn})).collect())
         .collect();
     json!({
         "keyboard": keyboard,
@@ -168,13 +164,12 @@ fn is_in_state(update: &Update, conv_store: &ConvStore, state: ConvState) -> boo
 // ---------------------------------------------------------------------------
 
 /// `/start` -- begin the conversation.
-async fn start(
-    update: Update,
-    context: Context,
-    conv_store: ConvStore,
-) -> HandlerResult {
+async fn start(update: Arc<Update>, context: Context, conv_store: ConvStore) -> HandlerResult {
     let chat_id = extract_chat_id(&update);
-    conv_store.write().await.insert(chat_id, ConvState::Choosing);
+    conv_store
+        .write()
+        .await
+        .insert(chat_id, ConvState::Choosing);
 
     let user_data = context.user_data().await.unwrap_or_default();
     let reply_text = if user_data.is_empty() || user_data.keys().all(|k| k.starts_with('_')) {
@@ -182,7 +177,11 @@ async fn start(
          Why don't you tell me something about yourself?"
             .to_string()
     } else {
-        let known_keys: Vec<&str> = user_data.keys().filter(|k| !k.starts_with('_')).map(String::as_str).collect();
+        let known_keys: Vec<&str> = user_data
+            .keys()
+            .filter(|k| !k.starts_with('_'))
+            .map(String::as_str)
+            .collect();
         format!(
             "Hi! My name is Doctor Botter. You already told me your {}. \
              Why don't you tell me something more about yourself? Or change anything I already know.",
@@ -203,7 +202,7 @@ async fn start(
 
 /// Handle a predefined category selection (Age, Favourite colour, Number of siblings).
 async fn regular_choice(
-    update: Update,
+    update: Arc<Update>,
     context: Context,
     conv_store: ConvStore,
 ) -> HandlerResult {
@@ -212,10 +211,16 @@ async fn regular_choice(
 
     // Store which category was chosen.
     context
-        .set_user_data(CHOICE_KEY.to_string(), serde_json::Value::String(text.clone()))
+        .set_user_data(
+            CHOICE_KEY.to_string(),
+            serde_json::Value::String(text.clone()),
+        )
         .await;
 
-    conv_store.write().await.insert(chat_id, ConvState::TypingReply);
+    conv_store
+        .write()
+        .await
+        .insert(chat_id, ConvState::TypingReply);
 
     let user_data = context.user_data().await.unwrap_or_default();
     let reply_text = if user_data.contains_key(&text) {
@@ -239,7 +244,7 @@ async fn regular_choice(
 
 /// Handle "Something else..." -- ask for a custom category name.
 async fn custom_choice(
-    update: Update,
+    update: Arc<Update>,
     context: Context,
     conv_store: ConvStore,
 ) -> HandlerResult {
@@ -264,7 +269,7 @@ async fn custom_choice(
 
 /// Store a received category value.
 async fn received_information(
-    update: Update,
+    update: Arc<Update>,
     context: Context,
     conv_store: ConvStore,
 ) -> HandlerResult {
@@ -279,13 +284,13 @@ async fn received_information(
         .to_string();
 
     context
-        .set_user_data(
-            category,
-            serde_json::Value::String(text),
-        )
+        .set_user_data(category, serde_json::Value::String(text))
         .await;
 
-    conv_store.write().await.insert(chat_id, ConvState::Choosing);
+    conv_store
+        .write()
+        .await
+        .insert(chat_id, ConvState::Choosing);
 
     // Re-read user data to display the updated facts.
     let user_data = context.user_data().await.unwrap_or_default();
@@ -307,11 +312,7 @@ async fn received_information(
 }
 
 /// "Done" -- finish the conversation and display gathered info.
-async fn done(
-    update: Update,
-    context: Context,
-    conv_store: ConvStore,
-) -> HandlerResult {
+async fn done(update: Arc<Update>, context: Context, conv_store: ConvStore) -> HandlerResult {
     let chat_id = extract_chat_id(&update);
     conv_store.write().await.remove(&chat_id);
 
@@ -334,10 +335,7 @@ async fn done(
 }
 
 /// `/show_data` -- display stored facts (available outside the conversation).
-async fn show_data(
-    update: Update,
-    context: Context,
-) -> HandlerResult {
+async fn show_data(update: Arc<Update>, context: Context) -> HandlerResult {
     let chat_id = extract_chat_id(&update);
 
     let user_data = context.user_data().await.unwrap_or_default();
@@ -410,7 +408,10 @@ fn main() {
                         if !is_in_state(u, &cs_check, ConvState::Choosing) {
                             return false;
                         }
-                        let text = u.effective_message().and_then(|m| m.text.as_deref()).unwrap_or("");
+                        let text = u
+                            .effective_message()
+                            .and_then(|m| m.text.as_deref())
+                            .unwrap_or("");
                         matches!(text, "Age" | "Favourite colour" | "Number of siblings")
                     },
                     move |update, ctx| {
@@ -433,7 +434,10 @@ fn main() {
                         if !is_in_state(u, &cs_check, ConvState::Choosing) {
                             return false;
                         }
-                        let text = u.effective_message().and_then(|m| m.text.as_deref()).unwrap_or("");
+                        let text = u
+                            .effective_message()
+                            .and_then(|m| m.text.as_deref())
+                            .unwrap_or("");
                         text == "Something else..."
                     },
                     move |update, ctx| {
@@ -456,7 +460,10 @@ fn main() {
                         if !is_in_state(u, &cs_check, ConvState::Choosing) {
                             return false;
                         }
-                        let text = u.effective_message().and_then(|m| m.text.as_deref()).unwrap_or("");
+                        let text = u
+                            .effective_message()
+                            .and_then(|m| m.text.as_deref())
+                            .unwrap_or("");
                         text == "Done"
                     },
                     move |update, ctx| {
@@ -479,7 +486,10 @@ fn main() {
                         if !is_in_state(u, &cs_check, ConvState::TypingChoice) {
                             return false;
                         }
-                        let text = u.effective_message().and_then(|m| m.text.as_deref()).unwrap_or("");
+                        let text = u
+                            .effective_message()
+                            .and_then(|m| m.text.as_deref())
+                            .unwrap_or("");
                         text != "Done"
                     },
                     move |update, ctx| {
@@ -502,7 +512,10 @@ fn main() {
                         if !is_in_state(u, &cs_check, ConvState::TypingReply) {
                             return false;
                         }
-                        let text = u.effective_message().and_then(|m| m.text.as_deref()).unwrap_or("");
+                        let text = u
+                            .effective_message()
+                            .and_then(|m| m.text.as_deref())
+                            .unwrap_or("");
                         text != "Done"
                     },
                     move |update, ctx| {

@@ -71,7 +71,7 @@ const SUBMIT_PAYLOAD_PATH: &str = "/submitpayload";
 #[derive(Clone)]
 struct AppState {
     /// Channel to forward Telegram updates into the Application's processing loop.
-    update_tx: mpsc::UnboundedSender<RawUpdate>,
+    update_tx: mpsc::UnboundedSender<Arc<RawUpdate>>,
     /// The Application's bot, for sending messages from custom routes.
     app: Arc<Application>,
     /// Admin chat ID to receive forwarded custom payloads.
@@ -99,8 +99,11 @@ struct SubmitPayloadParams {
 // ---------------------------------------------------------------------------
 
 /// Respond to `/start` with instructions on how to use the custom endpoints.
-async fn start(update: Update, context: Context) -> HandlerResult {
-    let webhook_url = WEBHOOK_BASE_URL.get().map(|s| s.as_str()).unwrap_or("https://your.domain");
+async fn start(update: Arc<Update>, context: Context) -> HandlerResult {
+    let webhook_url = WEBHOOK_BASE_URL
+        .get()
+        .map(|s| s.as_str())
+        .unwrap_or("https://your.domain");
 
     let text = format!(
         "To check if the bot is still running, call <code>{webhook_url}{HEALTHCHECK_PATH}</code>.\n\n\
@@ -141,7 +144,7 @@ async fn handle_telegram_webhook(
         }
     };
 
-    if let Err(e) = state.update_tx.send(update) {
+    if let Err(e) = state.update_tx.send(Arc::new(update)) {
         tracing::error!("Failed to enqueue Telegram update: {e}");
         return StatusCode::INTERNAL_SERVER_ERROR;
     }
@@ -187,10 +190,7 @@ async fn handle_submit_payload(
 
     // Attempt to resolve the user's display name via get_chat_member.
     let bot = state.app.bot();
-    let user_mention = match bot
-        .get_chat_member(ChatId::Id(user_id), user_id)
-        .await
-    {
+    let user_mention = match bot.get_chat_member(ChatId::Id(user_id), user_id).await {
         Ok(member) => {
             let user = extract_user_from_member(&member);
             format!(
@@ -233,9 +233,7 @@ async fn handle_submit_payload(
 // ---------------------------------------------------------------------------
 
 /// Extract the `User` reference from any `ChatMember` variant.
-fn extract_user_from_member(
-    member: &ChatMember,
-) -> &telegram_bot::raw::types::user::User {
+fn extract_user_from_member(member: &ChatMember) -> &telegram_bot::raw::types::user::User {
     match member {
         ChatMember::Owner(m) => &m.user,
         ChatMember::Administrator(m) => &m.user,
@@ -265,8 +263,8 @@ fn main() {
         let token = std::env::var("TELEGRAM_BOT_TOKEN")
             .expect("TELEGRAM_BOT_TOKEN environment variable must be set");
 
-        let webhook_url = std::env::var("WEBHOOK_URL")
-            .expect("WEBHOOK_URL environment variable must be set");
+        let webhook_url =
+            std::env::var("WEBHOOK_URL").expect("WEBHOOK_URL environment variable must be set");
 
         let admin_chat_id: i64 = std::env::var("ADMIN_CHAT_ID")
             .expect("ADMIN_CHAT_ID environment variable must be set")
@@ -285,12 +283,15 @@ fn main() {
         WEBHOOK_BASE_URL.set(webhook_url.clone()).ok();
 
         // -- Register handlers --------------------------------------------------
-        app.add_typed_handler(CommandHandler::new("start", start), 0).await;
+        app.add_typed_handler(CommandHandler::new("start", start), 0)
+            .await;
 
         // -- Initialize and start the Application (without the built-in updater) -
         // Calling initialize + start manually (instead of run_webhook) lets us
         // run our own axum server alongside the Application's update processor.
-        app.initialize().await.expect("Failed to initialize application");
+        app.initialize()
+            .await
+            .expect("Failed to initialize application");
         app.start().await.expect("Failed to start application");
 
         // -- Set the webhook on Telegram's side ---------------------------------

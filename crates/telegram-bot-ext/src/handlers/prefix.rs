@@ -124,7 +124,7 @@ impl Handler for PrefixHandler {
 
     fn handle_update(
         &self,
-        update: Update,
+        update: Arc<Update>,
         match_result: MatchResult,
     ) -> Pin<Box<dyn Future<Output = HandlerResult> + Send>> {
         (self.callback)(update, match_result)
@@ -163,12 +163,7 @@ mod tests {
 
     #[test]
     fn default_filter_accepts_message() {
-        let h = PrefixHandler::new(
-            vec!["!".into()],
-            vec!["test".into()],
-            noop_callback(),
-            true,
-        );
+        let h = PrefixHandler::new(vec!["!".into()], vec!["test".into()], noop_callback(), true);
         let update: Update = serde_json::from_value(json!({
             "update_id": 1,
             "message": {
@@ -184,12 +179,7 @@ mod tests {
 
     #[test]
     fn default_filter_accepts_edited_message() {
-        let h = PrefixHandler::new(
-            vec!["!".into()],
-            vec!["test".into()],
-            noop_callback(),
-            true,
-        );
+        let h = PrefixHandler::new(vec!["!".into()], vec!["test".into()], noop_callback(), true);
         let update: Update = serde_json::from_value(json!({
             "update_id": 1,
             "edited_message": {
@@ -205,12 +195,7 @@ mod tests {
 
     #[test]
     fn default_filter_rejects_channel_post() {
-        let h = PrefixHandler::new(
-            vec!["!".into()],
-            vec!["test".into()],
-            noop_callback(),
-            true,
-        );
+        let h = PrefixHandler::new(vec!["!".into()], vec!["test".into()], noop_callback(), true);
         let update: Update = serde_json::from_value(json!({
             "update_id": 1,
             "channel_post": {
@@ -226,13 +211,8 @@ mod tests {
 
     #[test]
     fn custom_filter_rejects() {
-        let h = PrefixHandler::new(
-            vec!["!".into()],
-            vec!["test".into()],
-            noop_callback(),
-            true,
-        )
-        .with_filter(Arc::new(|_u| false));
+        let h = PrefixHandler::new(vec!["!".into()], vec!["test".into()], noop_callback(), true)
+            .with_filter(Arc::new(|_u| false));
         let update: Update = serde_json::from_value(json!({
             "update_id": 1,
             "message": {
@@ -248,15 +228,10 @@ mod tests {
 
     #[test]
     fn custom_filter_allows_channel_post() {
-        let h = PrefixHandler::new(
-            vec!["!".into()],
-            vec!["test".into()],
-            noop_callback(),
-            true,
-        )
-        .with_filter(Arc::new(|u| {
-            u.message.is_some() || u.channel_post.is_some()
-        }));
+        let h = PrefixHandler::new(vec!["!".into()], vec!["test".into()], noop_callback(), true)
+            .with_filter(Arc::new(|u| {
+                u.message.is_some() || u.channel_post.is_some()
+            }));
         let update: Update = serde_json::from_value(json!({
             "update_id": 1,
             "channel_post": {

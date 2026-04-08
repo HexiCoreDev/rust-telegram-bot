@@ -40,7 +40,7 @@ fn developer_chat_id() -> i64 {
 // ---------------------------------------------------------------------------
 
 /// Respond to `/start` -- show chat ID and usage instructions.
-async fn start(update: Update, context: Context) -> HandlerResult {
+async fn start(update: Arc<Update>, context: Context) -> HandlerResult {
     let chat_id = update.effective_chat().map(|c| c.id).unwrap_or(0);
     let text = format!(
         "Use /bad_command to cause an error.\n\
@@ -52,7 +52,7 @@ async fn start(update: Update, context: Context) -> HandlerResult {
 }
 
 /// Intentionally trigger an error so the error handler fires.
-async fn bad_command(_update: Update, _context: Context) -> HandlerResult {
+async fn bad_command(_update: Arc<Update>, _context: Context) -> HandlerResult {
     // Simulate an application error by returning an Err.
     Err(application::HandlerError::Other(Box::new(
         std::io::Error::new(
@@ -70,7 +70,7 @@ async fn bad_command(_update: Update, _context: Context) -> HandlerResult {
 ///
 /// Mirrors Python's `error_handler` which formats the traceback and sends
 /// it to `DEVELOPER_CHAT_ID`.
-async fn error_handler(update: Option<Update>, context: CallbackContext) -> bool {
+async fn error_handler(update: Option<Arc<Update>>, context: CallbackContext) -> bool {
     let error_text = context
         .error
         .as_ref()
@@ -113,15 +113,9 @@ async fn error_handler(update: Option<Update>, context: CallbackContext) -> bool
 
     let dev_id = developer_chat_id();
     if dev_id != 0 {
-        let _ = context
-            .bot()
-            .send_message(dev_id, &message)
-            .send()
-            .await;
+        let _ = context.bot().send_message(dev_id, &message).send().await;
     } else {
-        tracing::warn!(
-            "DEVELOPER_CHAT_ID not set -- error report was not sent to Telegram."
-        );
+        tracing::warn!("DEVELOPER_CHAT_ID not set -- error report was not sent to Telegram.");
     }
 
     // Return false so other error handlers (if any) can also run.

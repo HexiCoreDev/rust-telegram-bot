@@ -70,7 +70,7 @@ pub enum HandlerResult {
 /// The callback receives the [`Update`] and the [`MatchResult`] produced by
 /// `check_update`, and returns a future resolving to [`HandlerResult`].
 pub type HandlerCallback = Arc<
-    dyn Fn(Update, MatchResult) -> Pin<Box<dyn Future<Output = HandlerResult> + Send>>
+    dyn Fn(Arc<Update>, MatchResult) -> Pin<Box<dyn Future<Output = HandlerResult> + Send>>
         + Send
         + Sync,
 >;
@@ -80,7 +80,11 @@ pub type HandlerCallback = Arc<
 /// Used by ergonomic constructors (`CommandHandler::new`, `MessageHandler::new`)
 /// where the user function has signature `async fn(Update, Context) -> HandlerResult`.
 pub type ContextCallback = Arc<
-    dyn Fn(Update, CallbackContext) -> Pin<Box<dyn Future<Output = Result<(), crate::application::HandlerError>> + Send>>
+    dyn Fn(
+            Arc<Update>,
+            CallbackContext,
+        )
+            -> Pin<Box<dyn Future<Output = Result<(), crate::application::HandlerError>> + Send>>
         + Send
         + Sync,
 >;
@@ -111,7 +115,7 @@ pub trait Handler: Send + Sync {
     /// returned `Some`.
     fn handle_update(
         &self,
-        update: Update,
+        update: Arc<Update>,
         match_result: MatchResult,
     ) -> Pin<Box<dyn Future<Output = HandlerResult> + Send>>;
 
@@ -126,7 +130,11 @@ pub trait Handler: Send + Sync {
     ///
     /// The default implementation is a no-op. Handlers should override this
     /// to inject their match-specific data into the context.
-    fn collect_additional_context(&self, _context: &mut CallbackContext, _match_result: &MatchResult) {
+    fn collect_additional_context(
+        &self,
+        _context: &mut CallbackContext,
+        _match_result: &MatchResult,
+    ) {
         // Default: no-op
     }
 
@@ -138,7 +146,7 @@ pub trait Handler: Send + Sync {
     /// override this to pass the context to the user's callback function.
     fn handle_update_with_context(
         &self,
-        update: Update,
+        update: Arc<Update>,
         match_result: MatchResult,
         _context: CallbackContext,
     ) -> Pin<Box<dyn Future<Output = HandlerResult> + Send>> {
@@ -189,13 +197,16 @@ impl FnHandler {
     pub fn new<C, Cb, Fut>(check: C, callback: Cb) -> Self
     where
         C: Fn(&Update) -> bool + Send + Sync + 'static,
-        Cb: Fn(Update, CallbackContext) -> Fut + Send + Sync + 'static,
+        Cb: Fn(Arc<Update>, CallbackContext) -> Fut + Send + Sync + 'static,
         Fut: Future<Output = Result<(), crate::application::HandlerError>> + Send + 'static,
     {
         let cb = Arc::new(callback);
         let context_cb: ContextCallback = Arc::new(move |update, ctx| {
             let fut = cb(update, ctx);
-            Box::pin(fut) as Pin<Box<dyn Future<Output = Result<(), crate::application::HandlerError>> + Send>>
+            Box::pin(fut)
+                as Pin<
+                    Box<dyn Future<Output = Result<(), crate::application::HandlerError>> + Send>,
+                >
         });
         Self {
             check: Arc::new(check),
@@ -206,7 +217,7 @@ impl FnHandler {
     /// Match updates that have a `callback_query`.
     pub fn on_callback_query<Cb, Fut>(callback: Cb) -> Self
     where
-        Cb: Fn(Update, CallbackContext) -> Fut + Send + Sync + 'static,
+        Cb: Fn(Arc<Update>, CallbackContext) -> Fut + Send + Sync + 'static,
         Fut: Future<Output = Result<(), crate::application::HandlerError>> + Send + 'static,
     {
         Self::new(|u| u.callback_query.is_some(), callback)
@@ -215,7 +226,7 @@ impl FnHandler {
     /// Match updates that have an `inline_query`.
     pub fn on_inline_query<Cb, Fut>(callback: Cb) -> Self
     where
-        Cb: Fn(Update, CallbackContext) -> Fut + Send + Sync + 'static,
+        Cb: Fn(Arc<Update>, CallbackContext) -> Fut + Send + Sync + 'static,
         Fut: Future<Output = Result<(), crate::application::HandlerError>> + Send + 'static,
     {
         Self::new(|u| u.inline_query.is_some(), callback)
@@ -224,7 +235,7 @@ impl FnHandler {
     /// Match updates that have a `poll`.
     pub fn on_poll<Cb, Fut>(callback: Cb) -> Self
     where
-        Cb: Fn(Update, CallbackContext) -> Fut + Send + Sync + 'static,
+        Cb: Fn(Arc<Update>, CallbackContext) -> Fut + Send + Sync + 'static,
         Fut: Future<Output = Result<(), crate::application::HandlerError>> + Send + 'static,
     {
         Self::new(|u| u.poll.is_some(), callback)
@@ -233,7 +244,7 @@ impl FnHandler {
     /// Match updates that have a `poll_answer`.
     pub fn on_poll_answer<Cb, Fut>(callback: Cb) -> Self
     where
-        Cb: Fn(Update, CallbackContext) -> Fut + Send + Sync + 'static,
+        Cb: Fn(Arc<Update>, CallbackContext) -> Fut + Send + Sync + 'static,
         Fut: Future<Output = Result<(), crate::application::HandlerError>> + Send + 'static,
     {
         Self::new(|u| u.poll_answer.is_some(), callback)
@@ -242,7 +253,7 @@ impl FnHandler {
     /// Match updates that have a `shipping_query`.
     pub fn on_shipping_query<Cb, Fut>(callback: Cb) -> Self
     where
-        Cb: Fn(Update, CallbackContext) -> Fut + Send + Sync + 'static,
+        Cb: Fn(Arc<Update>, CallbackContext) -> Fut + Send + Sync + 'static,
         Fut: Future<Output = Result<(), crate::application::HandlerError>> + Send + 'static,
     {
         Self::new(|u| u.shipping_query.is_some(), callback)
@@ -251,7 +262,7 @@ impl FnHandler {
     /// Match updates that have a `pre_checkout_query`.
     pub fn on_pre_checkout_query<Cb, Fut>(callback: Cb) -> Self
     where
-        Cb: Fn(Update, CallbackContext) -> Fut + Send + Sync + 'static,
+        Cb: Fn(Arc<Update>, CallbackContext) -> Fut + Send + Sync + 'static,
         Fut: Future<Output = Result<(), crate::application::HandlerError>> + Send + 'static,
     {
         Self::new(|u| u.pre_checkout_query.is_some(), callback)
@@ -260,7 +271,7 @@ impl FnHandler {
     /// Match updates that have a `chat_member`.
     pub fn on_chat_member<Cb, Fut>(callback: Cb) -> Self
     where
-        Cb: Fn(Update, CallbackContext) -> Fut + Send + Sync + 'static,
+        Cb: Fn(Arc<Update>, CallbackContext) -> Fut + Send + Sync + 'static,
         Fut: Future<Output = Result<(), crate::application::HandlerError>> + Send + 'static,
     {
         Self::new(|u| u.chat_member.is_some(), callback)
@@ -269,7 +280,7 @@ impl FnHandler {
     /// Match updates that have a `my_chat_member`.
     pub fn on_my_chat_member<Cb, Fut>(callback: Cb) -> Self
     where
-        Cb: Fn(Update, CallbackContext) -> Fut + Send + Sync + 'static,
+        Cb: Fn(Arc<Update>, CallbackContext) -> Fut + Send + Sync + 'static,
         Fut: Future<Output = Result<(), crate::application::HandlerError>> + Send + 'static,
     {
         Self::new(|u| u.my_chat_member.is_some(), callback)
@@ -278,7 +289,7 @@ impl FnHandler {
     /// Match updates that have a `message`.
     pub fn on_message<Cb, Fut>(callback: Cb) -> Self
     where
-        Cb: Fn(Update, CallbackContext) -> Fut + Send + Sync + 'static,
+        Cb: Fn(Arc<Update>, CallbackContext) -> Fut + Send + Sync + 'static,
         Fut: Future<Output = Result<(), crate::application::HandlerError>> + Send + 'static,
     {
         Self::new(|u| u.message.is_some(), callback)
@@ -287,7 +298,7 @@ impl FnHandler {
     /// Match every update (catch-all).
     pub fn on_any<Cb, Fut>(callback: Cb) -> Self
     where
-        Cb: Fn(Update, CallbackContext) -> Fut + Send + Sync + 'static,
+        Cb: Fn(Arc<Update>, CallbackContext) -> Fut + Send + Sync + 'static,
         Fut: Future<Output = Result<(), crate::application::HandlerError>> + Send + 'static,
     {
         Self::new(|_| true, callback)
@@ -305,7 +316,7 @@ impl Handler for FnHandler {
 
     fn handle_update(
         &self,
-        _update: Update,
+        _update: Arc<Update>,
         _match_result: MatchResult,
     ) -> Pin<Box<dyn Future<Output = HandlerResult> + Send>> {
         // FnHandler always uses handle_update_with_context; this is a no-op fallback.
@@ -314,7 +325,7 @@ impl Handler for FnHandler {
 
     fn handle_update_with_context(
         &self,
-        update: Update,
+        update: Arc<Update>,
         _match_result: MatchResult,
         context: CallbackContext,
     ) -> Pin<Box<dyn Future<Output = HandlerResult> + Send>> {

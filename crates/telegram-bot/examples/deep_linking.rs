@@ -108,24 +108,20 @@ fn is_plain_start(update: &Update) -> bool {
 // ---------------------------------------------------------------------------
 
 /// Plain `/start` -- send a deep-linked URL for sharing.
-async fn start(update: Update, context: Context) -> HandlerResult {
+async fn start(update: Arc<Update>, context: Context) -> HandlerResult {
     let chat_id = extract_chat_id(&update);
     let bot_username = get_bot_username(&context).await;
 
     let url = create_deep_linked_url(&bot_username, CHECK_THIS_OUT, true);
     let text = format!("Feel free to tell your friends about it:\n\n{url}");
 
-    context
-        .bot()
-        .send_message(chat_id, &text)
-        .send()
-        .await?;
+    context.bot().send_message(chat_id, &text).send().await?;
 
     Ok(())
 }
 
 /// Reached through the CHECK_THIS_OUT payload.
-async fn deep_linked_level_1(update: Update, context: Context) -> HandlerResult {
+async fn deep_linked_level_1(update: Arc<Update>, context: Context) -> HandlerResult {
     let chat_id = extract_chat_id(&update);
     let bot_username = get_bot_username(&context).await;
 
@@ -150,7 +146,7 @@ async fn deep_linked_level_1(update: Update, context: Context) -> HandlerResult 
 }
 
 /// Reached through the SO_COOL payload.
-async fn deep_linked_level_2(update: Update, context: Context) -> HandlerResult {
+async fn deep_linked_level_2(update: Arc<Update>, context: Context) -> HandlerResult {
     let chat_id = extract_chat_id(&update);
     let bot_username = get_bot_username(&context).await;
 
@@ -170,7 +166,7 @@ async fn deep_linked_level_2(update: Update, context: Context) -> HandlerResult 
 }
 
 /// Reached through the USING_ENTITIES payload.
-async fn deep_linked_level_3(update: Update, context: Context) -> HandlerResult {
+async fn deep_linked_level_3(update: Arc<Update>, context: Context) -> HandlerResult {
     let chat_id = extract_chat_id(&update);
 
     let keyboard = json!({
@@ -193,7 +189,7 @@ async fn deep_linked_level_3(update: Update, context: Context) -> HandlerResult 
 }
 
 /// Callback query from the inline button -- answer with the deep link URL.
-async fn deep_link_level_3_callback(update: Update, context: Context) -> HandlerResult {
+async fn deep_link_level_3_callback(update: Arc<Update>, context: Context) -> HandlerResult {
     let cq = match &update.callback_query {
         Some(q) => q,
         None => return Ok(()),
@@ -213,7 +209,7 @@ async fn deep_link_level_3_callback(update: Update, context: Context) -> Handler
 }
 
 /// Reached through the USING_KEYBOARD payload -- the deepest level.
-async fn deep_linked_level_4(update: Update, context: Context) -> HandlerResult {
+async fn deep_linked_level_4(update: Arc<Update>, context: Context) -> HandlerResult {
     let payload = get_start_payload(&context).unwrap_or_default();
 
     context
@@ -244,7 +240,10 @@ fn main() {
 
         // Level 1: /start check-this-out
         app.add_typed_handler(
-            FnHandler::new(|u| is_start_with_payload(u, CHECK_THIS_OUT), deep_linked_level_1),
+            FnHandler::new(
+                |u| is_start_with_payload(u, CHECK_THIS_OUT),
+                deep_linked_level_1,
+            ),
             0,
         )
         .await;
@@ -258,14 +257,20 @@ fn main() {
 
         // Level 3: /start using-entities-here
         app.add_typed_handler(
-            FnHandler::new(|u| is_start_with_payload(u, USING_ENTITIES), deep_linked_level_3),
+            FnHandler::new(
+                |u| is_start_with_payload(u, USING_ENTITIES),
+                deep_linked_level_3,
+            ),
             0,
         )
         .await;
 
         // Level 4: /start using-keyboard-here
         app.add_typed_handler(
-            FnHandler::new(|u| is_start_with_payload(u, USING_KEYBOARD), deep_linked_level_4),
+            FnHandler::new(
+                |u| is_start_with_payload(u, USING_KEYBOARD),
+                deep_linked_level_4,
+            ),
             0,
         )
         .await;
@@ -274,9 +279,7 @@ fn main() {
         app.add_typed_handler(
             FnHandler::new(
                 |u| {
-                    u.callback_query
-                        .as_ref()
-                        .and_then(|cq| cq.data.as_deref())
+                    u.callback_query.as_ref().and_then(|cq| cq.data.as_deref())
                         == Some(KEYBOARD_CALLBACKDATA)
                 },
                 deep_link_level_3_callback,
@@ -286,7 +289,8 @@ fn main() {
         .await;
 
         // Plain /start -- must be registered AFTER the deep-link handlers.
-        app.add_typed_handler(FnHandler::new(is_plain_start, start), 0).await;
+        app.add_typed_handler(FnHandler::new(is_plain_start, start), 0)
+            .await;
 
         println!("Deep linking bot is running. Press Ctrl+C to stop.");
 

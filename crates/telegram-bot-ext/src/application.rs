@@ -40,7 +40,7 @@ use crate::utils::types::JsonMap;
 /// A boxed, type-erased async handler callback.
 pub type HandlerCallback = Arc<
     dyn Fn(
-            Update,
+            Arc<Update>,
             CallbackContext,
         ) -> Pin<Box<dyn Future<Output = Result<(), HandlerError>> + Send>>
         + Send
@@ -51,7 +51,7 @@ pub type HandlerCallback = Arc<
 ///
 /// Returns `true` if the error handler signals that processing should stop.
 pub type ErrorHandlerCallback = Arc<
-    dyn Fn(Option<Update>, CallbackContext) -> Pin<Box<dyn Future<Output = bool> + Send>>
+    dyn Fn(Option<Arc<Update>>, CallbackContext) -> Pin<Box<dyn Future<Output = bool> + Send>>
         + Send
         + Sync,
 >;
@@ -213,8 +213,8 @@ pub struct Application {
     initialized: RwLock<bool>,
     running: RwLock<bool>,
 
-    update_tx: mpsc::UnboundedSender<Update>,
-    update_rx: RwLock<Option<mpsc::UnboundedReceiver<Update>>>,
+    update_tx: mpsc::UnboundedSender<Arc<Update>>,
+    update_rx: RwLock<Option<mpsc::UnboundedReceiver<Arc<Update>>>>,
     stop_notify: Arc<Notify>,
 
     post_init: Option<LifecycleHook>,
@@ -332,7 +332,7 @@ impl Application {
         &self.bot_data
     }
     #[must_use]
-    pub fn update_sender(&self) -> mpsc::UnboundedSender<Update> {
+    pub fn update_sender(&self) -> mpsc::UnboundedSender<Arc<Update>> {
         self.update_tx.clone()
     }
     #[must_use]
@@ -457,7 +457,7 @@ impl Application {
                             debug!("Processing update");
                             let app2 = Arc::clone(&app);
                             let up = app.update_processor.clone();
-                            let update_clone = update.clone();
+                            let update_clone = Arc::clone(&update);
                             let fut: Pin<Box<dyn Future<Output = ()> + Send>> = Box::pin(async move {
                                 if let Err(e) = app2.process_update(update_clone).await { error!("Error processing update: {e}"); }
                             });
@@ -636,7 +636,12 @@ impl Application {
                 tokio::select! {
                     result = bot.inner().get_updates(offset, Some(100), Some(timeout_secs), allowed.clone()) => {
                         match result {
-                            Ok(updates) => { for update in updates { offset = Some(update.update_id + 1); let _ = tx.send(update); } }
+                            Ok(updates) => {
+                                for update in updates {
+                                    offset = Some(update.update_id + 1);
+                                    let _ = tx.send(Arc::new(update));
+                                }
+                            }
                             Err(e) => { error!("Error fetching updates: {e}"); tokio::time::sleep(std::time::Duration::from_secs(1)).await; }
                         }
                     }
@@ -705,7 +710,7 @@ impl Application {
         let unbounded_tx = self.update_tx.clone();
         let bridge = tokio::spawn(async move {
             while let Some(u) = bounded_rx.recv().await {
-                if unbounded_tx.send(u).is_err() {
+                if unbounded_tx.send(Arc::new(u)).is_err() {
                     break;
                 }
             }
@@ -833,7 +838,7 @@ impl Application {
             check_update: Arc::new(move |update: &Update| {
                 check_handler.check_update(update).is_some()
             }),
-            callback: Arc::new(move |update: Update, _ctx: CallbackContext| {
+            callback: Arc::new(move |update: Arc<Update>, _ctx: CallbackContext| {
                 let h = Arc::clone(&callback_handler);
                 let bot = Arc::clone(&bot);
                 let ud = Arc::clone(&user_data);
@@ -872,7 +877,7 @@ impl Application {
     }
 
     // -- Core dispatch --
-    pub async fn process_update(&self, update: Update) -> Result<(), ApplicationError> {
+    pub async fn process_update(&self, update: Arc<Update>) -> Result<(), ApplicationError> {
         self.check_initialized().await?;
         let mut context: Option<CallbackContext> = None;
         let groups: Vec<(i32, Vec<usize>)> = {
@@ -910,7 +915,7 @@ impl Application {
                 }
                 let ctx = context.clone().unwrap();
                 let cb = Arc::clone(&handler.callback);
-                let uc = update.clone();
+                let uc = Arc::clone(&update);
                 if handler.block {
                     match cb(uc, ctx).await {
                         Ok(()) => {}
@@ -918,7 +923,7 @@ impl Application {
                             return Ok(());
                         }
                         Err(HandlerError::Other(e)) => {
-                            if self.process_error(Some(update.clone()), e).await {
+                            if self.process_error(Some(Arc::clone(&update)), e).await {
                                 return Ok(());
                             }
                         }
@@ -942,7 +947,7 @@ impl Application {
     /// M9: error handlers can signal stop by returning `true`.
     pub async fn process_error(
         &self,
-        update: Option<Update>,
+        update: Option<Arc<Update>>,
         error: Box<dyn std::error::Error + Send + Sync>,
     ) -> bool {
         let handlers = self.error_handlers.read().await;
@@ -953,7 +958,7 @@ impl Application {
         let error_arc: Arc<dyn std::error::Error + Send + Sync> = Arc::from(error);
         for (callback, block) in handlers.iter() {
             let mut ctx = CallbackContext::from_error(
-                update.as_ref(),
+                update.as_deref(),
                 Arc::clone(&error_arc),
                 Arc::clone(&self.bot),
                 Arc::clone(&self.user_data),
@@ -1156,7 +1161,7 @@ mod tests {
             DEFAULT_GROUP,
         )
         .await;
-        app.process_update(make_update(serde_json::json!({"update_id":1,"message":{"message_id":1,"date":0,"chat":{"id":1,"type":"private"},"text":"hello"}}))).await.unwrap();
+        app.process_update(Arc::new(make_update(serde_json::json!({"update_id":1,"message":{"message_id":1,"date":0,"chat":{"id":1,"type":"private"},"text":"hello"}})))).await.unwrap();
         assert!(called.load(std::sync::atomic::Ordering::SeqCst));
     }
 
@@ -1197,7 +1202,7 @@ mod tests {
             0,
         )
         .await;
-        app.process_update(make_update(serde_json::json!({"update_id":1,"message":{"message_id":1,"date":0,"chat":{"id":1,"type":"private"}}}))).await.unwrap();
+        app.process_update(Arc::new(make_update(serde_json::json!({"update_id":1,"message":{"message_id":1,"date":0,"chat":{"id":1,"type":"private"}}})))).await.unwrap();
         assert_eq!(*order.read().await, vec![0, 1]);
     }
 
@@ -1233,7 +1238,7 @@ mod tests {
             1,
         )
         .await;
-        app.process_update(make_update(serde_json::json!({"update_id":1})))
+        app.process_update(Arc::new(make_update(serde_json::json!({"update_id":1}))))
             .await
             .unwrap();
         assert!(!reached.load(std::sync::atomic::Ordering::SeqCst));
@@ -1277,7 +1282,7 @@ mod tests {
             0,
         )
         .await;
-        app.process_update(make_update(serde_json::json!({"update_id":1})))
+        app.process_update(Arc::new(make_update(serde_json::json!({"update_id":1}))))
             .await
             .unwrap();
         assert!(first.load(std::sync::atomic::Ordering::SeqCst));
@@ -1315,7 +1320,7 @@ mod tests {
             })
         });
         app.add_error_handler(eh, true).await;
-        app.process_update(make_update(serde_json::json!({"update_id":1})))
+        app.process_update(Arc::new(make_update(serde_json::json!({"update_id":1}))))
             .await
             .unwrap();
         assert!(seen.load(std::sync::atomic::Ordering::SeqCst));
@@ -1360,7 +1365,7 @@ mod tests {
         )
         .await;
         app.add_error_handler(eh, true).await;
-        app.process_update(make_update(serde_json::json!({"update_id":1})))
+        app.process_update(Arc::new(make_update(serde_json::json!({"update_id":1}))))
             .await
             .unwrap();
         assert!(!reached.load(std::sync::atomic::Ordering::SeqCst));
@@ -1370,7 +1375,7 @@ mod tests {
     async fn process_update_before_initialize_fails() {
         let app = make_app();
         assert!(app
-            .process_update(make_update(serde_json::json!({"update_id": 0})))
+            .process_update(Arc::new(make_update(serde_json::json!({"update_id": 0}))))
             .await
             .is_err());
     }
@@ -1413,7 +1418,7 @@ mod tests {
         let app = make_app();
         assert!(app
             .update_sender()
-            .send(make_update(serde_json::json!({"update_id":1})))
+            .send(Arc::new(make_update(serde_json::json!({"update_id":1}))))
             .is_ok());
     }
 

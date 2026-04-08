@@ -57,7 +57,7 @@ fn extract_chat_id(update: &Update) -> i64 {
 // ---------------------------------------------------------------------------
 
 async fn start_command(
-    update: Update,
+    update: Arc<Update>,
     context: Context,
     conv_store: ConvStore,
 ) -> HandlerResult {
@@ -86,10 +86,7 @@ async fn start_command(
         .await
         .map_err(|e| HandlerError::Other(Box::new(e)))?;
 
-    conv_store
-        .write()
-        .await
-        .insert(chat_id, Stage::StartRoutes);
+    conv_store.write().await.insert(chat_id, Stage::StartRoutes);
 
     Ok(())
 }
@@ -99,7 +96,7 @@ async fn start_command(
 // ---------------------------------------------------------------------------
 
 async fn handler_one(
-    update: Update,
+    update: Arc<Update>,
     context: Context,
     conv_store: ConvStore,
 ) -> HandlerResult {
@@ -108,11 +105,7 @@ async fn handler_one(
         .as_ref()
         .expect("handler_one: missing callback_query");
 
-    context
-        .bot()
-        .answer_callback_query(&cq.id)
-        .send()
-        .await?;
+    context.bot().answer_callback_query(&cq.id).send().await?;
 
     let keyboard = json!({
         "inline_keyboard": [
@@ -135,16 +128,13 @@ async fn handler_one(
     }
 
     let chat_id = extract_chat_id(&update);
-    conv_store
-        .write()
-        .await
-        .insert(chat_id, Stage::StartRoutes);
+    conv_store.write().await.insert(chat_id, Stage::StartRoutes);
 
     Ok(())
 }
 
 async fn handler_two(
-    update: Update,
+    update: Arc<Update>,
     context: Context,
     conv_store: ConvStore,
 ) -> HandlerResult {
@@ -153,11 +143,7 @@ async fn handler_two(
         .as_ref()
         .expect("handler_two: missing callback_query");
 
-    context
-        .bot()
-        .answer_callback_query(&cq.id)
-        .send()
-        .await?;
+    context.bot().answer_callback_query(&cq.id).send().await?;
 
     let keyboard = json!({
         "inline_keyboard": [
@@ -180,16 +166,13 @@ async fn handler_two(
     }
 
     let chat_id = extract_chat_id(&update);
-    conv_store
-        .write()
-        .await
-        .insert(chat_id, Stage::StartRoutes);
+    conv_store.write().await.insert(chat_id, Stage::StartRoutes);
 
     Ok(())
 }
 
 async fn handler_three(
-    update: Update,
+    update: Arc<Update>,
     context: Context,
     conv_store: ConvStore,
 ) -> HandlerResult {
@@ -198,11 +181,7 @@ async fn handler_three(
         .as_ref()
         .expect("handler_three: missing callback_query");
 
-    context
-        .bot()
-        .answer_callback_query(&cq.id)
-        .send()
-        .await?;
+    context.bot().answer_callback_query(&cq.id).send().await?;
 
     let keyboard = json!({
         "inline_keyboard": [
@@ -232,7 +211,7 @@ async fn handler_three(
 }
 
 async fn handler_four(
-    update: Update,
+    update: Arc<Update>,
     context: Context,
     conv_store: ConvStore,
 ) -> HandlerResult {
@@ -241,11 +220,7 @@ async fn handler_four(
         .as_ref()
         .expect("handler_four: missing callback_query");
 
-    context
-        .bot()
-        .answer_callback_query(&cq.id)
-        .send()
-        .await?;
+    context.bot().answer_callback_query(&cq.id).send().await?;
 
     let keyboard = json!({
         "inline_keyboard": [
@@ -268,10 +243,7 @@ async fn handler_four(
     }
 
     let chat_id = extract_chat_id(&update);
-    conv_store
-        .write()
-        .await
-        .insert(chat_id, Stage::StartRoutes);
+    conv_store.write().await.insert(chat_id, Stage::StartRoutes);
 
     Ok(())
 }
@@ -280,21 +252,13 @@ async fn handler_four(
 // Callback query handlers for END_ROUTES
 // ---------------------------------------------------------------------------
 
-async fn start_over(
-    update: Update,
-    context: Context,
-    conv_store: ConvStore,
-) -> HandlerResult {
+async fn start_over(update: Arc<Update>, context: Context, conv_store: ConvStore) -> HandlerResult {
     let cq = update
         .callback_query
         .as_ref()
         .expect("start_over: missing callback_query");
 
-    context
-        .bot()
-        .answer_callback_query(&cq.id)
-        .send()
-        .await?;
+    context.bot().answer_callback_query(&cq.id).send().await?;
 
     let keyboard = json!({
         "inline_keyboard": [
@@ -317,16 +281,13 @@ async fn start_over(
     }
 
     let chat_id = extract_chat_id(&update);
-    conv_store
-        .write()
-        .await
-        .insert(chat_id, Stage::StartRoutes);
+    conv_store.write().await.insert(chat_id, Stage::StartRoutes);
 
     Ok(())
 }
 
 async fn end_conversation(
-    update: Update,
+    update: Arc<Update>,
     context: Context,
     conv_store: ConvStore,
 ) -> HandlerResult {
@@ -335,11 +296,7 @@ async fn end_conversation(
         .as_ref()
         .expect("end: missing callback_query");
 
-    context
-        .bot()
-        .answer_callback_query(&cq.id)
-        .send()
-        .await?;
+    context.bot().answer_callback_query(&cq.id).send().await?;
 
     if let Some(ref msg) = cq.message {
         context
@@ -483,7 +440,9 @@ fn main() {
             let cs_check = Arc::clone(&conv_store);
             app.add_typed_handler(
                 FnHandler::new(
-                    move |u| is_callback_with_data_in_stage(u, &cs_check, THREE, Stage::StartRoutes),
+                    move |u| {
+                        is_callback_with_data_in_stage(u, &cs_check, THREE, Stage::StartRoutes)
+                    },
                     move |update, ctx| {
                         let cs = Arc::clone(&cs);
                         async move { handler_three(update, ctx, cs).await }

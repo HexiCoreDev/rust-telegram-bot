@@ -27,7 +27,7 @@ const TOTAL_VOTER_COUNT: i64 = 3;
 // ---------------------------------------------------------------------------
 
 /// `/start` -- describe what the bot can do.
-async fn start(update: Update, context: Context) -> HandlerResult {
+async fn start(update: Arc<Update>, context: Context) -> HandlerResult {
     context
         .reply_text(
             &update,
@@ -38,7 +38,7 @@ async fn start(update: Update, context: Context) -> HandlerResult {
 }
 
 /// `/help` -- show available commands.
-async fn help_handler(update: Update, context: Context) -> HandlerResult {
+async fn help_handler(update: Arc<Update>, context: Context) -> HandlerResult {
     context
         .reply_text(&update, "Use /quiz, /poll to test this bot.")
         .await?;
@@ -46,7 +46,7 @@ async fn help_handler(update: Update, context: Context) -> HandlerResult {
 }
 
 /// `/poll` -- send a predefined multi-answer poll.
-async fn poll_command(update: Update, context: Context) -> HandlerResult {
+async fn poll_command(update: Arc<Update>, context: Context) -> HandlerResult {
     let chat_id = update.effective_chat().map(|c| c.id).unwrap_or(0);
 
     let options: Vec<serde_json::Value> = vec![
@@ -92,7 +92,7 @@ async fn poll_command(update: Update, context: Context) -> HandlerResult {
 }
 
 /// `/quiz` -- send a predefined quiz poll.
-async fn quiz_command(update: Update, context: Context) -> HandlerResult {
+async fn quiz_command(update: Arc<Update>, context: Context) -> HandlerResult {
     let chat_id = update.effective_chat().map(|c| c.id).unwrap_or(0);
 
     let options: Vec<serde_json::Value> = vec![
@@ -129,7 +129,7 @@ async fn quiz_command(update: Update, context: Context) -> HandlerResult {
 // ---------------------------------------------------------------------------
 
 /// Handle a `poll_answer` update -- summarize the user's vote.
-async fn receive_poll_answer(update: Update, context: Context) -> HandlerResult {
+async fn receive_poll_answer(update: Arc<Update>, context: Context) -> HandlerResult {
     let answer = match &update.poll_answer {
         Some(a) => a,
         None => return Ok(()),
@@ -194,7 +194,7 @@ async fn receive_poll_answer(update: Update, context: Context) -> HandlerResult 
 }
 
 /// Handle a `poll` update -- close quiz after enough participants.
-async fn receive_quiz_answer(update: Update, context: Context) -> HandlerResult {
+async fn receive_quiz_answer(update: Arc<Update>, context: Context) -> HandlerResult {
     let poll = match &update.poll {
         Some(p) => p,
         None => return Ok(()),

@@ -57,7 +57,7 @@ struct UserProfile {
 // ---------------------------------------------------------------------------
 
 async fn start_command(
-    update: Update,
+    update: Arc<Update>,
     context: Context,
     conv_store: ConvStore,
 ) -> HandlerResult {
@@ -79,7 +79,7 @@ async fn start_command(
 }
 
 async fn receive_name(
-    update: Update,
+    update: Arc<Update>,
     context: Context,
     conv_store: ConvStore,
     user_data: UserDataStore,
@@ -104,7 +104,7 @@ async fn receive_name(
 }
 
 async fn receive_age(
-    update: Update,
+    update: Arc<Update>,
     context: Context,
     conv_store: ConvStore,
     user_data: UserDataStore,
@@ -129,7 +129,7 @@ async fn receive_age(
 }
 
 async fn receive_location(
-    update: Update,
+    update: Arc<Update>,
     context: Context,
     conv_store: ConvStore,
     user_data: UserDataStore,
@@ -151,7 +151,7 @@ async fn receive_location(
 }
 
 async fn receive_bio(
-    update: Update,
+    update: Arc<Update>,
     context: Context,
     conv_store: ConvStore,
     user_data: UserDataStore,
@@ -191,11 +191,7 @@ async fn receive_bio(
     Ok(())
 }
 
-async fn cancel(
-    update: Update,
-    context: Context,
-    conv_store: ConvStore,
-) -> HandlerResult {
+async fn cancel(update: Arc<Update>, context: Context, conv_store: ConvStore) -> HandlerResult {
     let chat_id = extract_chat_id(&update);
     conv_store.write().await.remove(&chat_id);
 
@@ -217,16 +213,11 @@ async fn cancel(
 // ---------------------------------------------------------------------------
 
 fn extract_chat_id(update: &Update) -> i64 {
-    update
-        .effective_chat()
-        .expect("update must have a chat")
-        .id
+    update.effective_chat().expect("update must have a chat").id
 }
 
 fn extract_text<'a>(update: &'a Update) -> Option<&'a str> {
-    update
-        .effective_message()
-        .and_then(|m| m.text.as_deref())
+    update.effective_message().and_then(|m| m.text.as_deref())
 }
 
 fn check_command(update: &Update, expected: &str) -> bool {
@@ -288,129 +279,129 @@ fn is_text_in_state(update: &Update, conv_store: &ConvStore, state: ConvState) -
 
 fn main() {
     telegram_bot::run(async {
-    tracing_subscriber::fmt::init();
+        tracing_subscriber::fmt::init();
 
-    let token = std::env::var("TELEGRAM_BOT_TOKEN")
-        .expect("TELEGRAM_BOT_TOKEN environment variable must be set");
+        let token = std::env::var("TELEGRAM_BOT_TOKEN")
+            .expect("TELEGRAM_BOT_TOKEN environment variable must be set");
 
-    let app: Arc<Application> = ApplicationBuilder::new().token(token).build();
+        let app: Arc<Application> = ApplicationBuilder::new().token(token).build();
 
-    let conv_store: ConvStore = Arc::new(RwLock::new(HashMap::new()));
-    let user_data: UserDataStore = Arc::new(RwLock::new(HashMap::new()));
+        let conv_store: ConvStore = Arc::new(RwLock::new(HashMap::new()));
+        let user_data: UserDataStore = Arc::new(RwLock::new(HashMap::new()));
 
-    // Entry point: /start
-    {
-        let cs = Arc::clone(&conv_store);
-        app.add_typed_handler(
-            FnHandler::new(
-                |u| check_command(u, "start"),
-                move |update, ctx| {
-                    let cs = Arc::clone(&cs);
-                    async move { start_command(update, ctx, cs).await }
-                },
-            ),
-            0,
-        )
-        .await;
-    }
+        // Entry point: /start
+        {
+            let cs = Arc::clone(&conv_store);
+            app.add_typed_handler(
+                FnHandler::new(
+                    |u| check_command(u, "start"),
+                    move |update, ctx| {
+                        let cs = Arc::clone(&cs);
+                        async move { start_command(update, ctx, cs).await }
+                    },
+                ),
+                0,
+            )
+            .await;
+        }
 
-    // Fallback: /cancel
-    {
-        let cs = Arc::clone(&conv_store);
-        app.add_typed_handler(
-            FnHandler::new(
-                |u| check_command(u, "cancel"),
-                move |update, ctx| {
-                    let cs = Arc::clone(&cs);
-                    async move { cancel(update, ctx, cs).await }
-                },
-            ),
-            0,
-        )
-        .await;
-    }
+        // Fallback: /cancel
+        {
+            let cs = Arc::clone(&conv_store);
+            app.add_typed_handler(
+                FnHandler::new(
+                    |u| check_command(u, "cancel"),
+                    move |update, ctx| {
+                        let cs = Arc::clone(&cs);
+                        async move { cancel(update, ctx, cs).await }
+                    },
+                ),
+                0,
+            )
+            .await;
+        }
 
-    // State: AskName
-    {
-        let cs = Arc::clone(&conv_store);
-        let ud = Arc::clone(&user_data);
-        let cs_check = Arc::clone(&conv_store);
-        app.add_typed_handler(
-            FnHandler::new(
-                move |u| is_text_in_state(u, &cs_check, ConvState::AskName),
-                move |update, ctx| {
-                    let cs = Arc::clone(&cs);
-                    let ud = Arc::clone(&ud);
-                    async move { receive_name(update, ctx, cs, ud).await }
-                },
-            ),
-            1,
-        )
-        .await;
-    }
+        // State: AskName
+        {
+            let cs = Arc::clone(&conv_store);
+            let ud = Arc::clone(&user_data);
+            let cs_check = Arc::clone(&conv_store);
+            app.add_typed_handler(
+                FnHandler::new(
+                    move |u| is_text_in_state(u, &cs_check, ConvState::AskName),
+                    move |update, ctx| {
+                        let cs = Arc::clone(&cs);
+                        let ud = Arc::clone(&ud);
+                        async move { receive_name(update, ctx, cs, ud).await }
+                    },
+                ),
+                1,
+            )
+            .await;
+        }
 
-    // State: AskAge
-    {
-        let cs = Arc::clone(&conv_store);
-        let ud = Arc::clone(&user_data);
-        let cs_check = Arc::clone(&conv_store);
-        app.add_typed_handler(
-            FnHandler::new(
-                move |u| is_text_in_state(u, &cs_check, ConvState::AskAge),
-                move |update, ctx| {
-                    let cs = Arc::clone(&cs);
-                    let ud = Arc::clone(&ud);
-                    async move { receive_age(update, ctx, cs, ud).await }
-                },
-            ),
-            1,
-        )
-        .await;
-    }
+        // State: AskAge
+        {
+            let cs = Arc::clone(&conv_store);
+            let ud = Arc::clone(&user_data);
+            let cs_check = Arc::clone(&conv_store);
+            app.add_typed_handler(
+                FnHandler::new(
+                    move |u| is_text_in_state(u, &cs_check, ConvState::AskAge),
+                    move |update, ctx| {
+                        let cs = Arc::clone(&cs);
+                        let ud = Arc::clone(&ud);
+                        async move { receive_age(update, ctx, cs, ud).await }
+                    },
+                ),
+                1,
+            )
+            .await;
+        }
 
-    // State: AskLocation
-    {
-        let cs = Arc::clone(&conv_store);
-        let ud = Arc::clone(&user_data);
-        let cs_check = Arc::clone(&conv_store);
-        app.add_typed_handler(
-            FnHandler::new(
-                move |u| is_text_in_state(u, &cs_check, ConvState::AskLocation),
-                move |update, ctx| {
-                    let cs = Arc::clone(&cs);
-                    let ud = Arc::clone(&ud);
-                    async move { receive_location(update, ctx, cs, ud).await }
-                },
-            ),
-            1,
-        )
-        .await;
-    }
+        // State: AskLocation
+        {
+            let cs = Arc::clone(&conv_store);
+            let ud = Arc::clone(&user_data);
+            let cs_check = Arc::clone(&conv_store);
+            app.add_typed_handler(
+                FnHandler::new(
+                    move |u| is_text_in_state(u, &cs_check, ConvState::AskLocation),
+                    move |update, ctx| {
+                        let cs = Arc::clone(&cs);
+                        let ud = Arc::clone(&ud);
+                        async move { receive_location(update, ctx, cs, ud).await }
+                    },
+                ),
+                1,
+            )
+            .await;
+        }
 
-    // State: AskBio
-    {
-        let cs = Arc::clone(&conv_store);
-        let ud = Arc::clone(&user_data);
-        let cs_check = Arc::clone(&conv_store);
-        app.add_typed_handler(
-            FnHandler::new(
-                move |u| is_text_in_state(u, &cs_check, ConvState::AskBio),
-                move |update, ctx| {
-                    let cs = Arc::clone(&cs);
-                    let ud = Arc::clone(&ud);
-                    async move { receive_bio(update, ctx, cs, ud).await }
-                },
-            ),
-            1,
-        )
-        .await;
-    }
+        // State: AskBio
+        {
+            let cs = Arc::clone(&conv_store);
+            let ud = Arc::clone(&user_data);
+            let cs_check = Arc::clone(&conv_store);
+            app.add_typed_handler(
+                FnHandler::new(
+                    move |u| is_text_in_state(u, &cs_check, ConvState::AskBio),
+                    move |update, ctx| {
+                        let cs = Arc::clone(&cs);
+                        let ud = Arc::clone(&ud);
+                        async move { receive_bio(update, ctx, cs, ud).await }
+                    },
+                ),
+                1,
+            )
+            .await;
+        }
 
-    println!("Conversation bot is running. Press Ctrl+C to stop.");
-    println!("Commands: /start, /cancel");
+        println!("Conversation bot is running. Press Ctrl+C to stop.");
+        println!("Commands: /start, /cancel");
 
-    if let Err(e) = app.run_polling().await {
-        eprintln!("Error running bot: {e}");
-    }
+        if let Err(e) = app.run_polling().await {
+            eprintln!("Error running bot: {e}");
+        }
     });
 }

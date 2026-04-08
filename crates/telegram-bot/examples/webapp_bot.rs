@@ -49,10 +49,7 @@ fn extract_chat_id(update: &Update) -> i64 {
 // ---------------------------------------------------------------------------
 
 /// `/start` -- send a keyboard button that opens the Web App.
-async fn start(
-    update: Update,
-    context: Context,
-) -> HandlerResult {
+async fn start(update: Arc<Update>, context: Context) -> HandlerResult {
     let chat_id = extract_chat_id(&update);
 
     // Build a ReplyKeyboardMarkup with a single button that opens the Web App.
@@ -80,10 +77,7 @@ async fn start(
 }
 
 /// Handle incoming Web App data.
-async fn web_app_data(
-    update: Update,
-    context: Context,
-) -> HandlerResult {
+async fn web_app_data(update: Arc<Update>, context: Context) -> HandlerResult {
     let chat_id = extract_chat_id(&update);
     let msg = update
         .effective_message()
@@ -95,9 +89,8 @@ async fn web_app_data(
     };
 
     // The Web App sends data as a JSON-serialized string.
-    let parsed: serde_json::Value = serde_json::from_str(&webapp_data.data).unwrap_or_else(|_| {
-        json!({"raw": &webapp_data.data})
-    });
+    let parsed: serde_json::Value = serde_json::from_str(&webapp_data.data)
+        .unwrap_or_else(|_| json!({"raw": &webapp_data.data}));
 
     let hex = parsed
         .get("hex")
@@ -145,7 +138,8 @@ fn main() {
         let app: Arc<Application> = ApplicationBuilder::new().token(token).build();
 
         // /start
-        app.add_typed_handler(CommandHandler::new("start", start), 0).await;
+        app.add_typed_handler(CommandHandler::new("start", start), 0)
+            .await;
 
         // Handle Web App data (messages with web_app_data present).
         app.add_typed_handler(

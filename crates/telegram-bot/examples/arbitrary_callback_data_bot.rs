@@ -74,10 +74,7 @@ fn build_keyboard(current_list: &[i64]) -> serde_json::Value {
 // ---------------------------------------------------------------------------
 
 /// `/start` -- send a message with 5 inline number buttons.
-async fn start(
-    update: Update,
-    context: Context,
-) -> HandlerResult {
+async fn start(update: Arc<Update>, context: Context) -> HandlerResult {
     let chat_id = extract_chat_id(&update);
 
     context
@@ -92,10 +89,7 @@ async fn start(
 }
 
 /// `/help` -- show usage info.
-async fn help_command(
-    update: Update,
-    context: Context,
-) -> HandlerResult {
+async fn help_command(update: Arc<Update>, context: Context) -> HandlerResult {
     let chat_id = extract_chat_id(&update);
 
     context
@@ -113,10 +107,7 @@ async fn help_command(
 }
 
 /// `/clear` -- clear the callback data cache.
-async fn clear(
-    update: Update,
-    context: Context,
-) -> HandlerResult {
+async fn clear(update: Arc<Update>, context: Context) -> HandlerResult {
     let chat_id = extract_chat_id(&update);
 
     // Clear the callback data cache via the ExtBot.
@@ -141,10 +132,7 @@ async fn clear(
 ///
 /// Parses the callback data to extract the selected number and the current
 /// list, appends the new number, and updates the message with a fresh keyboard.
-async fn list_button(
-    update: Update,
-    context: Context,
-) -> HandlerResult {
+async fn list_button(update: Arc<Update>, context: Context) -> HandlerResult {
     let cq = update
         .callback_query
         .as_ref()
@@ -230,10 +218,14 @@ fn main() {
             .arbitrary_callback_data(CALLBACK_DATA_CACHE_SIZE)
             .build();
 
-        app.add_typed_handler(CommandHandler::new("start", start), 0).await;
-        app.add_typed_handler(CommandHandler::new("help", help_command), 0).await;
-        app.add_typed_handler(CommandHandler::new("clear", clear), 0).await;
-        app.add_typed_handler(FnHandler::on_callback_query(list_button), 0).await;
+        app.add_typed_handler(CommandHandler::new("start", start), 0)
+            .await;
+        app.add_typed_handler(CommandHandler::new("help", help_command), 0)
+            .await;
+        app.add_typed_handler(CommandHandler::new("clear", clear), 0)
+            .await;
+        app.add_typed_handler(FnHandler::on_callback_query(list_button), 0)
+            .await;
 
         println!("Arbitrary callback data bot is running. Press Ctrl+C to stop.");
         println!("Commands: /start, /help, /clear");

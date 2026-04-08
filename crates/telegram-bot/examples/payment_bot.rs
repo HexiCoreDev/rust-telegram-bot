@@ -56,10 +56,7 @@ fn extract_chat_id(update: &Update) -> i64 {
 // ---------------------------------------------------------------------------
 
 /// `/start` -- display usage instructions.
-async fn start_callback(
-    update: Update,
-    context: Context,
-) -> HandlerResult {
+async fn start_callback(update: Arc<Update>, context: Context) -> HandlerResult {
     let chat_id = extract_chat_id(&update);
 
     context
@@ -78,7 +75,7 @@ async fn start_callback(
 
 /// `/shipping` -- send an invoice that triggers a shipping query.
 async fn start_with_shipping(
-    update: Update,
+    update: Arc<Update>,
     context: Context,
     provider_token: String,
 ) -> HandlerResult {
@@ -111,7 +108,7 @@ async fn start_with_shipping(
 
 /// `/noshipping` -- send an invoice without requiring shipping details.
 async fn start_without_shipping(
-    update: Update,
+    update: Arc<Update>,
     context: Context,
     provider_token: String,
 ) -> HandlerResult {
@@ -138,10 +135,7 @@ async fn start_without_shipping(
 }
 
 /// Handle incoming shipping queries.
-async fn shipping_callback(
-    update: Update,
-    context: Context,
-) -> HandlerResult {
+async fn shipping_callback(update: Arc<Update>, context: Context) -> HandlerResult {
     let query = update
         .shipping_query
         .as_ref()
@@ -188,10 +182,7 @@ async fn shipping_callback(
 }
 
 /// Handle pre-checkout queries (final confirmation).
-async fn precheckout_callback(
-    update: Update,
-    context: Context,
-) -> HandlerResult {
+async fn precheckout_callback(update: Arc<Update>, context: Context) -> HandlerResult {
     let query = update
         .pre_checkout_query
         .as_ref()
@@ -218,10 +209,7 @@ async fn precheckout_callback(
 }
 
 /// Handle successful payments.
-async fn successful_payment_callback(
-    update: Update,
-    context: Context,
-) -> HandlerResult {
+async fn successful_payment_callback(update: Arc<Update>, context: Context) -> HandlerResult {
     let chat_id = extract_chat_id(&update);
 
     context
@@ -251,7 +239,8 @@ fn main() {
         let app: Arc<Application> = ApplicationBuilder::new().token(token).build();
 
         // /start
-        app.add_typed_handler(CommandHandler::new("start", start_callback), 0).await;
+        app.add_typed_handler(CommandHandler::new("start", start_callback), 0)
+            .await;
 
         // /shipping
         {
@@ -266,8 +255,14 @@ fn main() {
                                 let e = entities.first()?;
                                 if e.entity_type == MessageEntityType::BotCommand && e.offset == 0 {
                                     let cmd = t[1..e.length as usize].split('@').next()?;
-                                    if cmd.eq_ignore_ascii_case("shipping") { Some(true) } else { None }
-                                } else { None }
+                                    if cmd.eq_ignore_ascii_case("shipping") {
+                                        Some(true)
+                                    } else {
+                                        None
+                                    }
+                                } else {
+                                    None
+                                }
                             })
                             .is_some()
                     },
@@ -294,8 +289,14 @@ fn main() {
                                 let e = entities.first()?;
                                 if e.entity_type == MessageEntityType::BotCommand && e.offset == 0 {
                                     let cmd = t[1..e.length as usize].split('@').next()?;
-                                    if cmd.eq_ignore_ascii_case("noshipping") { Some(true) } else { None }
-                                } else { None }
+                                    if cmd.eq_ignore_ascii_case("noshipping") {
+                                        Some(true)
+                                    } else {
+                                        None
+                                    }
+                                } else {
+                                    None
+                                }
                             })
                             .is_some()
                     },
@@ -310,10 +311,12 @@ fn main() {
         }
 
         // Shipping query handler
-        app.add_typed_handler(FnHandler::on_shipping_query(shipping_callback), 0).await;
+        app.add_typed_handler(FnHandler::on_shipping_query(shipping_callback), 0)
+            .await;
 
         // Pre-checkout query handler
-        app.add_typed_handler(FnHandler::on_pre_checkout_query(precheckout_callback), 0).await;
+        app.add_typed_handler(FnHandler::on_pre_checkout_query(precheckout_callback), 0)
+            .await;
 
         // Successful payment handler
         app.add_typed_handler(

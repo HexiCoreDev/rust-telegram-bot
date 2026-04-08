@@ -8,12 +8,13 @@
 use std::collections::HashMap;
 use std::future::Future;
 use std::pin::Pin;
+use std::sync::Arc;
 
 use regex::Regex;
 use telegram_bot_raw::types::update::Update;
 
-use crate::context::CallbackContext;
 use super::base::{Handler, HandlerCallback, HandlerResult, MatchResult};
+use crate::context::CallbackContext;
 
 /// Handler that matches messages whose text matches a regex pattern.
 ///
@@ -84,7 +85,7 @@ impl Handler for StringRegexHandler {
 
     fn handle_update(
         &self,
-        update: Update,
+        update: Arc<Update>,
         match_result: MatchResult,
     ) -> Pin<Box<dyn Future<Output = HandlerResult> + Send>> {
         (self.callback)(update, match_result)
@@ -133,11 +134,8 @@ mod tests {
 
     #[test]
     fn matches_regex() {
-        let h = StringRegexHandler::new(
-            Regex::new(r"^hello (\w+)").unwrap(),
-            noop_callback(),
-            true,
-        );
+        let h =
+            StringRegexHandler::new(Regex::new(r"^hello (\w+)").unwrap(), noop_callback(), true);
         let update: Update = serde_json::from_str(
             r#"{"update_id":1,"message":{"message_id":1,"date":0,"chat":{"id":1,"type":"private"},"text":"hello world"}}"#,
         ).unwrap();
@@ -154,11 +152,7 @@ mod tests {
 
     #[test]
     fn no_match_returns_none() {
-        let h = StringRegexHandler::new(
-            Regex::new(r"^goodbye").unwrap(),
-            noop_callback(),
-            true,
-        );
+        let h = StringRegexHandler::new(Regex::new(r"^goodbye").unwrap(), noop_callback(), true);
         let update: Update = serde_json::from_str(
             r#"{"update_id":1,"message":{"message_id":1,"date":0,"chat":{"id":1,"type":"private"},"text":"hello world"}}"#,
         ).unwrap();
@@ -188,9 +182,10 @@ mod tests {
         use crate::ext_bot::test_support::mock_request;
         use telegram_bot_raw::bot::Bot;
 
-        let bot = Arc::new(crate::ext_bot::ExtBot::from_bot(
-            Bot::new("test", mock_request()),
-        ));
+        let bot = Arc::new(crate::ext_bot::ExtBot::from_bot(Bot::new(
+            "test",
+            mock_request(),
+        )));
         let stores = (
             Arc::new(tokio::sync::RwLock::new(HashMap::new())),
             Arc::new(tokio::sync::RwLock::new(HashMap::new())),
@@ -211,9 +206,10 @@ mod tests {
         use crate::ext_bot::test_support::mock_request;
         use telegram_bot_raw::bot::Bot;
 
-        let bot = Arc::new(crate::ext_bot::ExtBot::from_bot(
-            Bot::new("test", mock_request()),
-        ));
+        let bot = Arc::new(crate::ext_bot::ExtBot::from_bot(Bot::new(
+            "test",
+            mock_request(),
+        )));
         let stores = (
             Arc::new(tokio::sync::RwLock::new(HashMap::new())),
             Arc::new(tokio::sync::RwLock::new(HashMap::new())),
@@ -229,9 +225,15 @@ mod tests {
             named,
         };
         h.collect_additional_context(&mut ctx, &mr);
-        assert_eq!(ctx.matches, Some(vec!["hello alice".into(), "alice".into()]));
         assert_eq!(
-            ctx.named_matches.as_ref().and_then(|m| m.get("name")).map(String::as_str),
+            ctx.matches,
+            Some(vec!["hello alice".into(), "alice".into()])
+        );
+        assert_eq!(
+            ctx.named_matches
+                .as_ref()
+                .and_then(|m| m.get("name"))
+                .map(String::as_str),
             Some("alice")
         );
     }

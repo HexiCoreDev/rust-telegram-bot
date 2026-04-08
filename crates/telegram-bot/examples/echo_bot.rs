@@ -22,29 +22,43 @@ use telegram_bot::ext::prelude::*;
 // ---------------------------------------------------------------------------
 
 /// Respond to `/start` with a greeting.
-async fn start(update: Update, context: Context) -> HandlerResult {
-    let name = update.effective_user().map(|u| u.first_name.as_str()).unwrap_or("there");
-    context.reply_text(&update, &format!(
+async fn start(update: Arc<Update>, context: Context) -> HandlerResult {
+    let name = update
+        .effective_user()
+        .map(|u| u.first_name.as_str())
+        .unwrap_or("there");
+    context
+        .reply_text(
+            &update,
+            &format!(
         "Hi {name}! I am an echo bot. Send me any message and I will repeat it back to you.\n\n\
          Use /help to see available commands."
-    )).await?;
+    ),
+        )
+        .await?;
     Ok(())
 }
 
 /// Respond to `/help` with usage instructions.
-async fn help(update: Update, context: Context) -> HandlerResult {
-    context.reply_text(&update,
-        "Available commands:\n\
+async fn help(update: Arc<Update>, context: Context) -> HandlerResult {
+    context
+        .reply_text(
+            &update,
+            "Available commands:\n\
          /start - Start the bot\n\
          /help - Show this help message\n\n\
          Send any text message and I will echo it back!",
-    ).await?;
+        )
+        .await?;
     Ok(())
 }
 
 /// Echo back whatever text the user sends.
-async fn echo(update: Update, context: Context) -> HandlerResult {
-    let text = update.effective_message().and_then(|m| m.text.as_deref()).unwrap_or("");
+async fn echo(update: Arc<Update>, context: Context) -> HandlerResult {
+    let text = update
+        .effective_message()
+        .and_then(|m| m.text.as_deref())
+        .unwrap_or("");
     if !text.is_empty() {
         context.reply_text(&update, text).await?;
     }
@@ -64,9 +78,12 @@ fn main() {
 
         let app = ApplicationBuilder::new().token(token).build();
 
-        app.add_typed_handler(CommandHandler::new("start", start), 0).await;
-        app.add_typed_handler(CommandHandler::new("help", help), 0).await;
-        app.add_typed_handler(MessageHandler::new(TEXT() & !COMMAND(), echo), 0).await;
+        app.add_typed_handler(CommandHandler::new("start", start), 0)
+            .await;
+        app.add_typed_handler(CommandHandler::new("help", help), 0)
+            .await;
+        app.add_typed_handler(MessageHandler::new(TEXT() & !COMMAND(), echo), 0)
+            .await;
 
         println!("Echo bot is running. Press Ctrl+C to stop.");
 

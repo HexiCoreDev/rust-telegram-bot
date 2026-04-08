@@ -25,8 +25,8 @@ use std::time::Duration;
 
 use tokio::sync::RwLock;
 
-use telegram_bot::ext::prelude::*;
 use telegram_bot::ext::job_queue::{JobCallbackFn, JobContext, JobQueue};
+use telegram_bot::ext::prelude::*;
 
 /// A shared map to track active timer job IDs per chat.
 type TimerStore = Arc<RwLock<std::collections::HashMap<i64, u64>>>;
@@ -36,10 +36,7 @@ type TimerStore = Arc<RwLock<std::collections::HashMap<i64, u64>>>;
 // ---------------------------------------------------------------------------
 
 /// `/start` -- show usage information.
-async fn start_command(
-    update: Update,
-    context: Context,
-) -> HandlerResult {
+async fn start_command(update: Arc<Update>, context: Context) -> HandlerResult {
     let chat_id = update.effective_chat().expect("update must have a chat").id;
 
     context
@@ -58,11 +55,13 @@ async fn start_command(
 
 /// `/set <seconds>` -- set a timer that fires after the given number of seconds.
 async fn set_timer(
-    update: Update,
+    update: Arc<Update>,
     context: Context,
     timer_store: TimerStore,
 ) -> HandlerResult {
-    let msg = update.effective_message().expect("update must have a message");
+    let msg = update
+        .effective_message()
+        .expect("update must have a message");
     let chat_id = msg.chat.id;
     let text = msg.text.as_deref().unwrap_or("");
 
@@ -104,8 +103,7 @@ async fn set_timer(
             if target_chat_id == 0 {
                 return Ok(());
             }
-            bot
-                .send_message(target_chat_id, "BEEP! Timer is done!")
+            bot.send_message(target_chat_id, "BEEP! Timer is done!")
                 .send()
                 .await
                 .map_err(|e| Box::new(e) as Box<dyn std::error::Error + Send + Sync>)?;
@@ -155,7 +153,7 @@ async fn set_timer(
 
 /// `/unset` -- cancel the active timer for this chat.
 async fn unset_timer(
-    update: Update,
+    update: Arc<Update>,
     context: Context,
     timer_store: TimerStore,
 ) -> HandlerResult {
@@ -236,69 +234,66 @@ fn check_command(update: &Update, expected: &str) -> bool {
 
 fn main() {
     telegram_bot::run(async {
-    tracing_subscriber::fmt::init();
+        tracing_subscriber::fmt::init();
 
-    let token = std::env::var("TELEGRAM_BOT_TOKEN")
-        .expect("TELEGRAM_BOT_TOKEN environment variable must be set");
+        let token = std::env::var("TELEGRAM_BOT_TOKEN")
+            .expect("TELEGRAM_BOT_TOKEN environment variable must be set");
 
-    // Create a job queue and share it with the application.
-    let jq = Arc::new(JobQueue::new());
+        // Create a job queue and share it with the application.
+        let jq = Arc::new(JobQueue::new());
 
-    let app: Arc<Application> = ApplicationBuilder::new()
-        .token(token)
-        .job_queue(Arc::clone(&jq))
-        .build();
+        let app: Arc<Application> = ApplicationBuilder::new()
+            .token(token)
+            .job_queue(Arc::clone(&jq))
+            .build();
 
-    // Shared timer store across handlers.
-    let timer_store: TimerStore = Arc::new(RwLock::new(std::collections::HashMap::new()));
+        // Shared timer store across handlers.
+        let timer_store: TimerStore = Arc::new(RwLock::new(std::collections::HashMap::new()));
 
-    // /start handler
-    app.add_typed_handler(
-        FnHandler::new(|u| check_command(u, "start"), start_command),
-        0,
-    )
-    .await;
-
-    // /set handler
-    {
-        let store = Arc::clone(&timer_store);
+        // /start handler
         app.add_typed_handler(
-            FnHandler::new(
-                |u| check_command(u, "set"),
-                move |update, ctx| {
-                    let s = Arc::clone(&store);
-                    async move { set_timer(update, ctx, s).await }
-                },
-            ),
+            FnHandler::new(|u| check_command(u, "start"), start_command),
             0,
         )
         .await;
-    }
 
-    // /unset handler
-    {
-        let store = Arc::clone(&timer_store);
-        app.add_typed_handler(
-            FnHandler::new(
-                |u| check_command(u, "unset"),
-                move |update, ctx| {
-                    let s = Arc::clone(&store);
-                    async move { unset_timer(update, ctx, s).await }
-                },
-            ),
-            0,
-        )
-        .await;
-    }
+        // /set handler
+        {
+            let store = Arc::clone(&timer_store);
+            app.add_typed_handler(
+                FnHandler::new(
+                    |u| check_command(u, "set"),
+                    move |update, ctx| {
+                        let s = Arc::clone(&store);
+                        async move { set_timer(update, ctx, s).await }
+                    },
+                ),
+                0,
+            )
+            .await;
+        }
 
-    println!("Timer bot is running. Press Ctrl+C to stop.");
-    println!("Commands: /start, /set <seconds>, /unset");
+        // /unset handler
+        {
+            let store = Arc::clone(&timer_store);
+            app.add_typed_handler(
+                FnHandler::new(
+                    |u| check_command(u, "unset"),
+                    move |update, ctx| {
+                        let s = Arc::clone(&store);
+                        async move { unset_timer(update, ctx, s).await }
+                    },
+                ),
+                0,
+            )
+            .await;
+        }
 
-    if let Err(e) = app
-        .run_polling()
-        .await
-    {
-        eprintln!("Error running bot: {e}");
-    }
+        println!("Timer bot is running. Press Ctrl+C to stop.");
+        println!("Commands: /start, /set <seconds>, /unset");
+
+        if let Err(e) = app.run_polling().await {
+            eprintln!("Error running bot: {e}");
+        }
     });
 }

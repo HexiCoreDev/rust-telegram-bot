@@ -22,7 +22,7 @@ use telegram_bot::raw::types::update::Update as RawUpdate;
 
 // -- Handlers ----------------------------------------------------------------
 
-async fn start(update: Update, context: Context) -> HandlerResult {
+async fn start(update: Arc<Update>, context: Context) -> HandlerResult {
     let name = update
         .effective_user()
         .map(|u| u.first_name.as_str())
@@ -44,7 +44,7 @@ async fn start(update: Update, context: Context) -> HandlerResult {
     Ok(())
 }
 
-async fn help_cmd(update: Update, context: Context) -> HandlerResult {
+async fn help_cmd(update: Arc<Update>, context: Context) -> HandlerResult {
     context
         .reply_text(
             &update,
@@ -54,7 +54,7 @@ async fn help_cmd(update: Update, context: Context) -> HandlerResult {
     Ok(())
 }
 
-async fn echo(update: Update, context: Context) -> HandlerResult {
+async fn echo(update: Arc<Update>, context: Context) -> HandlerResult {
     let msg = match update.effective_message() {
         Some(m) => m,
         None => return Ok(()),
@@ -70,7 +70,7 @@ async fn echo(update: Update, context: Context) -> HandlerResult {
     Ok(())
 }
 
-async fn button_callback(update: Update, context: Context) -> HandlerResult {
+async fn button_callback(update: Arc<Update>, context: Context) -> HandlerResult {
     let cq = match update.callback_query.as_ref() {
         Some(c) => c,
         None => return Ok(()),
@@ -92,12 +92,12 @@ async fn button_callback(update: Update, context: Context) -> HandlerResult {
 
 #[derive(Clone)]
 struct AppState {
-    update_tx: mpsc::UnboundedSender<RawUpdate>,
+    update_tx: mpsc::UnboundedSender<Arc<RawUpdate>>,
 }
 
 async fn handle_webhook(State(state): State<AppState>, body: axum::body::Bytes) -> impl IntoResponse {
     match serde_json::from_slice::<RawUpdate>(&body) {
-        Ok(update) => { let _ = state.update_tx.send(update); StatusCode::OK }
+        Ok(update) => { let _ = state.update_tx.send(Arc::new(update)); StatusCode::OK }
         Err(_) => StatusCode::BAD_REQUEST,
     }
 }

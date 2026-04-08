@@ -153,12 +153,15 @@ fn reply_keyboard() -> serde_json::Value {
 
 /// `/start` -- begin the conversation.
 async fn start_command(
-    update: Update,
+    update: Arc<Update>,
     context: Context,
     conv_store: ConvStore,
 ) -> HandlerResult {
     let chat_id = extract_chat_id(&update);
-    conv_store.write().await.insert(chat_id, ConvState::Choosing);
+    conv_store
+        .write()
+        .await
+        .insert(chat_id, ConvState::Choosing);
 
     context
         .bot()
@@ -177,7 +180,7 @@ async fn start_command(
 
 /// User chose a predefined category (Age, Favourite colour, Number of siblings).
 async fn regular_choice(
-    update: Update,
+    update: Arc<Update>,
     context: Context,
     conv_store: ConvStore,
     user_facts: UserFacts,
@@ -202,7 +205,10 @@ async fn regular_choice(
         .bot()
         .send_message(
             chat_id,
-            &format!("Your {}? Yes, I would love to hear about that!", text.to_lowercase()),
+            &format!(
+                "Your {}? Yes, I would love to hear about that!",
+                text.to_lowercase()
+            ),
         )
         .send()
         .await
@@ -213,7 +219,7 @@ async fn regular_choice(
 
 /// User chose "Something else..." -- ask for a custom category name.
 async fn custom_choice(
-    update: Update,
+    update: Arc<Update>,
     context: Context,
     conv_store: ConvStore,
 ) -> HandlerResult {
@@ -239,7 +245,7 @@ async fn custom_choice(
 
 /// Received the user's reply (the actual fact value).
 async fn received_information(
-    update: Update,
+    update: Arc<Update>,
     context: Context,
     conv_store: ConvStore,
     user_facts: UserFacts,
@@ -250,7 +256,9 @@ async fn received_information(
     let facts_summary = {
         let mut store = user_facts.write().await;
         let facts = store.entry(chat_id).or_default();
-        let category = facts.remove("choice").unwrap_or_else(|| "Unknown".to_string());
+        let category = facts
+            .remove("choice")
+            .unwrap_or_else(|| "Unknown".to_string());
         facts.insert(category, text);
         facts_to_str(facts)
     };
@@ -280,7 +288,7 @@ async fn received_information(
 
 /// "Done" -- display gathered facts and end conversation.
 async fn done(
-    update: Update,
+    update: Arc<Update>,
     context: Context,
     conv_store: ConvStore,
     user_facts: UserFacts,

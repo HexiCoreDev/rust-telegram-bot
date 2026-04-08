@@ -13,8 +13,8 @@ use std::sync::Arc;
 use regex::Regex;
 use telegram_bot_raw::types::update::Update;
 
-use crate::context::CallbackContext;
 use super::base::{Handler, HandlerCallback, HandlerResult, MatchResult};
+use crate::context::CallbackContext;
 
 /// Pattern to match against callback query data or game short name.
 #[derive(Clone)]
@@ -74,11 +74,7 @@ pub struct CallbackQueryHandler {
 
 impl CallbackQueryHandler {
     /// Create a new `CallbackQueryHandler`.
-    pub fn new(
-        callback: HandlerCallback,
-        pattern: Option<CallbackPattern>,
-        block: bool,
-    ) -> Self {
+    pub fn new(callback: HandlerCallback, pattern: Option<CallbackPattern>, block: bool) -> Self {
         Self {
             callback,
             pattern,
@@ -135,7 +131,10 @@ impl Handler for CallbackQueryHandler {
                 let game = cq.game_short_name.as_ref()?;
                 Self::try_regex(re, game)
             }
-            Some(CallbackPattern::Both { data: dre, game: gre }) => {
+            Some(CallbackPattern::Both {
+                data: dre,
+                game: gre,
+            }) => {
                 // Match whichever field is present.
                 if let Some(data) = cq.data.as_ref() {
                     if let Some(mr) = Self::try_regex(dre, data) {
@@ -160,7 +159,7 @@ impl Handler for CallbackQueryHandler {
 
     fn handle_update(
         &self,
-        update: Update,
+        update: Arc<Update>,
         match_result: MatchResult,
     ) -> Pin<Box<dyn Future<Output = HandlerResult> + Send>> {
         (self.callback)(update, match_result)
@@ -298,11 +297,7 @@ mod tests {
     #[test]
     fn named_group_pattern_returns_regex_match_with_names() {
         let re = Regex::new(r"^btn_(?P<id>\d+)$").unwrap();
-        let h = CallbackQueryHandler::new(
-            noop_callback(),
-            Some(CallbackPattern::Data(re)),
-            true,
-        );
+        let h = CallbackQueryHandler::new(noop_callback(), Some(CallbackPattern::Data(re)), true);
         let update = make_callback_query_update("btn_99");
         match h.check_update(&update) {
             Some(MatchResult::RegexMatchWithNames { positional, named }) => {
@@ -319,9 +314,10 @@ mod tests {
         use crate::ext_bot::test_support::mock_request;
         use telegram_bot_raw::bot::Bot;
 
-        let bot = Arc::new(crate::ext_bot::ExtBot::from_bot(
-            Bot::new("test", mock_request()),
-        ));
+        let bot = Arc::new(crate::ext_bot::ExtBot::from_bot(Bot::new(
+            "test",
+            mock_request(),
+        )));
         let stores = (
             Arc::new(tokio::sync::RwLock::new(HashMap::new())),
             Arc::new(tokio::sync::RwLock::new(HashMap::new())),
@@ -343,9 +339,10 @@ mod tests {
         use crate::ext_bot::test_support::mock_request;
         use telegram_bot_raw::bot::Bot;
 
-        let bot = Arc::new(crate::ext_bot::ExtBot::from_bot(
-            Bot::new("test", mock_request()),
-        ));
+        let bot = Arc::new(crate::ext_bot::ExtBot::from_bot(Bot::new(
+            "test",
+            mock_request(),
+        )));
         let stores = (
             Arc::new(tokio::sync::RwLock::new(HashMap::new())),
             Arc::new(tokio::sync::RwLock::new(HashMap::new())),
@@ -364,7 +361,10 @@ mod tests {
 
         assert_eq!(ctx.matches, Some(vec!["btn_99".into(), "99".into()]));
         assert_eq!(
-            ctx.named_matches.as_ref().and_then(|m| m.get("id")).map(String::as_str),
+            ctx.named_matches
+                .as_ref()
+                .and_then(|m| m.get("id"))
+                .map(String::as_str),
             Some("99")
         );
     }
