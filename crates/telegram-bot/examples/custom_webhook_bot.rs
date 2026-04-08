@@ -71,7 +71,7 @@ const SUBMIT_PAYLOAD_PATH: &str = "/submitpayload";
 #[derive(Clone)]
 struct AppState {
     /// Channel to forward Telegram updates into the Application's processing loop.
-    update_tx: mpsc::UnboundedSender<Arc<RawUpdate>>,
+    update_tx: mpsc::Sender<RawUpdate>,
     /// The Application's bot, for sending messages from custom routes.
     app: Arc<Application>,
     /// Admin chat ID to receive forwarded custom payloads.
@@ -144,7 +144,7 @@ async fn handle_telegram_webhook(
         }
     };
 
-    if let Err(e) = state.update_tx.send(Arc::new(update)) {
+    if let Err(e) = state.update_tx.send(update).await {
         tracing::error!("Failed to enqueue Telegram update: {e}");
         return StatusCode::INTERNAL_SERVER_ERROR;
     }

@@ -8,6 +8,8 @@ use std::sync::Arc;
 use serde_json::Value;
 use tokio::sync::RwLock;
 
+use telegram_bot_raw::bot::MessageOrBool;
+use telegram_bot_raw::types::files::input_file::InputFile;
 use telegram_bot_raw::types::update::Update;
 
 use crate::context_types::DefaultData;
@@ -491,6 +493,177 @@ impl CallbackContext {
             .map(|c| c.id)
             .ok_or_else(|| telegram_bot_raw::error::TelegramError::Network("No chat in update".into()))?;
         self.bot().send_message(chat_id, text).await
+    }
+
+    /// Send an HTML-formatted text reply to the chat associated with the given update.
+    ///
+    /// Equivalent to `reply_text` with `parse_mode("HTML")`.
+    ///
+    /// # Errors
+    ///
+    /// Returns `TelegramError` if the chat cannot be determined from the
+    /// update or if the Telegram API call fails.
+    pub async fn reply_html(
+        &self,
+        update: &Update,
+        text: &str,
+    ) -> Result<telegram_bot_raw::types::message::Message, telegram_bot_raw::error::TelegramError> {
+        let chat_id = update
+            .effective_chat()
+            .map(|c| c.id)
+            .ok_or_else(|| telegram_bot_raw::error::TelegramError::Network("No chat in update".into()))?;
+        self.bot().send_message(chat_id, text).parse_mode("HTML").await
+    }
+
+    /// Send a MarkdownV2-formatted text reply to the chat associated with the given update.
+    ///
+    /// Equivalent to `reply_text` with `parse_mode("MarkdownV2")`.
+    ///
+    /// # Errors
+    ///
+    /// Returns `TelegramError` if the chat cannot be determined from the
+    /// update or if the Telegram API call fails.
+    pub async fn reply_markdown_v2(
+        &self,
+        update: &Update,
+        text: &str,
+    ) -> Result<telegram_bot_raw::types::message::Message, telegram_bot_raw::error::TelegramError> {
+        let chat_id = update
+            .effective_chat()
+            .map(|c| c.id)
+            .ok_or_else(|| telegram_bot_raw::error::TelegramError::Network("No chat in update".into()))?;
+        self.bot().send_message(chat_id, text).parse_mode("MarkdownV2").await
+    }
+
+    /// Send a photo reply to the chat associated with the given update.
+    ///
+    /// # Errors
+    ///
+    /// Returns `TelegramError` if the chat cannot be determined from the
+    /// update or if the Telegram API call fails.
+    pub async fn reply_photo(
+        &self,
+        update: &Update,
+        photo: InputFile,
+    ) -> Result<telegram_bot_raw::types::message::Message, telegram_bot_raw::error::TelegramError> {
+        let chat_id = update
+            .effective_chat()
+            .map(|c| c.id)
+            .ok_or_else(|| telegram_bot_raw::error::TelegramError::Network("No chat in update".into()))?;
+        self.bot().send_photo(chat_id, photo).await
+    }
+
+    /// Send a document reply to the chat associated with the given update.
+    ///
+    /// # Errors
+    ///
+    /// Returns `TelegramError` if the chat cannot be determined from the
+    /// update or if the Telegram API call fails.
+    pub async fn reply_document(
+        &self,
+        update: &Update,
+        document: InputFile,
+    ) -> Result<telegram_bot_raw::types::message::Message, telegram_bot_raw::error::TelegramError> {
+        let chat_id = update
+            .effective_chat()
+            .map(|c| c.id)
+            .ok_or_else(|| telegram_bot_raw::error::TelegramError::Network("No chat in update".into()))?;
+        self.bot().send_document(chat_id, document).await
+    }
+
+    /// Send a sticker reply to the chat associated with the given update.
+    ///
+    /// # Errors
+    ///
+    /// Returns `TelegramError` if the chat cannot be determined from the
+    /// update or if the Telegram API call fails.
+    pub async fn reply_sticker(
+        &self,
+        update: &Update,
+        sticker: InputFile,
+    ) -> Result<telegram_bot_raw::types::message::Message, telegram_bot_raw::error::TelegramError> {
+        let chat_id = update
+            .effective_chat()
+            .map(|c| c.id)
+            .ok_or_else(|| telegram_bot_raw::error::TelegramError::Network("No chat in update".into()))?;
+        self.bot().send_sticker(chat_id, sticker).await
+    }
+
+    /// Send a location reply to the chat associated with the given update.
+    ///
+    /// # Errors
+    ///
+    /// Returns `TelegramError` if the chat cannot be determined from the
+    /// update or if the Telegram API call fails.
+    pub async fn reply_location(
+        &self,
+        update: &Update,
+        latitude: f64,
+        longitude: f64,
+    ) -> Result<telegram_bot_raw::types::message::Message, telegram_bot_raw::error::TelegramError> {
+        let chat_id = update
+            .effective_chat()
+            .map(|c| c.id)
+            .ok_or_else(|| telegram_bot_raw::error::TelegramError::Network("No chat in update".into()))?;
+        self.bot().send_location(chat_id, latitude, longitude).await
+    }
+
+    /// Answer the callback query from the given update.
+    ///
+    /// Automatically extracts the callback query ID from the update. This is
+    /// a convenience shortcut that eliminates the common boilerplate of
+    /// extracting `update.callback_query.id` manually.
+    ///
+    /// # Errors
+    ///
+    /// Returns `TelegramError` if the update does not contain a callback query
+    /// or if the Telegram API call fails.
+    pub async fn answer_callback_query(
+        &self,
+        update: &Update,
+    ) -> Result<bool, telegram_bot_raw::error::TelegramError> {
+        let cq = update
+            .callback_query
+            .as_ref()
+            .ok_or_else(|| telegram_bot_raw::error::TelegramError::Network("No callback query in update".into()))?;
+        self.bot().answer_callback_query(&cq.id).await
+    }
+
+    /// Edit the text of the message that originated the callback query.
+    ///
+    /// Automatically determines whether to use `chat_id + message_id` or
+    /// `inline_message_id` based on the callback query contents.
+    ///
+    /// # Errors
+    ///
+    /// Returns `TelegramError` if the update does not contain a callback query,
+    /// the callback query has no associated message, or the Telegram API call fails.
+    pub async fn edit_callback_message_text(
+        &self,
+        update: &Update,
+        text: &str,
+    ) -> Result<MessageOrBool, telegram_bot_raw::error::TelegramError> {
+        let cq = update
+            .callback_query
+            .as_ref()
+            .ok_or_else(|| telegram_bot_raw::error::TelegramError::Network("No callback query in update".into()))?;
+
+        if let Some(ref msg) = cq.message {
+            self.bot()
+                .edit_message_text(text)
+                .chat_id(msg.chat().id)
+                .message_id(msg.message_id())
+                .await
+        } else if let Some(ref iid) = cq.inline_message_id {
+            self.bot()
+                .edit_message_text(text)
+                .inline_message_id(iid)
+                .await
+        } else {
+            Err(telegram_bot_raw::error::TelegramError::Network(
+                "No message in callback query".into(),
+            ))
+        }
     }
 }
 

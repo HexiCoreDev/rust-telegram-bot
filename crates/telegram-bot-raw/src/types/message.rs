@@ -8,7 +8,7 @@
 //! - `date`
 //! - `chat`
 //!
-//! Everything else is `Option<T>`.
+//! Everything else is `Option<T>` apart from a small set of defaulted boolean flags.
 
 use serde::{Deserialize, Serialize};
 
@@ -113,8 +113,8 @@ pub struct Message {
     pub message_thread_id: Option<i64>,
 
     /// `true` if the message is sent to a forum topic.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub is_topic_message: Option<bool>,
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub is_topic_message: bool,
 
     // ── Forward info ──────────────────────────────────────────────────────────
     /// Information about the original message for forwarded messages.
@@ -123,8 +123,8 @@ pub struct Message {
 
     /// `true` if the message is a channel post that was automatically forwarded to the
     /// connected discussion group.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub is_automatic_forward: Option<bool>,
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub is_automatic_forward: bool,
 
     // ── Reply info ────────────────────────────────────────────────────────────
     /// For replies in the same chat and message thread, the original message.
@@ -157,17 +157,17 @@ pub struct Message {
 
     // ── Flags ─────────────────────────────────────────────────────────────────
     /// `true` if the message can't be forwarded.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub has_protected_content: Option<bool>,
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub has_protected_content: bool,
 
     /// `true` if the message was sent by an implicit action, for example, as an away or a
     /// greeting business message, or as a scheduled message.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub is_from_offline: Option<bool>,
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub is_from_offline: bool,
 
     /// `true` if the message is a paid post.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub is_paid_post: Option<bool>,
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub is_paid_post: bool,
 
     // ── Media group ───────────────────────────────────────────────────────────
     /// The unique identifier of a media message group this message belongs to.
@@ -255,12 +255,12 @@ pub struct Message {
     pub caption_entities: Option<Vec<MessageEntity>>,
 
     /// `true` if the caption must be shown above the message media.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub show_caption_above_media: Option<bool>,
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub show_caption_above_media: bool,
 
     /// `true` if the message media is covered by a spoiler animation.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub has_media_spoiler: Option<bool>,
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub has_media_spoiler: bool,
 
     // ── Contact / location / venue ────────────────────────────────────────────
     /// Message is a shared contact, information about the contact.
@@ -305,20 +305,20 @@ pub struct Message {
     pub new_chat_photo: Option<Vec<PhotoSize>>,
 
     /// Service message: the chat photo was deleted.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub delete_chat_photo: Option<bool>,
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub delete_chat_photo: bool,
 
     /// Service message: the group has been created.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub group_chat_created: Option<bool>,
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub group_chat_created: bool,
 
     /// Service message: the supergroup has been created.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub supergroup_chat_created: Option<bool>,
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub supergroup_chat_created: bool,
 
     /// Service message: the channel has been created.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub channel_chat_created: Option<bool>,
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub channel_chat_created: bool,
 
     /// Service message: auto-delete timer settings changed in the chat.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -562,7 +562,6 @@ pub struct Message {
     /// Added in Bot API 9.6.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub reply_to_poll_option_id: Option<String>,
-
     // ── Catch-all ─────────────────────────────────────────────────────────────
 }
 

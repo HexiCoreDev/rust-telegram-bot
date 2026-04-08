@@ -17,6 +17,7 @@
 use std::collections::{BTreeMap, HashMap};
 use std::future::Future;
 use std::pin::Pin;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 
 use serde_json::Value;
@@ -227,11 +228,11 @@ pub struct Application {
     job_queue: Option<Arc<JobQueue>>,
     pending_tasks: Arc<RwLock<Vec<tokio::task::JoinHandle<()>>>>,
 
-    initialized: RwLock<bool>,
-    running: RwLock<bool>,
+    initialized: AtomicBool,
+    running: AtomicBool,
 
-    update_tx: mpsc::UnboundedSender<Arc<Update>>,
-    update_rx: RwLock<Option<mpsc::UnboundedReceiver<Arc<Update>>>>,
+    update_tx: mpsc::Sender<Update>,
+    update_rx: RwLock<Option<mpsc::Receiver<Update>>>,
     stop_notify: Arc<Notify>,
 
     post_init: Option<LifecycleHook>,
@@ -302,7 +303,7 @@ impl Application {
             #[cfg(feature = "job-queue")]
             job_queue,
         } = config;
-        let (tx, rx) = mpsc::unbounded_channel();
+        let (tx, rx) = mpsc::channel(64);
         let bot_data_initial = context_types.bot_data();
         Arc::new(Self {
             bot,
@@ -318,8 +319,8 @@ impl Application {
             #[cfg(feature = "job-queue")]
             job_queue,
             pending_tasks: Arc::new(RwLock::new(Vec::new())),
-            initialized: RwLock::new(false),
-            running: RwLock::new(false),
+            initialized: AtomicBool::new(false),
+            running: AtomicBool::new(false),
             update_tx: tx,
             update_rx: RwLock::new(Some(rx)),
             stop_notify: Arc::new(Notify::new()),
@@ -335,13 +336,13 @@ impl Application {
     pub fn bot(&self) -> &Arc<ExtBot> {
         &self.bot
     }
-    pub async fn is_initialized(&self) -> bool {
     /// Returns `true` if the application has been initialized.
-        *self.initialized.read().await
+    pub fn is_initialized(&self) -> bool {
+        self.initialized.load(Ordering::Acquire)
     }
-    pub async fn is_running(&self) -> bool {
     /// Returns `true` if the application is currently running.
-        *self.running.read().await
+    pub fn is_running(&self) -> bool {
+        self.running.load(Ordering::Acquire)
     }
     #[must_use]
     /// Returns the maximum number of concurrent update processing tasks.
@@ -365,7 +366,7 @@ impl Application {
     }
     #[must_use]
     /// Returns a clone of the update sender channel.
-    pub fn update_sender(&self) -> mpsc::UnboundedSender<Arc<Update>> {
+    pub fn update_sender(&self) -> mpsc::Sender<Update> {
         self.update_tx.clone()
     }
     #[must_use]
@@ -381,8 +382,7 @@ impl Application {
     /// Initialize the application: starts the bot, loads persisted data, and
     /// starts the job queue.
     pub async fn initialize(&self) -> Result<(), ApplicationError> {
-        let mut init = self.initialized.write().await;
-        if *init {
+        if self.initialized.load(Ordering::Acquire) {
             debug!("This Application is already initialized.");
             return Ok(());
         }
@@ -417,17 +417,16 @@ impl Application {
             jq.start().await;
         }
 
-        *init = true;
+        self.initialized.store(true, Ordering::Release);
         Ok(())
     }
 
     // -- Lifecycle: shutdown --
     pub async fn shutdown(&self) -> Result<(), ApplicationError> {
-        if *self.running.read().await {
+        if self.running.load(Ordering::Acquire) {
             return Err(ApplicationError::StillRunning);
         }
-        let mut init = self.initialized.write().await;
-        if !*init {
+        if !self.initialized.load(Ordering::Acquire) {
             debug!("This Application is already shut down.");
             return Ok(());
         }
@@ -442,20 +441,18 @@ impl Application {
 
         self.bot.shutdown().await?;
         self.update_processor.shutdown().await;
-        *init = false;
+        self.initialized.store(false, Ordering::Release);
         Ok(())
     }
 
     // -- Lifecycle: start / stop --
     /// Start the update dispatch loop. Must be called after [`initialize`](Self::initialize).
     pub async fn start(self: &Arc<Self>) -> Result<(), ApplicationError> {
-        if *self.running.read().await {
+        if self.running.load(Ordering::Acquire) {
             return Err(ApplicationError::AlreadyRunning);
         }
-        self.check_initialized().await?;
-        {
-            *self.running.write().await = true;
-        }
+        self.check_initialized()?;
+        self.running.store(true, Ordering::Release);
 
         // Wire job queue hooks so that job runs trigger persistence
         // flushes (GAP 1) and route errors to error handlers (GAP 2),
@@ -498,6 +495,7 @@ impl Application {
                 loop {
                     tokio::select! {
                         Some(update) = rx.recv() => {
+                            let update = Arc::new(update);
                             debug!("Processing update");
                             let app2 = Arc::clone(&app);
                             let up = app.update_processor.clone();
@@ -523,7 +521,7 @@ impl Application {
 
     /// Stop the application's update dispatch loop and flush persistence.
     pub async fn stop(&self) -> Result<(), ApplicationError> {
-        if !*self.running.read().await {
+        if !self.running.load(Ordering::Acquire) {
             return Err(ApplicationError::NotRunning);
         }
         info!("Application is stopping. This might take a moment.");
@@ -549,9 +547,7 @@ impl Application {
             }
         }
 
-        {
-            *self.running.write().await = false;
-        }
+        self.running.store(false, Ordering::Release);
         info!("Application.stop() complete");
         Ok(())
     }
@@ -689,7 +685,7 @@ impl Application {
                             Ok(updates) => {
                                 for update in updates {
                                     offset = Some(update.update_id + 1);
-                                    let _ = tx.send(Arc::new(update));
+                                    let _ = tx.send(update).await;
                                 }
                             }
                             Err(e) => { error!("Error fetching updates: {e}"); tokio::time::sleep(std::time::Duration::from_secs(1)).await; }
@@ -715,7 +711,7 @@ impl Application {
         if let Some(ph) = persistence_handle {
             let _ = ph.await;
         }
-        if *self.running.read().await {
+        if self.running.load(Ordering::Acquire) {
             self.stop().await?;
         }
         if let Some(ref hook) = self.post_stop {
@@ -762,7 +758,7 @@ impl Application {
         let unbounded_tx = self.update_tx.clone();
         let bridge = tokio::spawn(async move {
             while let Some(u) = bounded_rx.recv().await {
-                if unbounded_tx.send(Arc::new(u)).is_err() {
+                if unbounded_tx.send(u).await.is_err() {
                     break;
                 }
             }
@@ -803,7 +799,7 @@ impl Application {
         if let Some(ph) = persistence_handle {
             let _ = ph.await;
         }
-        if *self.running.read().await {
+        if self.running.load(Ordering::Acquire) {
             self.stop().await?;
         }
         if let Some(ref hook) = self.post_stop {
@@ -941,7 +937,7 @@ impl Application {
 
     // -- Core dispatch --
     pub async fn process_update(&self, update: Arc<Update>) -> Result<(), ApplicationError> {
-        self.check_initialized().await?;
+        self.check_initialized()?;
         let mut context: Option<CallbackContext> = None;
         let groups: Vec<(i32, Vec<usize>)> = {
             let h = self.handlers.read().await;
@@ -1062,8 +1058,8 @@ impl Application {
         }
     }
 
-    async fn check_initialized(&self) -> Result<(), ApplicationError> {
-        if !*self.initialized.read().await {
+    fn check_initialized(&self) -> Result<(), ApplicationError> {
+        if !self.initialized.load(Ordering::Acquire) {
             return Err(ApplicationError::NotInitialized);
         }
         Ok(())
@@ -1187,12 +1183,12 @@ mod tests {
     #[tokio::test]
     async fn initialize_and_shutdown() {
         let app = make_app();
-        assert!(!app.is_initialized().await);
+        assert!(!app.is_initialized());
         app.initialize().await.unwrap();
-        assert!(app.is_initialized().await);
+        assert!(app.is_initialized());
         app.initialize().await.unwrap();
         app.shutdown().await.unwrap();
-        assert!(!app.is_initialized().await);
+        assert!(!app.is_initialized());
     }
 
     #[tokio::test]
@@ -1483,7 +1479,8 @@ mod tests {
         let app = make_app();
         assert!(app
             .update_sender()
-            .send(Arc::new(make_update(serde_json::json!({"update_id":1}))))
+            .send(make_update(serde_json::json!({"update_id":1})))
+            .await
             .is_ok());
     }
 

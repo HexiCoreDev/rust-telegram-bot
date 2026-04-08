@@ -494,9 +494,9 @@ fn roundtrip_message_common_fields() {
             Some("johndoe")
         );
         assert_eq!(msg.message_thread_id, Some(42));
-        assert_eq!(msg.is_topic_message, Some(true));
+        assert!(msg.is_topic_message);
         assert_eq!(msg.edit_date, Some(1700005100));
-        assert_eq!(msg.has_protected_content, Some(true));
+        assert!(msg.has_protected_content);
         assert_eq!(msg.media_group_id.as_deref(), Some("media-group-123"));
         assert_eq!(msg.author_signature.as_deref(), Some("Admin"));
     });
@@ -902,8 +902,8 @@ fn roundtrip_update_unknown_fields_dropped() {
             "some_future_field": {"nested": true}
         });
         // Deserialization succeeds even with unknown fields.
-        let update: Update =
-            serde_json::from_value(json).expect("deserialization should succeed with unknown fields");
+        let update: Update = serde_json::from_value(json)
+            .expect("deserialization should succeed with unknown fields");
         assert_eq!(update.update_id, 100000007);
         // Unknown fields are silently dropped -- no extra HashMap.
         let reserialized = serde_json::to_value(&update).expect("reserialization should succeed");
@@ -991,7 +991,7 @@ fn roundtrip_complex_message_with_reply_markup() {
         let msg = update.message.as_ref().unwrap();
         assert_eq!(msg.message_id, 999);
         assert_eq!(msg.message_thread_id, Some(42));
-        assert_eq!(msg.is_topic_message, Some(true));
+        assert!(msg.is_topic_message);
         let from = msg.from_user.as_ref().unwrap();
         assert_eq!(from.is_premium, Some(true));
         assert!(msg.reply_markup.is_some());

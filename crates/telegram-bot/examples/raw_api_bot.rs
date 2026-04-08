@@ -36,7 +36,7 @@ fn main() {
     // Initialize the bot (calls getMe to verify the token).
     match bot.initialize().await {
         Ok(()) => {
-            let bot_data = bot.bot_data().await;
+            let bot_data = bot.bot_data();
             if let Some(user) = bot_data {
                 println!(
                     "Bot initialized: @{} (id: {})",

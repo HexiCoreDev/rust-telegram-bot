@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::Duration;
-use tokio::sync::RwLock;
+use tokio::sync::OnceCell;
 
 // ---------------------------------------------------------------------------
 // Shared enums
@@ -105,7 +105,7 @@ pub struct Bot {
     /// User-configured defaults merged into outgoing API calls (C10).
     defaults: Option<Defaults>,
     /// Cached result of `get_me()` after `initialize()` (M5).
-    cached_bot_data: Arc<RwLock<Option<user::User>>>,
+    cached_bot_data: Arc<OnceCell<user::User>>,
     /// When `true`, [`files::input_file::InputFile::Path`] is sent as a
     /// `file://` URI instead of uploading the file bytes.  Required when
     /// connecting to a locally-hosted Bot API server.
@@ -224,7 +224,7 @@ impl Bot {
             request_for_updates: Arc::clone(&request),
             request,
             defaults: None,
-            cached_bot_data: Arc::new(RwLock::new(None)),
+            cached_bot_data: Arc::new(OnceCell::new()),
             local_mode: false,
         }
     }
@@ -251,7 +251,7 @@ impl Bot {
             request_for_updates,
             request,
             defaults,
-            cached_bot_data: Arc::new(RwLock::new(None)),
+            cached_bot_data: Arc::new(OnceCell::new()),
             local_mode: false,
         }
     }
@@ -273,8 +273,8 @@ impl Bot {
         self.defaults.as_ref()
     }
     /// Returns the cached bot user data from `get_me()`, if initialized.
-    pub async fn bot_data(&self) -> Option<user::User> {
-        self.cached_bot_data.read().await.clone()
+    pub fn bot_data(&self) -> Option<&user::User> {
+        self.cached_bot_data.get()
     }
 
     /// Returns `true` if the bot is operating in local mode.
@@ -437,7 +437,7 @@ impl Bot {
             self.request_for_updates.initialize().await?;
         }
         let me = self.get_me().await?;
-        *self.cached_bot_data.write().await = Some(me);
+        let _ = self.cached_bot_data.set(me);
         Ok(())
     }
 
@@ -562,24 +562,24 @@ impl Bot {
 // Per-method-group submodules
 // ---------------------------------------------------------------------------
 
-mod messages;
-mod media;
-mod other_content;
-mod stickers;
-mod editing;
-mod user_profile;
-mod chat;
-mod inline_methods;
 mod admin;
-mod reactions;
-mod games_methods;
-mod payments;
-mod forum;
-mod passport;
-mod gifts_methods;
 mod business_methods;
-mod stories;
-mod verification;
-mod suggested_posts;
-mod managed_bots;
+mod chat;
+mod editing;
+mod forum;
+mod games_methods;
+mod gifts_methods;
+mod inline_methods;
 mod keyboard_methods;
+mod managed_bots;
+mod media;
+mod messages;
+mod other_content;
+mod passport;
+mod payments;
+mod reactions;
+mod stickers;
+mod stories;
+mod suggested_posts;
+mod user_profile;
+mod verification;

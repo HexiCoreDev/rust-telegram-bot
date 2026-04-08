@@ -21,10 +21,11 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use serde_json::json;
 use tokio::sync::RwLock;
 
 use telegram_bot::ext::prelude::*;
+use telegram_bot::types::inline::inline_keyboard_button::InlineKeyboardButton;
+use telegram_bot::types::inline::inline_keyboard_markup::InlineKeyboardMarkup;
 
 // ---------------------------------------------------------------------------
 // Conversation state
@@ -52,6 +53,10 @@ fn extract_chat_id(update: &Update) -> i64 {
     update.effective_chat().map(|c| c.id).unwrap_or(0)
 }
 
+fn keyboard_markup_json(markup: &InlineKeyboardMarkup) -> serde_json::Value {
+    serde_json::to_value(markup).expect("keyboard serialization")
+}
+
 // ---------------------------------------------------------------------------
 // /start command handler
 // ---------------------------------------------------------------------------
@@ -69,19 +74,15 @@ async fn start_command(
         .unwrap_or("there");
     tracing::info!("User {user_name} started the conversation.");
 
-    let keyboard = json!({
-        "inline_keyboard": [
-            [
-                {"text": "1", "callback_data": ONE},
-                {"text": "2", "callback_data": TWO},
-            ]
-        ]
-    });
+    let keyboard = InlineKeyboardMarkup::from_row(vec![
+        InlineKeyboardButton::callback("1", ONE),
+        InlineKeyboardButton::callback("2", TWO),
+    ]);
 
     context
         .bot()
         .send_message(chat_id, "Start handler, Choose a route")
-        .reply_markup(keyboard)
+        .reply_markup(keyboard_markup_json(&keyboard))
         .send()
         .await
         .map_err(|e| HandlerError::Other(Box::new(e)))?;
@@ -107,14 +108,10 @@ async fn handler_one(
 
     context.bot().answer_callback_query(&cq.id).send().await?;
 
-    let keyboard = json!({
-        "inline_keyboard": [
-            [
-                {"text": "3", "callback_data": THREE},
-                {"text": "4", "callback_data": FOUR},
-            ]
-        ]
-    });
+    let keyboard = InlineKeyboardMarkup::from_row(vec![
+        InlineKeyboardButton::callback("3", THREE),
+        InlineKeyboardButton::callback("4", FOUR),
+    ]);
 
     if let Some(ref msg) = cq.message {
         context
@@ -122,7 +119,7 @@ async fn handler_one(
             .edit_message_text("First CallbackQueryHandler, Choose a route")
             .chat_id(msg.chat().id)
             .message_id(msg.message_id())
-            .reply_markup(keyboard)
+            .reply_markup(keyboard_markup_json(&keyboard))
             .send()
             .await?;
     }
@@ -145,14 +142,10 @@ async fn handler_two(
 
     context.bot().answer_callback_query(&cq.id).send().await?;
 
-    let keyboard = json!({
-        "inline_keyboard": [
-            [
-                {"text": "1", "callback_data": ONE},
-                {"text": "3", "callback_data": THREE},
-            ]
-        ]
-    });
+    let keyboard = InlineKeyboardMarkup::from_row(vec![
+        InlineKeyboardButton::callback("1", ONE),
+        InlineKeyboardButton::callback("3", THREE),
+    ]);
 
     if let Some(ref msg) = cq.message {
         context
@@ -160,7 +153,7 @@ async fn handler_two(
             .edit_message_text("Second CallbackQueryHandler, Choose a route")
             .chat_id(msg.chat().id)
             .message_id(msg.message_id())
-            .reply_markup(keyboard)
+            .reply_markup(keyboard_markup_json(&keyboard))
             .send()
             .await?;
     }
@@ -183,14 +176,10 @@ async fn handler_three(
 
     context.bot().answer_callback_query(&cq.id).send().await?;
 
-    let keyboard = json!({
-        "inline_keyboard": [
-            [
-                {"text": "Yes, let's do it again!", "callback_data": ONE},
-                {"text": "Nah, I've had enough ...", "callback_data": TWO},
-            ]
-        ]
-    });
+    let keyboard = InlineKeyboardMarkup::from_row(vec![
+        InlineKeyboardButton::callback("Yes, let's do it again!", ONE),
+        InlineKeyboardButton::callback("Nah, I've had enough ...", TWO),
+    ]);
 
     if let Some(ref msg) = cq.message {
         context
@@ -198,7 +187,7 @@ async fn handler_three(
             .edit_message_text("Third CallbackQueryHandler. Do you want to start over?")
             .chat_id(msg.chat().id)
             .message_id(msg.message_id())
-            .reply_markup(keyboard)
+            .reply_markup(keyboard_markup_json(&keyboard))
             .send()
             .await?;
     }
@@ -222,14 +211,10 @@ async fn handler_four(
 
     context.bot().answer_callback_query(&cq.id).send().await?;
 
-    let keyboard = json!({
-        "inline_keyboard": [
-            [
-                {"text": "2", "callback_data": TWO},
-                {"text": "3", "callback_data": THREE},
-            ]
-        ]
-    });
+    let keyboard = InlineKeyboardMarkup::from_row(vec![
+        InlineKeyboardButton::callback("2", TWO),
+        InlineKeyboardButton::callback("3", THREE),
+    ]);
 
     if let Some(ref msg) = cq.message {
         context
@@ -237,7 +222,7 @@ async fn handler_four(
             .edit_message_text("Fourth CallbackQueryHandler, Choose a route")
             .chat_id(msg.chat().id)
             .message_id(msg.message_id())
-            .reply_markup(keyboard)
+            .reply_markup(keyboard_markup_json(&keyboard))
             .send()
             .await?;
     }
@@ -260,14 +245,10 @@ async fn start_over(update: Arc<Update>, context: Context, conv_store: ConvStore
 
     context.bot().answer_callback_query(&cq.id).send().await?;
 
-    let keyboard = json!({
-        "inline_keyboard": [
-            [
-                {"text": "1", "callback_data": ONE},
-                {"text": "2", "callback_data": TWO},
-            ]
-        ]
-    });
+    let keyboard = InlineKeyboardMarkup::from_row(vec![
+        InlineKeyboardButton::callback("1", ONE),
+        InlineKeyboardButton::callback("2", TWO),
+    ]);
 
     if let Some(ref msg) = cq.message {
         context
@@ -275,7 +256,7 @@ async fn start_over(update: Arc<Update>, context: Context, conv_store: ConvStore
             .edit_message_text("Start handler, Choose a route")
             .chat_id(msg.chat().id)
             .message_id(msg.message_id())
-            .reply_markup(keyboard)
+            .reply_markup(keyboard_markup_json(&keyboard))
             .send()
             .await?;
     }

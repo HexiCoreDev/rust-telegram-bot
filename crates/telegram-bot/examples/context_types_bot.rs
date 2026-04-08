@@ -7,7 +7,7 @@
 //! - Bot-wide data via `context.bot_data()` / `context.bot_data_mut()`
 //! - Tracking user IDs across all updates (group -1 handler)
 //! - Click counting per message via callback queries
-//! - `send_message` with inline keyboard JSON
+//! - `send_message` with inline keyboard
 //!
 //! # Usage
 //!
@@ -17,9 +17,9 @@
 
 use std::sync::Arc;
 
-use serde_json::json;
-
 use telegram_bot::ext::prelude::*;
+use telegram_bot::types::inline::inline_keyboard_button::InlineKeyboardButton;
+use telegram_bot::types::inline::inline_keyboard_markup::InlineKeyboardMarkup;
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -37,11 +37,10 @@ fn extract_chat_id(update: &Update) -> i64 {
 }
 
 fn build_click_keyboard() -> serde_json::Value {
-    json!({
-        "inline_keyboard": [[
-            {"text": "Click me!", "callback_data": "button"}
-        ]]
-    })
+    serde_json::to_value(
+        InlineKeyboardMarkup::from_button(InlineKeyboardButton::callback("Click me!", "button")),
+    )
+    .expect("keyboard serialization")
 }
 
 // ---------------------------------------------------------------------------

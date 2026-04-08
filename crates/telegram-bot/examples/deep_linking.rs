@@ -14,9 +14,9 @@
 //! TELEGRAM_BOT_TOKEN="your-token-here" cargo run -p telegram-bot --example deep_linking
 //! ```
 
-use serde_json::json;
-
 use telegram_bot::ext::prelude::*;
+use telegram_bot::types::inline::inline_keyboard_button::InlineKeyboardButton;
+use telegram_bot::types::inline::inline_keyboard_markup::InlineKeyboardMarkup;
 
 // ---------------------------------------------------------------------------
 // Deep-link payload constants
@@ -103,6 +103,10 @@ fn is_plain_start(update: &Update) -> bool {
     is_cmd && (text.trim() == "/start" || text.trim().starts_with("/start@"))
 }
 
+fn keyboard_markup_json(markup: &InlineKeyboardMarkup) -> serde_json::Value {
+    serde_json::to_value(markup).expect("keyboard serialization")
+}
+
 // ---------------------------------------------------------------------------
 // Handler functions
 // ---------------------------------------------------------------------------
@@ -129,16 +133,13 @@ async fn deep_linked_level_1(update: Arc<Update>, context: Context) -> HandlerRe
     let text =
         "Awesome, you just accessed hidden functionality! Now let's get back to the private chat.";
 
-    let keyboard = json!({
-        "inline_keyboard": [
-            [{"text": "Continue here!", "url": url}]
-        ]
-    });
+    let keyboard =
+        InlineKeyboardMarkup::from_button(InlineKeyboardButton::url("Continue here!", url));
 
     context
         .bot()
         .send_message(chat_id, text)
-        .reply_markup(keyboard)
+        .reply_markup(keyboard_markup_json(&keyboard))
         .send()
         .await?;
 
@@ -169,11 +170,10 @@ async fn deep_linked_level_2(update: Arc<Update>, context: Context) -> HandlerRe
 async fn deep_linked_level_3(update: Arc<Update>, context: Context) -> HandlerResult {
     let chat_id = extract_chat_id(&update);
 
-    let keyboard = json!({
-        "inline_keyboard": [
-            [{"text": "Like this!", "callback_data": KEYBOARD_CALLBACKDATA}]
-        ]
-    });
+    let keyboard = InlineKeyboardMarkup::from_button(InlineKeyboardButton::callback(
+        "Like this!",
+        KEYBOARD_CALLBACKDATA,
+    ));
 
     context
         .bot()
@@ -181,7 +181,7 @@ async fn deep_linked_level_3(update: Arc<Update>, context: Context) -> HandlerRe
             chat_id,
             "It is also possible to make deep-linking using InlineKeyboardButtons.",
         )
-        .reply_markup(keyboard)
+        .reply_markup(keyboard_markup_json(&keyboard))
         .send()
         .await?;
 

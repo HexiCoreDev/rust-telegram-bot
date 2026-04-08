@@ -92,12 +92,12 @@ async fn button_callback(update: Arc<Update>, context: Context) -> HandlerResult
 
 #[derive(Clone)]
 struct AppState {
-    update_tx: mpsc::UnboundedSender<Arc<RawUpdate>>,
+    update_tx: mpsc::Sender<RawUpdate>,
 }
 
 async fn handle_webhook(State(state): State<AppState>, body: axum::body::Bytes) -> impl IntoResponse {
     match serde_json::from_slice::<RawUpdate>(&body) {
-        Ok(update) => { let _ = state.update_tx.send(Arc::new(update)); StatusCode::OK }
+        Ok(update) => { let _ = state.update_tx.send(update).await; StatusCode::OK }
         Err(_) => StatusCode::BAD_REQUEST,
     }
 }

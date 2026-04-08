@@ -14,27 +14,25 @@
 //! TELEGRAM_BOT_TOKEN="your-token-here" cargo run -p telegram-bot --example inline_keyboard
 //! ```
 
-use serde_json::json;
-
 use telegram_bot::ext::prelude::*;
+use telegram_bot::types::inline::inline_keyboard_button::InlineKeyboardButton;
+use telegram_bot::types::inline::inline_keyboard_markup::InlineKeyboardMarkup;
 
 // ---------------------------------------------------------------------------
 // Keyboard builder
 // ---------------------------------------------------------------------------
 
-/// Build the inline keyboard JSON for the menu.
-fn build_keyboard() -> serde_json::Value {
-    json!({
-        "inline_keyboard": [
-            [
-                {"text": "Option 1", "callback_data": "1"},
-                {"text": "Option 2", "callback_data": "2"},
-            ],
-            [
-                {"text": "Option 3", "callback_data": "3"},
-            ],
-        ]
-    })
+/// Build the inline keyboard for the menu.
+fn build_keyboard() -> InlineKeyboardMarkup {
+    InlineKeyboardMarkup::new(vec![
+        vec![
+            InlineKeyboardButton::callback("Option 1", "1"),
+            InlineKeyboardButton::callback("Option 2", "2"),
+        ],
+        vec![
+            InlineKeyboardButton::callback("Option 3", "3"),
+        ],
+    ])
 }
 
 // ---------------------------------------------------------------------------
@@ -47,7 +45,7 @@ async fn start(update: Arc<Update>, context: Context) -> HandlerResult {
         .effective_chat()
         .map(|c| c.id)
         .expect("start requires a chat");
-    let keyboard = build_keyboard();
+    let keyboard = serde_json::to_value(build_keyboard()).expect("keyboard serialization");
 
     context
         .bot()
