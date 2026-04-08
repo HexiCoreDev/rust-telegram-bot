@@ -1,7 +1,5 @@
-use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 use super::chat::Chat;
 use super::chat_invite_link::ChatInviteLink;
@@ -28,7 +26,4 @@ pub struct ChatJoinRequest {
     /// Chat invite link that was used by the user to send the join request.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub invite_link: Option<ChatInviteLink>,
-
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }

@@ -881,11 +881,11 @@ fn roundtrip_update_callback_query_inaccessible_message() {
 }
 
 // ===========================================================================
-// Update -- extra/unknown fields survive via serde(flatten)
+// Update -- unknown fields are silently dropped (serde default behaviour)
 // ===========================================================================
 
 #[test]
-fn roundtrip_update_unknown_fields_preserved() {
+fn roundtrip_update_unknown_fields_dropped() {
     with_large_stack(|| {
         let json = json!({
             "update_id": 100000007,
@@ -901,11 +901,15 @@ fn roundtrip_update_unknown_fields_preserved() {
             },
             "some_future_field": {"nested": true}
         });
-        let update: Update = roundtrip_check(json);
+        // Deserialization succeeds even with unknown fields.
+        let update: Update =
+            serde_json::from_value(json).expect("deserialization should succeed with unknown fields");
         assert_eq!(update.update_id, 100000007);
+        // Unknown fields are silently dropped -- no extra HashMap.
+        let reserialized = serde_json::to_value(&update).expect("reserialization should succeed");
         assert!(
-            update.extra.contains_key("some_future_field"),
-            "Unknown field 'some_future_field' should be captured in extra"
+            reserialized.get("some_future_field").is_none(),
+            "Unknown field 'some_future_field' should be dropped during deserialization"
         );
     });
 }

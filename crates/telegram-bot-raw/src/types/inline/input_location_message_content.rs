@@ -1,7 +1,5 @@
-use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// Represents the content of a location message to be sent as the result of an inline query.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
@@ -27,7 +25,4 @@ pub struct InputLocationMessageContent {
     /// Maximum distance for proximity alerts about approaching another chat member, in meters.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub proximity_alert_radius: Option<i32>,
-
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }

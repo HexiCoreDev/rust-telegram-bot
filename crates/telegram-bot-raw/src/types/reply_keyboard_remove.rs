@@ -1,7 +1,5 @@
-use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// Upon receiving a message with this object, Telegram clients will remove the current custom
 /// keyboard and display the default letter-keyboard.
@@ -13,8 +11,4 @@ pub struct ReplyKeyboardRemove {
     /// `true` to remove the keyboard for specific users only.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub selective: Option<bool>,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }

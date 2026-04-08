@@ -1,7 +1,5 @@
-use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 use super::chat::Chat;
 use super::files::sticker::Sticker;
@@ -30,9 +28,6 @@ pub struct UniqueGiftColors {
 
     /// List of 1–3 additional colors used in dark themes; RGB format.
     pub dark_theme_other_colors: Vec<i64>,
-
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 // ---------------------------------------------------------------------------
@@ -54,9 +49,6 @@ pub struct UniqueGiftModel {
     /// Rarity of the model if it is a crafted model.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub rarity: Option<String>,
-
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 // ---------------------------------------------------------------------------
@@ -74,9 +66,6 @@ pub struct UniqueGiftSymbol {
 
     /// Number of unique gifts receiving this symbol per 1000 upgrades.
     pub rarity_per_mille: i64,
-
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 // ---------------------------------------------------------------------------
@@ -97,9 +86,6 @@ pub struct UniqueGiftBackdropColors {
 
     /// Text color on the backdrop in RGB format.
     pub text_color: i64,
-
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 // ---------------------------------------------------------------------------
@@ -117,9 +103,6 @@ pub struct UniqueGiftBackdrop {
 
     /// Number of unique gifts receiving this backdrop per 1000 upgrades.
     pub rarity_per_mille: i64,
-
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 // ---------------------------------------------------------------------------
@@ -169,9 +152,6 @@ pub struct UniqueGift {
     /// True if the gift was used to craft another gift and is no longer available.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub is_burned: Option<bool>,
-
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 // ---------------------------------------------------------------------------
@@ -207,7 +187,4 @@ pub struct UniqueGiftInfo {
     /// Amount paid in the last resale; for resale gifts only.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub last_resale_amount: Option<i64>,
-
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }

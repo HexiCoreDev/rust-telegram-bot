@@ -1,7 +1,5 @@
-use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 use super::chat::Chat;
 
@@ -13,8 +11,4 @@ pub struct Story {
 
     /// Unique identifier for the story in the chat.
     pub id: i64,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }

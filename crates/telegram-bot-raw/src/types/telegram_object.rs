@@ -1,30 +1,11 @@
-use std::collections::HashMap;
-
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-/// Extra fields from the API not yet covered by typed struct fields.
+/// Trait implemented by all Telegram API types.
 ///
-/// This is the Rust equivalent of python-telegram-bot's `api_kwargs` — it provides
-/// forward-compatibility so that when Telegram adds new fields to an API type,
-/// existing library versions don't break. Unknown fields land here automatically
-/// via `#[serde(flatten)]`.
-///
-/// ## Pattern for all Telegram types
-///
-/// Every Telegram API type in this crate follows this pattern:
-///
-/// ```rust,ignore
-/// #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-/// pub struct SomeType {
-///     pub some_field: String,
-///     pub optional_field: Option<i64>,
-///
-///     /// Extra fields not yet covered by this struct.
-///     #[serde(flatten)]
-///     pub extra: HashMap<String, Value>,
-/// }
-/// ```
+/// Provides common serialization behaviour. Unknown fields from the API are
+/// silently dropped during deserialization (serde's default), matching the
+/// approach used by teloxide and other production Telegram libraries.
 ///
 /// ### Equality & Hashing
 ///
@@ -46,11 +27,6 @@ use serde_json::Value;
 /// Unlike python-telegram-bot, types do NOT hold a Bot reference.
 /// Instead, the Bot is passed explicitly via the handler context.
 /// Shortcut methods (like `message.reply_text()`) take `&Bot` as a parameter.
-pub type ApiKwargs = HashMap<String, Value>;
-
-/// Trait implemented by all Telegram API types.
-///
-/// Provides common serialization and identity behavior.
 ///
 /// ### Date/time fields use `i64` (Unix timestamps)
 ///
@@ -60,7 +36,7 @@ pub type ApiKwargs = HashMap<String, Value>;
 /// the following reasons:
 ///
 /// 1. **Zero-cost at the API boundary**: No conversion overhead when
-///    serialising/deserialising — the JSON integer maps directly to `i64`.
+///    serialising/deserialising -- the JSON integer maps directly to `i64`.
 /// 2. **Raw API layer contract**: This crate is an intentionally thin
 ///    translation of the Telegram Bot API schema. Higher-level libraries
 ///    built on top can apply their own date/time abstractions.
@@ -70,9 +46,6 @@ pub type ApiKwargs = HashMap<String, Value>;
 /// 4. **Cross-platform portability**: `i64` works identically everywhere;
 ///    `std::time::SystemTime` has platform-specific epoch semantics.
 pub trait TelegramObject: Serialize + for<'de> Deserialize<'de> + Send + Sync {
-    /// Returns the extra/unknown fields from the API response.
-    fn api_kwargs(&self) -> &ApiKwargs;
-
     /// Serialises this object to a JSON string.
     fn to_json(&self) -> serde_json::Result<String> {
         serde_json::to_string(self)

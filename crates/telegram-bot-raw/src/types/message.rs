@@ -11,8 +11,6 @@
 //! Everything else is `Option<T>`.
 
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
-use std::collections::HashMap;
 
 use super::chat::Chat;
 use super::chat_background::ChatBackground;
@@ -566,9 +564,6 @@ pub struct Message {
     pub reply_to_poll_option_id: Option<String>,
 
     // ── Catch-all ─────────────────────────────────────────────────────────────
-    /// Catch-all for any extra fields returned by the Bot API not yet modelled here.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 // ---------------------------------------------------------------------------
@@ -589,10 +584,6 @@ pub struct InaccessibleMessage {
 
     /// Always 0. The field can be used to differentiate regular and inaccessible messages.
     pub date: i64,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 // ---------------------------------------------------------------------------

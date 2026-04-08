@@ -1,7 +1,5 @@
-use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// Shipping address provided by a user.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -23,8 +21,4 @@ pub struct ShippingAddress {
 
     /// Address post code.
     pub post_code: String,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }

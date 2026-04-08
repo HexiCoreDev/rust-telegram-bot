@@ -1,7 +1,5 @@
-use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 use super::files::document::Document;
 
@@ -14,9 +12,6 @@ use super::files::document::Document;
 pub struct BackgroundFillSolid {
     /// The color of the background fill in the RGB24 format.
     pub color: i64,
-
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 /// The background is a gradient fill.
@@ -28,9 +23,6 @@ pub struct BackgroundFillGradient {
     pub bottom_color: i64,
     /// Clockwise rotation angle of the background fill in degrees (0–359).
     pub rotation_angle: i64,
-
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 /// The background is a freeform gradient that rotates after every message in the chat.
@@ -39,9 +31,6 @@ pub struct BackgroundFillFreeformGradient {
     /// A list of the 3 or 4 base colors that are used to generate the freeform gradient
     /// in the RGB24 format.
     pub colors: Vec<i64>,
-
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 /// The background fill of a chat. Discriminated by the `"type"` field.
@@ -64,9 +53,6 @@ pub struct BackgroundTypeFill {
     pub fill: BackgroundFill,
     /// Dimming of the background in dark themes, as a percentage (0–100).
     pub dark_theme_dimming: i64,
-
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 /// The background is a wallpaper in JPEG format.
@@ -83,9 +69,6 @@ pub struct BackgroundTypeWallpaper {
     /// True if the background moves slightly when the device is tilted.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub is_moving: Option<bool>,
-
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 /// The background is a PNG or TGV pattern combined with a fill chosen by the user.
@@ -104,9 +87,6 @@ pub struct BackgroundTypePattern {
     /// True if the background moves slightly when the device is tilted.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub is_moving: Option<bool>,
-
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 /// The background is taken directly from a built-in chat theme.
@@ -114,9 +94,6 @@ pub struct BackgroundTypePattern {
 pub struct BackgroundTypeChatTheme {
     /// Name of the chat theme, which is usually an emoji.
     pub theme_name: String,
-
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 /// The type of background applied to a chat. Discriminated by the `"type"` field.
@@ -139,7 +116,4 @@ pub struct ChatBackground {
     /// Type of the background.
     #[serde(rename = "type")]
     pub background_type: BackgroundType,
-
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }

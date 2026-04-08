@@ -1,7 +1,5 @@
-use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// An inline button that switches the user to inline mode in a chosen chat.
 ///
@@ -27,8 +25,4 @@ pub struct SwitchInlineQueryChosenChat {
     /// If `true`, channel chats can be chosen.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub allow_channel_chats: Option<bool>,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }

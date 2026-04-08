@@ -1,7 +1,5 @@
-use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// A point on the map.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -29,8 +27,4 @@ pub struct Location {
     /// For sent live locations only.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub proximity_alert_radius: Option<i64>,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }

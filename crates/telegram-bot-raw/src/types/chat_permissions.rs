@@ -1,7 +1,5 @@
-use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// Describes actions that a non-administrator user is allowed to take in a chat.
 ///
@@ -53,7 +51,4 @@ pub struct ChatPermissions {
     /// True if the user is allowed to edit their own tag.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub can_edit_tag: Option<bool>,
-
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }

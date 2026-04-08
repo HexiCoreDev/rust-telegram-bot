@@ -1,7 +1,5 @@
-use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// Represents an issue in one of the data fields provided by the user.
 ///
@@ -22,10 +20,6 @@ pub struct PassportElementErrorDataField {
 
     /// Error message.
     pub message: String,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 /// Represents an issue with a document scan.
@@ -44,10 +38,6 @@ pub struct PassportElementErrorFile {
 
     /// Error message.
     pub message: String,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 /// Represents an issue with a list of scans.
@@ -66,10 +56,6 @@ pub struct PassportElementErrorFiles {
 
     /// Error message.
     pub message: String,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 /// Represents an issue with the front side of a document.
@@ -87,10 +73,6 @@ pub struct PassportElementErrorFrontSide {
 
     /// Error message.
     pub message: String,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 /// Represents an issue with the reverse side of a document.
@@ -108,10 +90,6 @@ pub struct PassportElementErrorReverseSide {
 
     /// Error message.
     pub message: String,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 /// Represents an issue with the selfie photo with a document.
@@ -129,10 +107,6 @@ pub struct PassportElementErrorSelfie {
 
     /// Error message.
     pub message: String,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 /// Represents an issue with one of the files that constitute the translation of a document.
@@ -152,10 +126,6 @@ pub struct PassportElementErrorTranslationFile {
 
     /// Error message.
     pub message: String,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 /// Represents an issue with the translated version of a document.
@@ -175,10 +145,6 @@ pub struct PassportElementErrorTranslationFiles {
 
     /// Error message.
     pub message: String,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 /// Represents an issue in an unspecified place.
@@ -195,10 +161,6 @@ pub struct PassportElementErrorUnspecified {
 
     /// Error message.
     pub message: String,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 /// Polymorphic error in a Telegram Passport element submitted by the user.

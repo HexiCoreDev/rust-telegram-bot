@@ -1,7 +1,5 @@
-use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 use super::reaction::ReactionType;
 
@@ -25,10 +23,6 @@ pub struct StoryAreaPosition {
 
     /// Radius of the rectangle corner rounding, as a percentage of the media width.
     pub corner_radius_percentage: f64,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 /// Physical address of a location.
@@ -48,10 +42,6 @@ pub struct LocationAddress {
     /// Street address of the location.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub street: Option<String>,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 /// A story area pointing to a geographic location.
@@ -66,10 +56,6 @@ pub struct StoryAreaTypeLocationData {
     /// Address of the location.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub address: Option<LocationAddress>,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 /// A story area pointing to a suggested reaction.
@@ -85,10 +71,6 @@ pub struct StoryAreaTypeSuggestedReactionData {
     /// `true` if the reaction area corner is flipped.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub is_flipped: Option<bool>,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 /// A story area pointing to an HTTP or `tg://` link.
@@ -96,10 +78,6 @@ pub struct StoryAreaTypeSuggestedReactionData {
 pub struct StoryAreaTypeLinkData {
     /// HTTP or `tg://` URL to be opened when the area is clicked.
     pub url: String,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 /// A story area containing weather information.
@@ -113,10 +91,6 @@ pub struct StoryAreaTypeWeatherData {
 
     /// Background color of the area in ARGB format.
     pub background_color: i64,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 /// A story area pointing to a unique gift.
@@ -124,10 +98,6 @@ pub struct StoryAreaTypeWeatherData {
 pub struct StoryAreaTypeUniqueGiftData {
     /// Unique name of the gift.
     pub name: String,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 /// Polymorphic type of a clickable area on a story, selected by the `"type"` field.
@@ -159,8 +129,4 @@ pub struct StoryArea {
     /// Type of the area.
     #[serde(rename = "type")]
     pub area_type: StoryAreaType,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }

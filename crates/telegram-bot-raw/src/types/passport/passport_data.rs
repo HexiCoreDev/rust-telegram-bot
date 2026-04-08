@@ -1,7 +1,5 @@
-use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 use crate::types::passport::credentials::EncryptedCredentials;
 use crate::types::passport::encrypted_passport_element::EncryptedPassportElement;
@@ -15,8 +13,4 @@ pub struct PassportData {
 
     /// Encrypted credentials required to decrypt the data.
     pub credentials: EncryptedCredentials,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }

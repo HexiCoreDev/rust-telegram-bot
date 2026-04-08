@@ -1,7 +1,5 @@
-use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 use crate::types::files::base_medium::BaseMedium;
 use crate::types::files::base_thumbed_medium::BaseThumbedMedium;
@@ -42,10 +40,6 @@ pub struct Audio {
     /// Thumbnail of the album cover to which the music file belongs.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub thumbnail: Option<PhotoSize>,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 impl BaseMedium for Audio {

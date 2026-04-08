@@ -1,7 +1,5 @@
-use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 use super::user::User;
 
@@ -14,7 +12,4 @@ pub struct DirectMessagesTopic {
     /// Information about the user that created the topic.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub user: Option<User>,
-
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }

@@ -1,7 +1,5 @@
-use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// Basic information about an invoice.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -20,8 +18,4 @@ pub struct Invoice {
 
     /// Total price in the smallest units of the currency.
     pub total_amount: i64,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }

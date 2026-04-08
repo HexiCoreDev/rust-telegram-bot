@@ -1,7 +1,5 @@
-use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 use super::chat::Chat;
 use super::user::User;
@@ -14,10 +12,6 @@ pub struct MessageOriginUserData {
 
     /// User that sent the message originally.
     pub sender_user: User,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 /// Payload for `MessageOriginHiddenUser`: the message was originally sent by an unknown user.
@@ -28,10 +22,6 @@ pub struct MessageOriginHiddenUserData {
 
     /// Name of the user that sent the message originally.
     pub sender_user_name: String,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 /// Payload for `MessageOriginChat`: the message was originally sent on behalf of a chat.
@@ -46,10 +36,6 @@ pub struct MessageOriginChatData {
     /// For messages originally sent by an anonymous chat administrator, the author signature.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub author_signature: Option<String>,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 /// Payload for `MessageOriginChannel`: the message was originally sent to a channel.
@@ -67,10 +53,6 @@ pub struct MessageOriginChannelData {
     /// Signature of the original post author.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub author_signature: Option<String>,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 /// Origin of a message, selected by the `"type"` field in the JSON.

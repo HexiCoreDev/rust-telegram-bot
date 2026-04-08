@@ -1,7 +1,5 @@
-use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 use super::inline_keyboard_markup::InlineKeyboardMarkup;
 use super::input_message_content::InputMessageContent;
@@ -48,7 +46,4 @@ pub struct InlineQueryResultDocument {
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub thumbnail_height: Option<i32>,
-
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }

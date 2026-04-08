@@ -1,7 +1,5 @@
-use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 use crate::types::chat::Chat;
 use crate::types::gifts::Gift;
@@ -21,10 +19,6 @@ pub struct TransactionPartnerAffiliateProgram {
 
     /// Telegram Stars received by the bot for each 1000 Stars received by the affiliate program sponsor from referred users.
     pub commission_per_mille: i64,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 /// Describes a transaction with a chat.
@@ -36,10 +30,6 @@ pub struct TransactionPartnerChat {
     /// The gift sent to the chat by the bot.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub gift: Option<Gift>,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 /// Describes a withdrawal transaction with Fragment.
@@ -48,10 +38,6 @@ pub struct TransactionPartnerFragment {
     /// State of the transaction if the transaction is outgoing.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub withdrawal_state: Option<RevenueWithdrawalState>,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 /// Describes a transaction with a user.
@@ -94,26 +80,16 @@ pub struct TransactionPartnerUser {
     /// The unique gift transferred to the bot by the user.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub unique_gift: Option<UniqueGift>,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 /// Describes a transaction with an unknown partner.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct TransactionPartnerOther {
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 /// Describes a withdrawal transaction to the Telegram Ads platform.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct TransactionPartnerTelegramAds {
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 /// Describes a transaction with payment for paid broadcasting.
@@ -121,10 +97,6 @@ pub struct TransactionPartnerTelegramAds {
 pub struct TransactionPartnerTelegramApi {
     /// Number of successful requests that exceeded regular limits and were billed.
     pub request_count: i64,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 /// Source or recipient of a transaction.

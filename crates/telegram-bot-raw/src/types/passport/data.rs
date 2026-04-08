@@ -1,7 +1,5 @@
-use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// Personal details as stored in a Telegram Passport document.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -39,10 +37,6 @@ pub struct PersonalDetails {
     /// Middle name in the language of the user's country of residence.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub middle_name_native: Option<String>,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 /// Residential address as stored in a Telegram Passport document.
@@ -67,10 +61,6 @@ pub struct ResidentialAddress {
 
     /// Address post code.
     pub post_code: String,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 /// Data of an identity document (passport, driver license, identity card).
@@ -82,8 +72,4 @@ pub struct IdDocumentData {
     /// Date of expiry in `DD.MM.YYYY` format.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub expiry_date: Option<String>,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }

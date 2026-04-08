@@ -1,7 +1,5 @@
-use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 // ---------------------------------------------------------------------------
 // ChatOwnerChanged
@@ -16,9 +14,6 @@ use serde_json::Value;
 /// Corresponds to the Bot API `chat_owner_changed` service message field.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ChatOwnerChanged {
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 // ---------------------------------------------------------------------------
@@ -34,7 +29,4 @@ pub struct ChatOwnerChanged {
 /// Corresponds to the Bot API `chat_owner_left` service message field.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ChatOwnerLeft {
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }

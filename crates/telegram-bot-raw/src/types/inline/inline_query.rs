@@ -1,7 +1,5 @@
-use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 use crate::types::files::location::Location;
 use crate::types::user::User;
@@ -29,7 +27,4 @@ pub struct InlineQuery {
     /// Sender location, only for bots that request user location.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub location: Option<Location>,
-
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }

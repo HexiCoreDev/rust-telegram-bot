@@ -1,7 +1,5 @@
-use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 use super::chat::Chat;
 use super::reaction::{ReactionCount, ReactionType};
@@ -21,10 +19,6 @@ pub struct MessageReactionCountUpdated {
 
     /// List of reactions that are present on the message.
     pub reactions: Vec<ReactionCount>,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 /// A change of a reaction on a message performed by a user.
@@ -52,8 +46,4 @@ pub struct MessageReactionUpdated {
     /// The chat on behalf of which the reaction was changed, if the user is anonymous.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub actor_chat: Option<Chat>,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }

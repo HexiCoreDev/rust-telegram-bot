@@ -5,8 +5,6 @@
 //! Only data fields are included. No Bot reference, no API shortcuts.
 
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
-use std::collections::HashMap;
 
 /// This object represents a chat.
 ///
@@ -46,8 +44,4 @@ pub struct Chat {
     /// `true` if the chat is the direct messages chat of a channel.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub is_direct_messages: Option<bool>,
-
-    /// Catch-all for any extra fields returned by the Bot API not yet modelled here.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }

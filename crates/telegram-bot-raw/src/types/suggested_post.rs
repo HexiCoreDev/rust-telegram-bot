@@ -1,7 +1,5 @@
-use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 use super::message::Message;
 
@@ -19,9 +17,6 @@ pub struct StarAmount {
     /// The number of 1/1000000000 shares of Telegram Stars by the amount value.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub nanostar_amount: Option<i64>,
-
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 // ---------------------------------------------------------------------------
@@ -36,9 +31,6 @@ pub struct SuggestedPostPrice {
 
     /// Amount in the smallest units of the currency.
     pub amount: i64,
-
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 // ---------------------------------------------------------------------------
@@ -55,9 +47,6 @@ pub struct SuggestedPostParameters {
     /// Proposed Unix timestamp send date; absent if any time within 30 days is acceptable.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub send_date: Option<i64>,
-
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 // ---------------------------------------------------------------------------
@@ -77,9 +66,6 @@ pub struct SuggestedPostInfo {
     /// Proposed Unix timestamp send date.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub send_date: Option<i64>,
-
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 // ---------------------------------------------------------------------------
@@ -96,9 +82,6 @@ pub struct SuggestedPostDeclined {
     /// Comment with which the post was declined.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub comment: Option<String>,
-
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 // ---------------------------------------------------------------------------
@@ -122,9 +105,6 @@ pub struct SuggestedPostPaid {
     /// Amount of Telegram Stars received; for XTR payments only.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub star_amount: Option<StarAmount>,
-
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 // ---------------------------------------------------------------------------
@@ -140,9 +120,6 @@ pub struct SuggestedPostRefunded {
     /// Message containing the suggested post.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub suggested_post_message: Option<Box<Message>>,
-
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 // ---------------------------------------------------------------------------
@@ -162,9 +139,6 @@ pub struct SuggestedPostApproved {
     /// Amount paid for the post.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub price: Option<SuggestedPostPrice>,
-
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 // ---------------------------------------------------------------------------
@@ -180,7 +154,4 @@ pub struct SuggestedPostApprovalFailed {
     /// Message containing the suggested post.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub suggested_post_message: Option<Box<Message>>,
-
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }

@@ -1,7 +1,5 @@
-use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 use super::user::User;
 
@@ -22,9 +20,6 @@ pub struct ChatMemberOwner {
     /// Custom title for this user.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub custom_title: Option<String>,
-
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 /// Represents a chat member that has some additional privileges.
@@ -80,9 +75,6 @@ pub struct ChatMemberAdministrator {
     /// True if the administrator can edit the tags of regular members; groups and supergroups only.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub can_manage_tags: Option<bool>,
-
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 /// Represents a chat member that has no additional privileges or restrictions.
@@ -99,9 +91,6 @@ pub struct ChatMemberMember {
     /// Tag of the member.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub tag: Option<String>,
-
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 /// Represents a chat member that is under certain restrictions in the chat (supergroups only).
@@ -149,9 +138,6 @@ pub struct ChatMemberRestricted {
     /// Tag of the member.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub tag: Option<String>,
-
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 /// Represents a chat member that isn't currently a member of the chat but may join.
@@ -161,9 +147,6 @@ pub struct ChatMemberRestricted {
 pub struct ChatMemberLeft {
     /// Information about the user.
     pub user: User,
-
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 /// Represents a chat member that was banned and cannot return to or view the chat.
@@ -175,9 +158,6 @@ pub struct ChatMemberBanned {
     pub user: User,
     /// Unix timestamp of when restrictions will be lifted for this user.
     pub until_date: i64,
-
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 /// Represents a member of a chat. Discriminated by the `"status"` field.
@@ -211,9 +191,6 @@ pub enum ChatMember {
 pub struct ChatOwnerChanged {
     /// The new owner of the chat.
     pub new_owner: User,
-
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 /// Service message about the chat owner leaving the chat.
@@ -222,7 +199,4 @@ pub struct ChatOwnerLeft {
     /// The user which will be the new owner of the chat if the previous owner does not return.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub new_owner: Option<User>,
-
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }

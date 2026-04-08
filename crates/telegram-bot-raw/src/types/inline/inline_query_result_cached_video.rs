@@ -1,7 +1,5 @@
-use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 use super::inline_keyboard_markup::InlineKeyboardMarkup;
 use super::input_message_content::InputMessageContent;
@@ -39,7 +37,4 @@ pub struct InlineQueryResultCachedVideo {
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub show_caption_above_media: Option<bool>,
-
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }

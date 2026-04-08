@@ -1,7 +1,10 @@
+#![cfg(feature = "persistence")]
 //! Stress tests for persistence backends under concurrent access.
 //!
 //! These tests verify that `DictPersistence` and `JsonFilePersistence` remain
 //! consistent when many tasks write simultaneously.
+//!
+//! Requires the `persistence` feature.
 
 use std::sync::Arc;
 
@@ -487,7 +490,7 @@ mod json_file_stress {
 
         let chat_data = persistence.get_chat_data().await.unwrap();
 
-        for i in (0..40i64).step_by(2) {
+        for i in (0..50i64).step_by(2) {
             assert!(!chat_data.contains_key(&i));
         }
 

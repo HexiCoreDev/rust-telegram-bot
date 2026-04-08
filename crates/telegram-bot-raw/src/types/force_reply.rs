@@ -1,7 +1,5 @@
-use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// Upon receiving a message with this object, Telegram clients will display a reply interface to
 /// the user (act as if the user has selected the bot's message and tapped 'Reply').
@@ -19,8 +17,4 @@ pub struct ForceReply {
     /// Placeholder shown in the input field when the reply is active; 1-64 characters.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub input_field_placeholder: Option<String>,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }

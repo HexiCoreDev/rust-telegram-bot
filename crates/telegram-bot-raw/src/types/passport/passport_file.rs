@@ -1,7 +1,5 @@
-use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// Represents a file uploaded to Telegram Passport.
 ///
@@ -20,8 +18,4 @@ pub struct PassportFile {
 
     /// Unix timestamp when the file was uploaded.
     pub file_date: i64,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }

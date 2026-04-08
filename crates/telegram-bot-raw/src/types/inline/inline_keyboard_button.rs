@@ -1,7 +1,5 @@
-use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 use crate::types::copy_text_button::CopyTextButton;
 use crate::types::games::callback_game::CallbackGame;
@@ -50,7 +48,4 @@ pub struct InlineKeyboardButton {
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub icon_custom_emoji_id: Option<String>,
-
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }

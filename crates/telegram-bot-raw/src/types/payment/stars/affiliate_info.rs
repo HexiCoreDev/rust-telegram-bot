@@ -1,7 +1,5 @@
-use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 use crate::types::chat::Chat;
 use crate::types::user::User;
@@ -26,8 +24,4 @@ pub struct AffiliateInfo {
     /// Fractional nanostar shares of Telegram Stars received by the affiliate; can be negative for refunds.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub nanostar_amount: Option<i64>,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }

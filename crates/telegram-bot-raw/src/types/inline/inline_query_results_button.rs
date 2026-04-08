@@ -1,7 +1,5 @@
-use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 use crate::types::web_app_info::WebAppInfo;
 
@@ -20,7 +18,4 @@ pub struct InlineQueryResultsButton {
     /// Deep-linking parameter for the /start message sent to the bot when user presses the button.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub start_parameter: Option<String>,
-
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }

@@ -1,7 +1,5 @@
-use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 use super::files::photo_size::PhotoSize;
 
@@ -26,10 +24,6 @@ pub struct SharedUser {
     /// Available sizes of the user's photo, if requested by the bot.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub photo: Option<Vec<PhotoSize>>,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 /// Information about users shared with the bot via a `KeyboardButtonRequestUsers` button.
@@ -40,10 +34,6 @@ pub struct UsersShared {
 
     /// Information about the users shared with the bot.
     pub users: Vec<SharedUser>,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 /// Information about a chat shared with the bot via a `KeyboardButtonRequestChat` button.
@@ -66,8 +56,4 @@ pub struct ChatShared {
     /// Available sizes of the chat photo, if requested by the bot.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub photo: Option<Vec<PhotoSize>>,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }

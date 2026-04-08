@@ -1,7 +1,5 @@
-use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 use super::user::User;
 
@@ -16,8 +14,4 @@ pub struct ProximityAlertTriggered {
 
     /// Distance between the users in metres.
     pub distance: i64,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }

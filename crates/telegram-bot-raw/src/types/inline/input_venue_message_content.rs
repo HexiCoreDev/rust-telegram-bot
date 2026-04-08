@@ -1,7 +1,5 @@
-use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// Represents the content of a venue message to be sent as the result of an inline query.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
@@ -29,7 +27,4 @@ pub struct InputVenueMessageContent {
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub google_place_type: Option<String>,
-
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }

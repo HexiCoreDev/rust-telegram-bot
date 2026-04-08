@@ -6,10 +6,13 @@ use std::sync::Arc;
 use telegram_bot_raw::bot::Bot;
 use telegram_bot_raw::request::base::BaseRequest;
 
-use crate::application::{Application, ApplicationConfig, DynPersistence, LifecycleHook};
+#[cfg(feature = "persistence")]
+use crate::application::DynPersistence;
+use crate::application::{Application, ApplicationConfig, LifecycleHook};
 use crate::context_types::ContextTypes;
 use crate::defaults::Defaults;
 use crate::ext_bot::ExtBot;
+#[cfg(feature = "job-queue")]
 use crate::job_queue::JobQueue;
 use crate::update_processor;
 
@@ -40,7 +43,9 @@ pub struct ApplicationBuilder<State = NoToken> {
     post_init: Option<LifecycleHook>,
     post_stop: Option<LifecycleHook>,
     post_shutdown: Option<LifecycleHook>,
+    #[cfg(feature = "persistence")]
     persistence: Option<Box<dyn DynPersistence>>,
+    #[cfg(feature = "job-queue")]
     job_queue: Option<Arc<JobQueue>>,
     _marker: PhantomData<State>,
 }
@@ -67,7 +72,9 @@ impl ApplicationBuilder<NoToken> {
             post_init: None,
             post_stop: None,
             post_shutdown: None,
+            #[cfg(feature = "persistence")]
             persistence: None,
+            #[cfg(feature = "job-queue")]
             job_queue: None,
             _marker: PhantomData,
         }
@@ -88,7 +95,9 @@ impl ApplicationBuilder<NoToken> {
             post_init: self.post_init,
             post_stop: self.post_stop,
             post_shutdown: self.post_shutdown,
+            #[cfg(feature = "persistence")]
             persistence: self.persistence,
+            #[cfg(feature = "job-queue")]
             job_queue: self.job_queue,
             _marker: PhantomData,
         }
@@ -164,6 +173,9 @@ impl<S> ApplicationBuilder<S> {
     }
 
     /// Sets the persistence backend.
+    ///
+    /// Requires the `persistence` feature.
+    #[cfg(feature = "persistence")]
     #[must_use]
     pub fn persistence(mut self, p: Box<dyn DynPersistence>) -> Self {
         self.persistence = Some(p);
@@ -171,6 +183,9 @@ impl<S> ApplicationBuilder<S> {
     }
 
     /// Sets the job queue.
+    ///
+    /// Requires the `job-queue` feature.
+    #[cfg(feature = "job-queue")]
     #[must_use]
     pub fn job_queue(mut self, jq: Arc<JobQueue>) -> Self {
         self.job_queue = Some(jq);
@@ -210,8 +225,14 @@ impl ApplicationBuilder<HasToken> {
         config.post_init = self.post_init;
         config.post_stop = self.post_stop;
         config.post_shutdown = self.post_shutdown;
-        config.persistence = self.persistence;
-        config.job_queue = self.job_queue;
+        #[cfg(feature = "persistence")]
+        {
+            config.persistence = self.persistence;
+        }
+        #[cfg(feature = "job-queue")]
+        {
+            config.job_queue = self.job_queue;
+        }
 
         Application::new(config)
     }
@@ -305,6 +326,7 @@ mod tests {
         assert_eq!(app.bot().token(), "t");
     }
 
+    #[cfg(feature = "job-queue")]
     #[test]
     fn builder_with_job_queue() {
         let jq = Arc::new(JobQueue::new());

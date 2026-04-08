@@ -1,7 +1,5 @@
-use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 use super::keyboard_button_poll_type::KeyboardButtonPollType;
 use super::keyboard_button_request::{
@@ -56,8 +54,4 @@ pub struct KeyboardButton {
     /// Unique identifier of the custom emoji shown before the button text.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub icon_custom_emoji_id: Option<String>,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }

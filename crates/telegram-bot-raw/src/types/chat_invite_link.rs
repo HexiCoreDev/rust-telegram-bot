@@ -1,7 +1,5 @@
-use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 use super::user::User;
 
@@ -38,7 +36,4 @@ pub struct ChatInviteLink {
     /// Amount of Telegram Stars a user must pay to be a member of the chat using the link.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub subscription_price: Option<i64>,
-
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }

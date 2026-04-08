@@ -1,7 +1,5 @@
-use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 use super::gifts::Gift;
 use super::message_entity::MessageEntity;
@@ -68,9 +66,6 @@ pub struct OwnedGiftRegular {
     /// Unique number reserved for this gift when upgraded.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub unique_gift_number: Option<i64>,
-
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 // ---------------------------------------------------------------------------
@@ -109,9 +104,6 @@ pub struct OwnedGiftUnique {
     /// Unix timestamp when the gift can be transferred next.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub next_transfer_date: Option<i64>,
-
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 // ---------------------------------------------------------------------------
@@ -147,7 +139,4 @@ pub struct OwnedGifts {
     /// Offset for the next request; absent when there are no more results.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub next_offset: Option<String>,
-
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }

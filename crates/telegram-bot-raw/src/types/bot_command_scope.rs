@@ -1,38 +1,24 @@
-use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// Scope covering the default commands visible to all users.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct BotCommandScopeDefault {
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 /// Scope covering all private chats.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct BotCommandScopeAllPrivateChats {
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 /// Scope covering all group and supergroup chats.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct BotCommandScopeAllGroupChats {
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 /// Scope covering all group and supergroup chat administrators.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct BotCommandScopeAllChatAdministrators {
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 /// Scope covering a specific chat.
@@ -40,10 +26,6 @@ pub struct BotCommandScopeAllChatAdministrators {
 pub struct BotCommandScopeChatData {
     /// Unique identifier for the target chat or username of the target supergroup.
     pub chat_id: ChatId,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 /// Scope covering all administrators of a specific chat.
@@ -51,10 +33,6 @@ pub struct BotCommandScopeChatData {
 pub struct BotCommandScopeChatAdministratorsData {
     /// Unique identifier for the target chat or username of the target supergroup.
     pub chat_id: ChatId,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 /// Scope covering a specific member of a group or supergroup chat.
@@ -65,10 +43,6 @@ pub struct BotCommandScopeChatMemberData {
 
     /// Unique identifier of the target user.
     pub user_id: i64,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 /// Chat identifier: either a numeric ID or a `@username` string.

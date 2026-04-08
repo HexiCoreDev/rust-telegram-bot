@@ -1,7 +1,5 @@
-use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 use crate::types::passport::passport_file::PassportFile;
 
@@ -59,8 +57,4 @@ pub struct EncryptedPassportElement {
     /// `"passport_registration"` and `"temporary_registration"` types.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub translation: Option<Vec<PassportFile>>,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }

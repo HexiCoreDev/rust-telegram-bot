@@ -4,8 +4,6 @@
 //! Only data fields are included. No Bot reference, no API shortcuts.
 
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
-use std::collections::HashMap;
 
 use super::message::MaybeInaccessibleMessage;
 use super::user::User;
@@ -53,8 +51,4 @@ pub struct CallbackQuery {
     /// Short name of a Game to be returned, serves as the unique identifier for the game.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub game_short_name: Option<String>,
-
-    /// Catch-all for any extra fields returned by the Bot API not yet modelled here.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }

@@ -1,7 +1,5 @@
-use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 use super::chat::Chat;
 use super::message::Message;
@@ -46,9 +44,6 @@ pub struct Giveaway {
     /// Months the Telegram Premium subscription will be active; Premium giveaways only.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub premium_subscription_month_count: Option<i64>,
-
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 // ---------------------------------------------------------------------------
@@ -61,9 +56,6 @@ pub struct GiveawayCreated {
     /// Stars split between giveaway winners; Star giveaways only.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub prize_star_count: Option<i64>,
-
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 // ---------------------------------------------------------------------------
@@ -115,9 +107,6 @@ pub struct GiveawayWinners {
     /// Stars split between giveaway winners; Star giveaways only.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub prize_star_count: Option<i64>,
-
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 // ---------------------------------------------------------------------------
@@ -141,7 +130,4 @@ pub struct GiveawayCompleted {
     /// True if this is a Telegram Star giveaway rather than a Premium giveaway.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub is_star_giveaway: Option<bool>,
-
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }

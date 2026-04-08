@@ -1,7 +1,5 @@
-use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 use super::chat::Chat;
 use super::files::sticker::Sticker;
@@ -22,9 +20,6 @@ pub struct GiftBackground {
 
     /// Text color of the background in RGB format.
     pub text_color: i64,
-
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 // ---------------------------------------------------------------------------
@@ -82,9 +77,6 @@ pub struct Gift {
     /// Total number of different unique gifts obtainable by upgrading this gift.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub unique_gift_variant_count: Option<i64>,
-
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 // ---------------------------------------------------------------------------
@@ -96,9 +88,6 @@ pub struct Gift {
 pub struct Gifts {
     /// The sequence of gifts.
     pub gifts: Vec<Gift>,
-
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 // ---------------------------------------------------------------------------
@@ -146,9 +135,6 @@ pub struct GiftInfo {
     /// Unique number reserved for this gift when upgraded.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub unique_gift_number: Option<i64>,
-
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 // ---------------------------------------------------------------------------
@@ -172,7 +158,4 @@ pub struct AcceptedGiftTypes {
 
     /// True if transfers of unique gifts from channels are accepted.
     pub gifts_from_channels: bool,
-
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }

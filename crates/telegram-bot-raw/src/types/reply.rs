@@ -1,4 +1,3 @@
-use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -130,10 +129,6 @@ pub struct ExternalReplyInfo {
     /// Message contains paid media.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub paid_media: Option<PaidMediaInfo>,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 /// The quoted part of a message that is replied to by the given message.
@@ -152,10 +147,6 @@ pub struct TextQuote {
     /// `true` if the quote was chosen manually by the message sender.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub is_manual: Option<bool>,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 /// Reply parameters for the message that is being sent.
@@ -200,8 +191,4 @@ pub struct ReplyParameters {
     /// Added in Bot API 9.6.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub poll_option_id: Option<String>,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }

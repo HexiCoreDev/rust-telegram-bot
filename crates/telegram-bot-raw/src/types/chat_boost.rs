@@ -1,7 +1,5 @@
-use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 use super::chat::Chat;
 use super::user::User;
@@ -15,9 +13,6 @@ use super::user::User;
 pub struct ChatBoostAdded {
     /// Number of boosts added by the user.
     pub boost_count: i64,
-
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 // ---------------------------------------------------------------------------
@@ -29,9 +24,6 @@ pub struct ChatBoostAdded {
 pub struct ChatBoostSourcePremium {
     /// User that boosted the chat.
     pub user: User,
-
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 /// The boost was obtained by the creation of Telegram Premium gift codes to boost a chat.
@@ -39,9 +31,6 @@ pub struct ChatBoostSourcePremium {
 pub struct ChatBoostSourceGiftCode {
     /// User for which the gift code was created.
     pub user: User,
-
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 /// The boost was obtained by the creation of a Telegram Premium giveaway or a Telegram Star.
@@ -59,9 +48,6 @@ pub struct ChatBoostSourceGiveaway {
     /// True if the giveaway was completed but there was no user to win the prize.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub is_unclaimed: Option<bool>,
-
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 /// Source of a chat boost. Discriminated by the `"source"` field.
@@ -88,9 +74,6 @@ pub struct ChatBoost {
     pub expiration_date: i64,
     /// Source of the added boost.
     pub source: ChatBoostSource,
-
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 // ---------------------------------------------------------------------------
@@ -104,9 +87,6 @@ pub struct ChatBoostUpdated {
     pub chat: Chat,
     /// Information about the chat boost.
     pub boost: ChatBoost,
-
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 // ---------------------------------------------------------------------------
@@ -124,9 +104,6 @@ pub struct ChatBoostRemoved {
     pub remove_date: i64,
     /// Source of the removed boost.
     pub source: ChatBoostSource,
-
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 // ---------------------------------------------------------------------------
@@ -138,7 +115,4 @@ pub struct ChatBoostRemoved {
 pub struct UserChatBoosts {
     /// List of boosts added to the chat by the user.
     pub boosts: Vec<ChatBoost>,
-
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }

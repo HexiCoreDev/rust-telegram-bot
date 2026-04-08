@@ -1,14 +1,9 @@
-use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// The withdrawal is in progress.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct RevenueWithdrawalStatePending {
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 /// The withdrawal succeeded.
@@ -19,18 +14,11 @@ pub struct RevenueWithdrawalStateSucceeded {
 
     /// An HTTPS URL to see transaction details.
     pub url: String,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 /// The withdrawal failed and the transaction was refunded.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct RevenueWithdrawalStateFailed {
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 /// State of a revenue withdrawal operation.

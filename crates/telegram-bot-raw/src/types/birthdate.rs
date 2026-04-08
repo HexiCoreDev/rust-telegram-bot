@@ -1,7 +1,5 @@
-use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// Describes the birthdate of a user.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -15,8 +13,4 @@ pub struct Birthdate {
     /// Year of the user's birth.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub year: Option<i64>,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }

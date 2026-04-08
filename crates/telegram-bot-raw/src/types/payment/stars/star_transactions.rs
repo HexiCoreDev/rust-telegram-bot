@@ -1,7 +1,5 @@
-use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 use super::transaction_partner::TransactionPartner;
 
@@ -28,10 +26,6 @@ pub struct StarTransaction {
     /// Receiver of an outgoing transaction; only for outgoing transactions.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub receiver: Option<TransactionPartner>,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 /// A list of Telegram Star transactions.
@@ -39,8 +33,4 @@ pub struct StarTransaction {
 pub struct StarTransactions {
     /// The list of transactions.
     pub transactions: Vec<StarTransaction>,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }

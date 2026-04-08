@@ -1,7 +1,5 @@
-use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 use super::keyboard_button::KeyboardButton;
 
@@ -31,8 +29,4 @@ pub struct ReplyKeyboardMarkup {
     /// `true` to always show the keyboard when the regular keyboard is hidden.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub is_persistent: Option<bool>,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }

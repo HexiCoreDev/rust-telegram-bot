@@ -1,16 +1,11 @@
-use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 use super::web_app_info::WebAppInfo;
 
 /// Payload for `MenuButtonCommands` — no additional fields beyond the tag.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct MenuButtonCommandsData {
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 /// Payload for `MenuButtonWebApp`.
@@ -21,18 +16,11 @@ pub struct MenuButtonWebAppData {
 
     /// The Web App that will be launched when the button is pressed.
     pub web_app: WebAppInfo,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 /// Payload for `MenuButtonDefault` — no additional fields beyond the tag.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct MenuButtonDefaultData {
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 /// The bot's menu button in a private chat.

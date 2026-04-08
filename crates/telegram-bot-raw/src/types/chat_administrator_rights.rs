@@ -1,7 +1,5 @@
-use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// Represents the rights of an administrator in a chat.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -48,7 +46,4 @@ pub struct ChatAdministratorRights {
     /// True if the administrator can edit the tags of regular members; groups and supergroups only.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub can_manage_tags: Option<bool>,
-
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }

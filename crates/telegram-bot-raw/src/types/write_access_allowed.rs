@@ -1,7 +1,5 @@
-use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// Service message: a user has allowed the bot to write messages.
 ///
@@ -20,8 +18,4 @@ pub struct WriteAccessAllowed {
     /// `true` if access was granted when the bot was added to an attachment or side menu.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub from_attachment_menu: Option<bool>,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }

@@ -1,7 +1,5 @@
-use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 use super::files::audio::Audio;
 
@@ -13,8 +11,4 @@ pub struct UserProfileAudios {
 
     /// Requested profile audios.
     pub audios: Vec<Audio>,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }

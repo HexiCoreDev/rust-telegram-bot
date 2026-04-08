@@ -12,6 +12,7 @@ use telegram_bot_raw::types::update::Update;
 
 use crate::context_types::DefaultData;
 use crate::ext_bot::ExtBot;
+#[cfg(feature = "job-queue")]
 use crate::job_queue::JobQueue;
 
 // ---------------------------------------------------------------------------
@@ -297,6 +298,9 @@ pub struct CallbackContext {
     pub extra: HashMap<String, Value>,
 
     /// Optional reference to the application's job queue.
+    ///
+    /// Requires the `job-queue` feature.
+    #[cfg(feature = "job-queue")]
     pub job_queue: Option<Arc<JobQueue>>,
 }
 
@@ -323,6 +327,7 @@ impl CallbackContext {
             args: None,
             error: None,
             extra: HashMap::new(),
+            #[cfg(feature = "job-queue")]
             job_queue: None,
         }
     }
@@ -456,6 +461,9 @@ impl CallbackContext {
     }
 
     /// Set the job queue reference on this context.
+    ///
+    /// Requires the `job-queue` feature.
+    #[cfg(feature = "job-queue")]
     pub fn with_job_queue(mut self, jq: Arc<JobQueue>) -> Self {
         self.job_queue = Some(jq);
         self
@@ -536,6 +544,7 @@ mod tests {
         assert!(ctx.args.is_none());
         assert!(ctx.matches.is_none());
         assert!(ctx.named_matches.is_none());
+        #[cfg(feature = "job-queue")]
         assert!(ctx.job_queue.is_none());
     }
 
@@ -647,6 +656,7 @@ mod tests {
         assert_eq!(ctx.match_result(), Some("hello"));
     }
 
+    #[cfg(feature = "job-queue")]
     #[test]
     fn with_job_queue() {
         let bot = make_bot();

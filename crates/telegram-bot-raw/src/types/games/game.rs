@@ -1,7 +1,5 @@
-use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 use crate::types::files::animation::Animation;
 use crate::types::files::photo_size::PhotoSize;
@@ -35,8 +33,4 @@ pub struct Game {
     /// Animation that will be displayed in the game message in chats. Upload via BotFather.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub animation: Option<Animation>,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }

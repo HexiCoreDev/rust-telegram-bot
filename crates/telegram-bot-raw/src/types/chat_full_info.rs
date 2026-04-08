@@ -5,8 +5,6 @@
 //! Only data fields are included. No Bot reference, no API shortcuts.
 
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
-use std::collections::HashMap;
 
 use super::birthdate::Birthdate;
 use super::business::{BusinessIntro, BusinessLocation, BusinessOpeningHours};
@@ -239,8 +237,4 @@ pub struct ChatFullInfo {
     /// First audio in the profile of the chat or the other party in a private chat.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub first_profile_audio: Option<Audio>,
-
-    /// Catch-all for any extra fields returned by the Bot API not yet modelled here.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }

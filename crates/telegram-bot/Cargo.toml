@@ -32,6 +32,7 @@ default = ["telegram-bot-ext/default"]
 full = ["telegram-bot-ext/full"]
 webhooks = ["telegram-bot-ext/webhooks"]
 job-queue = ["telegram-bot-ext/job-queue"]
+persistence = ["telegram-bot-ext/persistence"]
 persistence-json = ["telegram-bot-ext/persistence-json"]
 persistence-sqlite = ["telegram-bot-ext/persistence-sqlite"]
 rate-limiter = ["telegram-bot-ext/rate-limiter"]
@@ -47,6 +48,7 @@ path = "examples/inline_keyboard.rs"
 [[example]]
 name = "timer_bot"
 path = "examples/timer_bot.rs"
+required-features = ["job-queue"]
 
 [[example]]
 name = "conversation_bot"

@@ -1,7 +1,5 @@
-use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// Current status of a webhook.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -38,8 +36,4 @@ pub struct WebhookInfo {
     /// Unix timestamp of the most recent datacenter synchronization error.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub last_synchronization_error_date: Option<i64>,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }

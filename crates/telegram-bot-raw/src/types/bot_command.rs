@@ -1,7 +1,5 @@
-use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// Represents a bot command (text + description pair).
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -11,8 +9,4 @@ pub struct BotCommand {
 
     /// Description of the command; 1-256 characters.
     pub description: String,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }

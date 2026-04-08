@@ -1,7 +1,5 @@
-use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 use crate::types::link_preview_options::LinkPreviewOptions;
 use crate::types::message_entity::MessageEntity;
@@ -20,7 +18,4 @@ pub struct InputTextMessageContent {
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub link_preview_options: Option<LinkPreviewOptions>,
-
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }

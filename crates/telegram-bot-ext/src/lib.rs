@@ -8,8 +8,9 @@
 //!   [`MessageHandler`](handlers::message::MessageHandler),
 //!   [`CallbackQueryHandler`](handlers::callback_query::CallbackQueryHandler), etc.
 //! - **Filters**: composable with `&`, `|`, `^`, `!` operators via [`F`](filters::base::F).
-//! - **Persistence**: in-memory ([`DictPersistence`](persistence::dict::DictPersistence))
-//!   and JSON-file ([`JsonFilePersistence`](persistence::json_file::JsonFilePersistence)).
+//! - **Persistence** *(feature `persistence`)*: in-memory
+//!   ([`DictPersistence`](persistence::dict::DictPersistence)) and JSON-file
+//!   ([`JsonFilePersistence`](persistence::json_file::JsonFilePersistence)).
 //! - **Application**: the main dispatch loop ([`Application`](application::Application)).
 //!
 //! # Quick start
@@ -51,12 +52,21 @@ pub mod filters;
 /// Update handler trait and concrete handler implementations.
 pub mod handlers;
 /// Scheduled and repeating job execution.
+///
+/// Requires the `job-queue` feature.
+#[cfg(feature = "job-queue")]
 pub mod job_queue;
 /// Persistence backends for storing user/chat/bot data across restarts.
+///
+/// Requires the `persistence` feature.
+#[cfg(feature = "persistence")]
 pub mod persistence;
 /// Convenient re-exports for writing clean bot code.
 pub mod prelude;
-/// Rate-limiter support (placeholder).
+/// Rate-limiter support.
+///
+/// Requires the `rate-limiter` feature.
+#[cfg(feature = "rate-limiter")]
 pub mod rate_limiter;
 /// Base update processor abstraction.
 pub mod update_processor;

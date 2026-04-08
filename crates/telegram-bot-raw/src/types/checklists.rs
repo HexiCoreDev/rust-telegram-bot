@@ -1,7 +1,5 @@
-use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 use super::chat::Chat;
 use super::message::Message;
@@ -38,9 +36,6 @@ pub struct ChecklistTask {
     /// A value of `0` means the task was not completed (mirrors `ZERO_DATE` in Python).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub completion_date: Option<i64>,
-
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 // ---------------------------------------------------------------------------
@@ -67,9 +62,6 @@ pub struct Checklist {
     /// True if users other than the creator can mark tasks as done or not done.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub others_can_mark_tasks_as_done: Option<bool>,
-
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 // ---------------------------------------------------------------------------
@@ -90,9 +82,6 @@ pub struct ChecklistTasksDone {
     /// Identifiers of the tasks that were marked as not done.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub marked_as_not_done_task_ids: Vec<i64>,
-
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 // ---------------------------------------------------------------------------
@@ -108,7 +97,4 @@ pub struct ChecklistTasksAdded {
 
     /// Tasks added to the checklist.
     pub tasks: Vec<ChecklistTask>,
-
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }

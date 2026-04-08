@@ -1,7 +1,5 @@
-use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 use super::message_entity::MessageEntity;
 
@@ -25,9 +23,6 @@ pub struct InputChecklistTask {
     /// Special entities in the text, used instead of `parse_mode`.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub text_entities: Vec<MessageEntity>,
-
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 // ---------------------------------------------------------------------------
@@ -58,7 +53,4 @@ pub struct InputChecklist {
     /// True if other users can mark tasks as done or not done.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub others_can_mark_tasks_as_done: Option<bool>,
-
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }

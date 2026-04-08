@@ -5,8 +5,6 @@
 //! `effective_message`) are provided as plain `fn` methods returning `Option` references.
 
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
-use std::collections::HashMap;
 
 use super::business::{BusinessConnection, BusinessMessagesDeleted};
 use super::callback_query::CallbackQuery;
@@ -155,10 +153,6 @@ pub struct Update {
     pub managed_bot: Option<ManagedBotUpdated>,
 
     // ── Catch-all ─────────────────────────────────────────────────────────────
-
-    /// Catch-all for any extra fields returned by the Bot API not yet modelled here.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 impl Update {

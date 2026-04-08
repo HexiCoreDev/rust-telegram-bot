@@ -1,7 +1,5 @@
-use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// A phone contact shared in a message.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -23,8 +21,4 @@ pub struct Contact {
     /// Additional data about the contact in the form of a vCard.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub vcard: Option<String>,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }

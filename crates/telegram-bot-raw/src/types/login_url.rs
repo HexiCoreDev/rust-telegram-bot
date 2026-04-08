@@ -1,7 +1,5 @@
-use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// An inline keyboard button parameter used to automatically authorize a user via Telegram Login.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -20,8 +18,4 @@ pub struct LoginUrl {
     /// If `true`, the bot is permitted to send messages to the user.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub request_write_access: Option<bool>,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }

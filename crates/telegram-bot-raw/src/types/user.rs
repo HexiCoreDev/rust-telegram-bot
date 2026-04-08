@@ -3,8 +3,6 @@
 //! Only data fields are included. No Bot reference, no API shortcuts.
 
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
-use std::collections::HashMap;
 
 /// This object represents a Telegram user or bot.
 ///
@@ -81,8 +79,4 @@ pub struct User {
     /// Added in Bot API 9.6.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub can_manage_bots: Option<bool>,
-
-    /// Catch-all for any extra fields returned by the Bot API not yet modelled here.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }

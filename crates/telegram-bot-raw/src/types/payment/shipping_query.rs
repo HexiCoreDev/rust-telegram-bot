@@ -1,7 +1,5 @@
-use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 use crate::types::user::User;
 
@@ -22,8 +20,4 @@ pub struct ShippingQuery {
 
     /// User specified shipping address.
     pub shipping_address: ShippingAddress,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }

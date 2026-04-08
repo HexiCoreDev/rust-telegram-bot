@@ -292,7 +292,6 @@ impl CallbackDataCache {
 
         InlineKeyboardMarkup {
             inline_keyboard: new_rows,
-            extra: reply_markup.extra.clone(),
         }
     }
 
@@ -472,7 +471,6 @@ mod tests {
                 callback_data: Some("my_data".into()),
                 ..Default::default()
             }]],
-            extra: HashMap::new(),
         };
 
         let new_markup = cache.process_keyboard(&markup);
@@ -496,7 +494,6 @@ mod tests {
                 url: Some("https://example.com".into()),
                 ..Default::default()
             }]],
-            extra: HashMap::new(),
         };
 
         let new_markup = cache.process_keyboard(&markup);
@@ -513,7 +510,6 @@ mod tests {
                 callback_data: Some("original".into()),
                 ..Default::default()
             }]],
-            extra: HashMap::new(),
         };
 
         let new_markup = cache.process_keyboard(&markup);
@@ -542,14 +538,12 @@ mod tests {
                 has_topics_enabled: None,
                 allows_users_to_create_topics: None,
                 can_manage_bots: None,
-                extra: HashMap::new(),
             },
             chat_instance: "inst".into(),
             message: None,
             data: Some(uuid_data),
             inline_message_id: None,
             game_short_name: None,
-            extra: HashMap::new(),
         };
 
         cache.process_callback_query(&mut cq);
@@ -568,7 +562,6 @@ mod tests {
                 callback_data: Some("payload".into()),
                 ..Default::default()
             }]],
-            extra: HashMap::new(),
         };
 
         let new_markup = cache.process_keyboard(&markup);
@@ -596,14 +589,12 @@ mod tests {
                 has_topics_enabled: None,
                 allows_users_to_create_topics: None,
                 can_manage_bots: None,
-                extra: HashMap::new(),
             },
             chat_instance: "i".into(),
             message: None,
             data: Some(uuid_data),
             inline_message_id: None,
             game_short_name: None,
-            extra: HashMap::new(),
         };
 
         cache.process_callback_query(&mut cq);
@@ -622,7 +613,6 @@ mod tests {
                     callback_data: Some(format!("data_{i}")),
                     ..Default::default()
                 }]],
-                extra: HashMap::new(),
             };
             cache.process_keyboard(&markup);
         }
@@ -641,7 +631,6 @@ mod tests {
                 callback_data: Some("persist_me".into()),
                 ..Default::default()
             }]],
-            extra: HashMap::new(),
         };
 
         cache.process_keyboard(&markup);
@@ -663,7 +652,6 @@ mod tests {
                 callback_data: Some("old_data".into()),
                 ..Default::default()
             }]],
-            extra: HashMap::new(),
         };
 
         cache.process_keyboard(&markup);

@@ -1,7 +1,5 @@
-use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 use super::labeled_price::LabeledPrice;
 
@@ -16,8 +14,4 @@ pub struct ShippingOption {
 
     /// List of price portions.
     pub prices: Vec<LabeledPrice>,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }

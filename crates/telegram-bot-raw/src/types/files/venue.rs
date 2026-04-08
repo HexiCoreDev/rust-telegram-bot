@@ -1,7 +1,5 @@
-use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 use crate::types::files::location::Location;
 
@@ -32,8 +30,4 @@ pub struct Venue {
     /// Google Places type of the venue.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub google_place_type: Option<String>,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }

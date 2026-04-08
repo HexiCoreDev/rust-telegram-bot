@@ -4,8 +4,6 @@
 //! Only data fields are included. No Bot reference, no API shortcuts.
 
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
-use std::collections::HashMap;
 
 use super::files::location::Location;
 use super::user::User;
@@ -41,8 +39,4 @@ pub struct ChosenInlineResult {
     /// edit the message.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub inline_message_id: Option<String>,
-
-    /// Catch-all for any extra fields returned by the Bot API not yet modelled here.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }

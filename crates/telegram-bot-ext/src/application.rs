@@ -17,7 +17,7 @@
 use std::collections::{BTreeMap, HashMap};
 use std::future::Future;
 use std::pin::Pin;
-use std::sync::{Arc, Weak};
+use std::sync::Arc;
 
 use serde_json::Value;
 use tokio::sync::{mpsc, Notify, RwLock};
@@ -28,9 +28,12 @@ use telegram_bot_raw::types::update::Update;
 use crate::context::CallbackContext;
 use crate::context_types::{ContextTypes, DefaultData};
 use crate::ext_bot::ExtBot;
+#[cfg(feature = "job-queue")]
 use crate::job_queue::JobQueue;
+#[cfg(feature = "persistence")]
 use crate::persistence::base::{BasePersistence, PersistenceInput, PersistenceResult};
 use crate::update_processor::BaseUpdateProcessor;
+#[cfg(feature = "persistence")]
 use crate::utils::types::JsonMap;
 
 // ---------------------------------------------------------------------------
@@ -60,7 +63,9 @@ pub type ErrorHandlerCallback = Arc<
 pub type LifecycleHook =
     Arc<dyn Fn(Arc<Application>) -> Pin<Box<dyn Future<Output = ()> + Send>> + Send + Sync>;
 
+#[cfg(feature = "persistence")]
 type PersistenceDataMap = HashMap<i64, JsonMap>;
+#[cfg(feature = "persistence")]
 type PersistenceFuture<'a, T> = Pin<Box<dyn Future<Output = PersistenceResult<T>> + Send + 'a>>;
 
 // ---------------------------------------------------------------------------
@@ -111,6 +116,9 @@ pub enum ApplicationError {
 
 /// Object-safe wrapper around [`BasePersistence`] so we can store it as a
 /// trait object inside [`Application`].
+///
+/// Requires the `persistence` feature.
+#[cfg(feature = "persistence")]
 pub trait DynPersistence: Send + Sync + std::fmt::Debug {
     /// Load all user data.
     fn get_user_data(&self) -> PersistenceFuture<'_, PersistenceDataMap>;
@@ -132,6 +140,7 @@ pub trait DynPersistence: Send + Sync + std::fmt::Debug {
     fn store_data(&self) -> PersistenceInput;
 }
 
+#[cfg(feature = "persistence")]
 impl<T: BasePersistence + std::fmt::Debug> DynPersistence for T {
     fn get_user_data(&self) -> PersistenceFuture<'_, PersistenceDataMap> {
         Box::pin(BasePersistence::get_user_data(self))
@@ -163,6 +172,9 @@ impl<T: BasePersistence + std::fmt::Debug> DynPersistence for T {
 }
 
 /// Wrap any `BasePersistence` implementor into a boxed `DynPersistence`.
+///
+/// Requires the `persistence` feature.
+#[cfg(feature = "persistence")]
 pub fn boxed_persistence<T: BasePersistence + std::fmt::Debug + 'static>(
     p: T,
 ) -> Box<dyn DynPersistence> {
@@ -209,7 +221,9 @@ pub struct Application {
     chat_data: Arc<RwLock<HashMap<i64, DefaultData>>>,
     bot_data: Arc<RwLock<DefaultData>>,
 
+    #[cfg(feature = "persistence")]
     persistence: Option<Box<dyn DynPersistence>>,
+    #[cfg(feature = "job-queue")]
     job_queue: Option<Arc<JobQueue>>,
     pending_tasks: Arc<RwLock<Vec<tokio::task::JoinHandle<()>>>>,
 
@@ -242,7 +256,9 @@ pub(crate) struct ApplicationConfig {
     pub(crate) post_init: Option<LifecycleHook>,
     pub(crate) post_stop: Option<LifecycleHook>,
     pub(crate) post_shutdown: Option<LifecycleHook>,
+    #[cfg(feature = "persistence")]
     pub(crate) persistence: Option<Box<dyn DynPersistence>>,
+    #[cfg(feature = "job-queue")]
     pub(crate) job_queue: Option<Arc<JobQueue>>,
 }
 
@@ -259,7 +275,9 @@ impl ApplicationConfig {
             post_init: None,
             post_stop: None,
             post_shutdown: None,
+            #[cfg(feature = "persistence")]
             persistence: None,
+            #[cfg(feature = "job-queue")]
             job_queue: None,
         }
     }
@@ -279,7 +297,9 @@ impl Application {
             post_init,
             post_stop,
             post_shutdown,
+            #[cfg(feature = "persistence")]
             persistence,
+            #[cfg(feature = "job-queue")]
             job_queue,
         } = config;
         let (tx, rx) = mpsc::unbounded_channel();
@@ -293,7 +313,9 @@ impl Application {
             user_data: Arc::new(RwLock::new(HashMap::new())),
             chat_data: Arc::new(RwLock::new(HashMap::new())),
             bot_data: Arc::new(RwLock::new(bot_data_initial)),
+            #[cfg(feature = "persistence")]
             persistence,
+            #[cfg(feature = "job-queue")]
             job_queue,
             pending_tasks: Arc::new(RwLock::new(Vec::new())),
             initialized: RwLock::new(false),
@@ -348,6 +370,9 @@ impl Application {
     }
     #[must_use]
     /// Returns a reference to the job queue, if configured.
+    ///
+    /// Requires the `job-queue` feature.
+    #[cfg(feature = "job-queue")]
     pub fn job_queue(&self) -> Option<&Arc<JobQueue>> {
         self.job_queue.as_ref()
     }
@@ -366,6 +391,7 @@ impl Application {
         self.update_processor.initialize().await;
 
         // C8: Load data from persistence
+        #[cfg(feature = "persistence")]
         if let Some(ref persistence) = self.persistence {
             let sd = persistence.store_data();
             if sd.user_data {
@@ -386,6 +412,7 @@ impl Application {
         }
 
         // M14: Start the job queue
+        #[cfg(feature = "job-queue")]
         if let Some(ref jq) = self.job_queue {
             jq.start().await;
         }
@@ -406,6 +433,7 @@ impl Application {
         }
 
         // C8: Flush persistence
+        #[cfg(feature = "persistence")]
         if let Some(ref persistence) = self.persistence {
             if let Err(e) = persistence.flush().await {
                 error!("Failed to flush persistence: {e}");
@@ -432,8 +460,9 @@ impl Application {
         // Wire job queue hooks so that job runs trigger persistence
         // flushes (GAP 1) and route errors to error handlers (GAP 2),
         // matching PTB's Job._run() behavior.
+        #[cfg(feature = "job-queue")]
         if let Some(ref jq) = self.job_queue {
-            let app_weak: Weak<Application> = Arc::downgrade(self);
+            let app_weak: std::sync::Weak<Application> = Arc::downgrade(self);
 
             // GAP 1: After every job callback, flush persistence.
             let weak_complete = app_weak.clone();
@@ -500,6 +529,7 @@ impl Application {
         info!("Application is stopping. This might take a moment.");
         self.stop_notify.notify_waiters();
 
+        #[cfg(feature = "job-queue")]
         if let Some(ref jq) = self.job_queue {
             jq.stop().await;
         }
@@ -544,25 +574,28 @@ impl Application {
 
     // -- C8: Persistence update --
     pub async fn update_persistence(&self) {
-        let persistence = match self.persistence.as_ref() {
-            Some(p) => p,
-            None => return,
-        };
-        let sd = persistence.store_data();
-        if sd.user_data {
-            for (uid, data) in self.user_data.read().await.iter() {
-                let _ = persistence.update_user_data(*uid, data.clone()).await;
+        #[cfg(feature = "persistence")]
+        {
+            let persistence = match self.persistence.as_ref() {
+                Some(p) => p,
+                None => return,
+            };
+            let sd = persistence.store_data();
+            if sd.user_data {
+                for (uid, data) in self.user_data.read().await.iter() {
+                    let _ = persistence.update_user_data(*uid, data.clone()).await;
+                }
             }
-        }
-        if sd.chat_data {
-            for (cid, data) in self.chat_data.read().await.iter() {
-                let _ = persistence.update_chat_data(*cid, data.clone()).await;
+            if sd.chat_data {
+                for (cid, data) in self.chat_data.read().await.iter() {
+                    let _ = persistence.update_chat_data(*cid, data.clone()).await;
+                }
             }
-        }
-        if sd.bot_data {
-            let _ = persistence
-                .update_bot_data(self.bot_data.read().await.clone())
-                .await;
+            if sd.bot_data {
+                let _ = persistence
+                    .update_bot_data(self.bot_data.read().await.clone())
+                    .await;
+            }
         }
     }
 
@@ -614,6 +647,7 @@ impl Application {
         self.start().await?;
 
         // C8: periodic persistence
+        #[cfg(feature = "persistence")]
         let persistence_handle = if let Some(persistence) = self.persistence.as_ref() {
             let secs = persistence.update_interval();
             let app = Arc::clone(&self);
@@ -677,6 +711,7 @@ impl Application {
 
         self.stop_notify.notify_waiters();
         let _ = poll_handle.await;
+        #[cfg(feature = "persistence")]
         if let Some(ph) = persistence_handle {
             let _ = ph.await;
         }
@@ -707,6 +742,7 @@ impl Application {
         }
         self.start().await?;
 
+        #[cfg(feature = "persistence")]
         let persistence_handle = if self.persistence.is_some() {
             let secs = self.persistence.as_ref().unwrap().update_interval();
             let app = Arc::clone(&self);
@@ -763,6 +799,7 @@ impl Application {
         server.shutdown();
         let _ = wh.await;
         bridge.abort();
+        #[cfg(feature = "persistence")]
         if let Some(ph) = persistence_handle {
             let _ = ph.await;
         }
@@ -855,6 +892,7 @@ impl Application {
         let user_data = Arc::clone(&self.user_data);
         let chat_data = Arc::clone(&self.chat_data);
         let bot_data_ref = Arc::clone(&self.bot_data);
+        #[cfg(feature = "job-queue")]
         let job_queue = self.job_queue.clone();
 
         let legacy = Handler {
@@ -867,6 +905,7 @@ impl Application {
                 let ud = Arc::clone(&user_data);
                 let cd = Arc::clone(&chat_data);
                 let bd = Arc::clone(&bot_data_ref);
+                #[cfg(feature = "job-queue")]
                 let jq = job_queue.clone();
                 Box::pin(async move {
                     let match_result = h
@@ -875,6 +914,7 @@ impl Application {
 
                     // Create a proper CallbackContext from the typed update.
                     let mut ctx = CallbackContext::from_update(&update, bot, ud, cd, bd);
+                    #[cfg(feature = "job-queue")]
                     if let Some(jq) = jq {
                         ctx = ctx.with_job_queue(jq);
                     }
@@ -931,6 +971,7 @@ impl Application {
                         Arc::clone(&self.chat_data),
                         Arc::clone(&self.bot_data),
                     );
+                    #[cfg(feature = "job-queue")]
                     if let Some(ref jq) = self.job_queue {
                         ctx = ctx.with_job_queue(Arc::clone(jq));
                     }
@@ -988,6 +1029,7 @@ impl Application {
                 Arc::clone(&self.chat_data),
                 Arc::clone(&self.bot_data),
             );
+            #[cfg(feature = "job-queue")]
             if let Some(ref jq) = self.job_queue {
                 ctx = ctx.with_job_queue(Arc::clone(jq));
             }
@@ -1445,6 +1487,7 @@ mod tests {
             .is_ok());
     }
 
+    #[cfg(feature = "job-queue")]
     #[tokio::test]
     async fn job_queue_accessor() {
         let app = make_app();

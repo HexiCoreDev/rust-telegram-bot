@@ -1,7 +1,5 @@
-use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 use super::user::User;
 
@@ -16,10 +14,6 @@ use super::user::User;
 pub struct ManagedBotCreated {
     /// Information about the bot. The bot's token can be fetched using `getManagedBotToken`.
     pub bot: User,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 // ---------------------------------------------------------------------------
@@ -36,8 +30,4 @@ pub struct ManagedBotUpdated {
 
     /// Information about the bot. Token of the bot can be fetched using `getManagedBotToken`.
     pub bot: User,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }

@@ -1,7 +1,5 @@
-use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 use super::chat_administrator_rights::ChatAdministratorRights;
 
@@ -34,10 +32,6 @@ pub struct KeyboardButtonRequestUsers {
     /// `true` to request the users' photo.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub request_photo: Option<bool>,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 /// Criteria for requesting a chat via a `KeyboardButton`.
@@ -84,10 +78,6 @@ pub struct KeyboardButtonRequestChat {
     /// `true` to request the chat's photo.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub request_photo: Option<bool>,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 /// Parameters for the creation of a managed bot via a `KeyboardButton`.
@@ -110,8 +100,4 @@ pub struct KeyboardButtonRequestManagedBot {
     /// Suggested username for the bot.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub suggested_username: Option<String>,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }

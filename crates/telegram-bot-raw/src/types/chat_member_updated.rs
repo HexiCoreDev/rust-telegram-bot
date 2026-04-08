@@ -1,7 +1,5 @@
-use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 use super::chat::Chat;
 use super::chat_invite_link::ChatInviteLink;
@@ -34,7 +32,4 @@ pub struct ChatMemberUpdated {
     /// True if the user joined the chat after sending a direct join request approved by an admin.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub via_join_request: Option<bool>,
-
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }

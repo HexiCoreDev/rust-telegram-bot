@@ -1,7 +1,5 @@
-use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 use crate::types::files::base_medium::BaseMedium;
 use crate::types::files::base_thumbed_medium::BaseThumbedMedium;
@@ -24,10 +22,6 @@ pub struct MaskPosition {
 
     /// Mask scaling coefficient (e.g. `2.0` means double size).
     pub scale: f64,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 /// A sticker.
@@ -86,10 +80,6 @@ pub struct Sticker {
     /// `true` if the sticker must be repainted to a text color in messages.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub needs_repainting: Option<bool>,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 impl BaseMedium for Sticker {
@@ -126,10 +116,6 @@ pub struct StickerSet {
     /// Set thumbnail in `.WEBP`, `.TGS`, or `.WEBM` format.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub thumbnail: Option<PhotoSize>,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 /// A sticker to be added to a sticker set.
@@ -152,8 +138,4 @@ pub struct InputSticker {
     /// For regular and custom emoji stickers only.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub keywords: Option<Vec<String>>,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }

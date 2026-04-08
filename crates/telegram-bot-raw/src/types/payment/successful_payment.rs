@@ -1,7 +1,5 @@
-use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 use super::order_info::OrderInfo;
 
@@ -42,8 +40,4 @@ pub struct SuccessfulPayment {
     /// True if this is the first payment of a subscription.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub is_first_recurring: Option<bool>,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }

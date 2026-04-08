@@ -1,7 +1,5 @@
-use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 use crate::types::payment::labeled_price::LabeledPrice;
 
@@ -74,7 +72,4 @@ pub struct InputInvoiceMessageContent {
     /// Pass `true` if the final price depends on the shipping method.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub is_flexible: Option<bool>,
-
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }

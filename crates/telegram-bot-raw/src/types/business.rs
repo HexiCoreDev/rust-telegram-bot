@@ -1,7 +1,5 @@
-use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 use super::chat::Chat;
 use super::files::location::Location;
@@ -67,9 +65,6 @@ pub struct BusinessBotRights {
     /// True if the bot can post, edit, and delete stories on behalf of the business account.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub can_manage_stories: Option<bool>,
-
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 /// Connection of a bot with a business account.
@@ -93,9 +88,6 @@ pub struct BusinessConnection {
     /// Rights of the business bot.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub rights: Option<BusinessBotRights>,
-
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 /// Service message received when messages are deleted from a connected business account.
@@ -109,9 +101,6 @@ pub struct BusinessMessagesDeleted {
 
     /// Identifiers of the deleted messages in the chat.
     pub message_ids: Vec<i64>,
-
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 /// Start page settings of a Telegram Business account.
@@ -128,9 +117,6 @@ pub struct BusinessIntro {
     /// Sticker of the business intro.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub sticker: Option<Sticker>,
-
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 /// Location information of a Telegram Business account.
@@ -142,9 +128,6 @@ pub struct BusinessLocation {
     /// Location of the business.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub location: Option<Location>,
-
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 /// A single time interval during which a business is open.
@@ -157,9 +140,6 @@ pub struct BusinessOpeningHoursInterval {
 
     /// Minute of the week marking the closing time; 0 – 8×24×60.
     pub closing_minute: i64,
-
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 /// Opening hours of a business.
@@ -170,7 +150,4 @@ pub struct BusinessOpeningHours {
 
     /// Time intervals describing business opening hours.
     pub opening_hours: Vec<BusinessOpeningHoursInterval>,
-
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }

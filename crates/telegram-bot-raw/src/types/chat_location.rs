@@ -1,7 +1,5 @@
-use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 use crate::types::files::location::Location;
 
@@ -12,7 +10,4 @@ pub struct ChatLocation {
     pub location: Location,
     /// Location address as defined by the chat owner (1–64 characters).
     pub address: String,
-
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }

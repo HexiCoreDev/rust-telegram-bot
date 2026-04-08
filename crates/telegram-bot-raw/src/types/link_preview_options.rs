@@ -1,7 +1,5 @@
-use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// Options used for link preview generation.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -25,8 +23,4 @@ pub struct LinkPreviewOptions {
     /// `true` if the link preview must be shown above the message text.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub show_above_text: Option<bool>,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }

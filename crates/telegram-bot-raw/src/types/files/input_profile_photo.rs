@@ -1,7 +1,5 @@
-use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 use crate::types::files::input_file::InputFile;
 
@@ -10,10 +8,6 @@ use crate::types::files::input_file::InputFile;
 pub struct InputProfilePhotoStaticData {
     /// The static profile photo file.
     pub photo: InputFile,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 /// Payload for an animated profile photo — an MPEG4 video.
@@ -25,10 +19,6 @@ pub struct InputProfilePhotoAnimatedData {
     /// Timestamp (seconds) of the frame used as the static profile photo. Defaults to `0.0`.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub main_frame_timestamp: Option<f64>,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 /// A profile photo to set — either a static image or an animated video.

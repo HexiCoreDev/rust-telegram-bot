@@ -1,7 +1,5 @@
-use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 use crate::types::files::input_file::InputFile;
 use crate::types::message_entity::MessageEntity;
@@ -33,10 +31,6 @@ pub struct InputMediaPhoto {
     /// Pass `true` to show the caption above the media.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub show_caption_above_media: Option<bool>,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 /// A video to be sent as part of an album or media group.
@@ -92,10 +86,6 @@ pub struct InputMediaVideo {
     /// Start timestamp for video playback in the message.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub start_timestamp: Option<i64>,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 /// An animation (GIF or H.264/MPEG-4 AVC video without sound) to be sent.
@@ -139,10 +129,6 @@ pub struct InputMediaAnimation {
     /// Pass `true` to show the caption above the media.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub show_caption_above_media: Option<bool>,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 /// An audio file to be treated as music to be sent.
@@ -178,10 +164,6 @@ pub struct InputMediaAudio {
     /// Thumbnail for the audio album cover.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub thumbnail: Option<InputFile>,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 /// A general file (document) to be sent.
@@ -209,10 +191,6 @@ pub struct InputMediaDocument {
     /// Pass `true` to disable automatic server-side content type detection.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub disable_content_type_detection: Option<bool>,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 /// A tagged union of all `InputMedia*` variants, serialized with a `"type"` discriminant.
@@ -238,10 +216,6 @@ pub enum InputMedia {
 pub struct InputPaidMediaPhoto {
     /// The photo file to send.
     pub media: InputFile,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 /// A paid video media item.
@@ -277,10 +251,6 @@ pub struct InputPaidMediaVideo {
     /// Pass `true` if the uploaded video is suitable for streaming.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub supports_streaming: Option<bool>,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 /// A tagged union of paid media variants, serialized with a `"type"` discriminant.

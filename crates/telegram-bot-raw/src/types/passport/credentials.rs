@@ -1,7 +1,5 @@
-use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// Contains data required for decrypting and authenticating `EncryptedPassportElement`.
 ///
@@ -21,10 +19,6 @@ pub struct EncryptedCredentials {
     /// Base64-encoded secret, encrypted with the bot's public RSA key, required for data
     /// decryption.
     pub secret: String,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 /// Decrypted credentials required to decrypt `EncryptedPassportElement` data.
@@ -35,10 +29,6 @@ pub struct Credentials {
 
     /// Bot-specified nonce.
     pub nonce: String,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 /// Credentials used to decrypt the encrypted values for each requested passport field.
@@ -89,10 +79,6 @@ pub struct SecureData {
     /// Credentials for encrypted temporary registration.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub temporary_registration: Option<SecureValue>,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 /// Credentials used to decrypt an individual encrypted passport value.
@@ -121,10 +107,6 @@ pub struct SecureValue {
     /// Credentials for encrypted translation files.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub translation: Option<Vec<FileCredentials>>,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 /// Credentials used to decrypt encrypted data from the `data` field of
@@ -136,10 +118,6 @@ pub struct DataCredentials {
 
     /// Secret of encrypted data.
     pub secret: String,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 /// Credentials used to decrypt encrypted files from `EncryptedPassportElement`.
@@ -150,8 +128,4 @@ pub struct FileCredentials {
 
     /// Secret of the encrypted file.
     pub secret: String,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }

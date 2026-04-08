@@ -1,17 +1,11 @@
-use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// A reaction with a normal emoji.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ReactionTypeEmojiData {
     /// Reaction emoji.
     pub emoji: String,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 /// A reaction with a custom emoji.
@@ -19,18 +13,11 @@ pub struct ReactionTypeEmojiData {
 pub struct ReactionTypeCustomEmojiData {
     /// Custom emoji identifier.
     pub custom_emoji_id: String,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 /// A paid reaction (no additional fields beyond the type tag).
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ReactionTypePaidData {
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 /// Polymorphic reaction type, selected by the `"type"` field in the JSON.
@@ -56,8 +43,4 @@ pub struct ReactionCount {
 
     /// Number of times the reaction was added.
     pub total_count: i64,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }

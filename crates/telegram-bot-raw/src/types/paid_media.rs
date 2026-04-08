@@ -1,7 +1,5 @@
-use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 use super::files::photo_size::PhotoSize;
 use super::files::video::Video;
@@ -25,9 +23,6 @@ pub struct PaidMediaPreview {
     /// Duration of the media in seconds as defined by the sender.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub duration: Option<i64>,
-
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 // ---------------------------------------------------------------------------
@@ -39,9 +34,6 @@ pub struct PaidMediaPreview {
 pub struct PaidMediaPhoto {
     /// The photo.
     pub photo: Vec<PhotoSize>,
-
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 // ---------------------------------------------------------------------------
@@ -53,9 +45,6 @@ pub struct PaidMediaPhoto {
 pub struct PaidMediaVideo {
     /// The video.
     pub video: Video,
-
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 // ---------------------------------------------------------------------------
@@ -90,9 +79,6 @@ pub struct PaidMediaInfo {
 
     /// Information about the paid media.
     pub paid_media: Vec<PaidMedia>,
-
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 // ---------------------------------------------------------------------------
@@ -110,7 +96,4 @@ pub struct PaidMediaPurchased {
 
     /// Bot-specified paid media payload.
     pub paid_media_payload: String,
-
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }

@@ -1,7 +1,5 @@
-use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 use super::chat::Chat;
 use super::message::Message;
@@ -21,10 +19,6 @@ pub struct InputPollOption {
     /// Special entities that appear in the option text.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub text_entities: Option<Vec<MessageEntity>>,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 /// One answer option in a received poll.
@@ -63,10 +57,6 @@ pub struct PollOption {
     /// Added in Bot API 9.6.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub addition_date: Option<i64>,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 /// An answer of a user in a non-anonymous poll.
@@ -92,10 +82,6 @@ pub struct PollAnswer {
     /// Added in Bot API 9.6.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub option_persistent_ids: Option<Vec<String>>,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 /// Information about a poll.
@@ -177,10 +163,6 @@ pub struct Poll {
     /// Added in Bot API 9.6.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub description_entities: Option<Vec<MessageEntity>>,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 // ---------------------------------------------------------------------------
@@ -209,10 +191,6 @@ pub struct PollOptionAdded {
     /// Special entities that appear in the option text.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub option_text_entities: Option<Vec<MessageEntity>>,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 // ---------------------------------------------------------------------------
@@ -241,8 +219,4 @@ pub struct PollOptionDeleted {
     /// Special entities that appear in the option text.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub option_text_entities: Option<Vec<MessageEntity>>,
-
-    /// Extra fields not yet covered by this struct.
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
