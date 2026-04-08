@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use super::chat_administrator_rights::ChatAdministratorRights;
 
 /// Criteria for requesting one or more users via a `KeyboardButton`.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
 pub struct KeyboardButtonRequestUsers {
     /// Signed 32-bit identifier of the request; unique within the message.
     pub request_id: i32,
@@ -34,8 +34,10 @@ pub struct KeyboardButtonRequestUsers {
     pub request_photo: Option<bool>,
 }
 
+impl_new!(KeyboardButtonRequestUsers { request_id: i32 });
+
 /// Criteria for requesting a chat via a `KeyboardButton`.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
 pub struct KeyboardButtonRequestChat {
     /// Signed 32-bit identifier of the request; unique within the message.
     pub request_id: i32,
@@ -80,6 +82,17 @@ pub struct KeyboardButtonRequestChat {
     pub request_photo: Option<bool>,
 }
 
+impl KeyboardButtonRequestChat {
+    /// Creates a new `KeyboardButtonRequestChat` for a group or channel.
+    pub fn new(request_id: i32, chat_is_channel: bool) -> Self {
+        Self {
+            request_id,
+            chat_is_channel,
+            ..Default::default()
+        }
+    }
+}
+
 /// Parameters for the creation of a managed bot via a `KeyboardButton`.
 ///
 /// Information about the created bot will be shared with the bot using the
@@ -88,7 +101,7 @@ pub struct KeyboardButtonRequestChat {
 /// Corresponds to the Bot API [`KeyboardButtonRequestManagedBot`](https://core.telegram.org/bots/api#keyboardbuttonrequestmanagedbot) object.
 ///
 /// Added in Bot API 9.6.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
 pub struct KeyboardButtonRequestManagedBot {
     /// Signed 32-bit identifier of the request. Must be unique within the message.
     pub request_id: i32,
@@ -101,3 +114,5 @@ pub struct KeyboardButtonRequestManagedBot {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub suggested_username: Option<String>,
 }
+
+impl_new!(KeyboardButtonRequestManagedBot { request_id: i32 });

@@ -35,3 +35,8 @@ pub struct InlineQueryResultCachedGif {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub show_caption_above_media: Option<bool>,
 }
+
+impl_new!(InlineQueryResultCachedGif {
+    id: String,
+    gif_file_id: String,
+});

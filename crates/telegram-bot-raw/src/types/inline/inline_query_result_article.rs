@@ -34,3 +34,42 @@ pub struct InlineQueryResultArticle {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub thumbnail_height: Option<i32>,
 }
+
+impl InlineQueryResultArticle {
+    /// Creates a new `InlineQueryResultArticle`.
+    pub fn new(
+        id: impl Into<String>,
+        title: impl Into<String>,
+        input_message_content: InputMessageContent,
+    ) -> Self {
+        Self {
+            id: id.into(),
+            title: title.into(),
+            input_message_content,
+            reply_markup: None,
+            url: None,
+            description: None,
+            thumbnail_url: None,
+            thumbnail_width: None,
+            thumbnail_height: None,
+        }
+    }
+
+    /// Set the description.
+    pub fn description(mut self, description: impl Into<String>) -> Self {
+        self.description = Some(description.into());
+        self
+    }
+
+    /// Set the reply markup.
+    pub fn reply_markup(mut self, markup: InlineKeyboardMarkup) -> Self {
+        self.reply_markup = Some(markup);
+        self
+    }
+
+    /// Set the thumbnail URL.
+    pub fn thumbnail_url(mut self, url: impl Into<String>) -> Self {
+        self.thumbnail_url = Some(url.into());
+        self
+    }
+}

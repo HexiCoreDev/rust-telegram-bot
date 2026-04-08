@@ -28,6 +28,37 @@ pub enum InputFile {
     Path(PathBuf),
 }
 
+impl InputFile {
+    /// Create an `InputFile` from a Telegram file identifier.
+    pub fn file_id(id: impl Into<String>) -> Self {
+        Self::FileId(id.into())
+    }
+
+    /// Create an `InputFile` from a URL.
+    pub fn url(url: impl Into<String>) -> Self {
+        Self::Url(url.into())
+    }
+
+    /// Create an `InputFile` from raw bytes with a filename.
+    pub fn bytes(filename: impl Into<String>, data: impl Into<Vec<u8>>) -> Self {
+        Self::Bytes {
+            filename: filename.into(),
+            data: data.into(),
+        }
+    }
+
+    /// Create an `InputFile` from a local filesystem path.
+    pub fn path(path: impl Into<PathBuf>) -> Self {
+        Self::Path(path.into())
+    }
+}
+
+impl Default for InputFile {
+    fn default() -> Self {
+        Self::FileId(String::new())
+    }
+}
+
 impl Serialize for InputFile {
     fn serialize<S: serde::Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
         match self {

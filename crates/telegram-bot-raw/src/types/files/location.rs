@@ -2,7 +2,7 @@
 use serde::{Deserialize, Serialize};
 
 /// A point on the map.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
 pub struct Location {
     /// Longitude as defined by the sender.
     pub longitude: f64,
@@ -27,4 +27,15 @@ pub struct Location {
     /// For sent live locations only.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub proximity_alert_radius: Option<i64>,
+}
+
+impl Location {
+    /// Creates a new `Location` with the given latitude and longitude.
+    pub fn new(latitude: f64, longitude: f64) -> Self {
+        Self {
+            latitude,
+            longitude,
+            ..Default::default()
+        }
+    }
 }

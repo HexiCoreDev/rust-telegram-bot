@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 /// Represents an issue in one of the data fields provided by the user.
 ///
 /// Resolved when the field's value changes.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
 pub struct PassportElementErrorDataField {
     /// The section of the user's Telegram Passport which has the error.
     /// One of `"personal_details"`, `"passport"`, `"driver_license"`, `"identity_card"`,
@@ -22,10 +22,17 @@ pub struct PassportElementErrorDataField {
     pub message: String,
 }
 
+impl_new!(PassportElementErrorDataField {
+    element_type: String,
+    field_name: String,
+    data_hash: String,
+    message: String,
+});
+
 /// Represents an issue with a document scan.
 ///
 /// Resolved when the file with the document scan changes.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
 pub struct PassportElementErrorFile {
     /// The section of the user's Telegram Passport which has the issue.
     /// One of `"utility_bill"`, `"bank_statement"`, `"rental_agreement"`,
@@ -39,6 +46,12 @@ pub struct PassportElementErrorFile {
     /// Error message.
     pub message: String,
 }
+
+impl_new!(PassportElementErrorFile {
+    element_type: String,
+    file_hash: String,
+    message: String,
+});
 
 /// Represents an issue with a list of scans.
 ///
@@ -58,10 +71,25 @@ pub struct PassportElementErrorFiles {
     pub message: String,
 }
 
+impl PassportElementErrorFiles {
+    /// Creates a new `PassportElementErrorFiles`.
+    pub fn new(
+        element_type: impl Into<String>,
+        file_hashes: Vec<String>,
+        message: impl Into<String>,
+    ) -> Self {
+        Self {
+            element_type: element_type.into(),
+            file_hashes,
+            message: message.into(),
+        }
+    }
+}
+
 /// Represents an issue with the front side of a document.
 ///
 /// Resolved when the file with the front side of the document changes.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
 pub struct PassportElementErrorFrontSide {
     /// The section of the user's Telegram Passport which has the issue.
     /// One of `"passport"`, `"driver_license"`, `"identity_card"`, `"internal_passport"`.
@@ -75,10 +103,16 @@ pub struct PassportElementErrorFrontSide {
     pub message: String,
 }
 
+impl_new!(PassportElementErrorFrontSide {
+    element_type: String,
+    file_hash: String,
+    message: String,
+});
+
 /// Represents an issue with the reverse side of a document.
 ///
 /// Resolved when the file with the reverse side of the document changes.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
 pub struct PassportElementErrorReverseSide {
     /// The section of the user's Telegram Passport which has the issue.
     /// One of `"driver_license"`, `"identity_card"`.
@@ -92,10 +126,16 @@ pub struct PassportElementErrorReverseSide {
     pub message: String,
 }
 
+impl_new!(PassportElementErrorReverseSide {
+    element_type: String,
+    file_hash: String,
+    message: String,
+});
+
 /// Represents an issue with the selfie photo with a document.
 ///
 /// Resolved when the file with the selfie changes.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
 pub struct PassportElementErrorSelfie {
     /// The section of the user's Telegram Passport which has the issue.
     /// One of `"passport"`, `"driver_license"`, `"identity_card"`, `"internal_passport"`.
@@ -109,10 +149,16 @@ pub struct PassportElementErrorSelfie {
     pub message: String,
 }
 
+impl_new!(PassportElementErrorSelfie {
+    element_type: String,
+    file_hash: String,
+    message: String,
+});
+
 /// Represents an issue with one of the files that constitute the translation of a document.
 ///
 /// Resolved when the file changes.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
 pub struct PassportElementErrorTranslationFile {
     /// Type of element of the user's Telegram Passport which has the issue.
     /// One of `"passport"`, `"driver_license"`, `"identity_card"`, `"internal_passport"`,
@@ -127,6 +173,12 @@ pub struct PassportElementErrorTranslationFile {
     /// Error message.
     pub message: String,
 }
+
+impl_new!(PassportElementErrorTranslationFile {
+    element_type: String,
+    file_hash: String,
+    message: String,
+});
 
 /// Represents an issue with the translated version of a document.
 ///
@@ -147,10 +199,25 @@ pub struct PassportElementErrorTranslationFiles {
     pub message: String,
 }
 
+impl PassportElementErrorTranslationFiles {
+    /// Creates a new `PassportElementErrorTranslationFiles`.
+    pub fn new(
+        element_type: impl Into<String>,
+        file_hashes: Vec<String>,
+        message: impl Into<String>,
+    ) -> Self {
+        Self {
+            element_type: element_type.into(),
+            file_hashes,
+            message: message.into(),
+        }
+    }
+}
+
 /// Represents an issue in an unspecified place.
 ///
 /// Resolved when new data is added.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
 pub struct PassportElementErrorUnspecified {
     /// Type of element of the user's Telegram Passport which has the issue.
     #[serde(rename = "type")]
@@ -162,6 +229,12 @@ pub struct PassportElementErrorUnspecified {
     /// Error message.
     pub message: String,
 }
+
+impl_new!(PassportElementErrorUnspecified {
+    element_type: String,
+    element_hash: String,
+    message: String,
+});
 
 /// Polymorphic error in a Telegram Passport element submitted by the user.
 ///

@@ -80,3 +80,43 @@ pub struct User {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub can_manage_bots: Option<bool>,
 }
+
+impl User {
+    /// Returns the user's full name (first + optional last name).
+    pub fn full_name(&self) -> String {
+        match &self.last_name {
+            Some(ln) => format!("{} {}", self.first_name, ln),
+            None => self.first_name.clone(),
+        }
+    }
+
+    /// Returns the deep link URL to this user's profile.
+    pub fn link(&self) -> String {
+        format!("tg://user?id={}", self.id)
+    }
+
+    /// Returns an HTML `<a>` tag that mentions this user.
+    ///
+    /// If `name` is `None`, the user's first name is used as the display text.
+    pub fn mention_html(&self, name: Option<&str>) -> String {
+        let display = name.unwrap_or(&self.first_name);
+        format!("<a href=\"tg://user?id={}\">{}</a>", self.id, display)
+    }
+
+    /// Returns a Markdown link that mentions this user.
+    ///
+    /// If `name` is `None`, the user's first name is used as the display text.
+    pub fn mention_markdown(&self, name: Option<&str>) -> String {
+        let display = name.unwrap_or(&self.first_name);
+        format!("[{}](tg://user?id={})", display, self.id)
+    }
+
+    /// Returns a MarkdownV2-safe link that mentions this user.
+    ///
+    /// If `name` is `None`, the user's first name is used as the display text.
+    /// Note: The caller is responsible for escaping `name` for MarkdownV2.
+    pub fn mention_markdown_v2(&self, name: Option<&str>) -> String {
+        let display = name.unwrap_or(&self.first_name);
+        format!("[{}](tg://user?id={})", display, self.id)
+    }
+}

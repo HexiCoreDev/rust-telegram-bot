@@ -15,3 +15,18 @@ pub struct ShippingOption {
     /// List of price portions.
     pub prices: Vec<LabeledPrice>,
 }
+
+impl ShippingOption {
+    /// Creates a new `ShippingOption` with the given id, title, and prices.
+    pub fn new(
+        id: impl Into<String>,
+        title: impl Into<String>,
+        prices: Vec<LabeledPrice>,
+    ) -> Self {
+        Self {
+            id: id.into(),
+            title: title.into(),
+            prices,
+        }
+    }
+}

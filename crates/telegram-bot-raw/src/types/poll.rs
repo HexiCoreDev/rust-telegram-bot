@@ -7,7 +7,7 @@ use super::message_entity::MessageEntity;
 use super::user::User;
 
 /// One answer option in a poll to be sent.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
 pub struct InputPollOption {
     /// Option text; 1-100 characters.
     pub text: String,
@@ -20,6 +20,8 @@ pub struct InputPollOption {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub text_entities: Option<Vec<MessageEntity>>,
 }
+
+impl_new!(InputPollOption { text: String });
 
 /// One answer option in a received poll.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]

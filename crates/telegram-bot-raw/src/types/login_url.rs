@@ -2,7 +2,7 @@
 use serde::{Deserialize, Serialize};
 
 /// An inline keyboard button parameter used to automatically authorize a user via Telegram Login.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
 pub struct LoginUrl {
     /// HTTPS URL opened with user authorization data appended to the query string.
     pub url: String,
@@ -19,3 +19,5 @@ pub struct LoginUrl {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub request_write_access: Option<bool>,
 }
+
+impl_new!(LoginUrl { url: String });

@@ -34,6 +34,27 @@ pub enum ReactionType {
     Paid(ReactionTypePaidData),
 }
 
+impl ReactionType {
+    /// Create a standard emoji reaction.
+    pub fn emoji(emoji: impl Into<String>) -> Self {
+        Self::Emoji(ReactionTypeEmojiData {
+            emoji: emoji.into(),
+        })
+    }
+
+    /// Create a custom emoji reaction.
+    pub fn custom_emoji(custom_emoji_id: impl Into<String>) -> Self {
+        Self::CustomEmoji(ReactionTypeCustomEmojiData {
+            custom_emoji_id: custom_emoji_id.into(),
+        })
+    }
+
+    /// Create a paid reaction.
+    pub fn paid() -> Self {
+        Self::Paid(ReactionTypePaidData {})
+    }
+}
+
 /// A reaction added to a message along with the number of times it was added.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ReactionCount {

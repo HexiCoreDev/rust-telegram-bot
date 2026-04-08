@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 /// Describes actions that a non-administrator user is allowed to take in a chat.
 ///
 /// All fields are optional — when absent the permission is unset (inherits from defaults).
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
 pub struct ChatPermissions {
     /// True if the user is allowed to send text messages, contacts, locations and venues.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -51,4 +51,50 @@ pub struct ChatPermissions {
     /// True if the user is allowed to edit their own tag.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub can_edit_tag: Option<bool>,
+}
+
+impl_new!(ChatPermissions {});
+
+impl ChatPermissions {
+    /// Return permissions that allow everything.
+    pub fn all() -> Self {
+        Self {
+            can_send_messages: Some(true),
+            can_send_polls: Some(true),
+            can_send_other_messages: Some(true),
+            can_add_web_page_previews: Some(true),
+            can_change_info: Some(true),
+            can_invite_users: Some(true),
+            can_pin_messages: Some(true),
+            can_manage_topics: Some(true),
+            can_send_audios: Some(true),
+            can_send_documents: Some(true),
+            can_send_photos: Some(true),
+            can_send_videos: Some(true),
+            can_send_video_notes: Some(true),
+            can_send_voice_notes: Some(true),
+            can_edit_tag: Some(true),
+        }
+    }
+
+    /// Return permissions that deny everything.
+    pub fn none() -> Self {
+        Self {
+            can_send_messages: Some(false),
+            can_send_polls: Some(false),
+            can_send_other_messages: Some(false),
+            can_add_web_page_previews: Some(false),
+            can_change_info: Some(false),
+            can_invite_users: Some(false),
+            can_pin_messages: Some(false),
+            can_manage_topics: Some(false),
+            can_send_audios: Some(false),
+            can_send_documents: Some(false),
+            can_send_photos: Some(false),
+            can_send_videos: Some(false),
+            can_send_video_notes: Some(false),
+            can_send_voice_notes: Some(false),
+            can_edit_tag: Some(false),
+        }
+    }
 }

@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use super::user::User;
 
 /// One special entity in a text message (hashtag, username, URL, etc.).
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
 pub struct MessageEntity {
     /// Type of the entity: `mention`, `hashtag`, `cashtag`, `bot_command`, `url`, `email`,
     /// `phone_number`, `bold`, `italic`, `underline`, `strikethrough`, `spoiler`, `blockquote`,
@@ -42,4 +42,125 @@ pub struct MessageEntity {
     /// For `date_time` only: Unix timestamp associated with the entity.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub unix_time: Option<i64>,
+}
+
+impl MessageEntity {
+    /// Creates a new `MessageEntity` with the given type, offset, and length.
+    pub fn new(entity_type: impl Into<String>, offset: i64, length: i64) -> Self {
+        Self {
+            entity_type: entity_type.into(),
+            offset,
+            length,
+            ..Default::default()
+        }
+    }
+
+    // ── Convenience constructors for common entity types ──
+
+    /// Creates a **bold** entity.
+    pub fn bold(offset: i64, length: i64) -> Self {
+        Self::new("bold", offset, length)
+    }
+
+    /// Creates an *italic* entity.
+    pub fn italic(offset: i64, length: i64) -> Self {
+        Self::new("italic", offset, length)
+    }
+
+    /// Creates an underline entity.
+    pub fn underline(offset: i64, length: i64) -> Self {
+        Self::new("underline", offset, length)
+    }
+
+    /// Creates a ~~strikethrough~~ entity.
+    pub fn strikethrough(offset: i64, length: i64) -> Self {
+        Self::new("strikethrough", offset, length)
+    }
+
+    /// Creates a spoiler entity.
+    pub fn spoiler(offset: i64, length: i64) -> Self {
+        Self::new("spoiler", offset, length)
+    }
+
+    /// Creates a `code` (inline monospace) entity.
+    pub fn code(offset: i64, length: i64) -> Self {
+        Self::new("code", offset, length)
+    }
+
+    /// Creates a `pre` (code block) entity with an optional language.
+    pub fn pre(offset: i64, length: i64, language: Option<impl Into<String>>) -> Self {
+        Self {
+            language: language.map(Into::into),
+            ..Self::new("pre", offset, length)
+        }
+    }
+
+    /// Creates a `text_link` entity with a URL.
+    pub fn text_link(offset: i64, length: i64, url: impl Into<String>) -> Self {
+        Self {
+            url: Some(url.into()),
+            ..Self::new("text_link", offset, length)
+        }
+    }
+
+    /// Creates a `text_mention` entity for a user without a username.
+    pub fn text_mention(offset: i64, length: i64, user: User) -> Self {
+        Self {
+            user: Some(user),
+            ..Self::new("text_mention", offset, length)
+        }
+    }
+
+    /// Creates a `custom_emoji` entity.
+    pub fn custom_emoji(offset: i64, length: i64, custom_emoji_id: impl Into<String>) -> Self {
+        Self {
+            custom_emoji_id: Some(custom_emoji_id.into()),
+            ..Self::new("custom_emoji", offset, length)
+        }
+    }
+
+    /// Creates a `blockquote` entity.
+    pub fn blockquote(offset: i64, length: i64) -> Self {
+        Self::new("blockquote", offset, length)
+    }
+
+    /// Creates an `expandable_blockquote` entity.
+    pub fn expandable_blockquote(offset: i64, length: i64) -> Self {
+        Self::new("expandable_blockquote", offset, length)
+    }
+
+    /// Creates a `mention` entity (@username).
+    pub fn mention(offset: i64, length: i64) -> Self {
+        Self::new("mention", offset, length)
+    }
+
+    /// Creates a `hashtag` entity.
+    pub fn hashtag(offset: i64, length: i64) -> Self {
+        Self::new("hashtag", offset, length)
+    }
+
+    /// Creates a `cashtag` entity.
+    pub fn cashtag(offset: i64, length: i64) -> Self {
+        Self::new("cashtag", offset, length)
+    }
+
+    /// Creates a `bot_command` entity.
+    pub fn bot_command(offset: i64, length: i64) -> Self {
+        Self::new("bot_command", offset, length)
+    }
+
+    /// Creates a `url` entity.
+    pub fn url(offset: i64, length: i64) -> Self {
+        Self::new("url", offset, length)
+    }
+
+    /// Creates an `email` entity.
+    pub fn email(offset: i64, length: i64) -> Self {
+        Self::new("email", offset, length)
+    }
+
+    /// Creates a `phone_number` entity.
+    pub fn phone_number(offset: i64, length: i64) -> Self {
+        Self::new("phone_number", offset, length)
+    }
 }

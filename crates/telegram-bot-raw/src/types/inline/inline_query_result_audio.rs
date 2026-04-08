@@ -39,3 +39,9 @@ pub struct InlineQueryResultAudio {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub input_message_content: Option<InputMessageContent>,
 }
+
+impl_new!(InlineQueryResultAudio {
+    id: String,
+    audio_url: String,
+    title: String,
+});

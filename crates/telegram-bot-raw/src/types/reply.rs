@@ -132,7 +132,7 @@ pub struct ExternalReplyInfo {
 }
 
 /// The quoted part of a message that is replied to by the given message.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
 pub struct TextQuote {
     /// Text of the quoted part of a message that is replied to by the given message.
     pub text: String,
@@ -149,8 +149,10 @@ pub struct TextQuote {
     pub is_manual: Option<bool>,
 }
 
+impl_new!(TextQuote { text: String, position: i64 });
+
 /// Reply parameters for the message that is being sent.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
 pub struct ReplyParameters {
     /// Identifier of the message that will be replied to in the current chat, or in the chat
     /// `chat_id` if it is specified.
@@ -192,3 +194,5 @@ pub struct ReplyParameters {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub poll_option_id: Option<String>,
 }
+
+impl_new!(ReplyParameters { message_id: i64 });

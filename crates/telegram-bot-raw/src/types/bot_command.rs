@@ -2,7 +2,7 @@
 use serde::{Deserialize, Serialize};
 
 /// Represents a bot command (text + description pair).
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
 pub struct BotCommand {
     /// Text of the command; 1-32 characters, lowercase letters, digits and underscores.
     pub command: String,
@@ -10,3 +10,5 @@ pub struct BotCommand {
     /// Description of the command; 1-256 characters.
     pub description: String,
 }
+
+impl_new!(BotCommand { command: String, description: String });

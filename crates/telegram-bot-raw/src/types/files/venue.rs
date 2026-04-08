@@ -31,3 +31,22 @@ pub struct Venue {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub google_place_type: Option<String>,
 }
+
+impl Venue {
+    /// Creates a new `Venue` with the given location, title, and address.
+    pub fn new(
+        location: Location,
+        title: impl Into<String>,
+        address: impl Into<String>,
+    ) -> Self {
+        Self {
+            location,
+            title: title.into(),
+            address: address.into(),
+            foursquare_id: None,
+            foursquare_type: None,
+            google_place_id: None,
+            google_place_type: None,
+        }
+    }
+}

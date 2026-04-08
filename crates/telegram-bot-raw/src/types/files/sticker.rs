@@ -24,6 +24,18 @@ pub struct MaskPosition {
     pub scale: f64,
 }
 
+impl MaskPosition {
+    /// Creates a new `MaskPosition`.
+    pub fn new(point: impl Into<String>, x_shift: f64, y_shift: f64, scale: f64) -> Self {
+        Self {
+            point: point.into(),
+            x_shift,
+            y_shift,
+            scale,
+        }
+    }
+}
+
 /// A sticker.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Sticker {
@@ -138,4 +150,21 @@ pub struct InputSticker {
     /// For regular and custom emoji stickers only.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub keywords: Option<Vec<String>>,
+}
+
+impl InputSticker {
+    /// Creates a new `InputSticker`.
+    pub fn new(
+        sticker: InputFile,
+        emoji_list: Vec<String>,
+        format: impl Into<String>,
+    ) -> Self {
+        Self {
+            sticker,
+            emoji_list,
+            format: format.into(),
+            mask_position: None,
+            keywords: None,
+        }
+    }
 }

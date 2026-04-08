@@ -2,7 +2,7 @@
 use serde::{Deserialize, Serialize};
 
 /// A phone contact shared in a message.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
 pub struct Contact {
     /// Contact's phone number.
     pub phone_number: String,
@@ -22,3 +22,5 @@ pub struct Contact {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub vcard: Option<String>,
 }
+
+impl_new!(Contact { phone_number: String, first_name: String });

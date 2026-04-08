@@ -35,3 +35,9 @@ pub struct InlineQueryResultCachedDocument {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub input_message_content: Option<InputMessageContent>,
 }
+
+impl_new!(InlineQueryResultCachedDocument {
+    id: String,
+    title: String,
+    document_file_id: String,
+});

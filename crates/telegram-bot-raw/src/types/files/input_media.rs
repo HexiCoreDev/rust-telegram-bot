@@ -7,7 +7,7 @@ use crate::types::message_entity::MessageEntity;
 // ─── InputMedia variants ──────────────────────────────────────────────────────
 
 /// A photo to be sent as part of an album or media group.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
 pub struct InputMediaPhoto {
     /// The photo file to send.
     pub media: InputFile,
@@ -33,8 +33,36 @@ pub struct InputMediaPhoto {
     pub show_caption_above_media: Option<bool>,
 }
 
+impl InputMediaPhoto {
+    /// Creates a new `InputMediaPhoto` with the given media file.
+    pub fn new(media: InputFile) -> Self {
+        Self {
+            media,
+            ..Default::default()
+        }
+    }
+
+    /// Set the caption.
+    pub fn caption(mut self, caption: impl Into<String>) -> Self {
+        self.caption = Some(caption.into());
+        self
+    }
+
+    /// Set the parse mode.
+    pub fn parse_mode(mut self, mode: impl Into<String>) -> Self {
+        self.parse_mode = Some(mode.into());
+        self
+    }
+
+    /// Cover the photo with a spoiler animation.
+    pub fn spoiler(mut self) -> Self {
+        self.has_spoiler = Some(true);
+        self
+    }
+}
+
 /// A video to be sent as part of an album or media group.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
 pub struct InputMediaVideo {
     /// The video file to send.
     pub media: InputFile,
@@ -88,8 +116,49 @@ pub struct InputMediaVideo {
     pub start_timestamp: Option<i64>,
 }
 
+impl InputMediaVideo {
+    /// Creates a new `InputMediaVideo` with the given media file.
+    pub fn new(media: InputFile) -> Self {
+        Self {
+            media,
+            ..Default::default()
+        }
+    }
+
+    /// Set the caption.
+    pub fn caption(mut self, caption: impl Into<String>) -> Self {
+        self.caption = Some(caption.into());
+        self
+    }
+
+    /// Set the parse mode.
+    pub fn parse_mode(mut self, mode: impl Into<String>) -> Self {
+        self.parse_mode = Some(mode.into());
+        self
+    }
+
+    /// Set the video dimensions.
+    pub fn dimensions(mut self, width: i64, height: i64) -> Self {
+        self.width = Some(width);
+        self.height = Some(height);
+        self
+    }
+
+    /// Set the duration in seconds.
+    pub fn duration(mut self, duration: i64) -> Self {
+        self.duration = Some(duration);
+        self
+    }
+
+    /// Cover the video with a spoiler animation.
+    pub fn spoiler(mut self) -> Self {
+        self.has_spoiler = Some(true);
+        self
+    }
+}
+
 /// An animation (GIF or H.264/MPEG-4 AVC video without sound) to be sent.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
 pub struct InputMediaAnimation {
     /// The animation file to send.
     pub media: InputFile,
@@ -131,8 +200,36 @@ pub struct InputMediaAnimation {
     pub show_caption_above_media: Option<bool>,
 }
 
+impl InputMediaAnimation {
+    /// Creates a new `InputMediaAnimation` with the given media file.
+    pub fn new(media: InputFile) -> Self {
+        Self {
+            media,
+            ..Default::default()
+        }
+    }
+
+    /// Set the caption.
+    pub fn caption(mut self, caption: impl Into<String>) -> Self {
+        self.caption = Some(caption.into());
+        self
+    }
+
+    /// Set the parse mode.
+    pub fn parse_mode(mut self, mode: impl Into<String>) -> Self {
+        self.parse_mode = Some(mode.into());
+        self
+    }
+
+    /// Cover the animation with a spoiler animation.
+    pub fn spoiler(mut self) -> Self {
+        self.has_spoiler = Some(true);
+        self
+    }
+}
+
 /// An audio file to be treated as music to be sent.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
 pub struct InputMediaAudio {
     /// The audio file to send.
     pub media: InputFile,
@@ -166,8 +263,42 @@ pub struct InputMediaAudio {
     pub thumbnail: Option<InputFile>,
 }
 
+impl InputMediaAudio {
+    /// Creates a new `InputMediaAudio` with the given media file.
+    pub fn new(media: InputFile) -> Self {
+        Self {
+            media,
+            ..Default::default()
+        }
+    }
+
+    /// Set the caption.
+    pub fn caption(mut self, caption: impl Into<String>) -> Self {
+        self.caption = Some(caption.into());
+        self
+    }
+
+    /// Set the parse mode.
+    pub fn parse_mode(mut self, mode: impl Into<String>) -> Self {
+        self.parse_mode = Some(mode.into());
+        self
+    }
+
+    /// Set the audio title.
+    pub fn title(mut self, title: impl Into<String>) -> Self {
+        self.title = Some(title.into());
+        self
+    }
+
+    /// Set the performer.
+    pub fn performer(mut self, performer: impl Into<String>) -> Self {
+        self.performer = Some(performer.into());
+        self
+    }
+}
+
 /// A general file (document) to be sent.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
 pub struct InputMediaDocument {
     /// The document file to send.
     pub media: InputFile,
@@ -193,6 +324,28 @@ pub struct InputMediaDocument {
     pub disable_content_type_detection: Option<bool>,
 }
 
+impl InputMediaDocument {
+    /// Creates a new `InputMediaDocument` with the given media file.
+    pub fn new(media: InputFile) -> Self {
+        Self {
+            media,
+            ..Default::default()
+        }
+    }
+
+    /// Set the caption.
+    pub fn caption(mut self, caption: impl Into<String>) -> Self {
+        self.caption = Some(caption.into());
+        self
+    }
+
+    /// Set the parse mode.
+    pub fn parse_mode(mut self, mode: impl Into<String>) -> Self {
+        self.parse_mode = Some(mode.into());
+        self
+    }
+}
+
 /// A tagged union of all `InputMedia*` variants, serialized with a `"type"` discriminant.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -212,14 +365,21 @@ pub enum InputMedia {
 // ─── InputPaidMedia variants ──────────────────────────────────────────────────
 
 /// A paid photo media item.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
 pub struct InputPaidMediaPhoto {
     /// The photo file to send.
     pub media: InputFile,
 }
 
+impl InputPaidMediaPhoto {
+    /// Creates a new `InputPaidMediaPhoto` with the given media file.
+    pub fn new(media: InputFile) -> Self {
+        Self { media }
+    }
+}
+
 /// A paid video media item.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
 pub struct InputPaidMediaVideo {
     /// The video file to send.
     pub media: InputFile,
@@ -251,6 +411,16 @@ pub struct InputPaidMediaVideo {
     /// Pass `true` if the uploaded video is suitable for streaming.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub supports_streaming: Option<bool>,
+}
+
+impl InputPaidMediaVideo {
+    /// Creates a new `InputPaidMediaVideo` with the given media file.
+    pub fn new(media: InputFile) -> Self {
+        Self {
+            media,
+            ..Default::default()
+        }
+    }
 }
 
 /// A tagged union of paid media variants, serialized with a `"type"` discriminant.

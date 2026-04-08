@@ -7,6 +7,10 @@
 
 #![warn(missing_docs)]
 
+/// Internal macros for reducing boilerplate.
+#[macro_use]
+mod macros;
+
 /// The Telegram Bot client and API method implementations.
 pub mod bot;
 /// Builder types for constructing a [`Bot`](bot::Bot) with custom configuration.
