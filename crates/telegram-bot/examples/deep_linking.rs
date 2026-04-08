@@ -45,12 +45,11 @@ fn extract_chat_id(update: &Update) -> i64 {
 }
 
 /// Retrieve the bot's username from cached bot_data (populated by initialize/getMe).
-async fn get_bot_username(context: &Context) -> String {
+fn get_bot_username(context: &Context) -> String {
     context
         .bot()
         .bot_data()
-        .await
-        .and_then(|u| u.username)
+        .and_then(|u| u.username.clone())
         .unwrap_or_else(|| "bot".to_string())
 }
 
@@ -114,7 +113,7 @@ fn keyboard_markup_json(markup: &InlineKeyboardMarkup) -> serde_json::Value {
 /// Plain `/start` -- send a deep-linked URL for sharing.
 async fn start(update: Arc<Update>, context: Context) -> HandlerResult {
     let chat_id = extract_chat_id(&update);
-    let bot_username = get_bot_username(&context).await;
+    let bot_username = get_bot_username(&context);
 
     let url = create_deep_linked_url(&bot_username, CHECK_THIS_OUT, true);
     let text = format!("Feel free to tell your friends about it:\n\n{url}");
@@ -127,7 +126,7 @@ async fn start(update: Arc<Update>, context: Context) -> HandlerResult {
 /// Reached through the CHECK_THIS_OUT payload.
 async fn deep_linked_level_1(update: Arc<Update>, context: Context) -> HandlerResult {
     let chat_id = extract_chat_id(&update);
-    let bot_username = get_bot_username(&context).await;
+    let bot_username = get_bot_username(&context);
 
     let url = create_deep_linked_url(&bot_username, SO_COOL, false);
     let text =
@@ -149,7 +148,7 @@ async fn deep_linked_level_1(update: Arc<Update>, context: Context) -> HandlerRe
 /// Reached through the SO_COOL payload.
 async fn deep_linked_level_2(update: Arc<Update>, context: Context) -> HandlerResult {
     let chat_id = extract_chat_id(&update);
-    let bot_username = get_bot_username(&context).await;
+    let bot_username = get_bot_username(&context);
 
     let url = create_deep_linked_url(&bot_username, USING_ENTITIES, false);
     let text = format!(
@@ -195,7 +194,7 @@ async fn deep_link_level_3_callback(update: Arc<Update>, context: Context) -> Ha
         None => return Ok(()),
     };
 
-    let bot_username = get_bot_username(&context).await;
+    let bot_username = get_bot_username(&context);
     let url = create_deep_linked_url(&bot_username, USING_KEYBOARD, false);
 
     context

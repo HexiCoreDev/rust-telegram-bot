@@ -25,10 +25,11 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use serde_json::json;
 use tokio::sync::RwLock;
 
 use telegram_bot::ext::prelude::*;
+use telegram_bot::types::inline::inline_keyboard_button::InlineKeyboardButton;
+use telegram_bot::types::inline::inline_keyboard_markup::InlineKeyboardMarkup;
 
 // ---------------------------------------------------------------------------
 // State definitions
@@ -208,70 +209,66 @@ fn pretty_print(family: &HashMap<String, Vec<PersonInfo>>, level: &str) -> Strin
     result
 }
 
+fn keyboard_json(markup: &InlineKeyboardMarkup) -> serde_json::Value {
+    serde_json::to_value(markup).expect("keyboard serialization")
+}
+
 // ---------------------------------------------------------------------------
 // Keyboard builders
 // ---------------------------------------------------------------------------
 
 fn top_menu_keyboard() -> serde_json::Value {
-    json!({
-        "inline_keyboard": [
-            [
-                {"text": "Add family member", "callback_data": CB_ADD_MEMBER},
-                {"text": "Add yourself", "callback_data": CB_ADD_SELF},
-            ],
-            [
-                {"text": "Show data", "callback_data": CB_SHOW},
-                {"text": "Done", "callback_data": CB_DONE},
-            ],
-        ]
-    })
+    keyboard_json(&InlineKeyboardMarkup::new(vec![
+        vec![
+            InlineKeyboardButton::callback("Add family member", CB_ADD_MEMBER),
+            InlineKeyboardButton::callback("Add yourself", CB_ADD_SELF),
+        ],
+        vec![
+            InlineKeyboardButton::callback("Show data", CB_SHOW),
+            InlineKeyboardButton::callback("Done", CB_DONE),
+        ],
+    ]))
 }
 
 fn member_level_keyboard() -> serde_json::Value {
-    json!({
-        "inline_keyboard": [
-            [
-                {"text": "Add parent", "callback_data": CB_PARENTS},
-                {"text": "Add child", "callback_data": CB_CHILDREN},
-            ],
-            [
-                {"text": "Show data", "callback_data": CB_SHOW},
-                {"text": "Back", "callback_data": CB_BACK},
-            ],
-        ]
-    })
+    keyboard_json(&InlineKeyboardMarkup::new(vec![
+        vec![
+            InlineKeyboardButton::callback("Add parent", CB_PARENTS),
+            InlineKeyboardButton::callback("Add child", CB_CHILDREN),
+        ],
+        vec![
+            InlineKeyboardButton::callback("Show data", CB_SHOW),
+            InlineKeyboardButton::callback("Back", CB_BACK),
+        ],
+    ]))
 }
 
 fn gender_keyboard(level: &str) -> serde_json::Value {
     let (male, female) = name_switcher(level);
-    json!({
-        "inline_keyboard": [
-            [
-                {"text": format!("Add {male}"), "callback_data": CB_MALE},
-                {"text": format!("Add {female}"), "callback_data": CB_FEMALE},
-            ],
-            [
-                {"text": "Show data", "callback_data": CB_SHOW},
-                {"text": "Back", "callback_data": CB_BACK},
-            ],
-        ]
-    })
+    keyboard_json(&InlineKeyboardMarkup::new(vec![
+        vec![
+            InlineKeyboardButton::callback(format!("Add {male}"), CB_MALE),
+            InlineKeyboardButton::callback(format!("Add {female}"), CB_FEMALE),
+        ],
+        vec![
+            InlineKeyboardButton::callback("Show data", CB_SHOW),
+            InlineKeyboardButton::callback("Back", CB_BACK),
+        ],
+    ]))
 }
 
 fn feature_keyboard() -> serde_json::Value {
-    json!({
-        "inline_keyboard": [[
-            {"text": "Name", "callback_data": CB_NAME},
-            {"text": "Age", "callback_data": CB_AGE},
-            {"text": "Done", "callback_data": CB_DONE},
-        ]]
-    })
+    keyboard_json(&InlineKeyboardMarkup::from_row(vec![
+        InlineKeyboardButton::callback("Name", CB_NAME),
+        InlineKeyboardButton::callback("Age", CB_AGE),
+        InlineKeyboardButton::callback("Done", CB_DONE),
+    ]))
 }
 
 fn back_keyboard() -> serde_json::Value {
-    json!({
-        "inline_keyboard": [[{"text": "Back", "callback_data": CB_BACK}]]
-    })
+    keyboard_json(&InlineKeyboardMarkup::from_button(
+        InlineKeyboardButton::callback("Back", CB_BACK),
+    ))
 }
 
 // ---------------------------------------------------------------------------

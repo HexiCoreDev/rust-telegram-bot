@@ -26,6 +26,8 @@ use serde_json::json;
 use tokio::sync::RwLock;
 
 use telegram_bot::ext::prelude::*;
+use telegram_bot::types::keyboard_button::KeyboardButton;
+use telegram_bot::types::reply_keyboard_markup::ReplyKeyboardMarkup;
 
 // ---------------------------------------------------------------------------
 // Conversation state
@@ -134,17 +136,21 @@ fn facts_to_str(facts: &HashMap<String, String>) -> String {
     format!("\n{}\n", items.join("\n"))
 }
 
-/// Build the reply keyboard markup JSON.
+/// Build the reply keyboard markup.
 fn reply_keyboard() -> serde_json::Value {
-    json!({
-        "keyboard": [
-            ["Age", "Favourite colour"],
-            ["Number of siblings", "Something else..."],
-            ["Done"],
-        ],
-        "one_time_keyboard": true,
-        "resize_keyboard": true,
-    })
+    serde_json::to_value(
+        ReplyKeyboardMarkup::new(vec![
+            vec![KeyboardButton::text("Age"), KeyboardButton::text("Favourite colour")],
+            vec![
+                KeyboardButton::text("Number of siblings"),
+                KeyboardButton::text("Something else..."),
+            ],
+            vec![KeyboardButton::text("Done")],
+        ])
+        .one_time()
+        .resize(),
+    )
+    .expect("keyboard serialization")
 }
 
 // ---------------------------------------------------------------------------

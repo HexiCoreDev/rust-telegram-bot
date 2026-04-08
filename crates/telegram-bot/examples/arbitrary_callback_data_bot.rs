@@ -30,6 +30,8 @@ use std::sync::Arc;
 use serde_json::json;
 
 use telegram_bot::ext::prelude::*;
+use telegram_bot::types::inline::inline_keyboard_button::InlineKeyboardButton;
+use telegram_bot::types::inline::inline_keyboard_markup::InlineKeyboardMarkup;
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -53,20 +55,15 @@ fn extract_chat_id(update: &Update) -> i64 {
 /// `arbitrary_callback_data` enabled, the framework caches this rich data
 /// and replaces it with a short UUID for the actual Telegram API call.
 fn build_keyboard(current_list: &[i64]) -> serde_json::Value {
-    let buttons: Vec<serde_json::Value> = (1..=5)
+    let buttons: Vec<InlineKeyboardButton> = (1..=5)
         .map(|i| {
             // The callback data is a JSON array: [selected_number, [...previous_selections]]
             let data = json!([i, current_list]);
-            json!({
-                "text": i.to_string(),
-                "callback_data": data.to_string(),
-            })
+            InlineKeyboardButton::callback(i.to_string(), data.to_string())
         })
         .collect();
 
-    json!({
-        "inline_keyboard": [buttons]
-    })
+    serde_json::to_value(InlineKeyboardMarkup::from_row(buttons)).expect("keyboard serialization")
 }
 
 // ---------------------------------------------------------------------------

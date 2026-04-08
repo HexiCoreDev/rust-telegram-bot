@@ -34,6 +34,8 @@ use tokio::sync::RwLock;
 
 use telegram_bot::ext::persistence::json_file::JsonFilePersistence;
 use telegram_bot::ext::prelude::*;
+use telegram_bot::types::keyboard_button::KeyboardButton;
+use telegram_bot::types::reply_keyboard_markup::ReplyKeyboardMarkup;
 
 // ---------------------------------------------------------------------------
 // Conversation states
@@ -53,12 +55,6 @@ type ConvStore = Arc<RwLock<HashMap<i64, ConvState>>>;
 // ---------------------------------------------------------------------------
 
 const CHOICE_KEY: &str = "_choice";
-
-const REPLY_KEYBOARD: &[&[&str]] = &[
-    &["Age", "Favourite colour"],
-    &["Number of siblings", "Something else..."],
-    &["Done"],
-];
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -101,15 +97,19 @@ fn check_command(update: &Update, expected: &str) -> bool {
 }
 
 fn build_reply_keyboard() -> serde_json::Value {
-    let keyboard: Vec<Vec<serde_json::Value>> = REPLY_KEYBOARD
-        .iter()
-        .map(|row| row.iter().map(|btn| json!({"text": btn})).collect())
-        .collect();
-    json!({
-        "keyboard": keyboard,
-        "one_time_keyboard": true,
-        "resize_keyboard": true,
-    })
+    serde_json::to_value(
+        ReplyKeyboardMarkup::new(vec![
+            vec![KeyboardButton::text("Age"), KeyboardButton::text("Favourite colour")],
+            vec![
+                KeyboardButton::text("Number of siblings"),
+                KeyboardButton::text("Something else..."),
+            ],
+            vec![KeyboardButton::text("Done")],
+        ])
+        .one_time()
+        .resize(),
+    )
+    .expect("keyboard serialization")
 }
 
 fn facts_to_str(user_data: &HashMap<String, serde_json::Value>) -> String {

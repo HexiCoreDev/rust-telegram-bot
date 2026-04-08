@@ -11,7 +11,7 @@ use super::web_app_info::WebAppInfo;
 ///
 /// For simple text buttons `text` is the only field needed; the other optional
 /// fields are mutually exclusive and enable richer interactions.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
 pub struct KeyboardButton {
     /// Label text shown on the button.
     pub text: String,
@@ -54,4 +54,44 @@ pub struct KeyboardButton {
     /// Unique identifier of the custom emoji shown before the button text.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub icon_custom_emoji_id: Option<String>,
+}
+
+impl KeyboardButton {
+    /// Create a simple text button.
+    pub fn text(text: impl Into<String>) -> Self {
+        Self {
+            text: text.into(),
+            ..Default::default()
+        }
+    }
+
+    /// Create a button that requests the user's phone contact when pressed.
+    pub fn request_contact(text: impl Into<String>) -> Self {
+        Self {
+            text: text.into(),
+            request_contact: Some(true),
+            ..Default::default()
+        }
+    }
+
+    /// Create a button that requests the user's location when pressed.
+    pub fn request_location(text: impl Into<String>) -> Self {
+        Self {
+            text: text.into(),
+            request_location: Some(true),
+            ..Default::default()
+        }
+    }
+}
+
+impl From<&str> for KeyboardButton {
+    fn from(text: &str) -> Self {
+        Self::text(text)
+    }
+}
+
+impl From<String> for KeyboardButton {
+    fn from(text: String) -> Self {
+        Self::text(text)
+    }
 }

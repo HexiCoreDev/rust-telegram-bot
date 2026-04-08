@@ -28,6 +28,9 @@ use std::sync::Arc;
 use serde_json::json;
 
 use telegram_bot::ext::prelude::*;
+use telegram_bot::types::keyboard_button::KeyboardButton;
+use telegram_bot::types::reply_keyboard_markup::ReplyKeyboardMarkup;
+use telegram_bot::types::web_app_info::WebAppInfo;
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -53,14 +56,17 @@ async fn start(update: Arc<Update>, context: Context) -> HandlerResult {
     let chat_id = extract_chat_id(&update);
 
     // Build a ReplyKeyboardMarkup with a single button that opens the Web App.
-    let keyboard = json!({
-        "keyboard": [[{
-            "text": "Open the color picker!",
-            "web_app": {"url": WEBAPP_URL}
-        }]],
-        "resize_keyboard": true,
-        "one_time_keyboard": true,
+    let mut button = KeyboardButton::text("Open the color picker!");
+    button.web_app = Some(WebAppInfo {
+        url: WEBAPP_URL.to_string(),
     });
+
+    let keyboard = serde_json::to_value(
+        ReplyKeyboardMarkup::new(vec![vec![button]])
+            .resize()
+            .one_time(),
+    )
+    .expect("keyboard serialization");
 
     context
         .bot()
