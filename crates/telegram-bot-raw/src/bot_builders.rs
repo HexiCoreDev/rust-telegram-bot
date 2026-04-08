@@ -20,7 +20,7 @@
 use crate::bot::{Bot, ChatId, MessageOrBool};
 use crate::error::Result;
 use crate::request::request_parameter::{InputFileRef, RequestParameter};
-use crate::types::*;
+use crate::types::{files, inline, link_preview_options, message, message_entity, prepared_keyboard_button, reply, suggested_post};
 use serde::Serialize;
 
 macro_rules! impl_into_future {

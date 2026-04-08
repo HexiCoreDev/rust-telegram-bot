@@ -15,9 +15,6 @@
 //! ```sh
 //! TELEGRAM_BOT_TOKEN="your-token-here" cargo run -p telegram-bot --example inline_bot
 //! ```
-
-use serde_json::json;
-
 use telegram_bot::ext::prelude::*;
 
 // ---------------------------------------------------------------------------

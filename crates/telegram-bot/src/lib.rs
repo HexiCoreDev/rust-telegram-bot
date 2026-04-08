@@ -7,6 +7,7 @@ pub use telegram_bot_raw::error;
 pub use telegram_bot_raw::types;
 
 pub use telegram_bot_ext as ext;
+pub use telegram_bot_ext::prelude;
 
 /// Runtime configuration for [`run`].
 pub struct RuntimeConfig {

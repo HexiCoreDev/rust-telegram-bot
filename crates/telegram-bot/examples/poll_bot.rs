@@ -14,9 +14,6 @@
 //! ```sh
 //! TELEGRAM_BOT_TOKEN="your-token-here" cargo run -p telegram-bot --example poll_bot
 //! ```
-
-use serde_json::json;
-
 use telegram_bot::ext::prelude::*;
 
 /// After this many voters, polls and quizzes are automatically closed.

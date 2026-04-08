@@ -15,8 +15,6 @@
 //! ```
 
 use telegram_bot::ext::prelude::*;
-use telegram_bot::types::inline::inline_keyboard_button::InlineKeyboardButton;
-use telegram_bot::types::inline::inline_keyboard_markup::InlineKeyboardMarkup;
 
 // ---------------------------------------------------------------------------
 // Deep-link payload constants

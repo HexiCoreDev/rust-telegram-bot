@@ -19,9 +19,6 @@
 //! ```sh
 //! TELEGRAM_BOT_TOKEN="your-token-here" cargo run -p telegram-bot --example passport_bot
 //! ```
-
-use std::sync::Arc;
-
 use telegram_bot::ext::prelude::*;
 
 // ---------------------------------------------------------------------------

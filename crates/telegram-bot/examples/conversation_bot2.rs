@@ -19,15 +19,7 @@
 //! - `/start` -- begins the conversation
 //! - Reply "Age", "Favourite colour", "Number of siblings", "Something else...", or "Done"
 
-use std::collections::HashMap;
-use std::sync::Arc;
-
-use serde_json::json;
-use tokio::sync::RwLock;
-
 use telegram_bot::ext::prelude::*;
-use telegram_bot::types::keyboard_button::KeyboardButton;
-use telegram_bot::types::reply_keyboard_markup::ReplyKeyboardMarkup;
 
 // ---------------------------------------------------------------------------
 // Conversation state

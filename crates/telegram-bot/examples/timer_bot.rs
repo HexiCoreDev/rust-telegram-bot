@@ -20,11 +20,7 @@
 //! - `/set 30` -- sets a timer for 30 seconds
 //! - `/unset` -- cancels any active timer for your chat
 
-use std::sync::Arc;
 use std::time::Duration;
-
-use tokio::sync::RwLock;
-
 use telegram_bot::ext::job_queue::{JobCallbackFn, JobContext, JobQueue};
 use telegram_bot::ext::prelude::*;
 

@@ -14,10 +14,8 @@
 //! ```sh
 //! TELEGRAM_BOT_TOKEN="your-token-here" cargo run -p telegram-bot --example raw_api_bot
 //! ```
-
-use std::sync::Arc;
-
 use telegram_bot::raw::bot::Bot;
+use std::sync::Arc;
 use telegram_bot::raw::request::reqwest_impl::ReqwestRequest;
 use telegram_bot::raw::types::files::input_file::InputFile;
 use telegram_bot::raw::constants::MessageEntityType;

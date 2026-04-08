@@ -25,13 +25,7 @@
 //! - `/help` -- shows usage info
 //! - `/clear` -- clears the callback data cache (demonstrates invalid data handling)
 
-use std::sync::Arc;
-
-use serde_json::json;
-
 use telegram_bot::ext::prelude::*;
-use telegram_bot::types::inline::inline_keyboard_button::InlineKeyboardButton;
-use telegram_bot::types::inline::inline_keyboard_markup::InlineKeyboardMarkup;
 
 // ---------------------------------------------------------------------------
 // Constants

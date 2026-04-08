@@ -21,9 +21,6 @@
 //! PORT="8000" \
 //! cargo run -p telegram-bot --example custom_webhook_bot --features webhooks
 //! ```
-
-use std::sync::Arc;
-
 use axum::extract::{Query, State};
 use axum::http::StatusCode;
 use axum::response::IntoResponse;
@@ -34,7 +31,6 @@ use tokio::net::TcpListener;
 use tokio::sync::mpsc;
 
 use telegram_bot::ext::prelude::*;
-use telegram_bot::raw::bot::ChatId;
 use telegram_bot::raw::types::chat_member::ChatMember;
 use telegram_bot::raw::types::update::Update as RawUpdate;
 

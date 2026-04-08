@@ -14,12 +14,7 @@
 //! ```sh
 //! TELEGRAM_BOT_TOKEN="your-token-here" cargo run -p telegram-bot --example context_types_bot
 //! ```
-
-use std::sync::Arc;
-
 use telegram_bot::ext::prelude::*;
-use telegram_bot::types::inline::inline_keyboard_button::InlineKeyboardButton;
-use telegram_bot::types::inline::inline_keyboard_markup::InlineKeyboardMarkup;
 
 // ---------------------------------------------------------------------------
 // Constants

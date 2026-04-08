@@ -23,13 +23,7 @@
 //! - `/start` -- shows a keyboard button that opens the color picker Web App
 //! - Select a color in the Web App; the bot will display the chosen color
 
-use std::sync::Arc;
-
-use serde_json::json;
-
 use telegram_bot::ext::prelude::*;
-use telegram_bot::types::keyboard_button::KeyboardButton;
-use telegram_bot::types::reply_keyboard_markup::ReplyKeyboardMarkup;
 use telegram_bot::types::web_app_info::WebAppInfo;
 
 // ---------------------------------------------------------------------------

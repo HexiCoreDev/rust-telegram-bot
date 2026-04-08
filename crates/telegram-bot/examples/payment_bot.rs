@@ -22,10 +22,6 @@
 //! - `/shipping` -- sends an invoice with shipping required
 //! - `/noshipping` -- sends an invoice without shipping
 
-use std::sync::Arc;
-
-use serde_json::json;
-
 use telegram_bot::ext::prelude::*;
 
 // ---------------------------------------------------------------------------

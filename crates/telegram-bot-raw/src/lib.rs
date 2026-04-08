@@ -23,3 +23,7 @@ pub mod request;
 pub mod types;
 /// Utility modules for date/time handling, entity parsing, markup, and more.
 pub mod utils;
+
+// Re-export serde_json so downstream crates (including tests and examples)
+// can use `telegram_bot_raw::serde_json` without adding it as a direct dependency.
+pub use serde_json;

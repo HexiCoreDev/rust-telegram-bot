@@ -16,9 +16,6 @@
 //! DEVELOPER_CHAT_ID="your-chat-id" \
 //! cargo run -p telegram-bot --example error_handler_bot
 //! ```
-
-use std::sync::Arc;
-
 use telegram_bot::ext::application;
 use telegram_bot::ext::prelude::*;
 

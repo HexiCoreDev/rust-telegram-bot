@@ -4,20 +4,15 @@
 //! callback query handler, custom webhook on port 8000.
 //!
 //! Run: Copy this to examples/ or run directly referencing the workspace crates.
-
-use std::sync::Arc;
-
 use axum::extract::State;
 use axum::http::StatusCode;
 use axum::response::IntoResponse;
 use axum::routing::{get, post};
 use axum::Router;
-use serde_json::json;
 use tokio::net::TcpListener;
 use tokio::sync::mpsc;
 
 use telegram_bot::ext::prelude::*;
-use telegram_bot::raw::bot::ChatId;
 use telegram_bot::raw::types::update::Update as RawUpdate;
 
 // -- Handlers ----------------------------------------------------------------

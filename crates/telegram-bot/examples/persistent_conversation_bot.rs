@@ -26,16 +26,8 @@
 //! - Type "Done" to finish
 //! - `/show_data` -- displays all stored facts
 
-use std::collections::HashMap;
-use std::sync::Arc;
-
-use serde_json::json;
-use tokio::sync::RwLock;
-
 use telegram_bot::ext::persistence::json_file::JsonFilePersistence;
 use telegram_bot::ext::prelude::*;
-use telegram_bot::types::keyboard_button::KeyboardButton;
-use telegram_bot::types::reply_keyboard_markup::ReplyKeyboardMarkup;
 
 // ---------------------------------------------------------------------------
 // Conversation states

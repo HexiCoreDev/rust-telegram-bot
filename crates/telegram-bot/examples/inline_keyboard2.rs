@@ -18,14 +18,7 @@
 //! Then in Telegram:
 //! - `/start` -- begins the interactive menu
 
-use std::collections::HashMap;
-use std::sync::Arc;
-
-use tokio::sync::RwLock;
-
 use telegram_bot::ext::prelude::*;
-use telegram_bot::types::inline::inline_keyboard_button::InlineKeyboardButton;
-use telegram_bot::types::inline::inline_keyboard_markup::InlineKeyboardMarkup;
 
 // ---------------------------------------------------------------------------
 // Conversation state

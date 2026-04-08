@@ -1,4 +1,5 @@
-use super::*;
+use super::{push_opt_str, Bot, ChatId, Result};
+use crate::request::request_parameter::RequestParameter;
 
 #[allow(dead_code)]
 impl Bot {

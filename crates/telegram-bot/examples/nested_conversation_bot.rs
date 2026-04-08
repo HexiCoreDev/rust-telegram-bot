@@ -22,14 +22,7 @@
 //! TELEGRAM_BOT_TOKEN="your-token-here" cargo run -p telegram-bot --example nested_conversation_bot
 //! ```
 
-use std::collections::HashMap;
-use std::sync::Arc;
-
-use tokio::sync::RwLock;
-
 use telegram_bot::ext::prelude::*;
-use telegram_bot::types::inline::inline_keyboard_button::InlineKeyboardButton;
-use telegram_bot::types::inline::inline_keyboard_markup::InlineKeyboardMarkup;
 
 // ---------------------------------------------------------------------------
 // State definitions

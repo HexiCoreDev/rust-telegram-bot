@@ -1,4 +1,6 @@
-use super::*;
+use super::{Bot, Result};
+use crate::request::request_parameter::RequestParameter;
+use crate::types::{inline, prepared_keyboard_button};
 
 #[allow(dead_code)]
 impl Bot {

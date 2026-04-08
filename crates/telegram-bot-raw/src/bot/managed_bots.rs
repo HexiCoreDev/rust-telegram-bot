@@ -1,4 +1,5 @@
-use super::*;
+use super::{Bot, Result};
+use crate::request::request_parameter::RequestParameter;
 
 #[allow(dead_code)]
 impl Bot {
