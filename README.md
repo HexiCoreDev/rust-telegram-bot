@@ -9,12 +9,13 @@
 [![Bot API 9.6](https://img.shields.io/badge/Bot%20API-9.6-blue?logo=telegram)](https://core.telegram.org/bots/api-changelog)
 [![License: LGPL-3.0](https://img.shields.io/badge/License-LGPL--3.0-green.svg)](https://www.gnu.org/licenses/lgpl-3.0.html)
 [![Rust: 1.75+](https://img.shields.io/badge/Rust-1.75%2B-orange?logo=rust)](https://www.rust-lang.org)
+[![Version: 1.0.0-beta.2](https://img.shields.io/badge/version-1.0.0--beta.2-blueviolet)]()
 [![CI](https://img.shields.io/badge/CI-passing-brightgreen)]()
 [![Docs](https://img.shields.io/badge/docs-latest-blue)]()
 
 ---
 
-> **WARNING: This project is in active development (v1.0.0-beta). The API is undergoing constant changes as we work toward full feature parity with python-telegram-bot and Rust-native performance optimizations. Use at your own risk — breaking changes will occur between releases until v1.0.0 stable.**
+> **WARNING: This project is in active development (v1.0.0-beta.2). The API is undergoing constant changes as we work toward full feature parity with python-telegram-bot and Rust-native performance optimizations. Use at your own risk -- breaking changes will occur between releases until v1.0.0 stable.**
 
 ---
 
@@ -35,8 +36,8 @@ We acknowledge and thank the python-telegram-bot maintainers and community for o
 | **Performance** | GIL-limited concurrency, interpreted | True parallelism, compiled to native code |
 | **Memory safety** | Runtime GC, potential leaks in long-running bots | Ownership system prevents leaks at compile time |
 | **Type safety** | Optional type hints, runtime errors | Enforced at compile time, no `AttributeError` at 3 AM |
-| **Deployment** | Requires Python runtime + virtualenv | Single static binary, 12 MB stripped |
-| **Resource usage** | 57 MB RSS (measured) | 20-32 MB RSS (measured, see [benchmarks](benchmarks/)) |
+| **Deployment** | Requires Python runtime + virtualenv | Single static binary, 9.6 MB stripped |
+| **Resource usage** | 57 MB RSS (measured) | 17-20 MB RSS (measured, see [benchmarks](benchmarks/)) |
 | **Concurrency** | asyncio (single-threaded) | tokio (multi-threaded work-stealing) |
 
 For bots that handle high volumes of updates, run on constrained hardware (VPS, Raspberry Pi, containers), or need to be deployed without a runtime, Rust is the right tool.
@@ -76,7 +77,10 @@ tracing-subscriber = "0.3"
 ### 3. Write your bot
 
 ```rust,no_run
-use telegram_bot::ext::prelude::*;
+use telegram_bot::ext::prelude::{
+    ApplicationBuilder, Arc, CommandHandler, Context, HandlerResult,
+    MessageHandler, Update, COMMAND, TEXT,
+};
 
 async fn start(update: Arc<Update>, context: Context) -> HandlerResult {
     let name = update
@@ -100,27 +104,26 @@ async fn echo(update: Arc<Update>, context: Context) -> HandlerResult {
     Ok(())
 }
 
-fn main() {
-    telegram_bot::run(async {
-        tracing_subscriber::fmt::init();
+#[tokio::main]
+async fn main() {
+    tracing_subscriber::fmt::init();
 
-        let token = std::env::var("TELEGRAM_BOT_TOKEN")
-            .expect("TELEGRAM_BOT_TOKEN environment variable must be set");
+    let token = std::env::var("TELEGRAM_BOT_TOKEN")
+        .expect("TELEGRAM_BOT_TOKEN environment variable must be set");
 
-        let app = ApplicationBuilder::new().token(token).build();
+    let app = ApplicationBuilder::new().token(token).build();
 
-        app.add_typed_handler(CommandHandler::new("start", start), 0).await;
-        app.add_typed_handler(
-            MessageHandler::new(TEXT() & !COMMAND(), echo),
-            0,
-        ).await;
+    app.add_typed_handler(CommandHandler::new("start", start), 0).await;
+    app.add_typed_handler(
+        MessageHandler::new(TEXT() & !COMMAND(), echo),
+        0,
+    ).await;
 
-        println!("Echo bot is running. Press Ctrl+C to stop.");
+    println!("Echo bot is running. Press Ctrl+C to stop.");
 
-        if let Err(e) = app.run_polling().await {
-            eprintln!("Error running bot: {e}");
-        }
-    });
+    if let Err(e) = app.run_polling().await {
+        eprintln!("Error running bot: {e}");
+    }
 }
 ```
 
@@ -137,7 +140,7 @@ TELEGRAM_BOT_TOKEN="123456:ABC-DEF" cargo run
 Filters use Rust's bitwise operators for composition -- the same mental model as python-telegram-bot, but enforced at compile time:
 
 ```rust,ignore
-use telegram_bot::ext::prelude::*;
+use telegram_bot::ext::prelude::{MessageHandler, TEXT, COMMAND};
 
 // Text messages that are NOT commands
 let text_only = TEXT() & !COMMAND();
@@ -156,7 +159,10 @@ Over 50 built-in filters are available: `TEXT`, `COMMAND`, `PHOTO`, `VIDEO`, `AU
 Handlers use strongly-typed constructors and are registered via `add_typed_handler`:
 
 ```rust,ignore
-use telegram_bot::ext::prelude::*;
+use telegram_bot::ext::prelude::{
+    ApplicationBuilder, Arc, CommandHandler, Context, FnHandler,
+    HandlerResult, MessageHandler, Update, COMMAND, TEXT,
+};
 
 // Command handler -- matches /start
 app.add_typed_handler(CommandHandler::new("start", start), 0).await;
@@ -179,9 +185,11 @@ app.add_typed_handler(FnHandler::on_any(track_users), -1).await;
 
 ### Builder-based Bot API
 
-Every Bot API method returns a builder with optional parameters as chainable setters. Builders implement `IntoFuture`, so you can use `.await` directly, or call `.send().await` explicitly:
+Every Bot API method returns a builder with optional parameters as chainable setters. Builders implement `IntoFuture`, so you can `.await` directly:
 
 ```rust,ignore
+use telegram_bot::ext::prelude::{Context, ParseMode};
+
 // Simple -- .await directly
 context.bot().send_message(chat_id, "Hello!").await?;
 
@@ -190,15 +198,19 @@ context
     .bot()
     .send_message(chat_id, "<b>Bold</b> text")
     .parse_mode(ParseMode::Html)
-    .send()
     .await?;
 
-// Inline keyboard
+// Inline keyboard using typed constructors
+use telegram_bot::ext::prelude::{InlineKeyboardButton, InlineKeyboardMarkup};
+
+let keyboard = InlineKeyboardMarkup::new(vec![
+    vec![InlineKeyboardButton::callback("Option 1", "1")],
+]);
+
 context
     .bot()
     .send_message(chat_id, "Choose:")
-    .reply_markup(keyboard_json)
-    .send()
+    .reply_markup(keyboard)
     .await?;
 
 // Edit a message
@@ -207,7 +219,6 @@ context
     .edit_message_text("Updated text")
     .chat_id(chat_id)
     .message_id(msg_id)
-    .send()
     .await?;
 ```
 
@@ -216,12 +227,13 @@ context
 No more magic strings. All enums are strongly typed:
 
 ```rust,ignore
-use telegram_bot::ext::prelude::*;
+use telegram_bot::ext::prelude::{
+    ChatType, Context, MessageEntityType, ParseMode,
+};
 
 // Parse modes
 context.bot().send_message(chat_id, text)
     .parse_mode(ParseMode::Html)
-    .send()
     .await?;
 
 // Entity types
@@ -236,6 +248,11 @@ if chat.chat_type != ChatType::Private { /* ... */ }
 Handlers are organized into numbered groups. Within a group, the first matching handler wins. Across groups, processing continues unless a handler returns `HandlerResult::Stop`:
 
 ```rust,ignore
+use telegram_bot::ext::prelude::{
+    Arc, CommandHandler, Context, FnHandler, HandlerResult,
+    MessageHandler, Update, COMMAND, TEXT,
+};
+
 // Group -1: always runs first (e.g., user tracking)
 app.add_typed_handler(FnHandler::on_any(track_users), -1).await;
 
@@ -255,7 +272,9 @@ app.add_typed_handler(
 The `Context` provides typed read and write guards for bot-wide, per-user, and per-chat data:
 
 ```rust,ignore
-async fn handle(update: Update, context: Context) -> HandlerResult {
+use telegram_bot::ext::prelude::{Arc, Context, HandlerResult, Update};
+
+async fn handle(update: Arc<Update>, context: Context) -> HandlerResult {
     // Read bot-wide data
     let bd = context.bot_data().await;
     let name = bd.get_str("bot_name");
@@ -276,7 +295,8 @@ async fn handle(update: Update, context: Context) -> HandlerResult {
 Multi-step conversations with automatic state tracking, timeouts, nested conversations, and persistence:
 
 ```rust,ignore
-use telegram_bot::ext::handlers::conversation::*;
+use telegram_bot::ext::handlers::conversation::ConversationHandler;
+use std::time::Duration;
 
 #[derive(Clone, Hash, Eq, PartialEq)]
 enum State { AskName, AskAge, AskBio }
@@ -307,6 +327,8 @@ Schedule one-shot, repeating, daily, and monthly jobs using tokio timers and a b
 
 ```rust,ignore
 use telegram_bot::ext::job_queue::{JobQueue, JobCallbackFn, JobContext};
+use std::sync::Arc;
+use std::time::Duration;
 
 let jq = Arc::new(JobQueue::new());
 
@@ -348,6 +370,7 @@ Swap between backends without changing application code:
 
 ```rust,ignore
 use telegram_bot::ext::persistence::json_file::JsonFilePersistence;
+use telegram_bot::ext::prelude::ApplicationBuilder;
 
 let persistence = JsonFilePersistence::new("bot_data", true, false);
 let app = ApplicationBuilder::new()
@@ -360,6 +383,7 @@ let app = ApplicationBuilder::new()
 
 ```rust,ignore
 use telegram_bot::ext::persistence::sqlite::SqlitePersistence;
+use telegram_bot::ext::prelude::ApplicationBuilder;
 
 let persistence = SqlitePersistence::open("bot.db").unwrap();
 let app = ApplicationBuilder::new()
@@ -372,6 +396,7 @@ let app = ApplicationBuilder::new()
 
 ```rust,ignore
 use telegram_bot::ext::persistence::base::BasePersistence;
+use std::collections::HashMap;
 
 #[derive(Debug)]
 struct RedisPersistence { /* ... */ }
@@ -417,13 +442,13 @@ telegram-bot = { git = "https://github.com/HexiCoreDev/rust-telegram-bot", featu
 | Persistence | JSON file, SQLite, custom trait | Pickle, Dict, custom | Community crates |
 | Webhook support | axum | tornado / starlette | axum / warp |
 | Type safety | Compile-time | Runtime (optional hints) | Compile-time |
-| Memory idle (measured) | 20 MB | 57 MB | **15 MB** |
-| Memory under load (measured) | 32 MB | 57 MB | **17 MB** |
-| Binary size (stripped) | 12 MB | Requires Python runtime | **6.6 MB** |
+| Memory idle (measured) | 17 MB | 57 MB | **15 MB** |
+| Memory under load (measured) | **20 MB** | 57 MB | 17 MB |
+| Binary size (stripped) | 9.6 MB | Requires Python runtime | **6.6 MB** |
 | Minimum version | Rust 1.75 | Python 3.10 | Rust 1.68 |
 | Builder pattern | IntoFuture (directly awaitable) | Keyword args | Method chains |
 | Typed constants | `ParseMode::Html` | `ParseMode.HTML` | String-based |
-| Maturity | **v1.0.0-beta** (new) | Mature (10+ years) | Mature (3+ years) |
+| Maturity | **v1.0.0-beta.2** (new) | Mature (10+ years) | Mature (3+ years) |
 
 ## Examples
 
@@ -446,11 +471,11 @@ TELEGRAM_BOT_TOKEN="your-token" cargo run -p telegram-bot --example echo_bot
 
 ## Project Status
 
-**Current: v0.1.0 -- API complete, stabilizing**
+**Current: v1.0.0-beta.2 -- API complete, stabilizing**
 
 What is implemented:
 
-- All Bot API 9.6 types and methods
+- All Bot API 9.6 types and methods (281 types, 168 method builders)
 - `ApplicationBuilder` with typestate pattern
 - Typed handler system (`CommandHandler`, `MessageHandler`, `FnHandler`, and more)
 - 50+ composable filters with `&`, `|`, `^`, `!` operators
@@ -462,20 +487,24 @@ What is implemented:
 - Callback data caching
 - Rate limiter
 - Defaults system for parse mode, link preview, etc.
-- `telegram_bot::run()` for safe async entry point with proper stack sizing
+- 90+ type constructors for ergonomic API type creation
+- Context shortcuts: `reply_html`, `reply_photo`, `reply_document`, `reply_sticker`, `reply_location`
+- `answer_callback_query()` and `edit_callback_message_text()` on Context
+- Arc<Update> dispatch with bounded update channel (capacity 64)
+- `#![warn(missing_docs)]` on both crates
 
-### Project Status
+### Build & Test
 
-- 357 tests passing, zero clippy warnings
+- 357+ tests passing, zero clippy warnings
+- 25 roundtrip serialization tests, 9 proptest filter tests, 10 persistence stress tests
 - GitHub Actions CI: check, test, clippy, format, examples, docs (stable + MSRV 1.75)
 - Release pipeline: cross-compile binaries + crates.io publish
-- Measured performance: 10-11 MB binary (stripped), 20-30 MB RSS under load (release)
+- Measured performance: 9.6 MB binary (stripped), 17-20 MB RSS under load (release)
 
 ### Roadmap
 
 - [ ] Publish to crates.io
 - [ ] Comprehensive `cargo doc` documentation with `#[deny(missing_docs)]`
-- [ ] Property-based testing with `proptest` for filter composition
 - [ ] Integration tests against real Bot API payloads
 - [ ] Benchmarks with `criterion` (throughput, memory, latency)
 - [ ] Webhook TLS auto-configuration
@@ -485,14 +514,13 @@ What is implemented:
 
 ## Documentation
 
-- [Getting Started](docs/getting-started.md) -- Installation, token setup, first bot
-- [Architecture](docs/architecture.md) -- Crate structure, design decisions
-- [Handlers](docs/handlers.md) -- Handler types with usage examples
-- [Filters](docs/filters.md) -- Filter system, composition, all filter types
-- [Persistence](docs/persistence.md) -- JSON, SQLite, custom backends
-- [Job Queue](docs/job-queue.md) -- Scheduling, cancellation, daily/monthly triggers
-- [Migration from Python](docs/migration-from-python.md) -- Guide for python-telegram-bot users
-- [API Reference](docs/api-reference.md) -- Pointer to `cargo doc` output
+Full documentation is hosted on [Read the Docs](https://rust-telegram-bot.readthedocs.io/) (coming soon).
+
+For now, generate API docs locally:
+
+```sh
+cargo doc --open --no-deps
+```
 
 ## Contributing
 

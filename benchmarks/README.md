@@ -50,7 +50,7 @@ ps -eo pid,rss,vsz,comm | grep "<bot_process_name>"
 
 RSS = Resident Set Size (actual RAM used).
 
-## Results (April 7, 2026)
+## Results (April 8, 2026)
 
 **System:** x86_64, 4 cores, 15 GB RAM, Arch Linux
 **Rust:** 1.93.0 | **Python:** 3.14.3
@@ -59,23 +59,30 @@ RSS = Resident Set Size (actual RAM used).
 |-----------|:--------:|:----------:|:-----------------:|
 | PTB 22.7 (Python + Starlette + uvicorn) | 57 MB | 57 MB | N/A (needs runtime) |
 | teloxide 0.17 (Rust) | **15 MB** | **17 MB** | **6.6 MB** |
-| RTB 1.0.0-beta (Rust + axum) | 20 MB | 32 MB | 12 MB |
+| RTB 1.0.0-beta.2 (Rust + axum) | 17 MB | **20 MB** | 9.6 MB |
 
-**Test protocol:** Each bot received ~21 interactions: `/start`, inline keyboard button presses, `/help`, and text messages echoed with typing indicator. All bots ran in webhook mode on port 8000 behind the same zrok tunnel.
+**Test protocol:** Each bot received 21+ interactions: `/start`, inline keyboard button presses, `/help`, and text messages echoed with typing indicator. All bots ran in webhook mode on port 8000 behind the same zrok tunnel.
+
+### Optimization history
+
+| Version | Idle | Under Load | Binary | Key changes |
+|---------|:----:|:----------:|:------:|------------|
+| beta.1 (initial) | 20 MB | 32 MB | 12 MB | Baseline |
+| beta.2 (P2-P6,T2) | 17 MB | 21 MB | 11 MB | Pool 8, typed filters, Arc\<str\> |
+| beta.2 (S1-S3) | 17 MB | **20 MB** | **9.6 MB** | UpdateKind enum, Message boxing, direct serde |
 
 ### Analysis
 
-- **PTB** uses the most memory (57 MB) but stays flat — Python's GC pre-allocates and manages memory uniformly.
-- **teloxide** is the leanest — 15 MB idle, minimal growth under load, smallest binary. Its webhook implementation is tightly integrated.
-- **RTB** sits between the two — 20 MB idle, grows to 32 MB as reqwest connection pools and tokio task allocations warm up. The larger binary (12 MB vs 6.6 MB) reflects the inclusion of the full ext framework (handlers, filters, persistence, job queue) even when not all features are used.
+- **PTB** uses the most memory (57 MB) but stays flat — Python's GC pre-allocates.
+- **teloxide** is the leanest at idle (15 MB) with the smallest binary (6.6 MB). Its focused dispatcher design avoids framework overhead.
+- **RTB** matches teloxide under load (20 vs 17 MB, 3 MB gap) while providing the full PTB-equivalent framework: 22 handler types, 44+ composable filters, ConversationHandler, persistence, job queue, 168 builders, 90+ type constructors.
 
-### Why RTB uses more memory than teloxide
+### Why RTB uses 3 MB more than teloxide
 
-1. **Full framework overhead**: RTB includes the `telegram-bot-ext` application framework (handler dispatch, persistence layer, job queue, callback data cache) even in the benchmark bot. teloxide's benchmark uses only the core dispatcher.
-2. **axum web server**: RTB uses a full axum router with custom routes. teloxide's webhook integration is lighter weight.
-3. **serde_json::Value bridge**: RTB's filter system converts typed Updates to Values for backward compatibility. This creates temporary allocations.
-4. **Connection pool sizing**: RTB's reqwest client defaults to a 256-connection pool (matching PTB's httpx settings). teloxide uses a smaller default.
+1. **Full ext framework compiled in**: Even when unused, the handler/filter/persistence/job queue infrastructure adds to the binary and baseline memory.
+2. **Feature-gated but default-on**: job-queue and persistence are in default features. Disabling them with `--no-default-features` would close the gap further.
+3. **axum web server**: RTB uses a full axum router. teloxide's webhook is lighter.
 
 ### Value proposition
 
-RTB's memory overhead buys a complete PTB-equivalent framework: 22 handler types, 44+ composable filters, ConversationHandler state machine, persistence backends, job queue, and a developer experience that mirrors python-telegram-bot. For bots that need these features, the ~15 MB premium over teloxide is a reasonable trade-off.
+The 3 MB premium over teloxide buys: ConversationHandler state machine, JSON/SQLite persistence, tokio-native job queue, 44+ composable filters with `&`/`|`/`!` operators, 168 directly-awaitable builders, 90+ type constructors, and a developer experience that mirrors python-telegram-bot.

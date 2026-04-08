@@ -5,6 +5,47 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.0-beta.2] - 2026-04-08
+
+### Breaking Changes
+- Removed `extra: HashMap<String, Value>` from all 281 types (unknown fields now silently dropped)
+- `Update` is now an enum-based `UpdateKind` (not flat struct with 27 Option fields)
+- Message large fields boxed (game, poll, venue, invoice, etc.)
+- `Option<bool>` fields on Message changed to `bool` with `#[serde(default)]`
+- Handler callbacks receive `Arc<Update>` (was `Update`)
+- `telegram_bot::run()` deprecated — use `#[tokio::main]` directly
+
+### Performance
+- Idle memory: 20 → 17 MB (-15%)
+- Load memory: 32 → 20 MB (-37%)
+- Binary size: 12 → 9.6 MB (-20%)
+- Connection pool: 256 → 8 connections
+- Direct serialization for 21 text-only builders (no double serde pass)
+- Bounded update channel (capacity 64) replacing unbounded
+- AtomicBool for flags, OnceCell for cached bot data
+- Selective tokio features (not "full")
+- All filters use typed Update access (zero serde_json::to_value)
+- Arc<str> for token/URLs, Arc<Update> in dispatch
+
+### Added
+- 90+ type constructors (InlineKeyboardButton::callback(), User::full_name(), etc.)
+- 168 Bot API method builders with IntoFuture (directly awaitable)
+- Context shortcuts: reply_html, reply_photo, reply_document, reply_sticker, reply_location
+- context.answer_callback_query(), context.edit_callback_message_text()
+- Expanded prelude re-exporting serde_json, tokio, keyboards, common types
+- Feature-gated modules: job-queue, persistence, rate-limiter
+- Optimized webhook server: constant-time secret, TCP_NODELAY, backpressure (503)
+- 25 roundtrip serialization tests, 9 proptest filter tests, 10 persistence stress tests
+- bot.rs split into 22 per-method-group submodules
+- #![warn(missing_docs)] on both crates
+- proptest fuzzing for filter composition algebra
+
+### Fixed
+- Specific imports replacing all wildcard `*` imports in library code
+- All examples use typed constructors (no json!() for API types)
+- All examples use specific prelude imports (no prelude::*)
+- All examples use #[tokio::main] (not telegram_bot::run())
+
 ## [1.0.0-beta] - 2026-04-07
 
 ### Added
