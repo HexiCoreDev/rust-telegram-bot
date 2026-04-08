@@ -14,6 +14,10 @@
 
 ---
 
+> **WARNING: This project is in active development (v1.0.0-beta). The API is undergoing constant changes as we work toward full feature parity with python-telegram-bot and Rust-native performance optimizations. Use at your own risk — breaking changes will occur between releases until v1.0.0 stable.**
+
+---
+
 A complete, asynchronous Telegram Bot API framework for Rust, faithfully ported from [python-telegram-bot](https://github.com/python-telegram-bot/python-telegram-bot) -- the most popular Python library for the Telegram Bot API.
 
 This project carries forward the architecture, handler system, and developer experience that made python-telegram-bot the go-to choice for thousands of bot developers, and transplants it into Rust's async ecosystem with full type safety, zero-cost abstractions, and fearless concurrency.
