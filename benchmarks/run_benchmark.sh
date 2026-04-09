@@ -47,7 +47,7 @@ case "$FRAMEWORK" in
     export ADMIN_CHAT_ID="${ADMIN_CHAT_ID:-0}"
     # Use the workspace release binary
     cd "$SCRIPT_DIR/.."
-    cargo build --release -p telegram-bot --example custom_webhook_bot --features webhooks 2>/dev/null
+    cargo build --release -p rust-tg-bot --example custom_webhook_bot --features webhooks 2>/dev/null
     ./target/release/examples/custom_webhook_bot &
     BOT_PID=$!
     PROC_NAME="custom_webhook"
