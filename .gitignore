@@ -44,3 +44,4 @@ coverage/
 
 # Documentation build output (cargo doc)
 # The generated docs are not checked in; run `cargo doc` locally.
+book/book/
