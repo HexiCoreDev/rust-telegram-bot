@@ -221,11 +221,14 @@ bump: ## Bump version everywhere (make bump V=1.0.0-beta.5)
 ifndef V
 	$(error Usage: make bump V=1.0.0-beta.5)
 endif
+	$(eval OLD_BADGE := $(subst -,--,$(VERSION)))
+	$(eval NEW_BADGE := $(subst -,--,$(V)))
 	@echo "Bumping $(VERSION) → $(V)"
 	@sed -i 's/version = "$(VERSION)"/version = "$(V)"/' Cargo.toml
 	@sed -i 's/version = "$(VERSION)"/version = "$(V)"/g' crates/telegram-bot/Cargo.toml
 	@sed -i 's/version = "$(VERSION)"/version = "$(V)"/g' crates/telegram-bot-ext/Cargo.toml
 	@sed -i 's/$(VERSION)/$(V)/g' README.md
+	@sed -i 's/$(OLD_BADGE)/$(NEW_BADGE)/g' README.md
 	@sed -i 's/$(VERSION)/$(V)/g' benchmarks/README.md
 	@cargo check --workspace 2>/dev/null
 	@echo "Done. Files updated:"

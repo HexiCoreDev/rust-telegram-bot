@@ -1,4 +1,34 @@
-#![doc = include_str!("../../../README.md")]
+//! # rust-tg-bot
+//!
+//! Complete, asynchronous Telegram Bot API framework for Rust, faithfully ported
+//! from [python-telegram-bot](https://github.com/python-telegram-bot/python-telegram-bot).
+//!
+//! This is the facade crate that re-exports everything from:
+//! - [`rust_tg_bot_raw`](raw) — Bot API types and methods
+//! - [`rust_tg_bot_ext`](ext) — Application framework (handlers, filters, persistence)
+//!
+//! ## Quick Start
+//!
+//! ```toml
+//! [dependencies]
+//! rust-tg-bot = "1.0"
+//! ```
+//!
+//! ```rust,ignore
+//! use rust_tg_bot::ext::prelude::*;
+//!
+//! #[tokio::main]
+//! async fn main() {
+//!     let app = ApplicationBuilder::new()
+//!         .token(std::env::var("TELEGRAM_BOT_TOKEN").unwrap())
+//!         .build();
+//!     app.add_handler(CommandHandler::new("start", start), 0).await;
+//!     app.run_polling().await.unwrap();
+//! }
+//! ```
+//!
+//! See the [README](https://github.com/HexiCoreDev/rust-telegram-bot) and
+//! [guide](https://rust-tg-bot-docs.vercel.app/) for full documentation.
 #![forbid(unsafe_code)]
 
 // Re-export everything from both crates for convenience
