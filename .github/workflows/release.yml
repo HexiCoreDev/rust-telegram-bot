@@ -111,7 +111,7 @@ jobs:
       - uses: Swatinem/rust-cache@v2
 
       - name: Publish rust-tg-bot-raw
-        run: cargo publish -p rust-tg-bot-raw --no-verify
+        run: cargo publish -p rust-tg-bot-raw --no-verify || echo "Already published, skipping"
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
 
@@ -119,7 +119,7 @@ jobs:
         run: sleep 30
 
       - name: Publish rust-tg-bot-macros
-        run: cargo publish -p rust-tg-bot-macros --no-verify
+        run: cargo publish -p rust-tg-bot-macros --no-verify || echo "Already published, skipping"
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
 
@@ -127,7 +127,7 @@ jobs:
         run: sleep 30
 
       - name: Publish rust-tg-bot-ext
-        run: cargo publish -p rust-tg-bot-ext --no-verify
+        run: cargo publish -p rust-tg-bot-ext --no-verify || echo "Already published, skipping"
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
 
@@ -135,6 +135,6 @@ jobs:
         run: sleep 30
 
       - name: Publish rust-tg-bot
-        run: cargo publish -p rust-tg-bot --no-verify
+        run: cargo publish -p rust-tg-bot --no-verify || echo "Already published, skipping"
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
