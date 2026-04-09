@@ -11,6 +11,7 @@ use super::input_venue_message_content::InputVenueMessageContent;
 /// Serde uses untagged deserialization: the variant is inferred from the fields present.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(untagged)]
+#[non_exhaustive]
 pub enum InputMessageContent {
     /// A text message.
     Text(InputTextMessageContent),

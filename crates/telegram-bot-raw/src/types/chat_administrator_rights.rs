@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 
 /// Represents the rights of an administrator in a chat.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct ChatAdministratorRights {
     /// True if the user's presence in the chat is hidden.
     pub is_anonymous: bool,

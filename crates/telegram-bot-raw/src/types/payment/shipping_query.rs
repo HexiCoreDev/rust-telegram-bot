@@ -6,6 +6,7 @@ use super::shipping_address::ShippingAddress;
 
 /// Information about an incoming shipping query.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct ShippingQuery {
     /// Unique query identifier.
     pub id: String,

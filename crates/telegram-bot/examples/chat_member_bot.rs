@@ -162,6 +162,7 @@ async fn greet_chat_members(update: Arc<Update>, context: Context) -> HandlerRes
         ChatMember::Restricted(r) => &r.user,
         ChatMember::Left(l) => &l.user,
         ChatMember::Banned(b) => &b.user,
+        _ => return Ok(()),
     };
     let member_name = &member_user.first_name;
 

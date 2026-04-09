@@ -30,6 +30,7 @@ use super::inline_query_result_voice::InlineQueryResultVoice;
 /// `*_file_id` field takes precedence during deserialization.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(untagged)]
+#[non_exhaustive]
 pub enum InlineQueryResult {
     /// A link to an article or web page.
     Article(InlineQueryResultArticle),

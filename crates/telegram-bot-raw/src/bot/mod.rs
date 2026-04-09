@@ -22,6 +22,7 @@ use tokio::sync::OnceCell;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
+#[non_exhaustive]
 pub enum ChatId {
     Id(i64),
     Username(String),
@@ -56,6 +57,7 @@ impl From<&str> for ChatId {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
+#[non_exhaustive]
 pub enum MessageOrBool {
     Message(Box<message::Message>),
     Bool(bool),
@@ -68,6 +70,7 @@ pub enum MessageOrBool {
 /// Default parameter values merged into every API call when the
 /// caller has not provided an explicit value.
 #[derive(Debug, Clone, Default)]
+#[non_exhaustive]
 pub struct Defaults {
     /// Default parse mode for text formatting (e.g. `"HTML"`, `"MarkdownV2"`).
     pub parse_mode: Option<String>,

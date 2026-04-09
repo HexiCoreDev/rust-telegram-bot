@@ -4,6 +4,7 @@ use crate::types::files::base_medium::BaseMedium;
 
 /// A voice note.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct Voice {
     /// Telegram file identifier.
     pub file_id: String,

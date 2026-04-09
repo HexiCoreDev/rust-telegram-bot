@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 ///
 /// All fields are optional — when absent the permission is unset (inherits from defaults).
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
+#[non_exhaustive]
 pub struct ChatPermissions {
     /// True if the user is allowed to send text messages, contacts, locations and venues.
     #[serde(skip_serializing_if = "Option::is_none")]

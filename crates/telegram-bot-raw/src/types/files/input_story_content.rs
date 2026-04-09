@@ -4,6 +4,7 @@ use crate::types::files::input_file::InputFile;
 
 /// Payload for a story photo.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct InputStoryContentPhotoData {
     /// The photo to post as a story.
     /// Must be 1080x1920 px and no larger than 10 MB.
@@ -12,6 +13,7 @@ pub struct InputStoryContentPhotoData {
 
 /// Payload for a story video.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct InputStoryContentVideoData {
     /// The video to post as a story.
     /// Must be 720x1280 px, streamable, H.265-encoded MPEG4, and no larger than 30 MB.
@@ -33,6 +35,7 @@ pub struct InputStoryContentVideoData {
 /// The content of a story to post — either a photo or a video.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
+#[non_exhaustive]
 pub enum InputStoryContent {
     /// A photo story.
     Photo(InputStoryContentPhotoData),

@@ -4,6 +4,7 @@ use super::user::User;
 
 /// A topic for direct messages in a chat.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct DirectMessagesTopic {
     /// Unique identifier of the topic.
     pub topic_id: i64,

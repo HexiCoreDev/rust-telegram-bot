@@ -6,6 +6,7 @@ use super::order_info::OrderInfo;
 
 /// Information about an incoming pre-checkout query.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct PreCheckoutQuery {
     /// Unique query identifier.
     pub id: String,

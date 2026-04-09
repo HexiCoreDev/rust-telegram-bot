@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 
 /// Describes an inline message to be sent by a user of a Mini App.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
+#[non_exhaustive]
 pub struct PreparedInlineMessage {
     /// Unique identifier of the prepared message.
     pub id: String,

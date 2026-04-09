@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 ///
 /// Corresponds to the Bot API [`PreparedKeyboardButton`](https://core.telegram.org/bots/api#preparedkeyboardbutton) object.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct PreparedKeyboardButton {
     /// Unique identifier of the keyboard button.
     pub id: String,

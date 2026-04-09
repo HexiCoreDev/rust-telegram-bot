@@ -7,6 +7,7 @@ use super::user::User;
 
 /// Rights of a business bot.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct BusinessBotRights {
     /// True if the bot can send and edit messages in private chats with incoming messages
     /// in the last 24 hours.
@@ -68,6 +69,7 @@ pub struct BusinessBotRights {
 
 /// Connection of a bot with a business account.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct BusinessConnection {
     /// Unique identifier of the business connection.
     pub id: String,
@@ -91,6 +93,7 @@ pub struct BusinessConnection {
 
 /// Service message received when messages are deleted from a connected business account.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct BusinessMessagesDeleted {
     /// Unique identifier of the business connection.
     pub business_connection_id: String,
@@ -104,6 +107,7 @@ pub struct BusinessMessagesDeleted {
 
 /// Start page settings of a Telegram Business account.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct BusinessIntro {
     /// Title text of the business intro.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -120,6 +124,7 @@ pub struct BusinessIntro {
 
 /// Location information of a Telegram Business account.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct BusinessLocation {
     /// Address of the business.
     pub address: String,
@@ -133,6 +138,7 @@ pub struct BusinessLocation {
 ///
 /// Minutes are counted from the start of the week (Monday = 0).
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct BusinessOpeningHoursInterval {
     /// Minute of the week marking the opening time; 0 – 7×24×60.
     pub opening_minute: i64,
@@ -143,6 +149,7 @@ pub struct BusinessOpeningHoursInterval {
 
 /// Opening hours of a business.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct BusinessOpeningHours {
     /// IANA timezone name for which the opening hours are defined.
     pub time_zone_name: String,

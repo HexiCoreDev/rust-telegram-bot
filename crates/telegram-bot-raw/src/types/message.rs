@@ -71,6 +71,7 @@ use super::write_access_allowed::WriteAccessAllowed;
 ///
 /// Corresponds to the Bot API [`Message`](https://core.telegram.org/bots/api#message) object.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct Message {
     // ── Required fields ───────────────────────────────────────────────────────
     /// Unique message identifier inside this chat.
@@ -574,6 +575,7 @@ pub struct Message {
 /// Corresponds to the Bot API
 /// [`InaccessibleMessage`](https://core.telegram.org/bots/api#inaccessiblemessage) object.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct InaccessibleMessage {
     /// Chat the message belonged to.
     pub chat: Chat,
@@ -597,6 +599,7 @@ pub struct InaccessibleMessage {
 /// [`MaybeInaccessibleMessage`](https://core.telegram.org/bots/api#maybeinaccessiblemessage) type.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(untagged)]
+#[non_exhaustive]
 pub enum MaybeInaccessibleMessage {
     /// A regular, accessible message (`date != 0`).
     Message(Box<Message>),

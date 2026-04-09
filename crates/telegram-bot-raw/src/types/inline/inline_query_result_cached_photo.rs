@@ -6,6 +6,7 @@ use crate::types::message_entity::MessageEntity;
 
 /// Represents a link to a photo stored on the Telegram servers.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
+#[non_exhaustive]
 pub struct InlineQueryResultCachedPhoto {
     /// Unique identifier for this result, 1-64 bytes.
     pub id: String,

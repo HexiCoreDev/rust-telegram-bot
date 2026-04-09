@@ -5,6 +5,7 @@ use super::input_message_content::InputMessageContent;
 
 /// Represents a link to an article or web page.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct InlineQueryResultArticle {
     /// Type of the result, must be `"article"`.
     #[serde(rename = "type")]

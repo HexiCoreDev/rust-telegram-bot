@@ -4,6 +4,7 @@ use crate::types::payment::labeled_price::LabeledPrice;
 
 /// Represents the content of an invoice message to be sent as the result of an inline query.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
+#[non_exhaustive]
 pub struct InputInvoiceMessageContent {
     /// Product name, 1-32 characters.
     pub title: String,

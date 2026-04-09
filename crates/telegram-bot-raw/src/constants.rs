@@ -268,6 +268,7 @@ use std::fmt;
 /// Available types of `BackgroundType`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
+#[non_exhaustive]
 pub enum BackgroundTypeType {
     Fill,
     Wallpaper,
@@ -278,6 +279,7 @@ pub enum BackgroundTypeType {
 /// Available types of `BackgroundFill`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
+#[non_exhaustive]
 pub enum BackgroundFillType {
     Solid,
     Gradient,
@@ -287,6 +289,7 @@ pub enum BackgroundFillType {
 /// Available types of `BotCommandScope`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
+#[non_exhaustive]
 pub enum BotCommandScopeType {
     Default,
     AllPrivateChats,
@@ -300,6 +303,7 @@ pub enum BotCommandScopeType {
 /// Available chat actions for `Bot::send_chat_action`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
+#[non_exhaustive]
 pub enum ChatAction {
     ChooseSticker,
     FindLocation,
@@ -317,6 +321,7 @@ pub enum ChatAction {
 /// Available sources for a `ChatBoostSource`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
+#[non_exhaustive]
 pub enum ChatBoostSources {
     GiftCode,
     Giveaway,
@@ -325,6 +330,7 @@ pub enum ChatBoostSources {
 
 /// Available states for `ChatMember`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[non_exhaustive]
 pub enum ChatMemberStatus {
     #[serde(rename = "administrator")]
     Administrator,
@@ -343,6 +349,7 @@ pub enum ChatMemberStatus {
 /// Available types of `Chat`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
+#[non_exhaustive]
 pub enum ChatType {
     Sender,
     Private,
@@ -353,6 +360,7 @@ pub enum ChatType {
 
 /// Available emoji for `Dice` / `Bot::send_dice`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[non_exhaustive]
 pub enum DiceEmoji {
     #[serde(rename = "\u{1F3B2}")]
     Dice,
@@ -370,6 +378,7 @@ pub enum DiceEmoji {
 
 /// Available types of `InlineQueryResult`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[non_exhaustive]
 pub enum InlineQueryResultType {
     #[serde(rename = "audio")]
     Audio,
@@ -402,6 +411,7 @@ pub enum InlineQueryResultType {
 /// Available types of `InputMedia`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
+#[non_exhaustive]
 pub enum InputMediaType {
     Animation,
     Document,
@@ -413,6 +423,7 @@ pub enum InputMediaType {
 /// Available types of `InputPaidMedia`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
+#[non_exhaustive]
 pub enum InputPaidMediaType {
     Photo,
     Video,
@@ -421,6 +432,7 @@ pub enum InputPaidMediaType {
 /// Available types of `InputProfilePhoto`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
+#[non_exhaustive]
 pub enum InputProfilePhotoType {
     Static,
     Animated,
@@ -429,6 +441,7 @@ pub enum InputProfilePhotoType {
 /// Available types of `InputStoryContent`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
+#[non_exhaustive]
 pub enum InputStoryContentType {
     Photo,
     Video,
@@ -437,6 +450,7 @@ pub enum InputStoryContentType {
 /// Available button styles for `InlineKeyboardButton` and `KeyboardButton`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
+#[non_exhaustive]
 pub enum KeyboardButtonStyle {
     Primary,
     Success,
@@ -446,6 +460,7 @@ pub enum KeyboardButtonStyle {
 /// Available positions for `MaskPosition`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
+#[non_exhaustive]
 pub enum MaskPositionPoint {
     Forehead,
     Eyes,
@@ -455,6 +470,7 @@ pub enum MaskPositionPoint {
 
 /// Available types of `MenuButton`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[non_exhaustive]
 pub enum MenuButtonType {
     #[serde(rename = "commands")]
     Commands,
@@ -467,6 +483,7 @@ pub enum MenuButtonType {
 /// Available types of `Message` that can be seen as attachment.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
+#[non_exhaustive]
 pub enum MessageAttachmentType {
     Animation,
     Audio,
@@ -492,6 +509,7 @@ pub enum MessageAttachmentType {
 /// Available types of `MessageEntity`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
+#[non_exhaustive]
 pub enum MessageEntityType {
     Blockquote,
     Bold,
@@ -517,6 +535,7 @@ pub enum MessageEntityType {
 
 /// All possible formats for `MessageEntity.date_time_format`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[non_exhaustive]
 pub enum MessageEntityDateTimeFormats {
     #[serde(rename = "r")]
     Relative,
@@ -559,6 +578,7 @@ pub enum MessageEntityDateTimeFormats {
 /// Available types of `MessageOrigin`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
+#[non_exhaustive]
 pub enum MessageOriginType {
     User,
     HiddenUser,
@@ -569,6 +589,7 @@ pub enum MessageOriginType {
 /// Available types of `Message`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
+#[non_exhaustive]
 pub enum MessageType {
     Animation,
     Audio,
@@ -650,6 +671,7 @@ pub enum MessageType {
 /// Available types of `OwnedGift`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
+#[non_exhaustive]
 pub enum OwnedGiftType {
     Regular,
     Unique,
@@ -658,6 +680,7 @@ pub enum OwnedGiftType {
 /// Available types of `PaidMedia`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
+#[non_exhaustive]
 pub enum PaidMediaType {
     Preview,
     Video,
@@ -666,6 +689,7 @@ pub enum PaidMediaType {
 
 /// Available parse modes.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[non_exhaustive]
 pub enum ParseMode {
     #[serde(rename = "HTML")]
     Html,
@@ -678,6 +702,7 @@ pub enum ParseMode {
 /// Available types for `Poll`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
+#[non_exhaustive]
 pub enum PollType {
     Regular,
     Quiz,
@@ -686,6 +711,7 @@ pub enum PollType {
 /// Available types of `ReactionType`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
+#[non_exhaustive]
 pub enum ReactionType {
     Emoji,
     CustomEmoji,
@@ -695,6 +721,7 @@ pub enum ReactionType {
 /// Available types of `RevenueWithdrawalState`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
+#[non_exhaustive]
 pub enum RevenueWithdrawalStateType {
     Pending,
     Succeeded,
@@ -704,6 +731,7 @@ pub enum RevenueWithdrawalStateType {
 /// Available formats of `Sticker` in the set.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
+#[non_exhaustive]
 pub enum StickerFormat {
     Static,
     Animated,
@@ -713,6 +741,7 @@ pub enum StickerFormat {
 /// Available types of `Sticker`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
+#[non_exhaustive]
 pub enum StickerType {
     Regular,
     Mask,
@@ -722,6 +751,7 @@ pub enum StickerType {
 /// Available types of `StoryAreaType`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
+#[non_exhaustive]
 pub enum StoryAreaTypeType {
     Location,
     SuggestedReaction,
@@ -733,6 +763,7 @@ pub enum StoryAreaTypeType {
 /// Available states of `SuggestedPostInfo.state`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
+#[non_exhaustive]
 pub enum SuggestedPostInfoState {
     Pending,
     Approved,
@@ -742,6 +773,7 @@ pub enum SuggestedPostInfoState {
 /// Available refund reasons for `SuggestedPostRefunded`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
+#[non_exhaustive]
 pub enum SuggestedPostRefunded {
     PostDeleted,
     PaymentRefunded,
@@ -750,6 +782,7 @@ pub enum SuggestedPostRefunded {
 /// Available types of `TransactionPartner`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
+#[non_exhaustive]
 pub enum TransactionPartnerType {
     AffiliateProgram,
     Chat,
@@ -763,6 +796,7 @@ pub enum TransactionPartnerType {
 /// Constants for `TransactionPartnerUser.transaction_type`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
+#[non_exhaustive]
 pub enum TransactionPartnerUser {
     InvoicePayment,
     PaidMediaPayment,
@@ -773,6 +807,7 @@ pub enum TransactionPartnerUser {
 
 /// Available origins for `UniqueGiftInfo`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[non_exhaustive]
 pub enum UniqueGiftInfoOrigin {
     #[serde(rename = "gifted_upgrade")]
     GiftedUpgrade,
@@ -789,6 +824,7 @@ pub enum UniqueGiftInfoOrigin {
 /// Available rarities for `UniqueGiftModel`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
+#[non_exhaustive]
 pub enum UniqueGiftModelRarity {
     Uncommon,
     Rare,
@@ -799,6 +835,7 @@ pub enum UniqueGiftModelRarity {
 /// Available types of `Update`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
+#[non_exhaustive]
 pub enum UpdateType {
     Message,
     EditedMessage,
@@ -827,6 +864,7 @@ pub enum UpdateType {
 
 /// Available emojis of `ReactionTypeEmoji`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[non_exhaustive]
 pub enum ReactionEmoji {
     #[serde(rename = "\u{1F44D}")]
     ThumbsUp,

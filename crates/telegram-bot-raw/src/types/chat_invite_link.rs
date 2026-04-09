@@ -4,6 +4,7 @@ use super::user::User;
 
 /// Represents an invite link for a chat.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct ChatInviteLink {
     /// The invite link.
     pub invite_link: String,

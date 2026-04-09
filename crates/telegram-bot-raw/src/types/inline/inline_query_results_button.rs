@@ -6,6 +6,7 @@ use crate::types::web_app_info::WebAppInfo;
 ///
 /// You must use exactly one of the optional fields.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
+#[non_exhaustive]
 pub struct InlineQueryResultsButton {
     /// Label text on the button.
     pub text: String,

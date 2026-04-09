@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 /// This is sent when the user adds the bot to an attachment menu, launches a Web App
 /// from a link, or accepts an explicit `requestWriteAccess` call from a Web App.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct WriteAccessAllowed {
     /// Name of the Web App if access was granted by launching it from a link.
     #[serde(skip_serializing_if = "Option::is_none")]

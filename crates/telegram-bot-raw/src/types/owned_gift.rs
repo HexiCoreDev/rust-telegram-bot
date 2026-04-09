@@ -11,6 +11,7 @@ use super::user::User;
 
 /// A regular gift owned by a user or a chat.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct OwnedGiftRegular {
     /// Information about the regular gift.
     pub gift: Gift,
@@ -73,6 +74,7 @@ pub struct OwnedGiftRegular {
 
 /// A unique gift owned by a user or a chat.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct OwnedGiftUnique {
     /// Information about the unique gift.
     pub gift: UniqueGift,
@@ -114,6 +116,7 @@ pub struct OwnedGiftUnique {
 /// Discriminated by the `"type"` JSON field.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
+#[non_exhaustive]
 pub enum OwnedGift {
     /// A regular gift.
     Regular(Box<OwnedGiftRegular>),
@@ -128,6 +131,7 @@ pub enum OwnedGift {
 
 /// List of gifts received and owned by a user or a chat.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct OwnedGifts {
     /// Total number of gifts owned.
     pub total_count: i64,

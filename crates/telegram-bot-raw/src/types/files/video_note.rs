@@ -6,6 +6,7 @@ use crate::types::files::photo_size::PhotoSize;
 
 /// A video message (available in Telegram apps as of v4.0).
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct VideoNote {
     /// Telegram file identifier.
     pub file_id: String,

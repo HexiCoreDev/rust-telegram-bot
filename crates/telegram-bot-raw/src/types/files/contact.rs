@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 
 /// A phone contact shared in a message.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
+#[non_exhaustive]
 pub struct Contact {
     /// Contact's phone number.
     pub phone_number: String,

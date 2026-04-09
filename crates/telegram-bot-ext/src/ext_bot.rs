@@ -7,7 +7,9 @@
 //! * [`Defaults`](crate::defaults::Defaults) injection into API calls
 //! * [`CallbackDataCache`](crate::callback_data_cache::CallbackDataCache) for arbitrary
 //!   callback data
-//! * A `rate_limiter` slot (placeholder -- the actual trait lives in `rate_limiter.rs`)
+//! * A [`DynRateLimiter`](crate::rate_limiter::DynRateLimiter) that intercepts all HTTP
+//!   requests through a [`RateLimitedRequest`](crate::rate_limiter::RateLimitedRequest)
+//!   wrapper.
 //!
 //! # Construction
 //!
@@ -22,8 +24,16 @@
 //! let ext = ExtBot::builder("token", request)
 //!     .defaults(defaults)
 //!     .arbitrary_callback_data(512)
+//!     .rate_limiter(Arc::new(AioRateLimiter::default_limits()))
 //!     .build();
 //! ```
+//!
+//! # Rate limiting
+//!
+//! When a rate limiter is provided, the builder wraps the HTTP request backend
+//! in a [`RateLimitedRequest`](crate::rate_limiter::RateLimitedRequest), so
+//! **all** API calls flow through the limiter transparently.  No changes to
+//! handler code are needed.
 //!
 //! # `Deref` to `Bot`
 //!
@@ -45,6 +55,9 @@ use rust_tg_bot_raw::request::base::BaseRequest;
 use crate::callback_data_cache::CallbackDataCache;
 use crate::defaults::Defaults;
 
+#[cfg(feature = "rate-limiter")]
+use crate::rate_limiter::{DynRateLimiter, RateLimitedRequest};
+
 /// Extended bot that adds defaults, arbitrary callback data, and a rate-limiter slot on top
 /// of the raw [`Bot`].
 ///
@@ -61,8 +74,9 @@ use crate::defaults::Defaults;
 ///
 /// # Rate limiter
 ///
-/// The `rate_limiter` field is an `Option<()>` placeholder.  The actual rate-limiter trait
-/// and implementations live in [`crate::rate_limiter`] and will be wired by a separate agent.
+/// When a rate limiter is set, the inner `Bot`'s HTTP request backend is wrapped in a
+/// [`RateLimitedRequest`](crate::rate_limiter::RateLimitedRequest) so that all API calls
+/// are throttled transparently at the transport layer.
 pub struct ExtBot {
     /// The underlying raw bot.
     bot: Bot,
@@ -73,7 +87,13 @@ pub struct ExtBot {
     /// Cache for arbitrary inline keyboard callback data.
     callback_data_cache: Option<Arc<RwLock<CallbackDataCache>>>,
 
-    /// Placeholder for the rate-limiter.  The actual trait is in `rate_limiter.rs`.
+    /// The rate limiter, if any.  Stored here for introspection; the actual
+    /// throttling is done by the `RateLimitedRequest` wrapper inside `bot`.
+    #[cfg(feature = "rate-limiter")]
+    rate_limiter: Option<Arc<dyn DynRateLimiter>>,
+
+    /// Placeholder when the rate-limiter feature is disabled.
+    #[cfg(not(feature = "rate-limiter"))]
     rate_limiter: Option<()>,
 }
 
@@ -98,7 +118,7 @@ impl std::fmt::Debug for ExtBot {
                 "has_callback_data_cache",
                 &self.callback_data_cache.is_some(),
             )
-            .field("rate_limiter", &self.rate_limiter)
+            .field("has_rate_limiter", &self.rate_limiter.is_some())
             .finish()
     }
 }
@@ -112,9 +132,33 @@ impl ExtBot {
     /// * `defaults` - Optional user-defined defaults for API calls.
     /// * `arbitrary_callback_data` - Pass `Some(maxsize)` to enable the callback data cache,
     ///   or `None` to disable it.  `Some(0)` uses the default maxsize of 1024.
-    /// * `rate_limiter` - Placeholder.
+    /// * `rate_limiter` - An optional rate limiter.  When `Some`, the bot's request backend
+    ///   is wrapped in a `RateLimitedRequest` so all API calls are throttled.
     ///
     /// Prefer [`ExtBot::builder`] or [`ExtBot::from_bot`] for public construction.
+    #[cfg(feature = "rate-limiter")]
+    #[must_use]
+    pub(crate) fn new(
+        bot: Bot,
+        defaults: Option<Defaults>,
+        arbitrary_callback_data: Option<usize>,
+        rate_limiter: Option<Arc<dyn DynRateLimiter>>,
+    ) -> Self {
+        let callback_data_cache = arbitrary_callback_data.map(|maxsize| {
+            let effective = if maxsize == 0 { 1024 } else { maxsize };
+            Arc::new(RwLock::new(CallbackDataCache::new(effective)))
+        });
+
+        Self {
+            bot,
+            defaults,
+            callback_data_cache,
+            rate_limiter,
+        }
+    }
+
+    /// Creates a new `ExtBot` (no rate-limiter feature).
+    #[cfg(not(feature = "rate-limiter"))]
     #[must_use]
     pub(crate) fn new(
         bot: Bot,
@@ -185,7 +229,21 @@ impl ExtBot {
         self.callback_data_cache.is_some()
     }
 
-    /// Returns the rate-limiter placeholder.
+    /// Returns `true` if a rate limiter is configured.
+    #[must_use]
+    pub fn has_rate_limiter(&self) -> bool {
+        self.rate_limiter.is_some()
+    }
+
+    /// Returns a reference to the rate limiter, if set.
+    #[cfg(feature = "rate-limiter")]
+    #[must_use]
+    pub fn rate_limiter(&self) -> Option<&Arc<dyn DynRateLimiter>> {
+        self.rate_limiter.as_ref()
+    }
+
+    /// Returns the rate-limiter placeholder (always `None` when feature is disabled).
+    #[cfg(not(feature = "rate-limiter"))]
     #[must_use]
     pub fn rate_limiter(&self) -> Option<()> {
         self.rate_limiter
@@ -199,13 +257,23 @@ impl ExtBot {
 
     /// Initializes the bot.
     ///
-    /// Currently a no-op.  If a rate-limiter is present it would be initialized here.
+    /// If a rate limiter is present, it is initialized here.
     pub async fn initialize(&self) -> rust_tg_bot_raw::error::Result<()> {
+        #[cfg(feature = "rate-limiter")]
+        if let Some(ref rl) = self.rate_limiter {
+            rl.initialize().await;
+        }
         Ok(())
     }
 
     /// Shuts down the bot.
+    ///
+    /// If a rate limiter is present, it is shut down here.
     pub async fn shutdown(&self) -> rust_tg_bot_raw::error::Result<()> {
+        #[cfg(feature = "rate-limiter")]
+        if let Some(ref rl) = self.rate_limiter {
+            rl.shutdown().await;
+        }
         Ok(())
     }
 }
@@ -222,6 +290,7 @@ impl ExtBot {
 /// let ext = ExtBot::builder("my_token", request)
 ///     .defaults(defaults)
 ///     .arbitrary_callback_data(256)
+///     .rate_limiter(Arc::new(AioRateLimiter::default_limits()))
 ///     .build();
 /// ```
 pub struct ExtBotBuilder {
@@ -231,6 +300,9 @@ pub struct ExtBotBuilder {
     base_file_url: Option<String>,
     defaults: Option<Defaults>,
     arbitrary_callback_data: Option<usize>,
+    #[cfg(feature = "rate-limiter")]
+    rate_limiter: Option<Arc<dyn DynRateLimiter>>,
+    #[cfg(not(feature = "rate-limiter"))]
     rate_limiter: Option<()>,
 }
 
@@ -279,23 +351,51 @@ impl ExtBotBuilder {
         self
     }
 
-    /// Sets the rate-limiter placeholder.
+    /// Sets the rate limiter.
+    ///
+    /// When set, the builder wraps the request backend in a
+    /// [`RateLimitedRequest`](crate::rate_limiter::RateLimitedRequest) so all
+    /// API calls are throttled transparently.
+    #[cfg(feature = "rate-limiter")]
     #[must_use]
-    pub fn rate_limiter(mut self, rl: ()) -> Self {
+    pub fn rate_limiter(mut self, rl: Arc<dyn DynRateLimiter>) -> Self {
         self.rate_limiter = Some(rl);
         self
     }
 
+    /// Sets the rate-limiter placeholder (feature disabled).
+    #[cfg(not(feature = "rate-limiter"))]
+    #[must_use]
+    pub fn rate_limiter(mut self, _rl: ()) -> Self {
+        self.rate_limiter = Some(());
+        self
+    }
+
     /// Builds the [`ExtBot`].
+    ///
+    /// If a rate limiter was provided, the HTTP request backend is wrapped in a
+    /// `RateLimitedRequest` before being passed to the inner `Bot`.
     #[must_use]
     pub fn build(self) -> ExtBot {
-        let bot = Bot::new(&self.token, self.request);
+        #[cfg(feature = "rate-limiter")]
+        let (request, rate_limiter) = if let Some(ref rl) = self.rate_limiter {
+            let wrapped: Arc<dyn BaseRequest> =
+                Arc::new(RateLimitedRequest::new(self.request.clone(), rl.clone()));
+            (wrapped, self.rate_limiter)
+        } else {
+            (self.request, None)
+        };
+
+        #[cfg(not(feature = "rate-limiter"))]
+        let (request, rate_limiter) = (self.request, self.rate_limiter);
+
+        let bot = Bot::new(&self.token, request);
 
         ExtBot::new(
             bot,
             self.defaults,
             self.arbitrary_callback_data,
-            self.rate_limiter,
+            rate_limiter,
         )
     }
 }
@@ -304,6 +404,7 @@ impl std::fmt::Debug for ExtBotBuilder {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("ExtBotBuilder")
             .field("token", &"[REDACTED]")
+            .field("has_rate_limiter", &self.rate_limiter.is_some())
             .finish()
     }
 }
@@ -381,7 +482,7 @@ mod tests {
         assert_eq!(ext.token(), "test_token");
         assert!(ext.defaults().is_none());
         assert!(!ext.has_callback_data_cache());
-        assert!(ext.rate_limiter().is_none());
+        assert!(!ext.has_rate_limiter());
     }
 
     #[test]
@@ -435,7 +536,7 @@ mod tests {
         assert_eq!(ext.token(), "tk");
         assert!(ext.defaults().is_none());
         assert!(!ext.has_callback_data_cache());
-        assert!(ext.rate_limiter().is_none());
+        assert!(!ext.has_rate_limiter());
     }
 
     #[test]
@@ -447,5 +548,43 @@ mod tests {
         let deref_token: &str = (*ext).token();
         assert_eq!(deref_token, "deref_token");
         assert_eq!(ext.token(), deref_token);
+    }
+
+    #[cfg(feature = "rate-limiter")]
+    #[test]
+    fn ext_bot_builder_with_rate_limiter() {
+        use crate::rate_limiter::NoRateLimiter;
+
+        let limiter: Arc<dyn DynRateLimiter> = Arc::new(NoRateLimiter);
+        let ext = ExtBot::builder("rl_token", mock_request())
+            .rate_limiter(limiter)
+            .build();
+
+        assert_eq!(ext.token(), "rl_token");
+        assert!(ext.has_rate_limiter());
+        assert!(ext.rate_limiter().is_some());
+    }
+
+    #[cfg(feature = "rate-limiter")]
+    #[test]
+    fn ext_bot_builder_without_rate_limiter() {
+        let ext = ExtBot::builder("no_rl", mock_request()).build();
+
+        assert!(!ext.has_rate_limiter());
+        assert!(ext.rate_limiter().is_none());
+    }
+
+    #[cfg(feature = "rate-limiter")]
+    #[tokio::test]
+    async fn ext_bot_lifecycle_with_rate_limiter() {
+        use crate::rate_limiter::NoRateLimiter;
+
+        let limiter: Arc<dyn DynRateLimiter> = Arc::new(NoRateLimiter);
+        let ext = ExtBot::builder("rl_lc", mock_request())
+            .rate_limiter(limiter)
+            .build();
+
+        assert!(ext.initialize().await.is_ok());
+        assert!(ext.shutdown().await.is_ok());
     }
 }

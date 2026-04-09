@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 
 /// A point on the map.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
+#[non_exhaustive]
 pub struct Location {
     /// Longitude as defined by the sender.
     pub longitude: f64,

@@ -7,6 +7,7 @@ use super::user::User;
 
 /// Represents changes in the status of a chat member.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct ChatMemberUpdated {
     /// Chat the user belongs to.
     pub chat: Chat,

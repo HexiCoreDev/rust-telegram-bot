@@ -5,6 +5,7 @@ use super::keyboard_button::KeyboardButton;
 /// Custom keyboard with reply options. Not supported in channels and for messages sent on behalf
 /// of a Telegram Business account.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
+#[non_exhaustive]
 pub struct ReplyKeyboardMarkup {
     /// Array of button rows, each represented by an array of `KeyboardButton` objects.
     pub keyboard: Vec<Vec<KeyboardButton>>,

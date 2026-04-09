@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 
 /// Represents the content of a location message to be sent as the result of an inline query.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
+#[non_exhaustive]
 pub struct InputLocationMessageContent {
     /// Latitude of the location in degrees.
     pub latitude: f64,

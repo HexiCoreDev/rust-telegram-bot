@@ -9,6 +9,7 @@ use super::message::Message;
 
 /// An amount of Telegram Stars.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct StarAmount {
     /// Integer amount of Telegram Stars, rounded to 0 decimal places.
     pub amount: i64,
@@ -24,6 +25,7 @@ pub struct StarAmount {
 
 /// Price of a suggested post.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct SuggestedPostPrice {
     /// Currency: `"XTR"` for Telegram Stars or `"TON"` for toncoins.
     pub currency: String,
@@ -38,6 +40,7 @@ pub struct SuggestedPostPrice {
 
 /// Parameters of a post being suggested by the bot.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct SuggestedPostParameters {
     /// Proposed price; absent if the post is unpaid.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -54,6 +57,7 @@ pub struct SuggestedPostParameters {
 
 /// Information about a suggested post.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct SuggestedPostInfo {
     /// State: `"pending"`, `"approved"`, or `"declined"`.
     pub state: String,
@@ -73,6 +77,7 @@ pub struct SuggestedPostInfo {
 
 /// Service message about the rejection of a suggested post.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct SuggestedPostDeclined {
     /// Message containing the suggested post.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -89,6 +94,7 @@ pub struct SuggestedPostDeclined {
 
 /// Service message about a successful payment for a suggested post.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct SuggestedPostPaid {
     /// Currency: `"XTR"` for Telegram Stars or `"TON"` for toncoins.
     pub currency: String,
@@ -112,6 +118,7 @@ pub struct SuggestedPostPaid {
 
 /// Service message about a payment refund for a suggested post.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct SuggestedPostRefunded {
     /// Reason for the refund (`"post_deleted"` or `"payment_refunded"`).
     pub reason: String,
@@ -127,6 +134,7 @@ pub struct SuggestedPostRefunded {
 
 /// Service message about the approval of a suggested post.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct SuggestedPostApproved {
     /// Unix timestamp when the post will be published.
     pub send_date: i64,
@@ -146,6 +154,7 @@ pub struct SuggestedPostApproved {
 
 /// Service message about a failed approval of a suggested post.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct SuggestedPostApprovalFailed {
     /// Expected price of the post.
     pub price: SuggestedPostPrice,

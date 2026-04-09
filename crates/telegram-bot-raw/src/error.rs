@@ -2,6 +2,7 @@ use std::time::Duration;
 
 /// Base error type for all Telegram Bot API errors.
 #[derive(Debug, thiserror::Error)]
+#[non_exhaustive]
 pub enum TelegramError {
     /// The bot doesn't have enough rights to perform the requested action.
     #[error("{0}")]

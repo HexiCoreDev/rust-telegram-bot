@@ -9,6 +9,7 @@ use crate::types::message_entity::MessageEntity;
 /// Use [BotFather](https://t.me/BotFather) to create and edit games; their short names act as
 /// unique identifiers.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct Game {
     /// Title of the game.
     pub title: String,

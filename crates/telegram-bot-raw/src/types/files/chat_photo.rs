@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 
 /// A chat photo containing references to both the small and big variants.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct ChatPhoto {
     /// File identifier of the small (160×160) chat photo.
     /// Valid only for photo download and only as long as the photo is not changed.

@@ -4,6 +4,7 @@ use super::order_info::OrderInfo;
 
 /// Basic information about a successful payment.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct SuccessfulPayment {
     /// Three-letter ISO 4217 currency code, or `XTR` for payments in Telegram Stars.
     pub currency: String,

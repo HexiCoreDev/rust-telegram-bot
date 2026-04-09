@@ -4,6 +4,7 @@ use super::shipping_address::ShippingAddress;
 
 /// Information about an order provided by the user.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct OrderInfo {
     /// User name.
     #[serde(skip_serializing_if = "Option::is_none")]

@@ -11,6 +11,7 @@ use super::user::User;
 
 /// A task in a checklist.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct ChecklistTask {
     /// Unique identifier of the task.
     pub id: i64,
@@ -43,6 +44,7 @@ pub struct ChecklistTask {
 
 /// A checklist.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct Checklist {
     /// Title of the checklist.
     pub title: String,
@@ -69,6 +71,7 @@ pub struct Checklist {
 
 /// Service message about checklist tasks marked as done or not done.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct ChecklistTasksDone {
     /// Message containing the checklist whose tasks were updated.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -89,6 +92,7 @@ pub struct ChecklistTasksDone {
 
 /// Service message about tasks added to a checklist.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct ChecklistTasksAdded {
     /// Message containing the checklist to which tasks were added.
     #[serde(skip_serializing_if = "Option::is_none")]

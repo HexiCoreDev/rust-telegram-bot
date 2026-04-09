@@ -300,9 +300,9 @@ impl CallbackDataCache {
 
         self.keyboard_data.insert(keyboard_uuid, kbd_data);
 
-        InlineKeyboardMarkup {
-            inline_keyboard: new_rows,
-        }
+        InlineKeyboardMarkup::new(
+            new_rows
+        )
     }
 
     /// Extracts keyboard uuid and button uuid from a raw callback data string.

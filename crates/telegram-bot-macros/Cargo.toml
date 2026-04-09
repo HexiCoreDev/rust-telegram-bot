@@ -1,0 +1,20 @@
+[package]
+name = "rust-tg-bot-macros"
+description = "Procedural macros for the rust-tg-bot Telegram framework"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+authors = ["Jude Etuka <judechinedu122@gmail.com>"]
+keywords = ["telegram", "bot", "macros", "derive"]
+categories = ["api-bindings"]
+
+[lib]
+proc-macro = true
+
+[dependencies]
+syn = { version = "2", features = ["full", "extra-traits"] }
+quote = "1"
+proc-macro2 = "1"
+heck = "0.5"

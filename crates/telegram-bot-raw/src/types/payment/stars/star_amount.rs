@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 
 /// An amount of Telegram Stars.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct StarAmount {
     /// Integer amount of Telegram Stars, rounded to 0; can be negative.
     pub amount: i64,

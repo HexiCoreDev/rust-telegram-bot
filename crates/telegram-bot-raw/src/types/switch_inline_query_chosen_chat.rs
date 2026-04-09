@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 ///
 /// At least one of the `allow_*` fields must be `true`.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
+#[non_exhaustive]
 pub struct SwitchInlineQueryChosenChat {
     /// Default inline query inserted into the input field; empty string means bot username only.
     #[serde(skip_serializing_if = "Option::is_none")]

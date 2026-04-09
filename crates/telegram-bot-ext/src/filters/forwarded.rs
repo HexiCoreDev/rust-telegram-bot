@@ -89,7 +89,7 @@ fn origin_id_username(origin: &MessageOrigin) -> (Option<i64>, Option<&str>) {
             data.sender_chat.username.as_deref(),
         ),
         MessageOrigin::Channel(data) => (Some(data.chat.id), data.chat.username.as_deref()),
-        MessageOrigin::HiddenUser(_) => (None, None),
+        MessageOrigin::HiddenUser(_) | _ => (None, None),
     }
 }
 

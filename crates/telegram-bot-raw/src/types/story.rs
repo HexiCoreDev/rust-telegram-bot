@@ -4,6 +4,7 @@ use super::chat::Chat;
 
 /// A Telegram story.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct Story {
     /// Chat that posted the story.
     pub chat: Chat,

@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 
 /// Personal details as stored in a Telegram Passport document.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct PersonalDetails {
     /// First name.
     pub first_name: String,
@@ -40,6 +41,7 @@ pub struct PersonalDetails {
 
 /// Residential address as stored in a Telegram Passport document.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct ResidentialAddress {
     /// First line of the address.
     pub street_line1: String,
@@ -64,6 +66,7 @@ pub struct ResidentialAddress {
 
 /// Data of an identity document (passport, driver license, identity card).
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct IdDocumentData {
     /// Document number.
     pub document_no: String,

@@ -4,6 +4,7 @@ use crate::types::files::location::Location;
 
 /// A venue — a named place with an address and optional third-party IDs.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct Venue {
     /// Geographic coordinates of the venue.
     pub location: Location,

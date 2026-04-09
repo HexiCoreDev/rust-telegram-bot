@@ -4,6 +4,7 @@ use crate::types::files::base_medium::BaseMedium;
 
 /// A video file of a specific quality, associated with a `Video` message.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct VideoQuality {
     /// Telegram file identifier.
     pub file_id: String,

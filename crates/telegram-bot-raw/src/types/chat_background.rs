@@ -8,6 +8,7 @@ use super::files::document::Document;
 
 /// The background is filled using a single color.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct BackgroundFillSolid {
     /// The color of the background fill in the RGB24 format.
     pub color: i64,
@@ -15,6 +16,7 @@ pub struct BackgroundFillSolid {
 
 /// The background is a gradient fill.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct BackgroundFillGradient {
     /// Top color of the gradient in the RGB24 format.
     pub top_color: i64,
@@ -26,6 +28,7 @@ pub struct BackgroundFillGradient {
 
 /// The background is a freeform gradient that rotates after every message in the chat.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct BackgroundFillFreeformGradient {
     /// A list of the 3 or 4 base colors that are used to generate the freeform gradient
     /// in the RGB24 format.
@@ -35,6 +38,7 @@ pub struct BackgroundFillFreeformGradient {
 /// The background fill of a chat. Discriminated by the `"type"` field.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
+#[non_exhaustive]
 pub enum BackgroundFill {
     Solid(BackgroundFillSolid),
     Gradient(BackgroundFillGradient),
@@ -47,6 +51,7 @@ pub enum BackgroundFill {
 
 /// The background is automatically filled based on the selected colors.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct BackgroundTypeFill {
     /// The background fill.
     pub fill: BackgroundFill,
@@ -56,6 +61,7 @@ pub struct BackgroundTypeFill {
 
 /// The background is a wallpaper in JPEG format.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct BackgroundTypeWallpaper {
     /// Document with the wallpaper.
     pub document: Document,
@@ -72,6 +78,7 @@ pub struct BackgroundTypeWallpaper {
 
 /// The background is a PNG or TGV pattern combined with a fill chosen by the user.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct BackgroundTypePattern {
     /// Document with the pattern.
     pub document: Document,
@@ -90,6 +97,7 @@ pub struct BackgroundTypePattern {
 
 /// The background is taken directly from a built-in chat theme.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct BackgroundTypeChatTheme {
     /// Name of the chat theme, which is usually an emoji.
     pub theme_name: String,
@@ -98,6 +106,7 @@ pub struct BackgroundTypeChatTheme {
 /// The type of background applied to a chat. Discriminated by the `"type"` field.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
+#[non_exhaustive]
 pub enum BackgroundType {
     Fill(BackgroundTypeFill),
     Wallpaper(BackgroundTypeWallpaper),
@@ -111,6 +120,7 @@ pub enum BackgroundType {
 
 /// Represents a chat background.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct ChatBackground {
     /// Type of the background.
     #[serde(rename = "type")]

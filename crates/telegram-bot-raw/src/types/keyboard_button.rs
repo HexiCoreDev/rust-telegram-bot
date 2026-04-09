@@ -11,6 +11,7 @@ use super::web_app_info::WebAppInfo;
 /// For simple text buttons `text` is the only field needed; the other optional
 /// fields are mutually exclusive and enable richer interactions.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
+#[non_exhaustive]
 pub struct KeyboardButton {
     /// Label text shown on the button.
     pub text: String,

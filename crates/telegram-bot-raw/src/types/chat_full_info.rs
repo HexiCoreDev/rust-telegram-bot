@@ -24,6 +24,7 @@ use super::user_rating::UserRating;
 /// Corresponds to the Bot API [`ChatFullInfo`](https://core.telegram.org/bots/api#chatfullinfo)
 /// object (returned by `getChat`).
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct ChatFullInfo {
     // ── Fields inherited from _ChatBase ──────────────────────────────────────
     /// Unique identifier for this chat.

@@ -4,6 +4,7 @@ use super::inline_keyboard_markup::InlineKeyboardMarkup;
 
 /// Represents a Game.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
+#[non_exhaustive]
 pub struct InlineQueryResultGame {
     /// Unique identifier for this result, 1-64 bytes.
     pub id: String,

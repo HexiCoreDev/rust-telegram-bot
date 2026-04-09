@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 
 /// Options used for link preview generation.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
+#[non_exhaustive]
 pub struct LinkPreviewOptions {
     /// `true` if the link preview is disabled.
     #[serde(skip_serializing_if = "Option::is_none")]

@@ -8,6 +8,7 @@ use super::message_entity::MessageEntity;
 
 /// A task to add to a checklist.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
+#[non_exhaustive]
 pub struct InputChecklistTask {
     /// Unique identifier of the task; must be positive and unique within the checklist.
     pub id: i64,
@@ -41,6 +42,7 @@ impl InputChecklistTask {
 
 /// A checklist to create.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct InputChecklist {
     /// Title of the checklist.
     pub title: String,

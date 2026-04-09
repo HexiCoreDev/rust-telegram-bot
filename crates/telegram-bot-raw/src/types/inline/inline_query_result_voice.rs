@@ -6,6 +6,7 @@ use crate::types::message_entity::MessageEntity;
 
 /// Represents a link to a voice recording in an .ogg container encoded with OPUS.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
+#[non_exhaustive]
 pub struct InlineQueryResultVoice {
     /// Unique identifier for this result, 1-64 bytes.
     pub id: String,

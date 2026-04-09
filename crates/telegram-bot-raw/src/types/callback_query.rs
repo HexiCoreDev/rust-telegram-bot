@@ -17,6 +17,7 @@ use super::user::User;
 /// `message` will be present. If the button was attached to a message sent via the bot (in inline
 /// mode), the field `inline_message_id` will be present.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct CallbackQuery {
     /// Unique identifier for this query.
     pub id: String,

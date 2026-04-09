@@ -4,6 +4,7 @@ use crate::types::files::input_file::InputFile;
 
 /// Payload for a static profile photo -- a single `.JPG` image.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct InputProfilePhotoStaticData {
     /// The static profile photo file.
     pub photo: InputFile,
@@ -11,6 +12,7 @@ pub struct InputProfilePhotoStaticData {
 
 /// Payload for an animated profile photo -- an MPEG4 video.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct InputProfilePhotoAnimatedData {
     /// The animated profile photo file.
     pub animation: InputFile,
@@ -23,6 +25,7 @@ pub struct InputProfilePhotoAnimatedData {
 /// A profile photo to set -- either a static image or an animated video.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
+#[non_exhaustive]
 pub enum InputProfilePhoto {
     /// A static `.JPG` profile photo.
     Static(InputProfilePhotoStaticData),

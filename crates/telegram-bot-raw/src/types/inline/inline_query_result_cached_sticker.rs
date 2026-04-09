@@ -5,6 +5,7 @@ use super::input_message_content::InputMessageContent;
 
 /// Represents a link to a sticker stored on the Telegram servers.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
+#[non_exhaustive]
 pub struct InlineQueryResultCachedSticker {
     /// Unique identifier for this result, 1-64 bytes.
     pub id: String,

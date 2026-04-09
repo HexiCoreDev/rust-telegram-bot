@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 
 /// Data sent from a Web App to the bot.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct WebAppData {
     /// The data payload. A bad client can send arbitrary data in this field.
     pub data: String,

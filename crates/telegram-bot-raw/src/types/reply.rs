@@ -28,6 +28,7 @@ use super::story::Story;
 /// Information about a message that is being replied to, which may come from another chat or
 /// forum topic.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct ExternalReplyInfo {
     /// Origin of the message replied to by the given message.
     pub origin: MessageOrigin,
@@ -132,6 +133,7 @@ pub struct ExternalReplyInfo {
 
 /// The quoted part of a message that is replied to by the given message.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
+#[non_exhaustive]
 pub struct TextQuote {
     /// Text of the quoted part of a message that is replied to by the given message.
     pub text: String,
@@ -155,6 +157,7 @@ impl_new!(TextQuote {
 
 /// Reply parameters for the message that is being sent.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
+#[non_exhaustive]
 pub struct ReplyParameters {
     /// Identifier of the message that will be replied to in the current chat, or in the chat
     /// `chat_id` if it is specified.

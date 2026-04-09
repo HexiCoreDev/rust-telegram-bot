@@ -4,6 +4,7 @@ use super::transaction_partner::TransactionPartner;
 
 /// A Telegram Star transaction.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct StarTransaction {
     /// Unique identifier of the transaction.
     pub id: String,
@@ -29,6 +30,7 @@ pub struct StarTransaction {
 
 /// A list of Telegram Star transactions.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct StarTransactions {
     /// The list of transactions.
     pub transactions: Vec<StarTransaction>,

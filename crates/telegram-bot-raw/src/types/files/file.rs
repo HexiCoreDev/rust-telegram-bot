@@ -7,6 +7,7 @@ use crate::types::files::base_medium::BaseMedium;
 /// The download link is guaranteed valid for at least one hour.
 /// When it expires, call `getFile` to obtain a fresh one.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct File {
     /// Telegram file identifier that can be used to download or reuse the file.
     pub file_id: String,

@@ -12,6 +12,7 @@ use serde::{Deserialize, Serialize};
 ///
 /// Corresponds to the Bot API `chat_owner_changed` service message field.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct ChatOwnerChanged {}
 
 // ---------------------------------------------------------------------------
@@ -26,4 +27,5 @@ pub struct ChatOwnerChanged {}
 ///
 /// Corresponds to the Bot API `chat_owner_left` service message field.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct ChatOwnerLeft {}

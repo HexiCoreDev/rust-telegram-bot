@@ -4,6 +4,7 @@ use super::reaction::ReactionType;
 
 /// Position of a clickable area within a story.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct StoryAreaPosition {
     /// Abscissa of the area's center, as a percentage of the media width.
     pub x_percentage: f64,
@@ -47,6 +48,7 @@ impl StoryAreaPosition {
 
 /// Physical address of a location.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
+#[non_exhaustive]
 pub struct LocationAddress {
     /// Two-letter ISO 3166-1 alpha-2 country code.
     pub country_code: String,
@@ -70,6 +72,7 @@ impl_new!(LocationAddress {
 
 /// A story area pointing to a geographic location.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct StoryAreaTypeLocationData {
     /// Location latitude in degrees.
     pub latitude: f64,
@@ -84,6 +87,7 @@ pub struct StoryAreaTypeLocationData {
 
 /// A story area pointing to a suggested reaction.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct StoryAreaTypeSuggestedReactionData {
     /// Type of the reaction.
     pub reaction_type: ReactionType,
@@ -99,6 +103,7 @@ pub struct StoryAreaTypeSuggestedReactionData {
 
 /// A story area pointing to an HTTP or `tg://` link.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct StoryAreaTypeLinkData {
     /// HTTP or `tg://` URL to be opened when the area is clicked.
     pub url: String,
@@ -106,6 +111,7 @@ pub struct StoryAreaTypeLinkData {
 
 /// A story area containing weather information.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct StoryAreaTypeWeatherData {
     /// Temperature in degrees Celsius.
     pub temperature: f64,
@@ -119,6 +125,7 @@ pub struct StoryAreaTypeWeatherData {
 
 /// A story area pointing to a unique gift.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct StoryAreaTypeUniqueGiftData {
     /// Unique name of the gift.
     pub name: String,
@@ -127,6 +134,7 @@ pub struct StoryAreaTypeUniqueGiftData {
 /// Polymorphic type of a clickable area on a story, selected by the `"type"` field.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
+#[non_exhaustive]
 pub enum StoryAreaType {
     /// Area pointing to a geographic location.
     Location(StoryAreaTypeLocationData),
@@ -185,6 +193,7 @@ impl StoryAreaType {
 
 /// A clickable area on a story media.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct StoryArea {
     /// Position of the area.
     pub position: StoryAreaPosition,

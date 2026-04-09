@@ -10,6 +10,7 @@ use super::user::User;
 ///
 /// Wire value: `"creator"`.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct ChatMemberOwner {
     /// Information about the user.
     pub user: User,
@@ -25,6 +26,7 @@ pub struct ChatMemberOwner {
 ///
 /// Wire value: `"administrator"`.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct ChatMemberAdministrator {
     /// Information about the user.
     pub user: User,
@@ -80,6 +82,7 @@ pub struct ChatMemberAdministrator {
 ///
 /// Wire value: `"member"`.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct ChatMemberMember {
     /// Information about the user.
     pub user: User,
@@ -96,6 +99,7 @@ pub struct ChatMemberMember {
 ///
 /// Wire value: `"restricted"`.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct ChatMemberRestricted {
     /// Information about the user.
     pub user: User,
@@ -143,6 +147,7 @@ pub struct ChatMemberRestricted {
 ///
 /// Wire value: `"left"`.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct ChatMemberLeft {
     /// Information about the user.
     pub user: User,
@@ -152,6 +157,7 @@ pub struct ChatMemberLeft {
 ///
 /// Wire value: `"kicked"`.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct ChatMemberBanned {
     /// Information about the user.
     pub user: User,
@@ -165,6 +171,7 @@ pub struct ChatMemberBanned {
 /// `"restricted"`, `"left"`, `"kicked"`.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "status")]
+#[non_exhaustive]
 pub enum ChatMember {
     #[serde(rename = "creator")]
     Owner(ChatMemberOwner),
@@ -187,6 +194,7 @@ pub enum ChatMember {
 
 /// Service message about an ownership change in the chat.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct ChatOwnerChanged {
     /// The new owner of the chat.
     pub new_owner: User,
@@ -194,6 +202,7 @@ pub struct ChatOwnerChanged {
 
 /// Service message about the chat owner leaving the chat.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct ChatOwnerLeft {
     /// The user which will be the new owner of the chat if the previous owner does not return.
     #[serde(skip_serializing_if = "Option::is_none")]

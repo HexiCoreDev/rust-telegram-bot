@@ -6,6 +6,7 @@ use crate::types::message_entity::MessageEntity;
 
 /// Represents a link to a video animation (H.264/MPEG-4 AVC video without sound).
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
+#[non_exhaustive]
 pub struct InlineQueryResultMpeg4Gif {
     /// Unique identifier for this result, 1-64 bytes.
     pub id: String,

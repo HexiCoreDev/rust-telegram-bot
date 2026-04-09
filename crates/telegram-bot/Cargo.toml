@@ -17,6 +17,7 @@ exclude = ["target/", ".github/", "docs/", "examples/"]
 [dependencies]
 rust-tg-bot-raw = { path = "../telegram-bot-raw" }
 rust-tg-bot-ext = { path = "../telegram-bot-ext" }
+rust-tg-bot-macros = { path = "../telegram-bot-macros", optional = true }
 tokio = { workspace = true }
 
 [dev-dependencies]
@@ -29,7 +30,8 @@ axum = { workspace = true }
 
 [features]
 default = ["rust-tg-bot-ext/default"]
-full = ["rust-tg-bot-ext/full"]
+full = ["rust-tg-bot-ext/full", "macros"]
+macros = ["rust-tg-bot-macros"]
 webhooks = ["rust-tg-bot-ext/webhooks"]
 job-queue = ["rust-tg-bot-ext/job-queue"]
 persistence = ["rust-tg-bot-ext/persistence"]
@@ -129,3 +131,8 @@ required-features = ["webhooks"]
 name = "webhook_bot"
 path = "examples/webhook_bot.rs"
 required-features = ["webhooks"]
+
+[[example]]
+name = "commands_derive_bot"
+path = "examples/commands_derive_bot.rs"
+required-features = ["macros"]

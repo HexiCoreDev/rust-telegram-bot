@@ -8,6 +8,7 @@ use crate::types::files::photo_size::PhotoSize;
 
 /// Position on a face where a mask sticker should be placed by default.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct MaskPosition {
     /// The part of the face relative to which the mask is placed.
     /// One of `"forehead"`, `"eyes"`, `"mouth"`, or `"chin"`.
@@ -37,6 +38,7 @@ impl MaskPosition {
 
 /// A sticker.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct Sticker {
     /// Telegram file identifier.
     pub file_id: String,
@@ -111,6 +113,7 @@ impl BaseThumbedMedium for Sticker {
 
 /// A sticker set.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct StickerSet {
     /// Sticker set name.
     pub name: String,
@@ -131,6 +134,7 @@ pub struct StickerSet {
 
 /// A sticker to be added to a sticker set.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct InputSticker {
     /// The sticker file to add. Animated and video stickers cannot be uploaded via HTTP URL.
     pub sticker: InputFile,

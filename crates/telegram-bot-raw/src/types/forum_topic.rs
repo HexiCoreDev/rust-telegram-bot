@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 
 /// A forum topic.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct ForumTopic {
     /// Unique identifier of the forum topic (message thread ID).
     pub message_thread_id: i64,
@@ -23,6 +24,7 @@ pub struct ForumTopic {
 
 /// Service message content for a newly created forum topic.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct ForumTopicCreated {
     /// Name of the topic.
     pub name: String,
@@ -41,14 +43,17 @@ pub struct ForumTopicCreated {
 
 /// Service message: a forum topic was closed.  Carries no additional data.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct ForumTopicClosed {}
 
 /// Service message: a forum topic was reopened.  Carries no additional data.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct ForumTopicReopened {}
 
 /// Service message content for an edited forum topic.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct ForumTopicEdited {
     /// New name of the topic, if it was changed.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -61,8 +66,10 @@ pub struct ForumTopicEdited {
 
 /// Service message: the General forum topic was hidden.  Carries no additional data.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct GeneralForumTopicHidden {}
 
 /// Service message: the General forum topic was unhidden.  Carries no additional data.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct GeneralForumTopicUnhidden {}

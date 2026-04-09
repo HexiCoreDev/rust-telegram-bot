@@ -9,6 +9,7 @@ use super::user::User;
 
 /// Service message about a user boosting a chat.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct ChatBoostAdded {
     /// Number of boosts added by the user.
     pub boost_count: i64,
@@ -20,6 +21,7 @@ pub struct ChatBoostAdded {
 
 /// The boost was obtained by subscribing to Telegram Premium or gifting a subscription.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct ChatBoostSourcePremium {
     /// User that boosted the chat.
     pub user: User,
@@ -27,6 +29,7 @@ pub struct ChatBoostSourcePremium {
 
 /// The boost was obtained by the creation of Telegram Premium gift codes to boost a chat.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct ChatBoostSourceGiftCode {
     /// User for which the gift code was created.
     pub user: User,
@@ -34,6 +37,7 @@ pub struct ChatBoostSourceGiftCode {
 
 /// The boost was obtained by the creation of a Telegram Premium giveaway or a Telegram Star.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct ChatBoostSourceGiveaway {
     /// Identifier of a message in the chat with the giveaway.
     pub giveaway_message_id: i64,
@@ -52,6 +56,7 @@ pub struct ChatBoostSourceGiveaway {
 /// Source of a chat boost. Discriminated by the `"source"` field.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "source", rename_all = "snake_case")]
+#[non_exhaustive]
 pub enum ChatBoostSource {
     Premium(ChatBoostSourcePremium),
     GiftCode(ChatBoostSourceGiftCode),
@@ -64,6 +69,7 @@ pub enum ChatBoostSource {
 
 /// Contains information about a chat boost.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct ChatBoost {
     /// Unique identifier of the boost.
     pub boost_id: String,
@@ -81,6 +87,7 @@ pub struct ChatBoost {
 
 /// A boost added to a chat or changed.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct ChatBoostUpdated {
     /// Chat which was boosted.
     pub chat: Chat,
@@ -94,6 +101,7 @@ pub struct ChatBoostUpdated {
 
 /// A boost removed from a chat.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct ChatBoostRemoved {
     /// Chat which was boosted.
     pub chat: Chat,
@@ -111,6 +119,7 @@ pub struct ChatBoostRemoved {
 
 /// A list of boosts added to a chat by a user.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct UserChatBoosts {
     /// List of boosts added to the chat by the user.
     pub boosts: Vec<ChatBoost>,

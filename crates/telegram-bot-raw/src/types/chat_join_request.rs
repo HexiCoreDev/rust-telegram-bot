@@ -6,6 +6,7 @@ use super::user::User;
 
 /// Represents a join request sent to a chat.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct ChatJoinRequest {
     /// Chat to which the request was sent.
     pub chat: Chat,

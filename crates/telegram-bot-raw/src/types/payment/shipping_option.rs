@@ -4,6 +4,7 @@ use super::labeled_price::LabeledPrice;
 
 /// One shipping option.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct ShippingOption {
     /// Shipping option identifier.
     pub id: String,

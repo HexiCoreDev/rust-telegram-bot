@@ -4,6 +4,7 @@ use crate::types::passport::passport_file::PassportFile;
 
 /// Contains information about documents or other Telegram Passport elements shared with the bot.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct EncryptedPassportElement {
     /// Element type. One of `"personal_details"`, `"passport"`, `"driver_license"`,
     /// `"identity_card"`, `"internal_passport"`, `"address"`, `"utility_bill"`,

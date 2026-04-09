@@ -10,6 +10,7 @@ use super::user::User;
 
 /// Paid media that is not yet available before payment.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct PaidMediaPreview {
     /// Media width as defined by the sender.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -30,6 +31,7 @@ pub struct PaidMediaPreview {
 
 /// The paid media is a photo.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct PaidMediaPhoto {
     /// The photo.
     pub photo: Vec<PhotoSize>,
@@ -41,6 +43,7 @@ pub struct PaidMediaPhoto {
 
 /// The paid media is a video.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct PaidMediaVideo {
     /// The video.
     pub video: Video,
@@ -55,6 +58,7 @@ pub struct PaidMediaVideo {
 /// Discriminated by the `"type"` JSON field.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
+#[non_exhaustive]
 pub enum PaidMedia {
     /// Media not yet available before payment.
     Preview(PaidMediaPreview),
@@ -72,6 +76,7 @@ pub enum PaidMedia {
 
 /// Paid media added to a message, together with the required Star count.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct PaidMediaInfo {
     /// Number of Telegram Stars that must be paid to buy access to the media.
     pub star_count: i64,
@@ -86,6 +91,7 @@ pub struct PaidMediaInfo {
 
 /// Information about a paid media purchase.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct PaidMediaPurchased {
     /// User who purchased the media.
     ///

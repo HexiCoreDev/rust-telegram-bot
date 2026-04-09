@@ -6,6 +6,7 @@ use crate::types::files::photo_size::PhotoSize;
 
 /// An animation file (GIF or H.264/MPEG-4 AVC video without sound).
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct Animation {
     /// Telegram file identifier.
     pub file_id: String,

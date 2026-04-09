@@ -6,6 +6,7 @@ use crate::types::files::photo_size::PhotoSize;
 
 /// An audio file to be treated as music by Telegram clients.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct Audio {
     /// Telegram file identifier.
     pub file_id: String,

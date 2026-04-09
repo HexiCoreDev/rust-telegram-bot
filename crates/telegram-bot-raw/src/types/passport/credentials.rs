@@ -7,6 +7,7 @@ use serde::{Deserialize, Serialize};
 ///
 /// [Telegram Passport documentation]: https://core.telegram.org/passport
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct EncryptedCredentials {
     /// Base64-encoded encrypted JSON-serialized data with unique user's payload, data hashes and
     /// secrets required for `EncryptedPassportElement` decryption and authentication.
@@ -22,6 +23,7 @@ pub struct EncryptedCredentials {
 
 /// Decrypted credentials required to decrypt `EncryptedPassportElement` data.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct Credentials {
     /// Credentials for encrypted data.
     pub secure_data: SecureData,
@@ -34,6 +36,7 @@ pub struct Credentials {
 ///
 /// All fields are optional and depend on which fields were requested.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct SecureData {
     /// Credentials for encrypted personal details.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -82,6 +85,7 @@ pub struct SecureData {
 
 /// Credentials used to decrypt an individual encrypted passport value.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct SecureValue {
     /// Credentials for encrypted Telegram Passport data (personal details, address, etc.).
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -111,6 +115,7 @@ pub struct SecureValue {
 /// Credentials used to decrypt encrypted data from the `data` field of
 /// `EncryptedPassportElement`.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct DataCredentials {
     /// Checksum of encrypted data.
     pub data_hash: String,
@@ -121,6 +126,7 @@ pub struct DataCredentials {
 
 /// Credentials used to decrypt encrypted files from `EncryptedPassportElement`.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct FileCredentials {
     /// Checksum of the encrypted file.
     pub file_hash: String,

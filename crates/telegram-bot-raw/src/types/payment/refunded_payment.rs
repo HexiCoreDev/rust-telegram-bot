@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 
 /// Basic information about a refunded payment.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct RefundedPayment {
     /// Three-letter ISO 4217 currency code, or `XTR`. Currently always `XTR`.
     pub currency: String,

@@ -9,6 +9,7 @@ use super::files::sticker::Sticker;
 
 /// Color scheme for a user's name, message replies, and link previews based on a unique gift.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct UniqueGiftColors {
     /// Custom emoji identifier of the unique gift's model.
     pub model_custom_emoji_id: String,
@@ -35,6 +36,7 @@ pub struct UniqueGiftColors {
 
 /// Model of a unique gift.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct UniqueGiftModel {
     /// Name of the model.
     pub name: String,
@@ -56,6 +58,7 @@ pub struct UniqueGiftModel {
 
 /// Symbol shown on the pattern of a unique gift.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct UniqueGiftSymbol {
     /// Name of the symbol.
     pub name: String,
@@ -73,6 +76,7 @@ pub struct UniqueGiftSymbol {
 
 /// Colors of the backdrop of a unique gift.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct UniqueGiftBackdropColors {
     /// Center color of the backdrop in RGB format.
     pub center_color: i64,
@@ -93,6 +97,7 @@ pub struct UniqueGiftBackdropColors {
 
 /// Backdrop of a unique gift.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct UniqueGiftBackdrop {
     /// Name of the backdrop.
     pub name: String,
@@ -110,6 +115,7 @@ pub struct UniqueGiftBackdrop {
 
 /// A unique gift that was upgraded from a regular gift.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct UniqueGift {
     /// Identifier of the regular gift from which this was upgraded.
     pub gift_id: String,
@@ -159,6 +165,7 @@ pub struct UniqueGift {
 
 /// Service message about a unique gift that was sent or received.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct UniqueGiftInfo {
     /// Information about the gift.
     pub gift: UniqueGift,

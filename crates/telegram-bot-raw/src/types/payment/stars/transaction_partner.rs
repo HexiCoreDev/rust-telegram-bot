@@ -11,6 +11,7 @@ use super::revenue_withdrawal_state::RevenueWithdrawalState;
 
 /// Describes the affiliate program that issued the affiliate commission received via this transaction.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct TransactionPartnerAffiliateProgram {
     /// Information about the bot that sponsored the affiliate program.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -22,6 +23,7 @@ pub struct TransactionPartnerAffiliateProgram {
 
 /// Describes a transaction with a chat.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct TransactionPartnerChat {
     /// Information about the chat.
     pub chat: Chat,
@@ -33,6 +35,7 @@ pub struct TransactionPartnerChat {
 
 /// Describes a withdrawal transaction with Fragment.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct TransactionPartnerFragment {
     /// State of the transaction if the transaction is outgoing.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -41,6 +44,7 @@ pub struct TransactionPartnerFragment {
 
 /// Describes a transaction with a user.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct TransactionPartnerUser {
     /// Type of the transaction (e.g. `invoice_payment`, `paid_media_payment`, `gift_purchase`).
     pub transaction_type: String,
@@ -83,14 +87,17 @@ pub struct TransactionPartnerUser {
 
 /// Describes a transaction with an unknown partner.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct TransactionPartnerOther {}
 
 /// Describes a withdrawal transaction to the Telegram Ads platform.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct TransactionPartnerTelegramAds {}
 
 /// Describes a transaction with payment for paid broadcasting.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct TransactionPartnerTelegramApi {
     /// Number of successful requests that exceeded regular limits and were billed.
     pub request_count: i64,
@@ -101,6 +108,7 @@ pub struct TransactionPartnerTelegramApi {
 /// Discriminated by the `"type"` JSON field.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
+#[non_exhaustive]
 pub enum TransactionPartner {
     /// Affiliate program that issued the commission.
     AffiliateProgram(TransactionPartnerAffiliateProgram),

@@ -5,6 +5,7 @@ use super::input_message_content::InputMessageContent;
 
 /// Represents a contact with a phone number.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
+#[non_exhaustive]
 pub struct InlineQueryResultContact {
     /// Unique identifier for this result, 1-64 bytes.
     pub id: String,

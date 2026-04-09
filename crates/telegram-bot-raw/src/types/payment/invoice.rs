@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 
 /// Basic information about an invoice.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct Invoice {
     /// Product name.
     pub title: String,

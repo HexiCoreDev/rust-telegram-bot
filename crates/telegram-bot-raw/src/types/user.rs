@@ -8,6 +8,7 @@ use serde::{Deserialize, Serialize};
 ///
 /// Corresponds to the Bot API [`User`](https://core.telegram.org/bots/api#user) object.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct User {
     /// Unique identifier for this user or bot.
     pub id: i64,

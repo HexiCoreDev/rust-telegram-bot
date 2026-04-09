@@ -10,6 +10,7 @@ use super::user::User;
 ///
 /// Corresponds to the Bot API [`ManagedBotCreated`](https://core.telegram.org/bots/api#managedbotcreated) object.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct ManagedBotCreated {
     /// Information about the bot. The bot's token can be fetched using `getManagedBotToken`.
     pub bot: User,
@@ -23,6 +24,7 @@ pub struct ManagedBotCreated {
 ///
 /// Corresponds to the Bot API [`ManagedBotUpdated`](https://core.telegram.org/bots/api#managedbotupdated) object.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct ManagedBotUpdated {
     /// User that created the bot.
     pub user: User,

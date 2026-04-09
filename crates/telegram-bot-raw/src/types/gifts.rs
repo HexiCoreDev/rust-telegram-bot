@@ -10,6 +10,7 @@ use super::message_entity::MessageEntity;
 
 /// Background of a gift.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct GiftBackground {
     /// Center color of the background in RGB format.
     pub center_color: i64,
@@ -27,6 +28,7 @@ pub struct GiftBackground {
 
 /// A gift that can be sent by the bot.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct Gift {
     /// Unique identifier of the gift.
     pub id: String,
@@ -84,6 +86,7 @@ pub struct Gift {
 
 /// A list of gifts.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct Gifts {
     /// The sequence of gifts.
     pub gifts: Vec<Gift>,
@@ -95,6 +98,7 @@ pub struct Gifts {
 
 /// Service message about a regular gift that was sent or received.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct GiftInfo {
     /// Information about the gift.
     pub gift: Gift,
@@ -142,6 +146,7 @@ pub struct GiftInfo {
 
 /// Types of gifts that can be gifted to a user or a chat.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct AcceptedGiftTypes {
     /// True if unlimited regular gifts are accepted.
     pub unlimited_gifts: bool,

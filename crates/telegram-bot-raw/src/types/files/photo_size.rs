@@ -4,6 +4,7 @@ use crate::types::files::base_medium::BaseMedium;
 
 /// One size of a photo or a file/sticker thumbnail.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct PhotoSize {
     /// Telegram file identifier.
     pub file_id: String,

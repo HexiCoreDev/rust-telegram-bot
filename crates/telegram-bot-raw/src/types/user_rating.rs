@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 
 /// Rating of a user based on their Telegram Star spendings.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct UserRating {
     /// Current level of the user. Higher means more trustworthy; negative is a concern.
     pub level: i64,

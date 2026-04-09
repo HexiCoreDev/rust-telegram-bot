@@ -13,6 +13,7 @@ use serde::{Deserialize, Serialize};
 /// As of Bot API 7.3 most extended fields have moved to
 /// [`ChatFullInfo`](super::chat_full_info::ChatFullInfo).
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct Chat {
     /// Unique identifier for this chat.
     pub id: i64,

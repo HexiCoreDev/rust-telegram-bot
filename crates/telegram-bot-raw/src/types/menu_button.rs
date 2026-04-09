@@ -4,10 +4,12 @@ use super::web_app_info::WebAppInfo;
 
 /// Payload for `MenuButtonCommands` — no additional fields beyond the tag.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct MenuButtonCommandsData {}
 
 /// Payload for `MenuButtonWebApp`.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct MenuButtonWebAppData {
     /// Label shown on the button.
     pub text: String,
@@ -18,6 +20,7 @@ pub struct MenuButtonWebAppData {
 
 /// Payload for `MenuButtonDefault` — no additional fields beyond the tag.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct MenuButtonDefaultData {}
 
 /// The bot's menu button in a private chat.
@@ -25,6 +28,7 @@ pub struct MenuButtonDefaultData {}
 /// Serialized with a `"type"` tag that selects the variant.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
+#[non_exhaustive]
 pub enum MenuButton {
     /// Opens the bot's list of commands.
     Commands(MenuButtonCommandsData),

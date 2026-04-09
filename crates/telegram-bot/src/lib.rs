@@ -9,6 +9,10 @@ pub use rust_tg_bot_raw::types;
 pub use rust_tg_bot_ext as ext;
 pub use rust_tg_bot_ext::prelude;
 
+// Re-export the derive macro when the `macros` feature is enabled.
+#[cfg(feature = "macros")]
+pub use rust_tg_bot_macros::BotCommands;
+
 /// Runtime configuration for [`run`].
 pub struct RuntimeConfig {
     /// Number of tokio worker threads. `None` = system default (CPU core count).

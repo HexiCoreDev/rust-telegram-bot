@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 
 /// Shipping address provided by a user.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct ShippingAddress {
     /// ISO 3166-1 alpha-2 country code.
     pub country_code: String,

@@ -14,6 +14,8 @@ use crate::defaults::Defaults;
 use crate::ext_bot::ExtBot;
 #[cfg(feature = "job-queue")]
 use crate::job_queue::JobQueue;
+#[cfg(feature = "rate-limiter")]
+use crate::rate_limiter::{DynRateLimiter, RateLimitedRequest};
 use crate::update_processor;
 
 // ---------------------------------------------------------------------------
@@ -37,6 +39,9 @@ pub struct ApplicationBuilder<State = NoToken> {
     base_file_url: Option<String>,
     defaults: Option<Defaults>,
     arbitrary_callback_data: Option<usize>,
+    #[cfg(feature = "rate-limiter")]
+    rate_limiter: Option<Arc<dyn DynRateLimiter>>,
+    #[cfg(not(feature = "rate-limiter"))]
     rate_limiter: Option<()>,
     context_types: Option<ContextTypes>,
     concurrent_updates: usize,
@@ -136,9 +141,22 @@ impl<S> ApplicationBuilder<S> {
         self
     }
 
+    /// Sets the rate limiter for the application.
+    ///
+    /// When set, all API calls will be throttled through the provided limiter.
+    /// Requires the `rate-limiter` feature.
+    #[cfg(feature = "rate-limiter")]
     #[must_use]
-    pub fn rate_limiter(mut self, rl: ()) -> Self {
+    pub fn rate_limiter(mut self, rl: Arc<dyn DynRateLimiter>) -> Self {
         self.rate_limiter = Some(rl);
+        self
+    }
+
+    /// Sets the rate-limiter placeholder (feature disabled).
+    #[cfg(not(feature = "rate-limiter"))]
+    #[must_use]
+    pub fn rate_limiter(mut self, _rl: ()) -> Self {
+        self.rate_limiter = Some(());
         self
     }
 
@@ -205,13 +223,26 @@ impl ApplicationBuilder<HasToken> {
             )
         });
 
-        let bot_raw = Bot::new(&token, request);
+        // Wrap the request backend in a RateLimitedRequest if a limiter is set.
+        #[cfg(feature = "rate-limiter")]
+        let (effective_request, rate_limiter) = if let Some(ref rl) = self.rate_limiter {
+            let wrapped: Arc<dyn BaseRequest> =
+                Arc::new(RateLimitedRequest::new(request, rl.clone()));
+            (wrapped, self.rate_limiter)
+        } else {
+            (request, None)
+        };
+
+        #[cfg(not(feature = "rate-limiter"))]
+        let (effective_request, rate_limiter) = (request, self.rate_limiter);
+
+        let bot_raw = Bot::new(&token, effective_request);
 
         let ext_bot = Arc::new(ExtBot::new(
             bot_raw,
             self.defaults,
             self.arbitrary_callback_data,
-            self.rate_limiter,
+            rate_limiter,
         ));
 
         let context_types = self.context_types.unwrap_or_default();
@@ -243,6 +274,7 @@ impl<S> std::fmt::Debug for ApplicationBuilder<S> {
         f.debug_struct("ApplicationBuilder")
             .field("has_token", &self.token.is_some())
             .field("concurrent_updates", &self.concurrent_updates)
+            .field("has_rate_limiter", &self.rate_limiter.is_some())
             .finish()
     }
 }
@@ -336,6 +368,21 @@ mod tests {
             .job_queue(jq)
             .build();
         assert!(app.job_queue().is_some());
+    }
+
+    #[cfg(feature = "rate-limiter")]
+    #[test]
+    fn builder_with_rate_limiter() {
+        use crate::rate_limiter::NoRateLimiter;
+
+        let limiter: Arc<dyn DynRateLimiter> = Arc::new(NoRateLimiter);
+        let app = ApplicationBuilder::new()
+            .token("rl_app")
+            .request(mock_request())
+            .rate_limiter(limiter)
+            .build();
+        assert_eq!(app.bot().token(), "rl_app");
+        assert!(app.bot().has_rate_limiter());
     }
 
     #[test]

@@ -17,6 +17,7 @@ use super::user::User;
 /// Note: It is necessary to enable inline feedback via `@Botfather` in order to receive these
 /// objects in updates.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct ChosenInlineResult {
     /// The unique identifier for the result that was chosen.
     pub result_id: String,

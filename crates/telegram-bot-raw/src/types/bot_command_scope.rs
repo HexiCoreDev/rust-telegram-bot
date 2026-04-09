@@ -2,22 +2,27 @@ use serde::{Deserialize, Serialize};
 
 /// Scope covering the default commands visible to all users.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct BotCommandScopeDefault {}
 
 /// Scope covering all private chats.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct BotCommandScopeAllPrivateChats {}
 
 /// Scope covering all group and supergroup chats.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct BotCommandScopeAllGroupChats {}
 
 /// Scope covering all group and supergroup chat administrators.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct BotCommandScopeAllChatAdministrators {}
 
 /// Scope covering a specific chat.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct BotCommandScopeChatData {
     /// Unique identifier for the target chat or username of the target supergroup.
     pub chat_id: ChatId,
@@ -25,6 +30,7 @@ pub struct BotCommandScopeChatData {
 
 /// Scope covering all administrators of a specific chat.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct BotCommandScopeChatAdministratorsData {
     /// Unique identifier for the target chat or username of the target supergroup.
     pub chat_id: ChatId,
@@ -32,6 +38,7 @@ pub struct BotCommandScopeChatAdministratorsData {
 
 /// Scope covering a specific member of a group or supergroup chat.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct BotCommandScopeChatMemberData {
     /// Unique identifier for the target chat or username of the target supergroup.
     pub chat_id: ChatId,
@@ -43,6 +50,7 @@ pub struct BotCommandScopeChatMemberData {
 /// Chat identifier: either a numeric ID or a `@username` string.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(untagged)]
+#[non_exhaustive]
 pub enum ChatId {
     /// Numeric chat ID.
     Id(i64),
@@ -73,6 +81,7 @@ impl From<String> for ChatId {
 /// Serialized with a `"type"` tag that selects the variant.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
+#[non_exhaustive]
 pub enum BotCommandScope {
     /// Default scope — commands visible to all users in all chats.
     Default(BotCommandScopeDefault),

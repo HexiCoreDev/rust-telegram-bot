@@ -5,6 +5,7 @@ use super::user::User;
 
 /// Payload for `MessageOriginUser`: the message was originally sent by a known user.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct MessageOriginUserData {
     /// Date the message was sent originally, as a Unix timestamp.
     pub date: i64,
@@ -15,6 +16,7 @@ pub struct MessageOriginUserData {
 
 /// Payload for `MessageOriginHiddenUser`: the message was originally sent by an unknown user.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct MessageOriginHiddenUserData {
     /// Date the message was sent originally, as a Unix timestamp.
     pub date: i64,
@@ -25,6 +27,7 @@ pub struct MessageOriginHiddenUserData {
 
 /// Payload for `MessageOriginChat`: the message was originally sent on behalf of a chat.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct MessageOriginChatData {
     /// Date the message was sent originally, as a Unix timestamp.
     pub date: i64,
@@ -39,6 +42,7 @@ pub struct MessageOriginChatData {
 
 /// Payload for `MessageOriginChannel`: the message was originally sent to a channel.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct MessageOriginChannelData {
     /// Date the message was sent originally, as a Unix timestamp.
     pub date: i64,
@@ -57,6 +61,7 @@ pub struct MessageOriginChannelData {
 /// Origin of a message, selected by the `"type"` field in the JSON.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
+#[non_exhaustive]
 pub enum MessageOrigin {
     /// Sent by a known user.
     User(MessageOriginUserData),

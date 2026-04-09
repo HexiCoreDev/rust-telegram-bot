@@ -31,6 +31,7 @@ use super::user::User;
 ///
 /// Corresponds to the Bot API [`Update`](https://core.telegram.org/bots/api#update) object.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct Update {
     /// The update's unique identifier. Update identifiers start from a certain positive number
     /// and increase sequentially.

@@ -4,6 +4,7 @@ use super::user::User;
 
 /// One special entity in a text message (hashtag, username, URL, etc.).
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
+#[non_exhaustive]
 pub struct MessageEntity {
     /// Type of the entity: `mention`, `hashtag`, `cashtag`, `bot_command`, `url`, `email`,
     /// `phone_number`, `bold`, `italic`, `underline`, `strikethrough`, `spoiler`, `blockquote`,

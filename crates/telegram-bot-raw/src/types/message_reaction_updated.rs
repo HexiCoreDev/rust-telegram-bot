@@ -6,6 +6,7 @@ use super::user::User;
 
 /// Reaction changes on a message with anonymous reactions.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct MessageReactionCountUpdated {
     /// The chat containing the message.
     pub chat: Chat,
@@ -22,6 +23,7 @@ pub struct MessageReactionCountUpdated {
 
 /// A change of a reaction on a message performed by a user.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct MessageReactionUpdated {
     /// The chat containing the message.
     pub chat: Chat,

@@ -4,6 +4,7 @@ use super::chat_administrator_rights::ChatAdministratorRights;
 
 /// Criteria for requesting one or more users via a `KeyboardButton`.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
+#[non_exhaustive]
 pub struct KeyboardButtonRequestUsers {
     /// Signed 32-bit identifier of the request; unique within the message.
     pub request_id: i32,
@@ -37,6 +38,7 @@ impl_new!(KeyboardButtonRequestUsers { request_id: i32 });
 
 /// Criteria for requesting a chat via a `KeyboardButton`.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
+#[non_exhaustive]
 pub struct KeyboardButtonRequestChat {
     /// Signed 32-bit identifier of the request; unique within the message.
     pub request_id: i32,
@@ -101,6 +103,7 @@ impl KeyboardButtonRequestChat {
 ///
 /// Added in Bot API 9.6.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
+#[non_exhaustive]
 pub struct KeyboardButtonRequestManagedBot {
     /// Signed 32-bit identifier of the request. Must be unique within the message.
     pub request_id: i32,

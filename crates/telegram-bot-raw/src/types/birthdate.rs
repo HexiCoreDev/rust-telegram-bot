@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 
 /// Describes the birthdate of a user.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct Birthdate {
     /// Day of the user's birth; 1-31.
     pub day: i64,

@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 
 /// Service message about a change in the price of direct messages sent to a channel chat.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct DirectMessagePriceChanged {
     /// True if direct messages are enabled for the channel chat.
     pub are_direct_messages_enabled: bool,

@@ -4,6 +4,7 @@ use crate::types::files::location::Location;
 
 /// Represents a location to which a chat is connected.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct ChatLocation {
     /// The location to which the supergroup is connected. Cannot be a live location.
     pub location: Location,

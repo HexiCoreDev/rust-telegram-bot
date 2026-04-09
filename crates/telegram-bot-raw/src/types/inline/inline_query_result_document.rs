@@ -6,6 +6,7 @@ use crate::types::message_entity::MessageEntity;
 
 /// Represents a link to a file. Currently, only .PDF and .ZIP files can be sent using this method.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
+#[non_exhaustive]
 pub struct InlineQueryResultDocument {
     /// Unique identifier for this result, 1-64 bytes.
     pub id: String,

@@ -52,6 +52,10 @@ pub enum PersistenceError {
     #[cfg(feature = "persistence-sqlite")]
     #[error("SQLite error: {0}")]
     Sqlite(#[from] rusqlite::Error),
+
+    #[cfg(feature = "persistence-redis")]
+    #[error("Redis error: {0}")]
+    Redis(#[from] redis::RedisError),
 }
 
 pub type PersistenceResult<T> = Result<T, PersistenceError>;

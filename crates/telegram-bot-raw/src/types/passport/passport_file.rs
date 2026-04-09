@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 ///
 /// Currently all Telegram Passport files are in JPEG format when decrypted and do not exceed 10 MB.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct PassportFile {
     /// Identifier for this file, which can be used to download or reuse it.
     pub file_id: String,

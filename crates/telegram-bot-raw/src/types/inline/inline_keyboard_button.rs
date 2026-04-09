@@ -8,6 +8,7 @@ use crate::types::web_app_info::WebAppInfo;
 
 /// One button of an inline keyboard.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
+#[non_exhaustive]
 pub struct InlineKeyboardButton {
     /// Label text on the button.
     pub text: String,

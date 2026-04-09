@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 /// Corresponds to the Bot API
 /// [`ResponseParameters`](https://core.telegram.org/bots/api#responseparameters) object.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct ResponseParameters {
     /// The group has been migrated to a supergroup with the specified identifier.
     #[serde(skip_serializing_if = "Option::is_none")]

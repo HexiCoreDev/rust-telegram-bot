@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 /// Upon receiving a message with this object, Telegram clients will display a reply interface to
 /// the user (act as if the user has selected the bot's message and tapped 'Reply').
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
+#[non_exhaustive]
 pub struct ForceReply {
     /// Shows reply interface to the user, as if they manually selected the bot's message and
     /// tapped 'Reply'. Always `true`.

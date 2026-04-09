@@ -7,6 +7,7 @@ use crate::types::message_entity::MessageEntity;
 
 /// A photo to be sent as part of an album or media group.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
+#[non_exhaustive]
 pub struct InputMediaPhoto {
     /// The photo file to send.
     pub media: InputFile,
@@ -62,6 +63,7 @@ impl InputMediaPhoto {
 
 /// A video to be sent as part of an album or media group.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
+#[non_exhaustive]
 pub struct InputMediaVideo {
     /// The video file to send.
     pub media: InputFile,
@@ -158,6 +160,7 @@ impl InputMediaVideo {
 
 /// An animation (GIF or H.264/MPEG-4 AVC video without sound) to be sent.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
+#[non_exhaustive]
 pub struct InputMediaAnimation {
     /// The animation file to send.
     pub media: InputFile,
@@ -229,6 +232,7 @@ impl InputMediaAnimation {
 
 /// An audio file to be treated as music to be sent.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
+#[non_exhaustive]
 pub struct InputMediaAudio {
     /// The audio file to send.
     pub media: InputFile,
@@ -298,6 +302,7 @@ impl InputMediaAudio {
 
 /// A general file (document) to be sent.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
+#[non_exhaustive]
 pub struct InputMediaDocument {
     /// The document file to send.
     pub media: InputFile,
@@ -348,6 +353,7 @@ impl InputMediaDocument {
 /// A tagged union of all `InputMedia*` variants, serialized with a `"type"` discriminant.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
+#[non_exhaustive]
 pub enum InputMedia {
     /// A photo.
     Photo(InputMediaPhoto),
@@ -365,6 +371,7 @@ pub enum InputMedia {
 
 /// A paid photo media item.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
+#[non_exhaustive]
 pub struct InputPaidMediaPhoto {
     /// The photo file to send.
     pub media: InputFile,
@@ -379,6 +386,7 @@ impl InputPaidMediaPhoto {
 
 /// A paid video media item.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
+#[non_exhaustive]
 pub struct InputPaidMediaVideo {
     /// The video file to send.
     pub media: InputFile,
@@ -425,6 +433,7 @@ impl InputPaidMediaVideo {
 /// A tagged union of paid media variants, serialized with a `"type"` discriminant.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
+#[non_exhaustive]
 pub enum InputPaidMedia {
     /// A paid photo.
     Photo(InputPaidMediaPhoto),

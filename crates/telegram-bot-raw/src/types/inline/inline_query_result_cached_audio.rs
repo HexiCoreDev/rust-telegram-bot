@@ -6,6 +6,7 @@ use crate::types::message_entity::MessageEntity;
 
 /// Represents a link to an mp3 audio file stored on the Telegram servers.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
+#[non_exhaustive]
 pub struct InlineQueryResultCachedAudio {
     /// Unique identifier for this result, 1-64 bytes.
     pub id: String,

@@ -10,6 +10,7 @@ use super::user::User;
 
 /// A scheduled giveaway.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct Giveaway {
     /// Chats the user must join to participate.
     pub chats: Vec<Chat>,
@@ -51,6 +52,7 @@ pub struct Giveaway {
 
 /// Service message about the creation of a scheduled giveaway.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct GiveawayCreated {
     /// Stars split between giveaway winners; Star giveaways only.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -63,6 +65,7 @@ pub struct GiveawayCreated {
 
 /// Message about the completion of a giveaway with public winners.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct GiveawayWinners {
     /// Chat that created the giveaway.
     pub chat: Chat,
@@ -114,6 +117,7 @@ pub struct GiveawayWinners {
 
 /// Service message about the completion of a giveaway without public winners.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct GiveawayCompleted {
     /// Number of winners in the giveaway.
     pub winner_count: i64,

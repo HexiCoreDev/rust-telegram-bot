@@ -7,6 +7,7 @@ use crate::types::files::video_quality::VideoQuality;
 
 /// A video file.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct Video {
     /// Telegram file identifier.
     pub file_id: String,

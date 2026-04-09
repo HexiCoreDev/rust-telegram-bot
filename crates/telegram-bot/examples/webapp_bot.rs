@@ -54,9 +54,9 @@ async fn start(update: Arc<Update>, context: Context) -> HandlerResult {
 
     // Build a ReplyKeyboardMarkup with a single button that opens the Web App.
     let mut button = KeyboardButton::text("Open the color picker!");
-    button.web_app = Some(WebAppInfo {
-        url: WEBAPP_URL.to_string(),
-    });
+    button.web_app = Some(WebAppInfo::new(
+        WEBAPP_URL
+    ));
 
     let keyboard = serde_json::to_value(
         ReplyKeyboardMarkup::new(vec![vec![button]])

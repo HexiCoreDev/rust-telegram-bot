@@ -5,6 +5,7 @@ use crate::types::user::User;
 
 /// Information about the affiliate that received a commission via a transaction.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct AffiliateInfo {
     /// The bot or user that received an affiliate commission, if received by a bot or user.
     #[serde(skip_serializing_if = "Option::is_none")]

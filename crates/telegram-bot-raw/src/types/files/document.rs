@@ -6,6 +6,7 @@ use crate::types::files::photo_size::PhotoSize;
 
 /// A general file (as opposed to photos, voice messages and audio files).
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct Document {
     /// Telegram file identifier.
     pub file_id: String,

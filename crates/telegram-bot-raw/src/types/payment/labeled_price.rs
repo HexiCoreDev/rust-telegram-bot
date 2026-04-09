@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 
 /// A portion of the total price for goods or services.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
+#[non_exhaustive]
 pub struct LabeledPrice {
     /// Portion label.
     pub label: String,

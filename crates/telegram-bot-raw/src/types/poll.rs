@@ -7,6 +7,7 @@ use super::user::User;
 
 /// One answer option in a poll to be sent.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
+#[non_exhaustive]
 pub struct InputPollOption {
     /// Option text; 1-100 characters.
     pub text: String,
@@ -24,6 +25,7 @@ impl_new!(InputPollOption { text: String });
 
 /// One answer option in a received poll.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct PollOption {
     /// Option text; 1-100 characters.
     pub text: String,
@@ -62,6 +64,7 @@ pub struct PollOption {
 
 /// An answer of a user in a non-anonymous poll.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct PollAnswer {
     /// Unique poll identifier.
     pub poll_id: String,
@@ -87,6 +90,7 @@ pub struct PollAnswer {
 
 /// Information about a poll.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct Poll {
     /// Unique poll identifier.
     pub id: String,
@@ -176,6 +180,7 @@ pub struct Poll {
 ///
 /// Added in Bot API 9.6.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct PollOptionAdded {
     /// Message containing the poll to which the option was added, if known.
     /// Note that the `Message` object in this field will not contain the `reply_to_message`
@@ -204,6 +209,7 @@ pub struct PollOptionAdded {
 ///
 /// Added in Bot API 9.6.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct PollOptionDeleted {
     /// Message containing the poll from which the option was deleted, if known.
     /// Note that the `Message` object in this field will not contain the `reply_to_message`

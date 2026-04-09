@@ -5,6 +5,7 @@ use crate::types::user::User;
 
 /// An incoming inline query.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct InlineQuery {
     /// Unique identifier for this query.
     pub id: String,

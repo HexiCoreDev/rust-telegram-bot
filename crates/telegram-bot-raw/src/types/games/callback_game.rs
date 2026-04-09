@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 ///
 /// Use BotFather to set up your game.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
+#[non_exhaustive]
 pub struct CallbackGame {}
 
 impl CallbackGame {

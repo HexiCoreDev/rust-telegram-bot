@@ -4,6 +4,7 @@ use super::files::photo_size::PhotoSize;
 
 /// Information about a user shared with the bot via a `KeyboardButtonRequestUsers` button.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct SharedUser {
     /// Identifier of the shared user.
     pub user_id: i64,
@@ -27,6 +28,7 @@ pub struct SharedUser {
 
 /// Information about users shared with the bot via a `KeyboardButtonRequestUsers` button.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct UsersShared {
     /// Identifier of the request.
     pub request_id: i64,
@@ -37,6 +39,7 @@ pub struct UsersShared {
 
 /// Information about a chat shared with the bot via a `KeyboardButtonRequestChat` button.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct ChatShared {
     /// Identifier of the request.
     pub request_id: i64,

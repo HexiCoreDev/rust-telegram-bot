@@ -30,17 +30,19 @@ reqwest.workspace = true
 # Optional dependencies
 axum = { workspace = true, optional = true }
 rusqlite = { workspace = true, optional = true }
+redis = { workspace = true, optional = true }
 
 [dev-dependencies]
 proptest = "1"
 
 [features]
 default = ["polling"]
-full = ["polling", "webhooks", "job-queue", "persistence", "persistence-json", "persistence-sqlite", "rate-limiter"]
+full = ["polling", "webhooks", "job-queue", "persistence", "persistence-json", "persistence-sqlite", "persistence-redis", "rate-limiter"]
 polling = []
 webhooks = ["axum"]
 job-queue = []
 persistence = []
 persistence-json = ["persistence"]
 persistence-sqlite = ["persistence", "rusqlite"]
+persistence-redis = ["persistence", "redis"]
 rate-limiter = []
