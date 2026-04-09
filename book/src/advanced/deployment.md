@@ -25,7 +25,7 @@ opt-level = "z"     # Optimise for size (use "3" for speed)
 panic = "abort"     # Smaller binary, no unwinding overhead
 ```
 
-With these settings a typical bot binary compiles to under 10 MB.
+With these settings a typical bot binary compiles to approximately 6.2 MB (stripped) — smaller than teloxide at 6.6 MB. See the [benchmarks](../../../benchmarks/README.md) for measured numbers.
 
 ### Feature Flags
 

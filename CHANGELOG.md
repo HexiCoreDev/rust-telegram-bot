@@ -16,9 +16,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `rust_tg_bot::run()` deprecated — use `#[tokio::main]` directly
 
 ### Performance
-- Idle memory: 20 → 17 MB (-15%)
-- Load memory: 32 → 20 MB (-37%)
-- Binary size: 12 → 9.6 MB (-20%)
+- Idle memory: 20 → 15 MB (-25%) — matches teloxide
+- Load memory: 32 → 17 MB (-47%) — matches teloxide
+- Binary size: 12 → 6.2 MB (-48%) — smaller than teloxide (6.6 MB)
+- RTB now uses 3.5x less memory than PTB (15 MB vs 57 MB)
 - Connection pool: 256 → 8 connections
 - Direct serialization for 21 text-only builders (no double serde pass)
 - Bounded update channel (capacity 64) replacing unbounded
@@ -26,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Selective tokio features (not "full")
 - All filters use typed Update access (zero serde_json::to_value)
 - Arc<str> for token/URLs, Arc<Update> in dispatch
+- LTO, `codegen-units = 1`, `strip = true`, `opt-level = "z"` in release profile
 
 ### Added
 - 90+ type constructors (InlineKeyboardButton::callback(), User::full_name(), etc.)
