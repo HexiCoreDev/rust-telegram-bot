@@ -18,7 +18,7 @@ All three bots implement exactly the same features:
 |-----------|---------|----------|------|
 | python-telegram-bot (PTB) | 22.7 | Python 3.14 | `ptb/bench_bot.py` |
 | teloxide | 0.17 | Rust 1.93 | `teloxide/` (Cargo project) |
-| rust-telegram-bot (RTB) | 1.0.0-beta.4 | Rust 1.93 | `rtb/bench_bot.rs` |
+| rust-telegram-bot (RTB) | 1.0.0-beta.4b | Rust 1.93 | `rtb/bench_bot.rs` |
 
 ## How to Run
 
@@ -59,7 +59,7 @@ RSS = Resident Set Size (actual RAM used).
 |-----------|:--------:|:----------:|:-----------------:|
 | PTB 22.7 (Python + Starlette + uvicorn) | 57 MB | 60 MB | N/A (needs runtime) |
 | teloxide 0.17 (Rust) | **15 MB** | **17 MB** | 6.6 MB |
-| RTB 1.0.0-beta.4 (Rust + axum) | **15 MB** | **17 MB** | **6.2 MB** |
+| RTB 1.0.0-beta.4b (Rust + axum) | **15 MB** | **17 MB** | **6.2 MB** |
 
 **Test protocol:** Each bot received 21+ interactions: `/start`, inline keyboard button presses, `/help`, and text messages echoed with typing indicator. All bots ran in webhook mode on port 8000 behind the same zrok tunnel.
 
@@ -71,7 +71,7 @@ RSS = Resident Set Size (actual RAM used).
 | beta.2 (P2-P6,T2) | 17 MB | 21 MB | 11 MB | Pool 8, typed filters, Arc\<str\> |
 | beta.2 (S1-S3) | 17 MB | 20 MB | 9.6 MB | UpdateKind enum, Message boxing, direct serde |
 | beta.2 (final) | **15 MB** | **17 MB** | **6.2 MB** | LTO, codegen-units=1, strip, size opts |
-| beta.4 | **15 MB** | **17 MB** | **6.2 MB** | Macros, Redis/Postgres persistence, TLS webhooks, #[non_exhaustive] |
+| beta.4b | **15 MB** | **17 MB** | **6.2 MB** | Macros, Redis/Postgres persistence, TLS webhooks, #[non_exhaustive] |
 
 ### Analysis
 

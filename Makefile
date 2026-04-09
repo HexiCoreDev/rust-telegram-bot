@@ -213,6 +213,29 @@ bench-memory: build-release ## Measure RTB memory footprint without running a bo
 	@echo ""
 	@echo "To measure RSS, run a bot and check: ps -o rss,vsz,comm -p <PID>"
 
+# ── Version Bump ───────────────────────────────────────────────────
+
+.PHONY: bump
+
+bump: ## Bump version everywhere (make bump V=1.0.0-beta.5)
+ifndef V
+	$(error Usage: make bump V=1.0.0-beta.5)
+endif
+	@echo "Bumping $(VERSION) → $(V)"
+	@sed -i 's/version = "$(VERSION)"/version = "$(V)"/' Cargo.toml
+	@sed -i 's/version = "$(VERSION)"/version = "$(V)"/g' crates/telegram-bot/Cargo.toml
+	@sed -i 's/version = "$(VERSION)"/version = "$(V)"/g' crates/telegram-bot-ext/Cargo.toml
+	@sed -i 's/$(VERSION)/$(V)/g' README.md
+	@sed -i 's/$(VERSION)/$(V)/g' benchmarks/README.md
+	@cargo check --workspace 2>/dev/null
+	@echo "Done. Files updated:"
+	@grep -rn "$(V)" Cargo.toml crates/telegram-bot/Cargo.toml crates/telegram-bot-ext/Cargo.toml README.md benchmarks/README.md | grep -v target
+	@echo ""
+	@echo "Remember to:"
+	@echo "  1. Add a new section to CHANGELOG.md"
+	@echo "  2. cargo check --workspace"
+	@echo "  3. git add -A && git commit"
+
 # ── Cleanup ────────────────────────────────────────────────────────
 
 .PHONY: clean clean-all

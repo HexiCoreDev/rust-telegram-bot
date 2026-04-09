@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.0-beta.4b] - 2026-04-10
+
+### Fixed
+- Switch `reqwest` from `native-tls` to `rustls-tls` — removes `openssl-sys` dependency entirely, fixes aarch64 cross-compilation failure in release workflow
+- Inter-crate path dependencies now include `version` for crates.io publish
+- Publish workflow handles "already exists" gracefully (`|| echo "Already published, skipping"`)
+- GitHub Actions upgraded to latest: checkout v6, upload-artifact v7, download-artifact v8, codecov-action v6
+
+### Changed
+- README logo uses Vercel-hosted URL instead of local `assets/logo.png`
+
 ## [1.0.0-beta.4] - 2026-04-09
 
 ### Added
@@ -13,7 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Codecov integration with cargo-tarpaulin in Docker container
 - Vercel deployment for mdBook documentation site
 - Makefile with 40+ targets: build, test, lint, coverage, examples, benchmarks, release
-- CI coverage job using `xd009642/tarpaulin:develop-nightly` + `codecov-action@v5`
+- CI coverage job using `xd009642/tarpaulin:develop-nightly` + `codecov-action@v6`
 - mdBook docs auto-deploy to Vercel on push to main
 
 ### Fixed
