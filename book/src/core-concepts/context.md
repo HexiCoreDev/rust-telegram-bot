@@ -11,7 +11,7 @@ Access the bot instance to call Telegram API methods:
 ```rust
 async fn my_handler(update: Arc<Update>, context: Context) -> HandlerResult {
     let bot = context.bot();
-    bot.send_message(chat_id, "Hello!").send().await?;
+    bot.send_message(chat_id, "Hello!").await?;
     Ok(())
 }
 ```
@@ -28,7 +28,7 @@ This is equivalent to:
 
 ```rust
 let chat_id = update.effective_chat().map(|c| c.id).unwrap();
-context.bot().send_message(chat_id, "Got it!").send().await?;
+context.bot().send_message(chat_id, "Got it!").await?;
 ```
 
 ## User Data

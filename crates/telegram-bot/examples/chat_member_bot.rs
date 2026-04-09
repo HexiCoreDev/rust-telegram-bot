@@ -169,10 +169,10 @@ async fn greet_chat_members(update: Arc<Update>, context: Context) -> HandlerRes
 
     if !was_member && is_member {
         let text = format!("{member_name} was added by {cause_name}. Welcome!");
-        let _ = context.bot().send_message(chat_id, &text).send().await;
+        let _ = context.bot().send_message(chat_id, &text).await;
     } else if was_member && !is_member {
         let text = format!("{member_name} is no longer with us. Thanks a lot, {cause_name} ...");
-        let _ = context.bot().send_message(chat_id, &text).send().await;
+        let _ = context.bot().send_message(chat_id, &text).await;
     }
 
     Ok(())

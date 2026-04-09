@@ -35,7 +35,7 @@ rusqlite = { workspace = true, optional = true }
 proptest = "1"
 
 [features]
-default = ["polling", "job-queue", "persistence"]
+default = ["polling"]
 full = ["polling", "webhooks", "job-queue", "persistence", "persistence-json", "persistence-sqlite", "rate-limiter"]
 polling = []
 webhooks = ["axum"]

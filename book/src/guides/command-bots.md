@@ -59,7 +59,7 @@ async fn set_timer(update: Arc<Update>, context: Context) -> HandlerResult {
             _ => {
                 context.bot()
                     .send_message(chat_id, "Usage: /set <seconds>\nPlease provide a positive number.")
-                    .send().await
+                    .await
                     .map_err(|e| HandlerError::Other(Box::new(e)))?;
                 return Ok(());
             }
@@ -67,7 +67,7 @@ async fn set_timer(update: Arc<Update>, context: Context) -> HandlerResult {
         None => {
             context.bot()
                 .send_message(chat_id, "Usage: /set <seconds>")
-                .send().await
+                .await
                 .map_err(|e| HandlerError::Other(Box::new(e)))?;
             return Ok(());
         }
@@ -75,7 +75,7 @@ async fn set_timer(update: Arc<Update>, context: Context) -> HandlerResult {
 
     context.bot()
         .send_message(chat_id, &format!("Timer set for {seconds} seconds!"))
-        .send().await
+        .await
         .map_err(|e| HandlerError::Other(Box::new(e)))?;
 
     Ok(())
@@ -155,7 +155,7 @@ let keyboard = InlineKeyboardMarkup::from_button(
 context.bot()
     .send_message(chat_id, "Click below to continue:")
     .reply_markup(serde_json::to_value(keyboard).unwrap())
-    .send().await?;
+    .await?;
 ```
 
 ## Registering Commands with BotFather

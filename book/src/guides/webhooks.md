@@ -113,7 +113,6 @@ async fn start(update: Arc<Update>, context: Context) -> HandlerResult {
         .bot()
         .send_message(chat_id, "Hello from a custom webhook server!")
         .parse_mode(ParseMode::Html)
-        .send()
         .await?;
 
     Ok(())
@@ -165,7 +164,6 @@ async fn main() {
     let full_url = format!("{webhook_url}/telegram");
     app.bot()
         .set_webhook(&full_url)
-        .send()
         .await
         .expect("Failed to set webhook");
 
@@ -195,7 +193,7 @@ async fn main() {
 The key steps when running a custom server:
 
 1. Call `app.initialize()` and `app.start()` instead of `run_polling()` or `run_webhook()`.
-2. Set the webhook URL on Telegram with `app.bot().set_webhook(url).send().await`.
+2. Set the webhook URL on Telegram with `app.bot().set_webhook(url).await`.
 3. Use `app.update_sender()` to get the `mpsc::Sender` channel and forward parsed updates into it.
 4. Call `app.stop()` and `app.shutdown()` when your server exits.
 
@@ -273,7 +271,7 @@ async fn main() {
 To switch back to polling, you must delete the webhook first. The framework does this automatically when you call `run_polling()`, but you can also do it manually:
 
 ```rust
-app.bot().delete_webhook(false).send().await?;
+app.bot().delete_webhook(false).await?;
 ```
 
 The boolean argument controls whether to drop pending updates (`true`) or keep them (`false`).

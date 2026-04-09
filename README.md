@@ -321,6 +321,23 @@ Features ported from python-telegram-bot:
 - Non-blocking callbacks with state revert on failure
 - Persistence integration
 
+### Webhook Support
+
+The simplest way to run in webhook mode -- the framework handles the axum server, secret token validation, and update dispatching internally:
+
+```rust,ignore
+use rust_tg_bot::ext::updater::WebhookConfig;
+
+let config = WebhookConfig::new("https://your.domain/telegram")
+    .port(8000)
+    .url_path("/telegram")
+    .secret_token("my-secret-token");
+
+app.run_webhook(config).await?;
+```
+
+See [`webhook_bot.rs`](crates/telegram-bot/examples/webhook_bot.rs) for a complete working example, or [`custom_webhook_bot.rs`](crates/telegram-bot/examples/custom_webhook_bot.rs) for adding custom routes alongside the webhook.
+
 ### Job Queue Scheduling
 
 Schedule one-shot, repeating, daily, and monthly jobs using tokio timers and a builder pattern:
@@ -457,16 +474,26 @@ The `crates/telegram-bot/examples/` directory contains complete, runnable exampl
 | Example | Description | Python equivalent |
 |---|---|---|
 | [`echo_bot`](crates/telegram-bot/examples/echo_bot.rs) | Echoes text messages back to the user | `echobot.py` |
+| [`webhook_bot`](crates/telegram-bot/examples/webhook_bot.rs) | **Webhook mode with `run_webhook()` -- simplest production setup** | N/A |
 | [`inline_keyboard`](crates/telegram-bot/examples/inline_keyboard.rs) | Inline keyboard with callback queries | `inlinekeyboard.py` |
 | [`timer_bot`](crates/telegram-bot/examples/timer_bot.rs) | Job queue: delayed messages, cancellation | `timerbot.py` |
 | [`conversation_bot`](crates/telegram-bot/examples/conversation_bot.rs) | Multi-step conversation with state machine | `conversationbot.py` |
 | [`raw_api_bot`](crates/telegram-bot/examples/raw_api_bot.rs) | Direct Bot API usage without the ext framework | N/A |
 | [`context_types_bot`](crates/telegram-bot/examples/context_types_bot.rs) | Typed data access: bot_data, chat_data, user tracking | `contexttypesbot.py` |
+| [`custom_webhook_bot`](crates/telegram-bot/examples/custom_webhook_bot.rs) | Custom axum routes alongside the Telegram webhook | N/A |
+| [`bench_bot`](crates/telegram-bot/examples/bench_bot.rs) | Benchmark bot matching PTB/teloxide feature set | N/A |
 
 Run any example:
 
 ```sh
 TELEGRAM_BOT_TOKEN="your-token" cargo run -p rust-tg-bot --example echo_bot
+```
+
+Webhook examples require the `webhooks` feature:
+
+```sh
+TELEGRAM_BOT_TOKEN="your-token" WEBHOOK_URL="https://your.domain" \
+    cargo run -p rust-tg-bot --example webhook_bot --features webhooks
 ```
 
 ## Project Status

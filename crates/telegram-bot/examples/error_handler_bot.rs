@@ -110,7 +110,7 @@ async fn error_handler(update: Option<Arc<Update>>, context: CallbackContext) ->
 
     let dev_id = developer_chat_id();
     if dev_id != 0 {
-        let _ = context.bot().send_message(dev_id, &message).send().await;
+        let _ = context.bot().send_message(dev_id, &message).await;
     } else {
         tracing::warn!("DEVELOPER_CHAT_ID not set -- error report was not sent to Telegram.");
     }

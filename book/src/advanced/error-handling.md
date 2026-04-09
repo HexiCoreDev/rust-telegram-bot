@@ -112,7 +112,6 @@ async fn error_handler(
         let _ = context
             .bot()
             .send_message(dev_chat_id, &message)
-            .send()
             .await;
     }
 
@@ -237,7 +236,6 @@ async fn error_handler(
             let _ = context
                 .bot()
                 .answer_callback_query(&cq.id)
-                .send()
                 .await;
         }
     }
@@ -324,7 +322,7 @@ async fn on_error(
 
     if dev_id != 0 {
         let msg = format!("Error: {error_text}");
-        let _ = context.bot().send_message(dev_id, &msg).send().await;
+        let _ = context.bot().send_message(dev_id, &msg).await;
     }
 
     false

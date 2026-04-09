@@ -117,7 +117,7 @@ async fn main() {
                              Send any text and I will echo it back."
                         );
 
-                        if let Err(e) = bot.send_message(chat_id, &greeting).send().await {
+                        if let Err(e) = bot.send_message(chat_id, &greeting).await {
                             eprintln!("Failed to send message: {e}");
                         }
                     }
@@ -129,7 +129,6 @@ async fn main() {
                         match bot
                             .send_photo(chat_id, photo)
                             .caption("Here is the Telegram logo!")
-                            .send()
                             .await
                         {
                             Ok(msg) => {
@@ -145,19 +144,18 @@ async fn main() {
                                         chat_id,
                                         "Sorry, I could not send the photo. Try again later.",
                                     )
-                                    .send()
                                     .await;
                             }
                         }
                     }
                     _ => {
                         let reply = format!("Unknown command: /{cmd_name}\nTry /start or /photo.");
-                        let _ = bot.send_message(chat_id, &reply).send().await;
+                        let _ = bot.send_message(chat_id, &reply).await;
                     }
                 }
             } else if !text.is_empty() {
                 // Echo non-command text.
-                if let Err(e) = bot.send_message(chat_id, text).send().await {
+                if let Err(e) = bot.send_message(chat_id, text).await {
                     eprintln!("Failed to echo message: {e}");
                 }
             }

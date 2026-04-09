@@ -79,7 +79,6 @@ async fn start_command(
         .bot()
         .send_message(chat_id, "Start handler, Choose a route")
         .reply_markup(keyboard_markup_json(&keyboard))
-        .send()
         .await
         .map_err(|e| HandlerError::Other(Box::new(e)))?;
 
@@ -101,7 +100,7 @@ async fn handler_one(
         .callback_query()
         .expect("handler_one: missing callback_query");
 
-    context.bot().answer_callback_query(&cq.id).send().await?;
+    context.bot().answer_callback_query(&cq.id).await?;
 
     let keyboard = InlineKeyboardMarkup::from_row(vec![
         InlineKeyboardButton::callback("3", THREE),
@@ -115,7 +114,6 @@ async fn handler_one(
             .chat_id(msg.chat().id)
             .message_id(msg.message_id())
             .reply_markup(keyboard_markup_json(&keyboard))
-            .send()
             .await?;
     }
 
@@ -134,7 +132,7 @@ async fn handler_two(
         .callback_query()
         .expect("handler_two: missing callback_query");
 
-    context.bot().answer_callback_query(&cq.id).send().await?;
+    context.bot().answer_callback_query(&cq.id).await?;
 
     let keyboard = InlineKeyboardMarkup::from_row(vec![
         InlineKeyboardButton::callback("1", ONE),
@@ -148,7 +146,6 @@ async fn handler_two(
             .chat_id(msg.chat().id)
             .message_id(msg.message_id())
             .reply_markup(keyboard_markup_json(&keyboard))
-            .send()
             .await?;
     }
 
@@ -167,7 +164,7 @@ async fn handler_three(
         .callback_query()
         .expect("handler_three: missing callback_query");
 
-    context.bot().answer_callback_query(&cq.id).send().await?;
+    context.bot().answer_callback_query(&cq.id).await?;
 
     let keyboard = InlineKeyboardMarkup::from_row(vec![
         InlineKeyboardButton::callback("Yes, let's do it again!", ONE),
@@ -181,7 +178,6 @@ async fn handler_three(
             .chat_id(msg.chat().id)
             .message_id(msg.message_id())
             .reply_markup(keyboard_markup_json(&keyboard))
-            .send()
             .await?;
     }
 
@@ -201,7 +197,7 @@ async fn handler_four(
         .callback_query()
         .expect("handler_four: missing callback_query");
 
-    context.bot().answer_callback_query(&cq.id).send().await?;
+    context.bot().answer_callback_query(&cq.id).await?;
 
     let keyboard = InlineKeyboardMarkup::from_row(vec![
         InlineKeyboardButton::callback("2", TWO),
@@ -215,7 +211,6 @@ async fn handler_four(
             .chat_id(msg.chat().id)
             .message_id(msg.message_id())
             .reply_markup(keyboard_markup_json(&keyboard))
-            .send()
             .await?;
     }
 
@@ -234,7 +229,7 @@ async fn start_over(update: Arc<Update>, context: Context, conv_store: ConvStore
         .callback_query()
         .expect("start_over: missing callback_query");
 
-    context.bot().answer_callback_query(&cq.id).send().await?;
+    context.bot().answer_callback_query(&cq.id).await?;
 
     let keyboard = InlineKeyboardMarkup::from_row(vec![
         InlineKeyboardButton::callback("1", ONE),
@@ -248,7 +243,6 @@ async fn start_over(update: Arc<Update>, context: Context, conv_store: ConvStore
             .chat_id(msg.chat().id)
             .message_id(msg.message_id())
             .reply_markup(keyboard_markup_json(&keyboard))
-            .send()
             .await?;
     }
 
@@ -267,7 +261,7 @@ async fn end_conversation(
         .callback_query()
         .expect("end: missing callback_query");
 
-    context.bot().answer_callback_query(&cq.id).send().await?;
+    context.bot().answer_callback_query(&cq.id).await?;
 
     if let Some(msg) = cq.message.as_deref() {
         context
@@ -275,7 +269,6 @@ async fn end_conversation(
             .edit_message_text("See you next time!")
             .chat_id(msg.chat().id)
             .message_id(msg.message_id())
-            .send()
             .await?;
     }
 

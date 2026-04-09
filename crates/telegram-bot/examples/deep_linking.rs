@@ -119,7 +119,7 @@ async fn start(update: Arc<Update>, context: Context) -> HandlerResult {
     let url = create_deep_linked_url(&bot_username, CHECK_THIS_OUT, true);
     let text = format!("Feel free to tell your friends about it:\n\n{url}");
 
-    context.bot().send_message(chat_id, &text).send().await?;
+    context.bot().send_message(chat_id, &text).await?;
 
     Ok(())
 }
@@ -140,7 +140,6 @@ async fn deep_linked_level_1(update: Arc<Update>, context: Context) -> HandlerRe
         .bot()
         .send_message(chat_id, text)
         .reply_markup(keyboard_markup_json(&keyboard))
-        .send()
         .await?;
 
     Ok(())
@@ -160,7 +159,6 @@ async fn deep_linked_level_2(update: Arc<Update>, context: Context) -> HandlerRe
         .bot()
         .send_message(chat_id, &text)
         .parse_mode(ParseMode::Html)
-        .send()
         .await?;
 
     Ok(())
@@ -182,7 +180,6 @@ async fn deep_linked_level_3(update: Arc<Update>, context: Context) -> HandlerRe
             "It is also possible to make deep-linking using InlineKeyboardButtons.",
         )
         .reply_markup(keyboard_markup_json(&keyboard))
-        .send()
         .await?;
 
     Ok(())
@@ -202,7 +199,6 @@ async fn deep_link_level_3_callback(update: Arc<Update>, context: Context) -> Ha
         .bot()
         .answer_callback_query(&cq.id)
         .url(url)
-        .send()
         .await?;
 
     Ok(())

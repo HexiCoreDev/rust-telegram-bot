@@ -51,7 +51,6 @@ async fn start(update: Arc<Update>, context: Context) -> HandlerResult {
     context.bot()
         .send_message(chat_id, "Please choose an option:")
         .reply_markup(keyboard)
-        .send()
         .await?;
 
     Ok(())
@@ -72,7 +71,7 @@ async fn button_callback(update: Arc<Update>, context: Context) -> HandlerResult
     let data = cq.data.as_deref().unwrap_or("unknown");
 
     // Answer the callback query (removes the loading indicator)
-    context.bot().answer_callback_query(&cq.id).send().await?;
+    context.bot().answer_callback_query(&cq.id).await?;
 
     // Edit the original message to show the selection
     if let Some(msg) = cq.message.as_deref() {
@@ -81,7 +80,6 @@ async fn button_callback(update: Arc<Update>, context: Context) -> HandlerResult
             .edit_message_text(&response_text)
             .chat_id(msg.chat().id)
             .message_id(msg.message_id())
-            .send()
             .await?;
     }
 
@@ -97,7 +95,7 @@ app.add_handler(FnHandler::on_callback_query(button_callback), 0).await;
 If you do not call `answer_callback_query`, the user sees a perpetual loading spinner on the button. Always answer, even if you have nothing to show:
 
 ```rust
-context.bot().answer_callback_query(&cq.id).send().await?;
+context.bot().answer_callback_query(&cq.id).await?;
 ```
 
 You can also show a notification:
@@ -107,7 +105,6 @@ context.bot()
     .answer_callback_query(&cq.id)
     .text("Saved!")
     .show_alert(true)  // Shows a modal alert instead of a toast
-    .send()
     .await?;
 ```
 
@@ -137,7 +134,6 @@ context.bot()
     .chat_id(chat_id)
     .message_id(message_id)
     .reply_markup(serde_json::to_value(new_keyboard).unwrap())
-    .send()
     .await?;
 ```
 
@@ -166,7 +162,6 @@ async fn start(update: Arc<Update>, context: Context) -> HandlerResult {
     context.bot()
         .send_message(chat_id, "Please choose an option:")
         .reply_markup(keyboard)
-        .send()
         .await?;
 
     Ok(())
@@ -176,14 +171,13 @@ async fn button_callback(update: Arc<Update>, context: Context) -> HandlerResult
     let cq = update.callback_query().unwrap();
     let data = cq.data.as_deref().unwrap_or("unknown");
 
-    context.bot().answer_callback_query(&cq.id).send().await?;
+    context.bot().answer_callback_query(&cq.id).await?;
 
     if let Some(msg) = cq.message.as_deref() {
         context.bot()
             .edit_message_text(&format!("You selected: Option {data}"))
             .chat_id(msg.chat().id)
             .message_id(msg.message_id())
-            .send()
             .await?;
     }
 

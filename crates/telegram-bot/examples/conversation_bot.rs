@@ -12,6 +12,19 @@
 //! The bot asks the user for their name, then their age, then a location,
 //! and finally a short bio. Each step transitions to the next state.
 //!
+//! # Why manual state management?
+//!
+//! The library provides `ConversationHandler` (in `handlers/conversation.rs`)
+//! for complex multi-step flows with timeouts, nesting, and persistence.
+//! However, the `ConversationHandler` is generic over a state type and is
+//! designed to be registered as a single handler that internally dispatches
+//! to per-state sub-handlers. This example uses the simpler manual pattern
+//! with `FnHandler` + `RwLock<HashMap>` because it integrates directly with
+//! the standard `add_handler` API and is easier to follow for newcomers.
+//! For production bots with persistence, timeouts, or nested conversations,
+//! prefer `ConversationHandler` -- see `nested_conversation_bot.rs` and
+//! `persistent_conversation_bot.rs` for examples.
+//!
 //! # Usage
 //!
 //! ```sh
@@ -69,7 +82,6 @@ async fn start_command(
             "Hi! I would like to get to know you.\n\n\
              What is your name? (Send /cancel to stop at any time.)",
         )
-        .send()
         .await
         .map_err(|e| HandlerError::Other(Box::new(e)))?;
 
@@ -94,7 +106,6 @@ async fn receive_name(
             chat_id,
             &format!("Nice to meet you, {text}! How old are you?"),
         )
-        .send()
         .await
         .map_err(|e| HandlerError::Other(Box::new(e)))?;
 
@@ -119,7 +130,6 @@ async fn receive_age(
     context
         .bot()
         .send_message(chat_id, "Great! Where are you from? (City or country)")
-        .send()
         .await
         .map_err(|e| HandlerError::Other(Box::new(e)))?;
 
@@ -141,7 +151,6 @@ async fn receive_location(
     context
         .bot()
         .send_message(chat_id, "Wonderful! Tell me a little about yourself.")
-        .send()
         .await
         .map_err(|e| HandlerError::Other(Box::new(e)))?;
 
@@ -182,7 +191,6 @@ async fn receive_bio(
     context
         .bot()
         .send_message(chat_id, &summary)
-        .send()
         .await
         .map_err(|e| HandlerError::Other(Box::new(e)))?;
 
@@ -199,7 +207,6 @@ async fn cancel(update: Arc<Update>, context: Context, conv_store: ConvStore) ->
             chat_id,
             "Conversation cancelled. Send /start to begin again.",
         )
-        .send()
         .await
         .map_err(|e| HandlerError::Other(Box::new(e)))?;
 

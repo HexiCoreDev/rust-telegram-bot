@@ -67,7 +67,7 @@ async fn start_command(
 
     context.bot()
         .send_message(chat_id, "Hi! What is your name? (Send /cancel to stop.)")
-        .send().await
+        .await
         .map_err(|e| HandlerError::Other(Box::new(e)))?;
     Ok(())
 }
@@ -88,7 +88,7 @@ async fn receive_name(
 
     context.bot()
         .send_message(chat_id, &format!("Nice to meet you, {text}! How old are you?"))
-        .send().await
+        .await
         .map_err(|e| HandlerError::Other(Box::new(e)))?;
     Ok(())
 }
@@ -103,7 +103,7 @@ async fn cancel(
 
     context.bot()
         .send_message(chat_id, "Conversation cancelled. Send /start to begin again.")
-        .send().await
+        .await
         .map_err(|e| HandlerError::Other(Box::new(e)))?;
     Ok(())
 }

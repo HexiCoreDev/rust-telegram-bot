@@ -50,7 +50,6 @@ async fn start(update: Arc<Update>, context: Context) -> HandlerResult {
         .bot()
         .send_message(chat_id, "Please choose an option:")
         .reply_markup(keyboard)
-        .send()
         .await?;
 
     Ok(())
@@ -76,7 +75,7 @@ async fn button_callback(update: Arc<Update>, context: Context) -> HandlerResult
     let data = cq.data.as_deref().unwrap_or("unknown");
 
     // Answer the callback query (removes the loading indicator on the client).
-    context.bot().answer_callback_query(&cq.id).send().await?;
+    context.bot().answer_callback_query(&cq.id).await?;
 
     // Edit the original message to show which option was selected.
     if let Some(msg) = cq.message.as_deref() {
@@ -86,7 +85,6 @@ async fn button_callback(update: Arc<Update>, context: Context) -> HandlerResult
             .edit_message_text(&response_text)
             .chat_id(msg.chat().id)
             .message_id(msg.message_id())
-            .send()
             .await?;
     }
 

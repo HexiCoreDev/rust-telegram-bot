@@ -52,7 +52,7 @@ async fn set_timer(
                 return Ok(());
             }
             bot.send_message(target_chat_id, "BEEP! Timer is done!")
-                .send().await
+                .await
                 .map_err(|e| Box::new(e) as Box<dyn std::error::Error + Send + Sync>)?;
             Ok(())
         })
@@ -73,7 +73,7 @@ async fn set_timer(
 
     context.bot()
         .send_message(chat_id, &format!("Timer set for {seconds} seconds!"))
-        .send().await
+        .await
         .map_err(|e| HandlerError::Other(Box::new(e)))?;
 
     Ok(())
@@ -128,7 +128,7 @@ async fn unset_timer(
 
     context.bot()
         .send_message(chat_id, reply)
-        .send().await
+        .await
         .map_err(|e| HandlerError::Other(Box::new(e)))?;
 
     Ok(())

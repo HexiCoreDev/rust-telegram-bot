@@ -63,7 +63,6 @@ async fn poll_command(update: Arc<Update>, context: Context) -> HandlerResult {
         .send_poll(chat_id, "How are you?", options)
         .is_anonymous(false)
         .allows_multiple_answers(true)
-        .send()
         .await?;
 
     // Store poll metadata in bot_data for later use in receive_poll_answer.
@@ -109,7 +108,6 @@ async fn quiz_command(update: Arc<Update>, context: Context) -> HandlerResult {
         .send_poll(chat_id, "How many eggs do you need for a cake?", options)
         .poll_type("quiz")
         .correct_option_id(2)
-        .send()
         .await?;
 
     if let Some(ref poll) = msg.poll {
@@ -174,7 +172,7 @@ async fn receive_poll_answer(update: Arc<Update>, context: Context) -> HandlerRe
         .unwrap_or("Someone");
 
     let text = format!("{user_name} feels {answer_string}!");
-    let _ = context.bot().send_message(chat_id, &text).send().await;
+    let _ = context.bot().send_message(chat_id, &text).await;
 
     // Track answer count and close the poll after TOTAL_VOTER_COUNT.
     let new_count = answers + 1;

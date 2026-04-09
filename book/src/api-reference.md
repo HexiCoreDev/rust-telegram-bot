@@ -172,43 +172,40 @@ use rust_tg_bot::ext::filters::update_type::{MESSAGE, EDITED_MESSAGE};
 
 ## Bot Methods
 
-The `Bot` (accessed via `context.bot()`) provides methods mirroring the Telegram Bot API. Most methods return a builder that you finalise with `.send().await`:
+The `Bot` (accessed via `context.bot()`) provides methods mirroring the Telegram Bot API. Most methods return a builder that you finalise with `.await` (builders implement `IntoFuture`):
 
 ```rust
 // Send a message
-context.bot().send_message(chat_id, "text").send().await?;
+context.bot().send_message(chat_id, "text").await?;
 
 // Send with options
 context.bot().send_message(chat_id, "text")
     .parse_mode(ParseMode::Html)
     .reply_markup(keyboard)
-    .send()
     .await?;
 
 // Edit a message
 context.bot().edit_message_text("new text")
     .chat_id(chat_id)
     .message_id(msg_id)
-    .send()
     .await?;
 
 // Answer a callback query
-context.bot().answer_callback_query(&cq_id).send().await?;
+context.bot().answer_callback_query(&cq_id).await?;
 
 // Answer an inline query
-context.bot().answer_inline_query(&iq_id, results).send().await?;
+context.bot().answer_inline_query(&iq_id, results).await?;
 
 // Send an invoice
 context.bot().send_invoice(chat_id, title, desc, payload, currency, prices)
     .provider_token(&token)
-    .send()
     .await?;
 
 // Set webhook
-context.bot().set_webhook(&url).send().await?;
+context.bot().set_webhook(&url).await?;
 
 // Delete webhook
-context.bot().delete_webhook(false).send().await?;
+context.bot().delete_webhook(false).await?;
 ```
 
 ### Convenience Methods on Context
