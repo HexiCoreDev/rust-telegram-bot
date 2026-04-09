@@ -27,3 +27,10 @@ bytes.workspace = true
 async-trait.workspace = true
 regex.workspace = true
 stacker.workspace = true
+
+[dev-dependencies]
+criterion = { version = "0.5", features = ["html_reports"] }
+
+[[bench]]
+name = "throughput"
+harness = false

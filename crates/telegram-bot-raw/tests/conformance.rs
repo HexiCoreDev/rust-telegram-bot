@@ -145,364 +145,199 @@ fn all_bot_api_96_builder_methods_exist() {
     let _ = bot.save_prepared_keyboard_button(1i64, make_inline_keyboard_button());
 }
 
-/// Verify raw async methods exist on Bot via closure construction.
-/// Each line constructs a closure that calls the method with correct args.
-/// This is purely a compile-time check; the closures are never called.
+/// Verify raw async methods exist on Bot.
+///
+/// Each call constructs a future (never polled). If a method is missing or its
+/// signature changes, this test will fail to compile. We leak the Bot to obtain
+/// a `'&'static Bot` so the returned futures satisfy their lifetime bounds.
 #[test]
 fn all_bot_api_96_raw_methods_exist() {
-    let bot = make_bot();
-    let _b = &bot; // suppress unused
+    let bot: &'static Bot = Box::leak(Box::new(make_bot()));
+
+    macro_rules! check {
+        ($expr:expr) => { let _ = $expr; };
+    }
 
     // -- Getting updates --
-    let _get_updates = |b: &Bot| b.get_updates(None, None, None, None);
-    let _get_webhook_info = |b: &Bot| b.get_webhook_info();
+    check!(bot.get_updates(None, None, None, None));
+    check!(bot.get_webhook_info());
 
     // -- Core --
-    let _get_me = |b: &Bot| b.get_me();
-    let _log_out = |b: &Bot| b.log_out();
-    let _close = |b: &Bot| b.close();
+    check!(bot.get_me());
+    check!(bot.log_out());
+    check!(bot.close());
 
     // -- Messages --
-    // forward_message: 10 args after &self
-    let _forward_message = |b: &Bot| {
-        b.forward_message(1i64.into(), 1i64.into(), 1, None, None, None, None, None, None, None)
-    };
-    // forward_messages: 7 args after &self
-    let _forward_messages = |b: &Bot| {
-        b.forward_messages(1i64.into(), 1i64.into(), vec![1], None, None, None, None)
-    };
-    // copy_message: 17 args after &self
-    let _copy_message = |b: &Bot| {
-        b.copy_message(
-            1i64.into(), 1i64.into(), 1,
-            None, None, None, None, None, None, None, None, None, None, None, None, None, None,
-        )
-    };
-    // copy_messages: 8 args after &self
-    let _copy_messages = |b: &Bot| {
-        b.copy_messages(1i64.into(), 1i64.into(), vec![1], None, None, None, None, None)
-    };
-    // send_message_draft: 6 args after &self
-    let _send_message_draft = |b: &Bot| b.send_message_draft(1, 1, "t", None, None, None);
-    let _delete_message = |b: &Bot| b.delete_message(1i64.into(), 1);
-    let _delete_messages = |b: &Bot| b.delete_messages(1i64.into(), vec![1]);
+    check!(bot.forward_message(1i64.into(), 1i64.into(), 1, None, None, None, None, None, None, None));
+    check!(bot.forward_messages(1i64.into(), 1i64.into(), vec![1], None, None, None, None));
+    check!(bot.copy_message(1i64.into(), 1i64.into(), 1, None, None, None, None, None, None, None, None, None, None, None, None, None, None));
+    check!(bot.copy_messages(1i64.into(), 1i64.into(), vec![1], None, None, None, None, None));
+    check!(bot.send_message_draft(1, 1, "t", None, None, None));
+    check!(bot.delete_message(1i64.into(), 1));
+    check!(bot.delete_messages(1i64.into(), vec![1]));
 
     // -- Media --
-    // send_media_group: 11 args after &self
-    let _send_media_group = |b: &Bot| {
-        b.send_media_group(1i64.into(), vec![], None, None, None, None, None, None, None, None, None)
-    };
-    // send_paid_media: 17 args after &self
-    let _send_paid_media = |b: &Bot| {
-        b.send_paid_media(
-            1i64.into(), 1, vec![],
-            None, None, None, None, None, None, None, None, None, None, None, None, None, None,
-        )
-    };
+    check!(bot.send_media_group(1i64.into(), vec![], None, None, None, None, None, None, None, None, None));
+    check!(bot.send_paid_media(1i64.into(), 1, vec![], None, None, None, None, None, None, None, None, None, None, None, None, None, None));
 
     // -- Other content --
-    // send_checklist: 8 args after &self
-    let _send_checklist = |b: &Bot| {
-        b.send_checklist("bc_id", 1, make_input_checklist(), None, None, None, None, None)
-    };
+    check!(bot.send_checklist("bc_id", 1, make_input_checklist(), None, None, None, None, None));
 
     // -- Editing --
-    // edit_message_live_location: 11 args after &self
-    let _edit_message_live_location = |b: &Bot| {
-        b.edit_message_live_location(1.0, 1.0, None, None, None, None, None, None, None, None, None)
-    };
-    // stop_message_live_location: 5 args after &self
-    let _stop_message_live_location = |b: &Bot| {
-        b.stop_message_live_location(None, None, None, None, None)
-    };
-    // edit_message_checklist: 5 args after &self
-    let _edit_message_checklist = |b: &Bot| {
-        b.edit_message_checklist("bc_id", 1, 1, make_input_checklist(), None)
-    };
-    // stop_poll: 4 args after &self
-    let _stop_poll = |b: &Bot| b.stop_poll(1i64.into(), 1, None, None);
+    check!(bot.edit_message_live_location(1.0, 1.0, None, None, None, None, None, None, None, None, None));
+    check!(bot.stop_message_live_location(None, None, None, None, None));
+    check!(bot.edit_message_checklist("bc_id", 1, 1, make_input_checklist(), None));
+    check!(bot.stop_poll(1i64.into(), 1, None, None));
 
     // -- Chat administration --
-    let _leave_chat = |b: &Bot| b.leave_chat(1i64.into());
-    let _get_chat = |b: &Bot| b.get_chat(1i64.into());
-    let _get_chat_administrators = |b: &Bot| b.get_chat_administrators(1i64.into());
-    let _get_chat_member_count = |b: &Bot| b.get_chat_member_count(1i64.into());
-    let _get_chat_member = |b: &Bot| b.get_chat_member(1i64.into(), 1);
-    // ban_chat_member: 4 args after &self
-    let _ban_chat_member = |b: &Bot| b.ban_chat_member(1i64.into(), 1, None, None);
-    // unban_chat_member: 3 args after &self
-    let _unban_chat_member = |b: &Bot| b.unban_chat_member(1i64.into(), 1, None);
-    let _ban_chat_sender_chat = |b: &Bot| b.ban_chat_sender_chat(1i64.into(), 1);
-    let _unban_chat_sender_chat = |b: &Bot| b.unban_chat_sender_chat(1i64.into(), 1);
-    // restrict_chat_member: 5 args after &self
-    let _restrict_chat_member = |b: &Bot| {
-        b.restrict_chat_member(
-            1i64.into(),
-            1,
-            rust_tg_bot_raw::types::chat_permissions::ChatPermissions::default(),
-            None,
-            None,
-        )
-    };
-    // promote_chat_member: 19 args after &self
-    let _promote_chat_member = |b: &Bot| {
-        b.promote_chat_member(
-            1i64.into(), 1,
-            None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None,
-        )
-    };
-    let _set_chat_administrator_custom_title = |b: &Bot| {
-        b.set_chat_administrator_custom_title(1i64.into(), 1, "title")
-    };
-    // set_chat_permissions: 3 args after &self
-    let _set_chat_permissions = |b: &Bot| {
-        b.set_chat_permissions(
-            1i64.into(),
-            rust_tg_bot_raw::types::chat_permissions::ChatPermissions::default(),
-            None,
-        )
-    };
-    // set_chat_photo: 2 args after &self
-    let _set_chat_photo = |b: &Bot| b.set_chat_photo(1i64.into(), dummy_file());
-    let _delete_chat_photo = |b: &Bot| b.delete_chat_photo(1i64.into());
-    let _set_chat_title = |b: &Bot| b.set_chat_title(1i64.into(), "t");
-    let _set_chat_description = |b: &Bot| b.set_chat_description(1i64.into(), None);
-    let _set_chat_sticker_set = |b: &Bot| b.set_chat_sticker_set(1i64.into(), "name");
-    let _delete_chat_sticker_set = |b: &Bot| b.delete_chat_sticker_set(1i64.into());
-    let _set_chat_member_tag = |b: &Bot| b.set_chat_member_tag(1i64.into(), 1, None);
-    // pin_chat_message: 4 args after &self
-    let _pin_chat_message = |b: &Bot| b.pin_chat_message(1i64.into(), 1, None, None);
-    // unpin_chat_message: 3 args after &self
-    let _unpin_chat_message = |b: &Bot| b.unpin_chat_message(1i64.into(), None, None);
-    let _unpin_all_chat_messages = |b: &Bot| b.unpin_all_chat_messages(1i64.into());
-    let _export_chat_invite_link = |b: &Bot| b.export_chat_invite_link(1i64.into());
-    // create_chat_invite_link: 5 args after &self
-    let _create_chat_invite_link = |b: &Bot| {
-        b.create_chat_invite_link(1i64.into(), None, None, None, None)
-    };
-    // edit_chat_invite_link: 6 args after &self
-    let _edit_chat_invite_link = |b: &Bot| {
-        b.edit_chat_invite_link(1i64.into(), "link", None, None, None, None)
-    };
-    let _revoke_chat_invite_link = |b: &Bot| b.revoke_chat_invite_link(1i64.into(), "link");
-    // create_chat_subscription_invite_link: 4 args after &self
-    let _create_chat_subscription_invite_link = |b: &Bot| {
-        b.create_chat_subscription_invite_link(1i64.into(), 30, 1, None)
-    };
-    // edit_chat_subscription_invite_link: 3 args after &self
-    let _edit_chat_subscription_invite_link = |b: &Bot| {
-        b.edit_chat_subscription_invite_link(1i64.into(), "link", None)
-    };
-    let _approve_chat_join_request = |b: &Bot| b.approve_chat_join_request(1i64.into(), 1);
-    let _decline_chat_join_request = |b: &Bot| b.decline_chat_join_request(1i64.into(), 1);
+    check!(bot.leave_chat(1i64.into()));
+    check!(bot.get_chat(1i64.into()));
+    check!(bot.get_chat_administrators(1i64.into()));
+    check!(bot.get_chat_member_count(1i64.into()));
+    check!(bot.get_chat_member(1i64.into(), 1));
+    check!(bot.ban_chat_member(1i64.into(), 1, None, None));
+    check!(bot.unban_chat_member(1i64.into(), 1, None));
+    check!(bot.ban_chat_sender_chat(1i64.into(), 1));
+    check!(bot.unban_chat_sender_chat(1i64.into(), 1));
+    check!(bot.restrict_chat_member(1i64.into(), 1, rust_tg_bot_raw::types::chat_permissions::ChatPermissions::default(), None, None));
+    check!(bot.promote_chat_member(1i64.into(), 1, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None));
+    check!(bot.set_chat_administrator_custom_title(1i64.into(), 1, "title"));
+    check!(bot.set_chat_permissions(1i64.into(), rust_tg_bot_raw::types::chat_permissions::ChatPermissions::default(), None));
+    check!(bot.set_chat_photo(1i64.into(), dummy_file()));
+    check!(bot.delete_chat_photo(1i64.into()));
+    check!(bot.set_chat_title(1i64.into(), "t"));
+    check!(bot.set_chat_description(1i64.into(), None));
+    check!(bot.set_chat_sticker_set(1i64.into(), "name"));
+    check!(bot.delete_chat_sticker_set(1i64.into()));
+    check!(bot.set_chat_member_tag(1i64.into(), 1, None));
+    check!(bot.pin_chat_message(1i64.into(), 1, None, None));
+    check!(bot.unpin_chat_message(1i64.into(), None, None));
+    check!(bot.unpin_all_chat_messages(1i64.into()));
+    check!(bot.export_chat_invite_link(1i64.into()));
+    check!(bot.create_chat_invite_link(1i64.into(), None, None, None, None));
+    check!(bot.edit_chat_invite_link(1i64.into(), "link", None, None, None, None));
+    check!(bot.revoke_chat_invite_link(1i64.into(), "link"));
+    check!(bot.create_chat_subscription_invite_link(1i64.into(), 30, 1, None));
+    check!(bot.edit_chat_subscription_invite_link(1i64.into(), "link", None));
+    check!(bot.approve_chat_join_request(1i64.into(), 1));
+    check!(bot.decline_chat_join_request(1i64.into(), 1));
 
     // -- Forum topics --
-    let _create_forum_topic = |b: &Bot| {
-        b.create_forum_topic(1i64.into(), "name", None, None)
-    };
-    let _edit_forum_topic = |b: &Bot| {
-        b.edit_forum_topic(1i64.into(), 1, None, None)
-    };
-    let _close_forum_topic = |b: &Bot| b.close_forum_topic(1i64.into(), 1);
-    let _reopen_forum_topic = |b: &Bot| b.reopen_forum_topic(1i64.into(), 1);
-    let _delete_forum_topic = |b: &Bot| b.delete_forum_topic(1i64.into(), 1);
-    let _unpin_all_forum_topic_messages = |b: &Bot| {
-        b.unpin_all_forum_topic_messages(1i64.into(), 1)
-    };
-    let _unpin_all_general_forum_topic_messages = |b: &Bot| {
-        b.unpin_all_general_forum_topic_messages(1i64.into())
-    };
-    let _edit_general_forum_topic = |b: &Bot| {
-        b.edit_general_forum_topic(1i64.into(), "name")
-    };
-    let _close_general_forum_topic = |b: &Bot| b.close_general_forum_topic(1i64.into());
-    let _reopen_general_forum_topic = |b: &Bot| b.reopen_general_forum_topic(1i64.into());
-    let _hide_general_forum_topic = |b: &Bot| b.hide_general_forum_topic(1i64.into());
-    let _unhide_general_forum_topic = |b: &Bot| b.unhide_general_forum_topic(1i64.into());
+    check!(bot.create_forum_topic(1i64.into(), "name", None, None));
+    check!(bot.edit_forum_topic(1i64.into(), 1, None, None));
+    check!(bot.close_forum_topic(1i64.into(), 1));
+    check!(bot.reopen_forum_topic(1i64.into(), 1));
+    check!(bot.delete_forum_topic(1i64.into(), 1));
+    check!(bot.unpin_all_forum_topic_messages(1i64.into(), 1));
+    check!(bot.unpin_all_general_forum_topic_messages(1i64.into()));
+    check!(bot.edit_general_forum_topic(1i64.into(), "name"));
+    check!(bot.close_general_forum_topic(1i64.into()));
+    check!(bot.reopen_general_forum_topic(1i64.into()));
+    check!(bot.hide_general_forum_topic(1i64.into()));
+    check!(bot.unhide_general_forum_topic(1i64.into()));
 
     // -- Bot settings --
-    let _set_chat_menu_button = |b: &Bot| b.set_chat_menu_button(None, None);
-    let _get_chat_menu_button = |b: &Bot| b.get_chat_menu_button(None);
-    let _set_my_commands = |b: &Bot| b.set_my_commands(vec![], None, None);
-    let _get_my_commands = |b: &Bot| b.get_my_commands(None, None);
-    let _delete_my_commands = |b: &Bot| b.delete_my_commands(None, None);
-    let _set_my_default_administrator_rights = |b: &Bot| {
-        b.set_my_default_administrator_rights(None, None)
-    };
-    let _get_my_default_administrator_rights = |b: &Bot| {
-        b.get_my_default_administrator_rights(None)
-    };
-    let _set_my_description = |b: &Bot| b.set_my_description(None, None);
-    let _get_my_description = |b: &Bot| b.get_my_description(None);
-    let _set_my_short_description = |b: &Bot| b.set_my_short_description(None, None);
-    let _get_my_short_description = |b: &Bot| b.get_my_short_description(None);
-    let _set_my_name = |b: &Bot| b.set_my_name(None, None);
-    let _get_my_name = |b: &Bot| b.get_my_name(None);
+    check!(bot.set_chat_menu_button(None, None));
+    check!(bot.get_chat_menu_button(None));
+    check!(bot.set_my_commands(vec![], None, None));
+    check!(bot.get_my_commands(None, None));
+    check!(bot.delete_my_commands(None, None));
+    check!(bot.set_my_default_administrator_rights(None, None));
+    check!(bot.get_my_default_administrator_rights(None));
+    check!(bot.set_my_description(None, None));
+    check!(bot.get_my_description(None));
+    check!(bot.set_my_short_description(None, None));
+    check!(bot.get_my_short_description(None));
+    check!(bot.set_my_name(None, None));
+    check!(bot.get_my_name(None));
 
     // -- User profile --
-    let _get_user_profile_photos = |b: &Bot| b.get_user_profile_photos(1, None, None);
-    let _get_user_profile_audios = |b: &Bot| b.get_user_profile_audios(1, None, None);
-    let _set_user_emoji_status = |b: &Bot| b.set_user_emoji_status(1, None, None);
-    let _set_my_profile_photo = |b: &Bot| b.set_my_profile_photo(json!({}));
-    let _remove_my_profile_photo = |b: &Bot| b.remove_my_profile_photo();
+    check!(bot.get_user_profile_photos(1, None, None));
+    check!(bot.get_user_profile_audios(1, None, None));
+    check!(bot.set_user_emoji_status(1, None, None));
+    check!(bot.set_my_profile_photo(json!({})));
+    check!(bot.remove_my_profile_photo());
 
     // -- Stickers --
-    let _get_sticker_set = |b: &Bot| b.get_sticker_set("name");
-    let _get_custom_emoji_stickers = |b: &Bot| b.get_custom_emoji_stickers(vec![]);
-    // upload_sticker_file: 3 args after &self
-    let _upload_sticker_file = |b: &Bot| {
-        b.upload_sticker_file(1, dummy_file(), "static")
-    };
-    // create_new_sticker_set: 6 args after &self
-    let _create_new_sticker_set = |b: &Bot| {
-        b.create_new_sticker_set(1, "name", "title", vec![], None, None)
-    };
-    // add_sticker_to_set: 3 args after &self
-    let _add_sticker_to_set = |b: &Bot| b.add_sticker_to_set(1, "name", json!({}));
-    let _set_sticker_position_in_set = |b: &Bot| b.set_sticker_position_in_set("sticker", 0);
-    let _delete_sticker_from_set = |b: &Bot| b.delete_sticker_from_set("sticker");
-    // replace_sticker_in_set: 4 args after &self
-    let _replace_sticker_in_set = |b: &Bot| {
-        b.replace_sticker_in_set(1, "name", "old", json!({}))
-    };
-    let _set_sticker_emoji_list = |b: &Bot| b.set_sticker_emoji_list("sticker", vec![]);
-    let _set_sticker_keywords = |b: &Bot| b.set_sticker_keywords("sticker", None);
-    let _set_sticker_mask_position = |b: &Bot| b.set_sticker_mask_position("sticker", None);
-    // set_sticker_set_thumbnail: 4 args after &self
-    let _set_sticker_set_thumbnail = |b: &Bot| {
-        b.set_sticker_set_thumbnail("name", 1, "static", None)
-    };
-    let _set_sticker_set_title = |b: &Bot| b.set_sticker_set_title("name", "title");
-    let _set_custom_emoji_sticker_set_thumbnail = |b: &Bot| {
-        b.set_custom_emoji_sticker_set_thumbnail("name", None)
-    };
-    let _delete_sticker_set = |b: &Bot| b.delete_sticker_set("name");
-    let _get_forum_topic_icon_stickers = |b: &Bot| b.get_forum_topic_icon_stickers();
+    check!(bot.get_sticker_set("name"));
+    check!(bot.get_custom_emoji_stickers(vec![]));
+    check!(bot.upload_sticker_file(1, dummy_file(), "static"));
+    check!(bot.create_new_sticker_set(1, "name", "title", vec![], None, None));
+    check!(bot.add_sticker_to_set(1, "name", json!({})));
+    check!(bot.set_sticker_position_in_set("sticker", 0));
+    check!(bot.delete_sticker_from_set("sticker"));
+    check!(bot.replace_sticker_in_set(1, "name", "old", json!({})));
+    check!(bot.set_sticker_emoji_list("sticker", vec![]));
+    check!(bot.set_sticker_keywords("sticker", None));
+    check!(bot.set_sticker_mask_position("sticker", None));
+    check!(bot.set_sticker_set_thumbnail("name", 1, "static", None));
+    check!(bot.set_sticker_set_title("name", "title"));
+    check!(bot.set_custom_emoji_sticker_set_thumbnail("name", None));
+    check!(bot.delete_sticker_set("name"));
+    check!(bot.get_forum_topic_icon_stickers());
 
     // -- Inline mode --
-    // answer_web_app_query: 2 args after &self
-    let _answer_web_app_query = |b: &Bot| b.answer_web_app_query("waq_id", json!({}));
-    // save_prepared_inline_message: 6 args after &self
-    let _save_prepared_inline_message = |b: &Bot| {
-        b.save_prepared_inline_message(1, json!({}), None, None, None, None)
-    };
+    check!(bot.answer_web_app_query("waq_id", json!({})));
+    check!(bot.save_prepared_inline_message(1, json!({}), None, None, None, None));
 
     // -- Payments --
-    // create_invoice_link: 22 args after &self
-    let _create_invoice_link = |b: &Bot| {
-        b.create_invoice_link(
-            "t", "d", "p", "c", vec![],
-            None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None,
-        )
-    };
-    let _refund_star_payment = |b: &Bot| b.refund_star_payment(1, "charge_id");
-    let _get_star_transactions = |b: &Bot| b.get_star_transactions(None, None);
-    let _edit_user_star_subscription = |b: &Bot| b.edit_user_star_subscription(1, "tid", false);
-    let _get_my_star_balance = |b: &Bot| b.get_my_star_balance();
+    check!(bot.create_invoice_link("t", "d", "p", "c", vec![], None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None));
+    check!(bot.refund_star_payment(1, "charge_id"));
+    check!(bot.get_star_transactions(None, None));
+    check!(bot.edit_user_star_subscription(1, "tid", false));
+    check!(bot.get_my_star_balance());
 
     // -- Games --
-    // send_game: 10 args after &self
-    let _send_game = |b: &Bot| {
-        b.send_game(1, "game", None, None, None, None, None, None, None, None)
-    };
-    // set_game_score: 7 args after &self
-    let _set_game_score = |b: &Bot| {
-        b.set_game_score(1, 100, None, None, None, None, None)
-    };
-    // get_game_high_scores: 4 args after &self
-    let _get_game_high_scores = |b: &Bot| {
-        b.get_game_high_scores(1, None, None, None)
-    };
+    check!(bot.send_game(1, "game", None, None, None, None, None, None, None, None));
+    check!(bot.set_game_score(1, 100, None, None, None, None, None));
+    check!(bot.get_game_high_scores(1, None, None, None));
 
     // -- Reactions --
-    let _set_message_reaction = |b: &Bot| {
-        b.set_message_reaction(1i64.into(), 1, None, None)
-    };
-    let _get_user_chat_boosts = |b: &Bot| b.get_user_chat_boosts(1i64.into(), 1);
+    check!(bot.set_message_reaction(1i64.into(), 1, None, None));
+    check!(bot.get_user_chat_boosts(1i64.into(), 1));
 
     // -- Passport --
-    let _set_passport_data_errors = |b: &Bot| b.set_passport_data_errors(1, vec![]);
+    check!(bot.set_passport_data_errors(1, vec![]));
 
     // -- Business --
-    let _get_business_connection = |b: &Bot| b.get_business_connection("bc_id");
-    // get_business_account_gifts: 11 args after &self
-    let _get_business_account_gifts = |b: &Bot| {
-        b.get_business_account_gifts("bc_id", None, None, None, None, None, None, None, None, None, None)
-    };
-    let _get_business_account_star_balance = |b: &Bot| b.get_business_account_star_balance("bc_id");
-    // read_business_message: 3 args after &self
-    let _read_business_message = |b: &Bot| b.read_business_message("bc_id", 1, 1);
-    let _delete_business_messages = |b: &Bot| b.delete_business_messages("bc_id", vec![1]);
-    // set_business_account_name: 3 args after &self
-    let _set_business_account_name = |b: &Bot| b.set_business_account_name("bc_id", "first", None);
-    let _set_business_account_username = |b: &Bot| b.set_business_account_username("bc_id", None);
-    let _set_business_account_bio = |b: &Bot| b.set_business_account_bio("bc_id", None);
-    // set_business_account_gift_settings: 3 args after &self
-    let _set_business_account_gift_settings = |b: &Bot| {
-        b.set_business_account_gift_settings("bc_id", false, make_accepted_gift_types())
-    };
-    // set_business_account_profile_photo: 3 args after &self
-    let _set_business_account_profile_photo = |b: &Bot| {
-        b.set_business_account_profile_photo("bc_id", json!({}), None)
-    };
-    let _remove_business_account_profile_photo = |b: &Bot| {
-        b.remove_business_account_profile_photo("bc_id", None)
-    };
-    let _convert_gift_to_stars = |b: &Bot| b.convert_gift_to_stars("bc_id", "ogi");
-    // upgrade_gift: 4 args after &self
-    let _upgrade_gift = |b: &Bot| b.upgrade_gift("bc_id", "ogi", None, None);
-    // transfer_gift: 4 args after &self
-    let _transfer_gift = |b: &Bot| b.transfer_gift("bc_id", "ogi", 1, None);
-    let _transfer_business_account_stars = |b: &Bot| {
-        b.transfer_business_account_stars("bc_id", 100)
-    };
+    check!(bot.get_business_connection("bc_id"));
+    check!(bot.get_business_account_gifts("bc_id", None, None, None, None, None, None, None, None, None, None));
+    check!(bot.get_business_account_star_balance("bc_id"));
+    check!(bot.read_business_message("bc_id", 1, 1));
+    check!(bot.delete_business_messages("bc_id", vec![1]));
+    check!(bot.set_business_account_name("bc_id", "first", None));
+    check!(bot.set_business_account_username("bc_id", None));
+    check!(bot.set_business_account_bio("bc_id", None));
+    check!(bot.set_business_account_gift_settings("bc_id", false, make_accepted_gift_types()));
+    check!(bot.set_business_account_profile_photo("bc_id", json!({}), None));
+    check!(bot.remove_business_account_profile_photo("bc_id", None));
+    check!(bot.convert_gift_to_stars("bc_id", "ogi"));
+    check!(bot.upgrade_gift("bc_id", "ogi", None, None));
+    check!(bot.transfer_gift("bc_id", "ogi", 1, None));
+    check!(bot.transfer_business_account_stars("bc_id", 100));
 
     // -- Gifts --
-    let _get_available_gifts = |b: &Bot| b.get_available_gifts();
-    // send_gift: 7 args after &self
-    let _send_gift = |b: &Bot| {
-        b.send_gift("gift_id", None, None, None, None, None, None)
-    };
-    // gift_premium_subscription: 6 args after &self
-    let _gift_premium_subscription = |b: &Bot| {
-        b.gift_premium_subscription(1, 3, 100, None, None, None)
-    };
-    // get_user_gifts: 9 args after &self
-    let _get_user_gifts = |b: &Bot| b.get_user_gifts(1, None, None, None, None, None, None, None, None);
-    // get_chat_gifts: 11 args after &self
-    let _get_chat_gifts = |b: &Bot| {
-        b.get_chat_gifts(1i64.into(), None, None, None, None, None, None, None, None, None, None)
-    };
+    check!(bot.get_available_gifts());
+    check!(bot.send_gift("gift_id", None, None, None, None, None, None));
+    check!(bot.gift_premium_subscription(1, 3, 100, None, None, None));
+    check!(bot.get_user_gifts(1, None, None, None, None, None, None, None, None));
+    check!(bot.get_chat_gifts(1i64.into(), None, None, None, None, None, None, None, None, None, None));
 
     // -- Verification --
-    let _verify_chat = |b: &Bot| b.verify_chat(1i64.into(), None);
-    let _verify_user = |b: &Bot| b.verify_user(1, None);
-    let _remove_chat_verification = |b: &Bot| b.remove_chat_verification(1i64.into());
-    let _remove_user_verification = |b: &Bot| b.remove_user_verification(1);
+    check!(bot.verify_chat(1i64.into(), None));
+    check!(bot.verify_user(1, None));
+    check!(bot.remove_chat_verification(1i64.into()));
+    check!(bot.remove_user_verification(1));
 
     // -- Stories --
-    // post_story: 9 args after &self
-    let _post_story = |b: &Bot| {
-        b.post_story("bc_id", json!({}), 86400, None, None, None, None, None, None)
-    };
-    // edit_story: 7 args after &self
-    let _edit_story = |b: &Bot| {
-        b.edit_story("bc_id", 1, json!({}), None, None, None, None)
-    };
-    let _delete_story = |b: &Bot| b.delete_story("bc_id", 1);
-    // repost_story: 6 args after &self
-    let _repost_story = |b: &Bot| {
-        b.repost_story("bc_id", 1, 1, 86400, None, None)
-    };
+    check!(bot.post_story("bc_id", json!({}), 86400, None, None, None, None, None, None));
+    check!(bot.edit_story("bc_id", 1, json!({}), None, None, None, None));
+    check!(bot.delete_story("bc_id", 1));
+    check!(bot.repost_story("bc_id", 1, 1, 86400, None, None));
 
     // -- Suggested posts --
-    // approve_suggested_post: 3 args after &self
-    let _approve_suggested_post = |b: &Bot| b.approve_suggested_post(1, 1, None);
-    // decline_suggested_post: 3 args after &self
-    let _decline_suggested_post = |b: &Bot| b.decline_suggested_post(1, 1, None);
-
-    // Verify bot constructed successfully (runtime sanity)
-    let _ = &bot;
+    check!(bot.approve_suggested_post(1, 1, None));
+    check!(bot.decline_suggested_post(1, 1, None));
 }
 
 // ===========================================================================
@@ -777,7 +612,7 @@ fn all_bot_api_96_types_deserialize() {
 
         // -- Chat-related types --
         assert_deserializes::<chat_full_info::ChatFullInfo>(
-            json!({"id": 1, "type": "private", "accent_color_id": 0, "max_reaction_count": 3}),
+            json!({"id": 1, "type": "private", "accent_color_id": 0, "max_reaction_count": 3, "accepted_gift_types": {"unlimited_gifts": false, "limited_gifts": false, "unique_gifts": false, "premium_subscription": false, "gifts_from_channels": false}}),
             "ChatFullInfo",
         );
         assert_deserializes::<chat_permissions::ChatPermissions>(
@@ -785,7 +620,7 @@ fn all_bot_api_96_types_deserialize() {
             "ChatPermissions",
         );
         assert_deserializes::<chat_administrator_rights::ChatAdministratorRights>(
-            json!({"is_anonymous": false, "can_manage_chat": true, "can_delete_messages": false, "can_manage_video_chats": false, "can_restrict_members": false, "can_promote_members": false, "can_change_info": false, "can_invite_users": false}),
+            json!({"is_anonymous": false, "can_manage_chat": true, "can_delete_messages": false, "can_manage_video_chats": false, "can_restrict_members": false, "can_promote_members": false, "can_change_info": false, "can_invite_users": false, "can_post_stories": false, "can_edit_stories": false, "can_delete_stories": false}),
             "ChatAdministratorRights",
         );
         assert_deserializes::<files::chat_photo::ChatPhoto>(
@@ -1147,7 +982,7 @@ fn all_bot_api_96_types_deserialize() {
 
         // -- Prepared types --
         assert_deserializes::<prepared_keyboard_button::PreparedKeyboardButton>(
-            json!({"request_id": "r"}),
+            json!({"id": "r"}),
             "PreparedKeyboardButton",
         );
         assert_deserializes::<inline::prepared_inline_message::PreparedInlineMessage>(
@@ -1179,7 +1014,7 @@ fn all_bot_api_96_types_deserialize() {
 
         // -- Chat background --
         assert_deserializes::<chat_background::ChatBackground>(
-            json!({"type": {"type": "fill", "fill": {"type": "solid", "color": 0}}}),
+            json!({"type": {"type": "fill", "fill": {"type": "solid", "color": 0}, "dark_theme_dimming": 0}}),
             "ChatBackground",
         );
 
@@ -1245,7 +1080,7 @@ fn all_bot_api_96_types_deserialize() {
 
         // -- Direct messages topic --
         assert_deserializes::<direct_messages_topic::DirectMessagesTopic>(
-            json!({}),
+            json!({"topic_id": 1}),
             "DirectMessagesTopic",
         );
 
@@ -1257,19 +1092,19 @@ fn all_bot_api_96_types_deserialize() {
 
         // -- Managed bot --
         assert_deserializes::<managed_bot::ManagedBotUpdated>(
-            json!({"bot": {"id": 1, "is_bot": true, "first_name": "B"}}),
+            json!({"user": {"id": 2, "is_bot": false, "first_name": "U"}, "bot": {"id": 1, "is_bot": true, "first_name": "B"}}),
             "ManagedBotUpdated",
         );
 
         // -- Story area --
         assert_deserializes::<story_area::StoryArea>(
-            json!({"position": {"x_percentage": 0.0, "y_percentage": 0.0, "width_percentage": 100.0, "height_percentage": 100.0, "rotation_angle": 0.0}, "type": {"type": "suggested_reaction", "reaction_type": {"type": "emoji", "emoji": "\u{1F44D}"}}}),
+            json!({"position": {"x_percentage": 0.0, "y_percentage": 0.0, "width_percentage": 100.0, "height_percentage": 100.0, "rotation_angle": 0.0, "corner_radius_percentage": 0.0}, "type": {"type": "suggested_reaction", "reaction_type": {"type": "emoji", "emoji": "\u{1F44D}"}}}),
             "StoryArea",
         );
 
         // -- User rating --
         assert_deserializes::<user_rating::UserRating>(
-            json!({}),
+            json!({"level": 1, "rating": 50, "current_level_rating": 0}),
             "UserRating",
         );
 
@@ -1281,7 +1116,7 @@ fn all_bot_api_96_types_deserialize() {
 
         // -- Unique gift --
         assert_deserializes::<unique_gift::UniqueGift>(
-            json!({"base_name": "g", "name": "n", "number": 1, "model": {"name": "m", "sticker": {"file_id": "f", "file_unique_id": "u", "type": "regular", "width": 512, "height": 512, "is_animated": false, "is_video": false}, "rarity_per_mille": 100}, "symbol": {"name": "s", "sticker": {"file_id": "f", "file_unique_id": "u", "type": "regular", "width": 512, "height": 512, "is_animated": false, "is_video": false}, "rarity_per_mille": 100}, "backdrop": {"name": "b", "colors": {"center_color": 0, "edge_color": 0, "symbol_color": 0, "text_color": 0}, "rarity_per_mille": 100}}),
+            json!({"gift_id": "gid", "base_name": "g", "name": "n", "number": 1, "model": {"name": "m", "sticker": {"file_id": "f", "file_unique_id": "u", "type": "regular", "width": 512, "height": 512, "is_animated": false, "is_video": false}, "rarity_per_mille": 100}, "symbol": {"name": "s", "sticker": {"file_id": "f", "file_unique_id": "u", "type": "regular", "width": 512, "height": 512, "is_animated": false, "is_video": false}, "rarity_per_mille": 100}, "backdrop": {"name": "b", "colors": {"center_color": 0, "edge_color": 0, "symbol_color": 0, "text_color": 0}, "rarity_per_mille": 100}}),
             "UniqueGift",
         );
 

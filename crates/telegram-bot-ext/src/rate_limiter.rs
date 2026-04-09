@@ -60,16 +60,21 @@ pub trait BaseRateLimiter<RLArgs = i32>: Send + Sync {
 }
 
 // ---------------------------------------------------------------------------
-// DynRateLimiter -- object-safe wrapper for BaseRateLimiter
+// DynRateLimiter -- object-safe trait for use as trait object
 // ---------------------------------------------------------------------------
 
-/// Object-safe wrapper around [`BaseRateLimiter`] so we can store it as a
-/// trait object inside [`ExtBot`](crate::ext_bot::ExtBot).
+/// Boxed callback type for the dynamic rate limiter.
+type BoxedCallback = Box<
+    dyn FnOnce() -> Pin<Box<dyn Future<Output = Result<serde_json::Value, TelegramError>> + Send>>
+        + Send,
+>;
+
+/// Object-safe rate-limiter trait so we can store it as a trait object inside
+/// [`ExtBot`](crate::ext_bot::ExtBot).
 ///
-/// Unlike [`BaseRateLimiter`], the `process_request` method takes **owned**
-/// `String` and `HashMap` parameters so that the returned future does not
-/// borrow from the caller's stack frame.  The callback is boxed for object
-/// safety.
+/// Unlike [`BaseRateLimiter`], `process_request` takes **owned** parameters
+/// and a boxed callback, making the trait object-safe and avoiding lifetime
+/// issues when the future outlives the caller's stack frame.
 pub trait DynRateLimiter: Send + Sync + std::fmt::Debug {
     /// Initialize the rate limiter.
     fn initialize(&self) -> Pin<Box<dyn Future<Output = ()> + Send + '_>>;
@@ -78,47 +83,12 @@ pub trait DynRateLimiter: Send + Sync + std::fmt::Debug {
     fn shutdown(&self) -> Pin<Box<dyn Future<Output = ()> + Send + '_>>;
 
     /// Process a single request through the rate limiter.
-    ///
-    /// `callback` is a boxed closure that performs the actual HTTP request.
-    /// The limiter decides *when* to invoke it.
     fn process_request(
         &self,
-        callback: Box<
-            dyn FnOnce() -> Pin<
-                    Box<dyn Future<Output = Result<serde_json::Value, TelegramError>> + Send>,
-                > + Send,
-        >,
+        callback: BoxedCallback,
         endpoint: String,
         data: HashMap<String, serde_json::Value>,
     ) -> Pin<Box<dyn Future<Output = Result<serde_json::Value, TelegramError>> + Send + '_>>;
-}
-
-/// Blanket implementation: any `BaseRateLimiter<i32> + Debug` automatically
-/// implements `DynRateLimiter`.
-impl<T: BaseRateLimiter<i32> + std::fmt::Debug> DynRateLimiter for T {
-    fn initialize(&self) -> Pin<Box<dyn Future<Output = ()> + Send + '_>> {
-        Box::pin(BaseRateLimiter::initialize(self))
-    }
-
-    fn shutdown(&self) -> Pin<Box<dyn Future<Output = ()> + Send + '_>> {
-        Box::pin(BaseRateLimiter::shutdown(self))
-    }
-
-    fn process_request(
-        &self,
-        callback: Box<
-            dyn FnOnce() -> Pin<
-                    Box<dyn Future<Output = Result<serde_json::Value, TelegramError>> + Send>,
-                > + Send,
-        >,
-        endpoint: String,
-        data: HashMap<String, serde_json::Value>,
-    ) -> Pin<Box<dyn Future<Output = Result<serde_json::Value, TelegramError>> + Send + '_>> {
-        // Owned data is moved into the future, avoiding lifetime issues.
-        Box::pin(BaseRateLimiter::process_request(
-            self, callback, &endpoint, &data, None,
-        ))
-    }
 }
 
 // ---------------------------------------------------------------------------
@@ -175,8 +145,6 @@ fn params_to_value_map(request_data: Option<&RequestData>) -> HashMap<String, se
     rd.json_parameters()
         .into_iter()
         .map(|(k, v)| {
-            // Try to parse the string as JSON; if it fails, store it as a
-            // JSON string.
             let value =
                 serde_json::from_str(&v).unwrap_or_else(|_| serde_json::Value::String(v));
             (k, value)
@@ -207,20 +175,13 @@ impl BaseRequest for RateLimitedRequest {
         request_data: Option<&RequestData>,
         timeouts: TimeoutOverride,
     ) -> rust_tg_bot_raw::error::Result<(u16, bytes::Bytes)> {
-        // Extract the endpoint name from the URL (last path segment).
         let endpoint = url.rsplit('/').next().unwrap_or(url).to_owned();
-
-        // Build a data map from the request parameters for the limiter.
         let data = params_to_value_map(request_data);
 
         let inner = self.inner.clone();
         let url_owned = url.to_owned();
         let request_data_clone = request_data.cloned();
 
-        // The limiter callback wraps the raw do_request result into a JSON
-        // Value so it can flow through the BaseRateLimiter interface. We
-        // encode the status code and body into a JSON object, then decode
-        // it back after the limiter returns.
         let result = self
             .limiter
             .process_request(
@@ -230,8 +191,6 @@ impl BaseRequest for RateLimitedRequest {
                         let (status, body) = inner
                             .do_request(&url_owned, method, rd_ref, timeouts)
                             .await?;
-                        // Pack status + body into a Value so the limiter can
-                        // inspect it (e.g. for RetryAfter detection).
                         Ok(serde_json::json!({
                             "__status": status,
                             "__body": serde_json::Value::String(
@@ -245,7 +204,6 @@ impl BaseRequest for RateLimitedRequest {
             )
             .await?;
 
-        // Unpack the status + body from the limiter's return value.
         let status = result["__status"].as_u64().unwrap_or(200) as u16;
         let body_b64 = result["__body"].as_str().unwrap_or("");
         let body = base64_decode(body_b64);
@@ -259,10 +217,7 @@ impl BaseRequest for RateLimitedRequest {
         body: &[u8],
         timeouts: TimeoutOverride,
     ) -> rust_tg_bot_raw::error::Result<(u16, bytes::Bytes)> {
-        // Extract the endpoint name from the URL.
         let endpoint = url.rsplit('/').next().unwrap_or(url).to_owned();
-
-        // Parse the JSON body to extract parameters for the limiter.
         let data: HashMap<String, serde_json::Value> =
             serde_json::from_slice(body).unwrap_or_default();
 
@@ -303,10 +258,7 @@ impl BaseRequest for RateLimitedRequest {
 // Base64 helpers for lossless binary round-trip through JSON Value
 // ---------------------------------------------------------------------------
 
-/// Encode raw bytes as base64 for transport through `serde_json::Value`.
 fn base64_encode(data: &[u8]) -> String {
-    // Simple base64 encoding without external crate dependency.
-    // Uses the standard alphabet (A-Za-z0-9+/) with '=' padding.
     const ALPHABET: &[u8; 64] =
         b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
@@ -330,11 +282,9 @@ fn base64_encode(data: &[u8]) -> String {
             out.push(b'=');
         }
     }
-    // Safety: output is pure ASCII
     String::from_utf8(out).unwrap_or_default()
 }
 
-/// Decode a base64 string back to raw bytes.
 fn base64_decode(input: &str) -> Vec<u8> {
     fn char_val(c: u8) -> Option<u32> {
         match c {
@@ -387,15 +337,12 @@ fn base64_decode(input: &str) -> Vec<u8> {
 // Token-bucket implementation
 // ---------------------------------------------------------------------------
 
-/// A simple asynchronous token bucket that replenishes `max_rate` tokens
-/// every `time_period`.
 #[derive(Debug)]
 struct TokenBucket {
     semaphore: Arc<Semaphore>,
     max_rate: u32,
     #[allow(dead_code)]
     time_period: Duration,
-    /// Background replenish task handle.
     _replenish_handle: tokio::task::JoinHandle<()>,
 }
 
@@ -424,12 +371,106 @@ impl TokenBucket {
 
     async fn acquire(&self) {
         let permit = self.semaphore.acquire().await;
-        // Forget the permit so it is only returned by the replenish task.
         if let Ok(permit) = permit {
             permit.forget();
-        } else {
-            // Semaphore closed -- should not happen.
         }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Shared throttling logic used by both AioRateLimiter and its DynRateLimiter impl
+// ---------------------------------------------------------------------------
+
+/// Helper: acquire rate-limit permits and invoke the callback.
+///
+/// Extracted so both `BaseRateLimiter::process_request` (which takes `&str` +
+/// `&HashMap`) and `DynRateLimiter::process_request` (which takes owned
+/// `String` + `HashMap`) can share the same throttling logic.
+async fn throttle_and_call<F, Fut>(
+    base_limiter: &Option<TokenBucket>,
+    group_max_rate: u32,
+    group_time_period: Duration,
+    group_limiters: &Mutex<HashMap<GroupId, Arc<TokenBucket>>>,
+    max_retries: u32,
+    retry_after_notify: &Arc<Notify>,
+    retry_after_active: &std::sync::atomic::AtomicBool,
+    callback: F,
+    data: &HashMap<String, serde_json::Value>,
+) -> Result<serde_json::Value, TelegramError>
+where
+    F: FnOnce() -> Fut + Send,
+    Fut: Future<Output = Result<serde_json::Value, TelegramError>> + Send,
+{
+    let chat_id_val = data.get("chat_id");
+    let has_chat = chat_id_val.is_some();
+
+    let group_id: Option<GroupId> = chat_id_val.and_then(|v| {
+        if let Some(n) = v.as_i64() {
+            if n < 0 {
+                return Some(GroupId::Int(n));
+            }
+        }
+        if let Some(s) = v.as_str() {
+            if let Ok(n) = s.parse::<i64>() {
+                if n < 0 {
+                    return Some(GroupId::Int(n));
+                }
+            }
+            return Some(GroupId::Str(s.to_owned()));
+        }
+        None
+    });
+
+    // Acquire per-group permit.
+    if let Some(gid) = &group_id {
+        if group_max_rate > 0 {
+            let limiter = {
+                let mut map = group_limiters.lock().await;
+                if map.len() > 512 {
+                    let gid_clone = gid.clone();
+                    map.retain(|k, bucket| {
+                        k == &gid_clone
+                            || bucket.semaphore.available_permits() < bucket.max_rate as usize
+                    });
+                }
+                map.entry(gid.clone())
+                    .or_insert_with(|| {
+                        Arc::new(TokenBucket::new(group_max_rate, group_time_period))
+                    })
+                    .clone()
+            };
+            limiter.acquire().await;
+        }
+    }
+
+    // Acquire global permit.
+    if has_chat {
+        if let Some(ref bl) = base_limiter {
+            bl.acquire().await;
+        }
+    }
+
+    // Wait for any active retry-after window.
+    if retry_after_active.load(std::sync::atomic::Ordering::Relaxed) {
+        retry_after_notify.notified().await;
+    }
+
+    let result = callback().await;
+
+    match result {
+        Err(TelegramError::RetryAfter { retry_after }) if max_retries > 0 => {
+            let sleep_dur = retry_after + Duration::from_millis(100);
+            info!(
+                "Rate limit hit. Retrying after {:.1}s",
+                sleep_dur.as_secs_f64()
+            );
+            retry_after_active.store(true, std::sync::atomic::Ordering::Relaxed);
+            tokio::time::sleep(sleep_dur).await;
+            retry_after_active.store(false, std::sync::atomic::Ordering::Relaxed);
+            retry_after_notify.notify_waiters();
+            Err(TelegramError::RetryAfter { retry_after })
+        }
+        other => other,
     }
 }
 
@@ -451,7 +492,6 @@ pub struct AioRateLimiter {
     group_time_period: Duration,
     group_limiters: Mutex<HashMap<GroupId, Arc<TokenBucket>>>,
     max_retries: u32,
-    /// When a `RetryAfter` is in effect, waiters block on this `Notify`.
     retry_after_notify: Arc<Notify>,
     retry_after_active: std::sync::atomic::AtomicBool,
 }
@@ -505,46 +545,11 @@ impl AioRateLimiter {
             0,
         )
     }
-
-    async fn get_group_limiter(&self, group_id: GroupId) -> Arc<TokenBucket> {
-        let mut map = self.group_limiters.lock().await;
-
-        // Evict stale limiters when the map grows large.
-        if map.len() > 512 {
-            map.retain(|k, bucket| {
-                k == &group_id || bucket.semaphore.available_permits() < bucket.max_rate as usize
-            });
-        }
-
-        map.entry(group_id)
-            .or_insert_with(|| {
-                Arc::new(TokenBucket::new(
-                    self.group_max_rate,
-                    self.group_time_period,
-                ))
-            })
-            .clone()
-    }
-
-    async fn wait_retry_after(&self) {
-        if self
-            .retry_after_active
-            .load(std::sync::atomic::Ordering::Relaxed)
-        {
-            self.retry_after_notify.notified().await;
-        }
-    }
 }
 
 impl BaseRateLimiter<i32> for AioRateLimiter {
-    async fn initialize(&self) {
-        // Nothing to do -- resources are created in `new`.
-    }
-
-    async fn shutdown(&self) {
-        // Token-bucket replenish tasks will be cancelled when the
-        // `JoinHandle` is dropped (when `Self` is dropped).
-    }
+    async fn initialize(&self) {}
+    async fn shutdown(&self) {}
 
     async fn process_request<F, Fut>(
         &self,
@@ -558,66 +563,50 @@ impl BaseRateLimiter<i32> for AioRateLimiter {
         Fut: Future<Output = Result<serde_json::Value, TelegramError>> + Send,
     {
         let max_retries = rate_limit_args.map_or(self.max_retries, |n| n as u32);
+        throttle_and_call(
+            &self.base_limiter,
+            self.group_max_rate,
+            self.group_time_period,
+            &self.group_limiters,
+            max_retries,
+            &self.retry_after_notify,
+            &self.retry_after_active,
+            callback,
+            data,
+        )
+        .await
+    }
+}
 
-        // Determine if this is a group/channel request.
-        let chat_id_val = data.get("chat_id");
-        let has_chat = chat_id_val.is_some();
+impl DynRateLimiter for AioRateLimiter {
+    fn initialize(&self) -> Pin<Box<dyn Future<Output = ()> + Send + '_>> {
+        Box::pin(async {})
+    }
 
-        let group_id: Option<GroupId> = chat_id_val.and_then(|v| {
-            if let Some(n) = v.as_i64() {
-                if n < 0 {
-                    return Some(GroupId::Int(n));
-                }
-            }
-            if let Some(s) = v.as_str() {
-                if let Ok(n) = s.parse::<i64>() {
-                    if n < 0 {
-                        return Some(GroupId::Int(n));
-                    }
-                }
-                return Some(GroupId::Str(s.to_owned()));
-            }
-            None
-        });
+    fn shutdown(&self) -> Pin<Box<dyn Future<Output = ()> + Send + '_>> {
+        Box::pin(async {})
+    }
 
-        // Acquire rate-limit permits.
-        if let Some(gid) = &group_id {
-            if self.group_max_rate > 0 {
-                let limiter = self.get_group_limiter(gid.clone()).await;
-                limiter.acquire().await;
-            }
-        }
-        if has_chat {
-            if let Some(ref bl) = self.base_limiter {
-                bl.acquire().await;
-            }
-        }
-
-        // Wait for any active retry-after window.
-        self.wait_retry_after().await;
-
-        // We only have one shot at the callback since FnOnce.
-        let result = callback().await;
-
-        match result {
-            Err(TelegramError::RetryAfter { retry_after }) if max_retries > 0 => {
-                let sleep_dur = retry_after + Duration::from_millis(100);
-                info!(
-                    "Rate limit hit. Retrying after {:.1}s",
-                    sleep_dur.as_secs_f64()
-                );
-                self.retry_after_active
-                    .store(true, std::sync::atomic::Ordering::Relaxed);
-                tokio::time::sleep(sleep_dur).await;
-                self.retry_after_active
-                    .store(false, std::sync::atomic::Ordering::Relaxed);
-                self.retry_after_notify.notify_waiters();
-                // We cannot retry a FnOnce callback; propagate the error so
-                // the caller can retry at a higher level.
-                Err(TelegramError::RetryAfter { retry_after })
-            }
-            other => other,
-        }
+    fn process_request(
+        &self,
+        callback: BoxedCallback,
+        _endpoint: String,
+        data: HashMap<String, serde_json::Value>,
+    ) -> Pin<Box<dyn Future<Output = Result<serde_json::Value, TelegramError>> + Send + '_>> {
+        Box::pin(async move {
+            throttle_and_call(
+                &self.base_limiter,
+                self.group_max_rate,
+                self.group_time_period,
+                &self.group_limiters,
+                self.max_retries,
+                &self.retry_after_notify,
+                &self.retry_after_active,
+                callback,
+                &data,
+            )
+            .await
+        })
     }
 }
 
@@ -648,6 +637,25 @@ impl BaseRateLimiter<i32> for NoRateLimiter {
     }
 }
 
+impl DynRateLimiter for NoRateLimiter {
+    fn initialize(&self) -> Pin<Box<dyn Future<Output = ()> + Send + '_>> {
+        Box::pin(async {})
+    }
+
+    fn shutdown(&self) -> Pin<Box<dyn Future<Output = ()> + Send + '_>> {
+        Box::pin(async {})
+    }
+
+    fn process_request(
+        &self,
+        callback: BoxedCallback,
+        _endpoint: String,
+        _data: HashMap<String, serde_json::Value>,
+    ) -> Pin<Box<dyn Future<Output = Result<serde_json::Value, TelegramError>> + Send + '_>> {
+        Box::pin(async move { callback().await })
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -655,47 +663,46 @@ mod tests {
     #[tokio::test]
     async fn no_rate_limiter_passes_through() {
         let limiter = NoRateLimiter;
-        limiter.initialize().await;
+        BaseRateLimiter::initialize(&limiter).await;
 
-        let result = limiter
-            .process_request(
-                || async { Ok(serde_json::json!({"ok": true})) },
-                "sendMessage",
-                &HashMap::new(),
-                None,
-            )
-            .await;
+        let result = BaseRateLimiter::process_request(
+            &limiter,
+            || async { Ok(serde_json::json!({"ok": true})) },
+            "sendMessage",
+            &HashMap::new(),
+            None,
+        )
+        .await;
 
         assert!(result.is_ok());
         assert_eq!(result.unwrap()["ok"], true);
-        limiter.shutdown().await;
+        BaseRateLimiter::shutdown(&limiter).await;
     }
 
     #[tokio::test]
     async fn aio_rate_limiter_basic() {
         let limiter =
             AioRateLimiter::new(10, Duration::from_secs(1), 5, Duration::from_secs(60), 0);
-        limiter.initialize().await;
+        BaseRateLimiter::initialize(&limiter).await;
 
-        let result = limiter
-            .process_request(
-                || async { Ok(serde_json::json!({"result": 42})) },
-                "getMe",
-                &HashMap::new(),
-                None,
-            )
-            .await;
+        let result = BaseRateLimiter::process_request(
+            &limiter,
+            || async { Ok(serde_json::json!({"result": 42})) },
+            "getMe",
+            &HashMap::new(),
+            None,
+        )
+        .await;
 
         assert!(result.is_ok());
         assert_eq!(result.unwrap()["result"], 42);
-        limiter.shutdown().await;
+        BaseRateLimiter::shutdown(&limiter).await;
     }
 
     #[tokio::test]
     async fn aio_rate_limiter_group_detection() {
         let limiter =
             AioRateLimiter::new(100, Duration::from_secs(1), 100, Duration::from_secs(60), 0);
-        limiter.initialize().await;
 
         let mut data = HashMap::new();
         data.insert(
@@ -703,65 +710,61 @@ mod tests {
             serde_json::Value::Number((-100i64).into()),
         );
 
-        let result = limiter
-            .process_request(
-                || async { Ok(serde_json::json!({"ok": true})) },
-                "sendMessage",
-                &data,
-                None,
-            )
-            .await;
+        let result = BaseRateLimiter::process_request(
+            &limiter,
+            || async { Ok(serde_json::json!({"ok": true})) },
+            "sendMessage",
+            &data,
+            None,
+        )
+        .await;
 
         assert!(result.is_ok());
 
-        // Verify a group limiter was created.
         let groups = limiter.group_limiters.lock().await;
         assert!(groups.contains_key(&GroupId::Int(-100)));
-        drop(groups);
-
-        limiter.shutdown().await;
     }
 
     #[tokio::test]
     async fn dyn_rate_limiter_no_op() {
         let limiter: Arc<dyn DynRateLimiter> = Arc::new(NoRateLimiter);
-        limiter.initialize().await;
+        DynRateLimiter::initialize(limiter.as_ref()).await;
 
-        let result = limiter
-            .process_request(
-                Box::new(|| {
-                    Box::pin(async { Ok(serde_json::json!({"ok": true})) })
-                        as Pin<Box<dyn Future<Output = _> + Send>>
-                }),
-                "sendMessage".to_owned(),
-                HashMap::new(),
-            )
-            .await;
+        let result = DynRateLimiter::process_request(
+            limiter.as_ref(),
+            Box::new(|| {
+                Box::pin(async { Ok(serde_json::json!({"ok": true})) })
+                    as Pin<Box<dyn Future<Output = _> + Send>>
+            }),
+            "sendMessage".to_owned(),
+            HashMap::new(),
+        )
+        .await;
 
         assert!(result.is_ok());
         assert_eq!(result.unwrap()["ok"], true);
-        limiter.shutdown().await;
+        DynRateLimiter::shutdown(limiter.as_ref()).await;
     }
 
     #[tokio::test]
     async fn dyn_rate_limiter_aio() {
         let limiter: Arc<dyn DynRateLimiter> = Arc::new(AioRateLimiter::default_limits());
-        limiter.initialize().await;
+        DynRateLimiter::initialize(limiter.as_ref()).await;
 
-        let result = limiter
-            .process_request(
-                Box::new(|| {
-                    Box::pin(async { Ok(serde_json::json!({"result": 99})) })
-                        as Pin<Box<dyn Future<Output = _> + Send>>
-                }),
-                "getMe".to_owned(),
-                HashMap::new(),
-            )
-            .await;
+        let result = DynRateLimiter::process_request(
+            limiter.as_ref(),
+            Box::new(|| {
+                Box::pin(async { Ok(serde_json::json!({"result": 99})) })
+                    as Pin<Box<dyn Future<Output = _> + Send>>
+            }),
+            "getMe".to_owned(),
+            HashMap::new(),
+        )
+        .await;
 
         assert!(result.is_ok());
         assert_eq!(result.unwrap()["result"], 99);
-        limiter.shutdown().await;
+        DynRateLimiter::shutdown(limiter.as_ref()).await;
     }
 
     #[test]
@@ -797,10 +800,7 @@ mod tests {
         let rd = RequestData::from_parameters(params);
         let map = params_to_value_map(Some(&rd));
 
-        // chat_id is numeric: json_parameters encodes as "-100", which
-        // params_to_value_map parses back to a number.
         assert_eq!(map.get("chat_id"), Some(&serde_json::json!(-100)));
-        // text is a string.
         assert_eq!(map.get("text"), Some(&serde_json::json!("hello")));
     }
 
