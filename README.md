@@ -72,7 +72,7 @@ rust-telegram-bot/
 
 **`rust-tg-bot-macros`** provides the `#[derive(BotCommands)]` proc macro for declarative command handler registration.
 
-**`rust-tg-bot`** is the facade crate you add to `Cargo.toml`. It re-exports everything from all three crates under `rust_tg_bot::raw` and `rust_tg_bot::ext`.
+**`rust-tg-bot`** is the facade crate you add to `Cargo.toml`. It re-exports everything from the other three crates under `rust_tg_bot::raw` and `rust_tg_bot::ext`.
 
 ## Quick Start
 

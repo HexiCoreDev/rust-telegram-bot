@@ -16,13 +16,14 @@ A complete, production-ready Telegram Bot API framework for Rust. Inspired by th
 
 ## Architecture Overview
 
-The framework is split into three crates:
+The framework is split into four crates:
 
 | Crate | Purpose |
 |---|---|
 | `rust-tg-bot-raw` | Low-level Bot API types, HTTP methods, request builders |
 | `rust-tg-bot-ext` | High-level `Application`, handlers, filters, context, persistence |
-| `rust-tg-bot` | Facade crate that re-exports both for convenience |
+| `rust-tg-bot-macros` | Proc macros (`#[derive(BotCommands)]`) |
+| `rust-tg-bot` | Facade crate that re-exports all three for convenience |
 
 You will almost always depend only on `rust-tg-bot` in your `Cargo.toml`.
 

@@ -99,14 +99,15 @@ See the `crates/telegram-bot/examples/` directory for all 20 example bots.
 
 ## Architecture Overview
 
-The library is organized as a Cargo workspace with three crates:
+The library is organized as a Cargo workspace with four crates:
 
 ```
 rust-telegram-bot/
   crates/
     telegram-bot-raw/     # Pure API types and methods
     telegram-bot-ext/     # Application framework (handlers, filters, persistence, job queue)
-    telegram-bot/         # Facade crate -- re-exports both for convenience
+    telegram-bot-macros/  # Proc macros (#[derive(BotCommands)])
+    telegram-bot/         # Facade crate -- re-exports all three for convenience
 ```
 
 ### Which crate do I modify?
@@ -118,6 +119,7 @@ rust-telegram-bot/
 | Add a handler (e.g., `PollHandler`)                   | `rust-tg-bot-ext`   |
 | Add a filter (e.g., `PREMIUM_USER`)                   | `rust-tg-bot-ext`   |
 | Modify persistence, job queue, or application logic   | `rust-tg-bot-ext`   |
+| Add or fix a proc macro (e.g., `#[derive(BotCommands)]`) | `rust-tg-bot-macros` |
 | Add or update an example bot                          | `rust-tg-bot`       |
 | Update re-exports or the facade                       | `rust-tg-bot`       |
 
@@ -139,8 +141,11 @@ crates/telegram-bot-ext/src/
   context.rs      # CallbackContext -- the Context passed to handler functions
   prelude.rs      # Convenient re-exports for user code
 
+crates/telegram-bot-macros/src/
+  lib.rs          # Proc macro implementations (#[derive(BotCommands)])
+
 crates/telegram-bot/
-  src/lib.rs      # Facade: re-exports raw and ext
+  src/lib.rs      # Facade: re-exports raw, ext, and macros
   examples/       # 20 complete example bots
 ```
 
@@ -259,7 +264,7 @@ pub async fn once(/* ... */) -> Job {
 
 ### Documentation Files
 
-- Long-form documentation lives in the `docs/` directory
+- Long-form documentation lives in the `book/src/` directory
 - If you add a new feature category (e.g., a new persistence backend), add a corresponding documentation file
 - Keep code examples in documentation files in sync with the actual API
 
@@ -295,7 +300,7 @@ Use the crate name as the scope when the change is crate-specific:
 ```
 feat(ext): add ChatBoostHandler for boost update processing
 fix(raw): correct deserialization of optional poll fields
-docs: add persistence backend comparison to docs
+docs: add persistence backend comparison to book
 test(ext): add property tests for filter composition
 refactor(raw): extract shared pagination logic into helper
 chore: update tokio to 1.38
@@ -355,7 +360,7 @@ If you are porting a handler from python-telegram-bot or creating a new one:
 3. Add the module to `handlers/mod.rs`
 4. Add tests in the same file under `#[cfg(test)]`
 5. Re-export the handler in `prelude.rs` if it is commonly used
-6. Document the handler in `docs/handlers.md`
+6. Document the handler in `book/src/core-concepts/handlers.md`
 7. If applicable, add an example in `crates/telegram-bot/examples/`
 
 ## Adding a New Filter
@@ -365,7 +370,7 @@ If you are porting a handler from python-telegram-bot or creating a new one:
 3. Add the module or re-export to `filters/mod.rs`
 4. Add a `SCREAMING_SNAKE_CASE` constructor function in `prelude.rs`
 5. Write tests with representative `serde_json::json!()` update fixtures
-6. Document the filter in `docs/filters.md`
+6. Document the filter in `book/src/core-concepts/filters.md`
 
 ## Adding a Bot API Type or Method
 

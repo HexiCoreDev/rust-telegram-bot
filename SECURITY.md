@@ -4,7 +4,7 @@
 
 | Version | Supported |
 |---------|-----------|
-| 1.0.0-beta | Yes |
+| 1.0.0-beta.4c | Yes |
 
 ## Reporting a Vulnerability
 
@@ -31,7 +31,7 @@ Include:
 
 This policy covers:
 
-- The `rust-tg-bot-raw`, `rust-tg-bot-ext`, and `rust-tg-bot` crates
+- The `rust-tg-bot-raw`, `rust-tg-bot-ext`, `rust-tg-bot-macros`, and `rust-tg-bot` crates
 - Security issues in request handling, token management, webhook validation
 - Dependency vulnerabilities that affect this project
 
