@@ -29,6 +29,7 @@
 //! ```
 
 #![warn(missing_docs)]
+#![forbid(unsafe_code)]
 
 /// The core [`Application`](application::Application) that dispatches updates
 /// to registered handlers.

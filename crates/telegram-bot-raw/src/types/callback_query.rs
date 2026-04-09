@@ -53,3 +53,24 @@ pub struct CallbackQuery {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub game_short_name: Option<String>,
 }
+
+impl CallbackQuery {
+    /// Create a new `CallbackQuery` with the required fields.
+    ///
+    /// All optional fields default to `None`.
+    pub fn new(
+        id: impl Into<String>,
+        from_user: User,
+        chat_instance: impl Into<String>,
+    ) -> Self {
+        Self {
+            id: id.into(),
+            from_user,
+            chat_instance: chat_instance.into(),
+            message: None,
+            data: None,
+            inline_message_id: None,
+            game_short_name: None,
+        }
+    }
+}

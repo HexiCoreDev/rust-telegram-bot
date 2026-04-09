@@ -480,13 +480,9 @@ mod tests {
     fn process_keyboard_replaces_callback_data() {
         let mut cache = CallbackDataCache::new(128);
 
-        let markup = InlineKeyboardMarkup {
-            inline_keyboard: vec![vec![InlineKeyboardButton {
-                text: "Click".into(),
-                callback_data: Some("my_data".into()),
-                ..Default::default()
-            }]],
-        };
+        let markup = InlineKeyboardMarkup::new(vec![vec![
+            InlineKeyboardButton::callback("Click", "my_data"),
+        ]]);
 
         let new_markup = cache.process_keyboard(&markup);
         let new_data = new_markup.inline_keyboard[0][0]
@@ -503,13 +499,9 @@ mod tests {
     fn process_keyboard_noop_without_callback_data() {
         let mut cache = CallbackDataCache::new(128);
 
-        let markup = InlineKeyboardMarkup {
-            inline_keyboard: vec![vec![InlineKeyboardButton {
-                text: "URL".into(),
-                url: Some("https://example.com".into()),
-                ..Default::default()
-            }]],
-        };
+        let markup = InlineKeyboardMarkup::new(vec![vec![
+            InlineKeyboardButton::url("URL", "https://example.com"),
+        ]]);
 
         let new_markup = cache.process_keyboard(&markup);
         assert_eq!(
@@ -522,13 +514,9 @@ mod tests {
     fn roundtrip_process_and_resolve() {
         let mut cache = CallbackDataCache::new(128);
 
-        let markup = InlineKeyboardMarkup {
-            inline_keyboard: vec![vec![InlineKeyboardButton {
-                text: "Click".into(),
-                callback_data: Some("original".into()),
-                ..Default::default()
-            }]],
-        };
+        let markup = InlineKeyboardMarkup::new(vec![vec![
+            InlineKeyboardButton::callback("Click", "original"),
+        ]]);
 
         let new_markup = cache.process_keyboard(&markup);
         let uuid_data = new_markup.inline_keyboard[0][0]
@@ -537,32 +525,9 @@ mod tests {
             .unwrap();
 
         // Simulate receiving the callback query
-        let mut cq = CallbackQuery {
-            id: "query_1".into(),
-            from_user: rust_tg_bot_raw::types::user::User {
-                id: 1,
-                is_bot: false,
-                first_name: "Test".into(),
-                last_name: None,
-                username: None,
-                language_code: None,
-                can_join_groups: None,
-                can_read_all_group_messages: None,
-                supports_inline_queries: None,
-                is_premium: None,
-                added_to_attachment_menu: None,
-                can_connect_to_business: None,
-                has_main_web_app: None,
-                has_topics_enabled: None,
-                allows_users_to_create_topics: None,
-                can_manage_bots: None,
-            },
-            chat_instance: "inst".into(),
-            message: None,
-            data: Some(uuid_data),
-            inline_message_id: None,
-            game_short_name: None,
-        };
+        let user = rust_tg_bot_raw::types::user::User::new(1, false, "Test");
+        let mut cq = CallbackQuery::new("query_1", user, "inst");
+        cq.data = Some(uuid_data);
 
         cache.process_callback_query(&mut cq);
 
@@ -574,13 +539,9 @@ mod tests {
     fn drop_data_removes_entry() {
         let mut cache = CallbackDataCache::new(128);
 
-        let markup = InlineKeyboardMarkup {
-            inline_keyboard: vec![vec![InlineKeyboardButton {
-                text: "Click".into(),
-                callback_data: Some("payload".into()),
-                ..Default::default()
-            }]],
-        };
+        let markup = InlineKeyboardMarkup::new(vec![vec![
+            InlineKeyboardButton::callback("Click", "payload"),
+        ]]);
 
         let new_markup = cache.process_keyboard(&markup);
         let uuid_data = new_markup.inline_keyboard[0][0]
@@ -588,32 +549,9 @@ mod tests {
             .clone()
             .unwrap();
 
-        let mut cq = CallbackQuery {
-            id: "q2".into(),
-            from_user: rust_tg_bot_raw::types::user::User {
-                id: 1,
-                is_bot: false,
-                first_name: "T".into(),
-                last_name: None,
-                username: None,
-                language_code: None,
-                can_join_groups: None,
-                can_read_all_group_messages: None,
-                supports_inline_queries: None,
-                is_premium: None,
-                added_to_attachment_menu: None,
-                can_connect_to_business: None,
-                has_main_web_app: None,
-                has_topics_enabled: None,
-                allows_users_to_create_topics: None,
-                can_manage_bots: None,
-            },
-            chat_instance: "i".into(),
-            message: None,
-            data: Some(uuid_data),
-            inline_message_id: None,
-            game_short_name: None,
-        };
+        let user = rust_tg_bot_raw::types::user::User::new(1, false, "T");
+        let mut cq = CallbackQuery::new("q2", user, "i");
+        cq.data = Some(uuid_data);
 
         cache.process_callback_query(&mut cq);
         assert!(cache.drop_data("q2").is_ok());
@@ -625,13 +563,9 @@ mod tests {
         let mut cache = CallbackDataCache::new(2);
 
         for i in 0..3 {
-            let markup = InlineKeyboardMarkup {
-                inline_keyboard: vec![vec![InlineKeyboardButton {
-                    text: format!("btn_{i}"),
-                    callback_data: Some(format!("data_{i}")),
-                    ..Default::default()
-                }]],
-            };
+            let markup = InlineKeyboardMarkup::new(vec![vec![
+                InlineKeyboardButton::callback(format!("btn_{i}"), format!("data_{i}")),
+            ]]);
             cache.process_keyboard(&markup);
         }
 
@@ -643,13 +577,9 @@ mod tests {
     fn persistence_roundtrip() {
         let mut cache = CallbackDataCache::new(128);
 
-        let markup = InlineKeyboardMarkup {
-            inline_keyboard: vec![vec![InlineKeyboardButton {
-                text: "Click".into(),
-                callback_data: Some("persist_me".into()),
-                ..Default::default()
-            }]],
-        };
+        let markup = InlineKeyboardMarkup::new(vec![vec![
+            InlineKeyboardButton::callback("Click", "persist_me"),
+        ]]);
 
         cache.process_keyboard(&markup);
         let persisted = cache.persistence_data();
@@ -664,13 +594,9 @@ mod tests {
     fn clear_with_cutoff() {
         let mut cache = CallbackDataCache::new(128);
 
-        let markup = InlineKeyboardMarkup {
-            inline_keyboard: vec![vec![InlineKeyboardButton {
-                text: "Old".into(),
-                callback_data: Some("old_data".into()),
-                ..Default::default()
-            }]],
-        };
+        let markup = InlineKeyboardMarkup::new(vec![vec![
+            InlineKeyboardButton::callback("Old", "old_data"),
+        ]]);
 
         cache.process_keyboard(&markup);
 

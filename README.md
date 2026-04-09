@@ -6,16 +6,27 @@
 
 <p align="center"><strong>We built you a bot you can't refuse -- now in Rust.</strong></p>
 
+<p align="center">
+
+[![Version: 1.0.0-beta.3](https://img.shields.io/badge/version-1.0.0--beta.3-blueviolet)](https://github.com/HexiCoreDev/rust-telegram-bot/releases)
 [![Bot API 9.6](https://img.shields.io/badge/Bot%20API-9.6-blue?logo=telegram)](https://core.telegram.org/bots/api-changelog)
-[![License: LGPL-3.0](https://img.shields.io/badge/License-LGPL--3.0-green.svg)](https://www.gnu.org/licenses/lgpl-3.0.html)
 [![Rust: 1.75+](https://img.shields.io/badge/Rust-1.75%2B-orange?logo=rust)](https://www.rust-lang.org)
-[![Version: 1.0.0-beta.2](https://img.shields.io/badge/version-1.0.0--beta.2-blueviolet)]()
-[![CI](https://img.shields.io/badge/CI-passing-brightgreen)]()
-[![Docs](https://img.shields.io/badge/docs-latest-blue)]()
+[![License: LGPL-3.0](https://img.shields.io/badge/License-LGPL--3.0-green.svg)](https://www.gnu.org/licenses/lgpl-3.0.html)
+[![CI](https://github.com/HexiCoreDev/rust-telegram-bot/actions/workflows/ci.yml/badge.svg?branch=dev)](https://github.com/HexiCoreDev/rust-telegram-bot/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/HexiCoreDev/rust-telegram-bot/graph/badge.svg?token=F2Y0CC4WNG)](https://codecov.io/gh/HexiCoreDev/rust-telegram-bot)
+[![docs.rs](https://img.shields.io/badge/docs.rs-API-blue)](https://docs.rs/rust-tg-bot)
+[![mdBook](https://img.shields.io/badge/book-guide-blue)](https://hexicoredev.github.io/rust-telegram-bot/)
+[![Code Style: rustfmt](https://img.shields.io/badge/code%20style-rustfmt-blue)](https://github.com/rust-lang/rustfmt)
+[![Code Quality: clippy](https://img.shields.io/badge/code%20quality-clippy%20%E2%9C%93-brightgreen)](https://doc.rust-lang.org/clippy/)
+[![Unsafe: forbidden](https://img.shields.io/badge/unsafe-forbidden-success.svg)](https://github.com/rust-secure-code/safety-dance/)
+[![MSRV: 1.75](https://img.shields.io/badge/MSRV-1.75-orange)](https://blog.rust-lang.org/2023/12/28/Rust-1.75.0.html)
+[![Issues](https://isitmaintained.com/badge/resolution/HexiCoreDev/rust-telegram-bot.svg)](https://isitmaintained.com/project/HexiCoreDev/rust-telegram-bot)
+
+</p>
 
 ---
 
-> **WARNING: This project is in active development (v1.0.0-beta.2). The API is undergoing constant changes as we work toward full feature parity with python-telegram-bot and Rust-native performance optimizations. Use at your own risk -- breaking changes will occur between releases until v1.0.0 stable.**
+> **WARNING: This project is in active development (v1.0.0-beta.3). The API is undergoing constant changes as we work toward full feature parity with python-telegram-bot and Rust-native performance optimizations. Use at your own risk -- breaking changes will occur between releases until v1.0.0 stable.**
 
 ---
 
@@ -44,21 +55,24 @@ For bots that handle high volumes of updates, run on constrained hardware (VPS, 
 
 ## Architecture
 
-The library is organized as a Cargo workspace with three crates:
+The library is organized as a Cargo workspace with four crates:
 
 ```text
 rust-telegram-bot/
   crates/
     telegram-bot-raw/     # Pure API types and methods (like Python's `telegram` module)
     telegram-bot-ext/     # Application framework (like Python's `telegram.ext`)
-    telegram-bot/         # Facade crate -- re-exports both for convenience
+    telegram-bot-macros/  # Proc macros (#[derive(BotCommands)])
+    telegram-bot/         # Facade crate -- re-exports all three for convenience
 ```
 
 **`rust-tg-bot-raw`** contains every type and method from Bot API 9.6: `Message`, `Update`, `User`, `Chat`, inline types, payments, passport, games, stickers, and all API methods on the `Bot` struct. It depends only on `serde`, `reqwest`, and `tokio`.
 
-**`rust-tg-bot-ext`** provides the application framework: `ApplicationBuilder`, typed handler system, composable filters, `ConversationHandler`, `JobQueue`, persistence backends (JSON file, SQLite), rate limiting, webhook support, and callback data caching.
+**`rust-tg-bot-ext`** provides the application framework: `ApplicationBuilder`, typed handler system, composable filters, `ConversationHandler`, `JobQueue`, persistence backends (JSON file, SQLite, Redis, PostgreSQL), rate limiting, webhook support with optional TLS, and callback data caching.
 
-**`rust-tg-bot`** is the facade crate you add to `Cargo.toml`. It re-exports everything from both crates under `rust_tg_bot::raw` and `rust_tg_bot::ext`.
+**`rust-tg-bot-macros`** provides the `#[derive(BotCommands)]` proc macro for declarative command handler registration.
+
+**`rust-tg-bot`** is the facade crate you add to `Cargo.toml`. It re-exports everything from all three crates under `rust_tg_bot::raw` and `rust_tg_bot::ext`.
 
 ## Quick Start
 
@@ -437,11 +451,15 @@ rust-tg-bot = { git = "https://github.com/HexiCoreDev/rust-telegram-bot", featur
 
 # Pick what you need
 rust-tg-bot = { git = "https://github.com/HexiCoreDev/rust-telegram-bot", features = [
-    "webhooks",           # axum-based webhook server
-    "job-queue",          # Scheduled job execution
-    "persistence-json",   # JSON file persistence
-    "persistence-sqlite", # SQLite persistence
-    "rate-limiter",       # API rate limiting
+    "webhooks",              # axum-based webhook server
+    "webhooks-tls",          # TLS auto-configuration for webhooks
+    "job-queue",             # Scheduled job execution
+    "persistence-json",      # JSON file persistence
+    "persistence-sqlite",    # SQLite persistence
+    "persistence-redis",     # Redis persistence
+    "persistence-postgres",  # PostgreSQL persistence (JSONB)
+    "rate-limiter",          # API rate limiting
+    "macros",                # #[derive(BotCommands)]
 ] }
 ```
 
@@ -456,7 +474,7 @@ rust-tg-bot = { git = "https://github.com/HexiCoreDev/rust-telegram-bot", featur
 | Filter composition | `&`, `\|`, `^`, `!` operators | Same operators | Predicate combinators |
 | ConversationHandler | Full port (timeouts, nesting, persistence) | Full | `dialogue` macro |
 | Job queue | Built-in (tokio timers) | APScheduler wrapper | External |
-| Persistence | JSON file, SQLite, custom trait | Pickle, Dict, custom | Community crates |
+| Persistence | JSON file, SQLite, Redis, PostgreSQL, custom trait | Pickle, Dict, custom | Community crates |
 | Webhook support | axum | tornado / starlette | axum / warp |
 | Type safety | Compile-time | Runtime (optional hints) | Compile-time |
 | Memory idle (measured) | **15 MB** | 57 MB | **15 MB** |
@@ -465,7 +483,7 @@ rust-tg-bot = { git = "https://github.com/HexiCoreDev/rust-telegram-bot", featur
 | Minimum version | Rust 1.75 | Python 3.10 | Rust 1.68 |
 | Builder pattern | IntoFuture (directly awaitable) | Keyword args | Method chains |
 | Typed constants | `ParseMode::Html` | `ParseMode.HTML` | String-based |
-| Maturity | **v1.0.0-beta.2** (new) | Mature (10+ years) | Mature (3+ years) |
+| Maturity | **v1.0.0-beta.3** (new) | Mature (10+ years) | Mature (3+ years) |
 
 ## Examples
 
@@ -498,7 +516,7 @@ TELEGRAM_BOT_TOKEN="your-token" WEBHOOK_URL="https://your.domain" \
 
 ## Project Status
 
-**Current: v1.0.0-beta.2 -- API complete, stabilizing**
+**Current: v1.0.0-beta.3 -- API complete, stabilizing**
 
 What is implemented:
 
@@ -508,25 +526,37 @@ What is implemented:
 - 50+ composable filters with `&`, `|`, `^`, `!` operators
 - `ConversationHandler` with full state machine, timeouts, nesting, and persistence
 - `JobQueue` with one-shot, repeating, daily, and monthly scheduling (builder pattern)
-- JSON file and SQLite persistence backends
+- JSON file, SQLite, Redis, and PostgreSQL persistence backends
 - Typed data access guards (`DataReadGuard`, `DataWriteGuard`)
-- Polling and webhook (axum) update delivery
+- Polling and webhook (axum) update delivery with optional TLS
 - Callback data caching
-- Rate limiter
+- Rate limiter wired into request pipeline
 - Defaults system for parse mode, link preview, etc.
 - 90+ type constructors for ergonomic API type creation
 - Context shortcuts: `reply_html`, `reply_photo`, `reply_document`, `reply_sticker`, `reply_location`
 - `answer_callback_query()` and `edit_callback_message_text()` on Context
 - Arc<Update> dispatch with bounded update channel (capacity 64)
-- `#![warn(missing_docs)]` on both crates
+- `#[non_exhaustive]` on all 344+ public types/enums for forward compatibility
+- `#[derive(BotCommands)]` proc macro for declarative command registration
+- `#![warn(missing_docs)]` on all crates
 
 ### Build & Test
 
-- 357+ tests passing, zero clippy warnings
+- 385+ tests passing, zero clippy warnings
 - 25 roundtrip serialization tests, 9 proptest filter tests, 10 persistence stress tests
 - GitHub Actions CI: check, test, clippy, format, examples, docs (stable + MSRV 1.75)
 - Release pipeline: cross-compile binaries + crates.io publish
 - Measured performance: 6.2 MB binary (stripped), 15 MB idle / 17 MB RSS under load (release) -- matches teloxide, beats it on binary size
+
+### Forward Compatibility
+
+Unlike python-telegram-bot's `api_kwargs` (which captures unknown JSON fields into a dict), RTB uses Rust's `#[non_exhaustive]` attribute on all 344+ public types and enums. This means:
+
+- **New fields** added by Telegram are silently dropped on deserialization until the library is updated.
+- **New enum variants** can be added without breaking downstream code.
+- **Downstream crates** cannot construct types via struct expressions — they must use constructors or `serde_json::from_value()`.
+
+This is a deliberate trade-off: `#[non_exhaustive]` provides compile-time forward compatibility guarantees that `api_kwargs` cannot, at the cost of not preserving unknown fields on roundtrip. For most bot use cases, unknown fields are irrelevant; if you need to inspect raw JSON, use `serde_json::from_str::<serde_json::Value>()` directly.
 
 ### Roadmap
 
@@ -541,9 +571,10 @@ What is implemented:
 
 ## Documentation
 
-Full documentation is hosted on [Read the Docs](https://rust-telegram-bot.readthedocs.io/) (coming soon).
+- **Guide**: [hexicoredev.github.io/rust-telegram-bot](https://hexicoredev.github.io/rust-telegram-bot/) — mdBook with tutorials, guides, and architecture docs
+- **API reference**: [docs.rs/rust-tg-bot](https://docs.rs/rust-tg-bot) — auto-generated from source (available after crates.io publish)
 
-For now, generate API docs locally:
+Generate API docs locally:
 
 ```sh
 cargo doc --open --no-deps

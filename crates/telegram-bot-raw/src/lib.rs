@@ -6,6 +6,7 @@
 //! access or as the foundation for the higher-level `rust-tg-bot-ext` framework.
 
 #![warn(missing_docs)]
+#![forbid(unsafe_code)]
 
 /// Internal macros for reducing boilerplate.
 #[macro_use]

@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.0-beta.3] - 2026-04-09
+
+### Breaking Changes
+- `#[non_exhaustive]` added to all 344+ public structs and enums — external crates must use constructors or serde deserialization instead of struct expressions
+- Crate renamed from `telegram-bot` to `rust-tg-bot` (and similarly for sub-crates) to avoid crates.io name collision
+
+### Added
+- **`rust-tg-bot-macros` crate**: `#[derive(BotCommands)]` proc macro for declarative command handler registration with automatic help text generation
+- **Redis persistence backend** (`persistence-redis` feature): production-ready persistence using the `redis` crate
+- **PostgreSQL persistence backend** (`persistence-postgres` feature): JSONB-based persistence using `sqlx`
+- **Webhook TLS auto-configuration** (`webhooks-tls` feature): automatic TLS termination via `tokio-rustls`
+- **Rate limiter wired into request pipeline**: `RateLimitedRequest` adapter wrapping `BaseRequest` for transparent rate limiting
+- Facade crate now forwards all feature flags: `persistence-redis`, `persistence-postgres`, `webhooks-tls`, `macros`
+- `User::new()`, `CallbackQuery::new()` constructors for `#[non_exhaustive]` types
+- `#[non_exhaustive]` on `UpdateKind` enum and 17 ext-crate enums (`ConversationState`, `JobStatus`, `PersistenceError`, etc.)
+
+### Fixed
+- CI workflow: corrected package name from `telegram-bot` to `rust-tg-bot` in examples job
+- Release workflow: corrected all publish commands to use `rust-tg-bot-*` package names; added macros crate to publish order
+- Test compilation: all test code updated to use constructors instead of struct expressions for `#[non_exhaustive]` types
+- README: updated version references, architecture diagram, feature flags, and test count
+
 ## [1.0.0-beta.2] - 2026-04-08
 
 ### Breaking Changes
