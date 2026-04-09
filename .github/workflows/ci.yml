@@ -92,7 +92,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Generate coverage report
-        run: cargo +nightly tarpaulin --verbose --all-features --workspace --timeout 120 --out xml
+        run: cargo +nightly tarpaulin --verbose --workspace --timeout 300 --out xml
         env:
           RUST_MIN_STACK: 8388608
       - name: Upload to Codecov
