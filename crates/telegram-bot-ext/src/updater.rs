@@ -106,6 +106,43 @@ impl Default for WebhookConfig {
     }
 }
 
+#[cfg(feature = "webhooks")]
+impl WebhookConfig {
+    /// Create a new webhook config with the given URL.
+    /// Defaults: listen 127.0.0.1:80, no secret token.
+    pub fn new(url: impl Into<String>) -> Self {
+        let url = url.into();
+        Self {
+            webhook_url: Some(url),
+            ..Default::default()
+        }
+    }
+
+    /// Set the listen address (default: "127.0.0.1").
+    pub fn listen(mut self, addr: impl Into<String>) -> Self { self.listen = addr.into(); self }
+
+    /// Set the port (default: 80).
+    pub fn port(mut self, port: u16) -> Self { self.port = port; self }
+
+    /// Set the URL path the webhook listens on (default: "").
+    pub fn url_path(mut self, path: impl Into<String>) -> Self { self.url_path = path.into(); self }
+
+    /// Set the secret token for webhook validation.
+    pub fn secret_token(mut self, token: impl Into<String>) -> Self { self.secret_token = Some(token.into()); self }
+
+    /// Set the number of bootstrap retries (default: 0).
+    pub fn bootstrap_retries(mut self, n: i32) -> Self { self.bootstrap_retries = n; self }
+
+    /// Drop pending updates before starting (default: false).
+    pub fn drop_pending_updates(mut self, drop: bool) -> Self { self.drop_pending_updates = drop; self }
+
+    /// Set allowed update types.
+    pub fn allowed_updates(mut self, types: Vec<String>) -> Self { self.allowed_updates = Some(types); self }
+
+    /// Set max webhook connections (default: 40).
+    pub fn max_connections(mut self, n: u32) -> Self { self.max_connections = n; self }
+}
+
 // ---------------------------------------------------------------------------
 // Updater
 // ---------------------------------------------------------------------------

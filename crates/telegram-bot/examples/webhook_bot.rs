@@ -106,14 +106,10 @@ async fn main() {
 
     println!("Webhook bot starting on port {port}...");
 
-    let config = WebhookConfig {
-        webhook_url: Some(format!("{webhook_url}/telegram")),
-        listen: "127.0.0.1".into(),
-        port,
-        url_path: "/telegram".into(),
-        secret_token: Some("my-secret-token".into()),
-        ..Default::default()
-    };
+    let config = WebhookConfig::new(format!("{webhook_url}/telegram"))
+        .port(port)
+        .url_path("/telegram")
+        .secret_token("my-secret-token");
 
     if let Err(e) = app.run_webhook(config).await {
         eprintln!("Error: {e}");
