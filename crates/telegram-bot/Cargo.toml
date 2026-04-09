@@ -124,3 +124,8 @@ required-features = ["webhooks"]
 name = "bench_bot"
 path = "examples/bench_bot.rs"
 required-features = ["webhooks"]
+
+[[example]]
+name = "webhook_bot"
+path = "examples/webhook_bot.rs"
+required-features = ["webhooks"]
