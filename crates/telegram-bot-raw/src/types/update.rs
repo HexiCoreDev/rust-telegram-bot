@@ -209,7 +209,11 @@ impl<'de> Deserialize<'de> for UpdateKind {
     where
         D: Deserializer<'de>,
     {
-        deserializer.deserialize_map(UpdateKindVisitor)
+        // Grow stack for deeply nested Message types (reply_to_message chains).
+        // Matches teloxide's approach to prevent stack overflow.
+        stacker::maybe_grow(256 * 1024, 1024 * 1024, || {
+            deserializer.deserialize_map(UpdateKindVisitor)
+        })
     }
 }
 

@@ -105,8 +105,6 @@ pub struct Bot {
     base_url: Arc<str>,
     base_file_url: Arc<str>,
     request: Arc<dyn BaseRequest>,
-    /// Separate request object for `getUpdates` long-polling (M3).
-    request_for_updates: Arc<dyn BaseRequest>,
     /// User-configured defaults merged into outgoing API calls (C10).
     defaults: Option<Defaults>,
     /// Cached result of `get_me()` after `initialize()` (M5).
@@ -226,7 +224,6 @@ impl Bot {
             token,
             base_url,
             base_file_url,
-            request_for_updates: Arc::clone(&request),
             request,
             defaults: None,
             cached_bot_data: Arc::new(OnceCell::new()),
@@ -236,24 +233,20 @@ impl Bot {
 
     /// Creates a `Bot` with full configuration options.
     ///
-    /// Allows a separate HTTP backend for `getUpdates` long-polling and
-    /// optional [`Defaults`] to merge into every API call.
+    /// Allows optional [`Defaults`] to merge into every API call.
     pub fn with_options(
         token: impl Into<String>,
         request: Arc<dyn BaseRequest>,
-        request_for_updates: Option<Arc<dyn BaseRequest>>,
         defaults: Option<Defaults>,
     ) -> Self {
         let token = token.into();
         let base_url: Arc<str> = format!("https://api.telegram.org/bot{token}").into();
         let base_file_url: Arc<str> = format!("https://api.telegram.org/file/bot{token}").into();
         let token: Arc<str> = token.into();
-        let request_for_updates = request_for_updates.unwrap_or_else(|| Arc::clone(&request));
         Self {
             token,
             base_url,
             base_file_url,
-            request_for_updates,
             request,
             defaults,
             cached_bot_data: Arc::new(OnceCell::new()),
@@ -456,9 +449,6 @@ impl Bot {
     /// Initializes the bot by calling `get_me()` and caching the result.
     pub async fn initialize(&mut self) -> Result<()> {
         self.request.initialize().await?;
-        if !Arc::ptr_eq(&self.request, &self.request_for_updates) {
-            self.request_for_updates.initialize().await?;
-        }
         let me = self.get_me().await?;
         let _ = self.cached_bot_data.set(me);
         Ok(())
@@ -467,9 +457,7 @@ impl Bot {
     /// Shuts down the bot and releases the HTTP request backend.
     /// Shuts down the bot and releases the HTTP request backend.
     pub async fn shutdown(&self) -> Result<()> {
-        if !Arc::ptr_eq(&self.request, &self.request_for_updates) {
-            self.request_for_updates.shutdown().await?;
-        }
+        self.request.shutdown().await?;
         Ok(())
     }
 
@@ -521,7 +509,7 @@ impl Bot {
         let url = self.api_url("getUpdates");
         let data = RequestData::from_parameters(params);
         let result = self
-            .request_for_updates
+            .request
             .post(&url, Some(&data), timeouts)
             .await?;
         serde_json::from_value(result).map_err(Into::into)

@@ -4,12 +4,12 @@
 //! uses `httpx` as its HTTP back-end.  Here we use `reqwest` instead but the
 //! public contract and behaviour are identical.
 //!
-//! # Two-client design
+//! # Single-client design
 //!
-//! The Python implementation uses a single `httpx.AsyncClient` for both API
-//! calls and file downloads.  We separate the two because file downloads may
-//! be very large (hundreds of MB) and should never interfere with the
-//! time-sensitive API call pool.  Each client has its own connection pool.
+//! A single `reqwest::Client` is used for both API calls and file downloads.
+//! File downloads use a longer per-request timeout via
+//! `reqwest::RequestBuilder::timeout` to avoid interfering with
+//! time-sensitive API calls while sharing the same connection pool.
 //!
 //! # Timeouts
 //!
@@ -162,17 +162,7 @@ impl ReqwestRequestBuilder {
             h
         };
 
-        // API client — used for all Bot API JSON calls.
-        let api_client = build_client(
-            self.connection_pool_size,
-            self.connect_timeout,
-            self.pool_timeout,
-            headers.clone(),
-            self.proxy.as_deref(),
-        )?;
-
-        // File download client — separate pool, isolated from the API pool.
-        let file_client = build_client(
+        let client = build_client(
             self.connection_pool_size,
             self.connect_timeout,
             self.pool_timeout,
@@ -181,8 +171,7 @@ impl ReqwestRequestBuilder {
         )?;
 
         Ok(ReqwestRequest {
-            api_client,
-            file_client,
+            client,
             defaults: Arc::new(DefaultTimeouts {
                 read: self.read_timeout,
                 write: self.write_timeout,
@@ -293,10 +282,8 @@ impl DefaultTimeouts {
 /// This type is `Clone` — cloning shares the same underlying connection pools.
 #[derive(Clone)]
 pub struct ReqwestRequest {
-    /// Client used for all Bot API method calls.
-    api_client: Client,
-    /// Client used for file downloads ([`BaseRequest::retrieve`]).
-    file_client: Client,
+    /// Shared HTTP client used for both API calls and file downloads.
+    client: Client,
     /// Default timeout configuration.
     defaults: Arc<DefaultTimeouts>,
     /// Whether `initialize()` has been called at least once.
@@ -370,17 +357,10 @@ impl BaseRequest for ReqwestRequest {
         let has_files = request_data.is_some_and(RequestData::contains_files);
         let resolved = self.defaults.resolve(timeouts, has_files);
 
-        // Select the correct client: file downloads go through file_client to
-        // keep them isolated from the API call pool.
-        let client = match method {
-            HttpMethod::Get => &self.file_client,
-            HttpMethod::Post => &self.api_client,
-        };
-
         // Build the reqwest request.
         let mut req_builder = match method {
-            HttpMethod::Post => client.post(url),
-            HttpMethod::Get => client.get(url),
+            HttpMethod::Post => self.client.post(url),
+            HttpMethod::Get => self.client.get(url),
         };
 
         // Apply the effective per-request timeout.
@@ -427,7 +407,7 @@ impl BaseRequest for ReqwestRequest {
         let resolved = self.defaults.resolve(timeouts, false);
 
         let mut req_builder = self
-            .api_client
+            .client
             .post(url)
             .header(CONTENT_TYPE, HeaderValue::from_static("application/json"))
             .body(body.to_vec());

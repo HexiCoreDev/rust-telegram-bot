@@ -754,21 +754,30 @@ impl Application {
             None
         };
 
-        let (bounded_tx, mut bounded_rx) = mpsc::channel::<Update>(256);
-        let unbounded_tx = self.update_tx.clone();
-        let bridge = tokio::spawn(async move {
-            while let Some(u) = bounded_rx.recv().await {
-                if unbounded_tx.send(u).await.is_err() {
-                    break;
-                }
+        // Tell Telegram to send updates to our webhook URL
+        if let Some(ref url) = config.webhook_url {
+            let mut builder = self.bot.set_webhook(url);
+            if let Some(ref token) = config.secret_token {
+                builder = builder.secret_token(token.clone());
             }
-        });
+            if config.drop_pending_updates {
+                builder = builder.drop_pending_updates(true);
+            }
+            if let Some(ref allowed) = config.allowed_updates {
+                builder = builder.allowed_updates(allowed.clone());
+            }
+            if let Err(e) = builder.await {
+                error!("Failed to set webhook: {e}");
+                return Err(ApplicationError::NotInitialized);
+            }
+            info!("Webhook set to {url}");
+        }
 
         let server = Arc::new(WebhookServer::new(
             &config.listen,
             config.port,
             &config.url_path,
-            bounded_tx,
+            self.update_tx.clone(),
             config.secret_token.clone(),
         ));
         let ready = Arc::new(Notify::new());
@@ -794,7 +803,6 @@ impl Application {
         self.stop_notify.notify_waiters();
         server.shutdown();
         let _ = wh.await;
-        bridge.abort();
         #[cfg(feature = "persistence")]
         if let Some(ph) = persistence_handle {
             let _ = ph.await;
