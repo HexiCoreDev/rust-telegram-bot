@@ -66,9 +66,10 @@ pub trait BaseRateLimiter<RLArgs = i32>: Send + Sync {
 /// Object-safe wrapper around [`BaseRateLimiter`] so we can store it as a
 /// trait object inside [`ExtBot`](crate::ext_bot::ExtBot).
 ///
-/// The `process_request` method is simplified: the callback is boxed so the
-/// trait can be object-safe.  The `endpoint` and `data` parameters are passed
-/// through for per-endpoint and per-chat throttling.
+/// Unlike [`BaseRateLimiter`], the `process_request` method takes **owned**
+/// `String` and `HashMap` parameters so that the returned future does not
+/// borrow from the caller's stack frame.  The callback is boxed for object
+/// safety.
 pub trait DynRateLimiter: Send + Sync + std::fmt::Debug {
     /// Initialize the rate limiter.
     fn initialize(&self) -> Pin<Box<dyn Future<Output = ()> + Send + '_>>;
@@ -87,8 +88,8 @@ pub trait DynRateLimiter: Send + Sync + std::fmt::Debug {
                     Box<dyn Future<Output = Result<serde_json::Value, TelegramError>> + Send>,
                 > + Send,
         >,
-        endpoint: &str,
-        data: &HashMap<String, serde_json::Value>,
+        endpoint: String,
+        data: HashMap<String, serde_json::Value>,
     ) -> Pin<Box<dyn Future<Output = Result<serde_json::Value, TelegramError>> + Send + '_>>;
 }
 
@@ -110,11 +111,12 @@ impl<T: BaseRateLimiter<i32> + std::fmt::Debug> DynRateLimiter for T {
                     Box<dyn Future<Output = Result<serde_json::Value, TelegramError>> + Send>,
                 > + Send,
         >,
-        endpoint: &str,
-        data: &HashMap<String, serde_json::Value>,
+        endpoint: String,
+        data: HashMap<String, serde_json::Value>,
     ) -> Pin<Box<dyn Future<Output = Result<serde_json::Value, TelegramError>> + Send + '_>> {
+        // Owned data is moved into the future, avoiding lifetime issues.
         Box::pin(BaseRateLimiter::process_request(
-            self, callback, endpoint, data, None,
+            self, callback, &endpoint, &data, None,
         ))
     }
 }
@@ -142,10 +144,17 @@ impl<T: BaseRateLimiter<i32> + std::fmt::Debug> DynRateLimiter for T {
 /// let rate_limited = RateLimitedRequest::new(request, limiter);
 /// let bot = Bot::new("token", Arc::new(rate_limited));
 /// ```
-#[derive(Debug)]
 pub struct RateLimitedRequest {
     inner: Arc<dyn BaseRequest>,
     limiter: Arc<dyn DynRateLimiter>,
+}
+
+impl std::fmt::Debug for RateLimitedRequest {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("RateLimitedRequest")
+            .field("limiter", &self.limiter)
+            .finish_non_exhaustive()
+    }
 }
 
 impl RateLimitedRequest {
@@ -159,9 +168,7 @@ impl RateLimitedRequest {
 /// `RequestData::json_parameters`) to `serde_json::Value` for the rate
 /// limiter's `data` map. The limiter reads fields like `chat_id` from this
 /// map to determine per-group throttling.
-fn params_to_value_map(
-    request_data: Option<&RequestData>,
-) -> HashMap<String, serde_json::Value> {
+fn params_to_value_map(request_data: Option<&RequestData>) -> HashMap<String, serde_json::Value> {
     let Some(rd) = request_data else {
         return HashMap::new();
     };
@@ -170,8 +177,8 @@ fn params_to_value_map(
         .map(|(k, v)| {
             // Try to parse the string as JSON; if it fails, store it as a
             // JSON string.
-            let value = serde_json::from_str(&v)
-                .unwrap_or_else(|_| serde_json::Value::String(v));
+            let value =
+                serde_json::from_str(&v).unwrap_or_else(|_| serde_json::Value::String(v));
             (k, value)
         })
         .collect()
@@ -201,7 +208,7 @@ impl BaseRequest for RateLimitedRequest {
         timeouts: TimeoutOverride,
     ) -> rust_tg_bot_raw::error::Result<(u16, bytes::Bytes)> {
         // Extract the endpoint name from the URL (last path segment).
-        let endpoint = url.rsplit('/').next().unwrap_or(url);
+        let endpoint = url.rsplit('/').next().unwrap_or(url).to_owned();
 
         // Build a data map from the request parameters for the limiter.
         let data = params_to_value_map(request_data);
@@ -234,17 +241,13 @@ impl BaseRequest for RateLimitedRequest {
                     })
                 }),
                 endpoint,
-                &data,
+                data,
             )
             .await?;
 
         // Unpack the status + body from the limiter's return value.
-        let status = result["__status"]
-            .as_u64()
-            .unwrap_or(200) as u16;
-        let body_b64 = result["__body"]
-            .as_str()
-            .unwrap_or("");
+        let status = result["__status"].as_u64().unwrap_or(200) as u16;
+        let body_b64 = result["__body"].as_str().unwrap_or("");
         let body = base64_decode(body_b64);
 
         Ok((status, bytes::Bytes::from(body)))
@@ -257,7 +260,7 @@ impl BaseRequest for RateLimitedRequest {
         timeouts: TimeoutOverride,
     ) -> rust_tg_bot_raw::error::Result<(u16, bytes::Bytes)> {
         // Extract the endpoint name from the URL.
-        let endpoint = url.rsplit('/').next().unwrap_or(url);
+        let endpoint = url.rsplit('/').next().unwrap_or(url).to_owned();
 
         // Parse the JSON body to extract parameters for the limiter.
         let data: HashMap<String, serde_json::Value> =
@@ -284,16 +287,12 @@ impl BaseRequest for RateLimitedRequest {
                     })
                 }),
                 endpoint,
-                &data,
+                data,
             )
             .await?;
 
-        let status = result["__status"]
-            .as_u64()
-            .unwrap_or(200) as u16;
-        let body_b64 = result["__body"]
-            .as_str()
-            .unwrap_or("");
+        let status = result["__status"].as_u64().unwrap_or(200) as u16;
+        let body_b64 = result["__body"].as_str().unwrap_or("");
         let resp_body = base64_decode(body_b64);
 
         Ok((status, bytes::Bytes::from(resp_body)))
@@ -306,7 +305,6 @@ impl BaseRequest for RateLimitedRequest {
 
 /// Encode raw bytes as base64 for transport through `serde_json::Value`.
 fn base64_encode(data: &[u8]) -> String {
-    use std::io::Write;
     // Simple base64 encoding without external crate dependency.
     // Uses the standard alphabet (A-Za-z0-9+/) with '=' padding.
     const ALPHABET: &[u8; 64] =
@@ -349,7 +347,10 @@ fn base64_decode(input: &str) -> Vec<u8> {
         }
     }
 
-    let bytes: Vec<u8> = input.bytes().filter(|&b| b != b'=' && b != b'\n' && b != b'\r').collect();
+    let bytes: Vec<u8> = input
+        .bytes()
+        .filter(|&b| b != b'=' && b != b'\n' && b != b'\r')
+        .collect();
     let mut out = Vec::with_capacity(bytes.len() * 3 / 4);
 
     for chunk in bytes.chunks(4) {
@@ -358,8 +359,16 @@ fn base64_decode(input: &str) -> Vec<u8> {
         }
         let a = char_val(chunk[0]).unwrap_or(0);
         let b = char_val(chunk[1]).unwrap_or(0);
-        let c = if chunk.len() > 2 { char_val(chunk[2]).unwrap_or(0) } else { 0 };
-        let d = if chunk.len() > 3 { char_val(chunk[3]).unwrap_or(0) } else { 0 };
+        let c = if chunk.len() > 2 {
+            char_val(chunk[2]).unwrap_or(0)
+        } else {
+            0
+        };
+        let d = if chunk.len() > 3 {
+            char_val(chunk[3]).unwrap_or(0)
+        } else {
+            0
+        };
 
         let triple = (a << 18) | (b << 12) | (c << 6) | d;
 
@@ -588,11 +597,6 @@ impl BaseRateLimiter<i32> for AioRateLimiter {
         self.wait_retry_after().await;
 
         // We only have one shot at the callback since FnOnce.
-        // For retries, we'd need FnMut or a cloneable factory. Since the
-        // Python API also only calls callback once per process_request
-        // invocation in the non-retry path, we match that behavior and handle
-        // retries at a higher level. The retry logic below is illustrative for
-        // a single attempt; a real multi-retry version would accept FnMut.
         let result = callback().await;
 
         match result {
@@ -729,8 +733,8 @@ mod tests {
                     Box::pin(async { Ok(serde_json::json!({"ok": true})) })
                         as Pin<Box<dyn Future<Output = _> + Send>>
                 }),
-                "sendMessage",
-                &HashMap::new(),
+                "sendMessage".to_owned(),
+                HashMap::new(),
             )
             .await;
 
@@ -750,8 +754,8 @@ mod tests {
                     Box::pin(async { Ok(serde_json::json!({"result": 99})) })
                         as Pin<Box<dyn Future<Output = _> + Send>>
                 }),
-                "getMe",
-                &HashMap::new(),
+                "getMe".to_owned(),
+                HashMap::new(),
             )
             .await;
 
