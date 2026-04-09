@@ -382,9 +382,9 @@ impl WebhookServer {
     ///
     /// Manually accepts TCP connections, performs the TLS handshake, wraps each
     /// connection with `hyper_util::rt::TokioIo`, and serves HTTP/1.1 through
-    /// `hyper_util::server::conn::auto::Builder`. Each axum tower `Service` is
-    /// adapted via `hyper_util::service::TowerToHyperService` for hyper
-    /// compatibility.
+    /// `hyper_util::server::conn::auto::Builder`. The axum `Router` is cloned
+    /// per connection (cheap -- internally `Arc`-wrapped) and adapted via
+    /// `hyper_util::service::TowerToHyperService` for hyper compatibility.
     ///
     /// Graceful shutdown is handled via `tokio_util::sync::CancellationToken`:
     /// in-flight connections are allowed to finish while no new connections are
@@ -400,11 +400,6 @@ impl WebhookServer {
 
         let shutdown_notify = self.shutdown_notify.clone();
         let router = self.router.clone();
-
-        // `into_make_service()` yields a tower `MakeService` that produces a
-        // fresh `Service` per connection. Convert it into a tower `Service`
-        // whose `call` returns a ready-to-use per-connection service.
-        let mut make_svc = tower::MakeService::into_service(router.into_make_service());
 
         let graceful = tokio_util::sync::CancellationToken::new();
         let graceful_for_shutdown = graceful.clone();
@@ -437,19 +432,10 @@ impl WebhookServer {
                         warn!("Failed to set TCP_NODELAY: {e}");
                     }
 
-                    // Obtain a per-connection tower Service from the make service.
-                    // The error type is `Infallible` so the match-on-error is
-                    // exhaustive without a wildcard.
-                    let tower_svc = match tower::Service::call(&mut make_svc, remote_addr).await {
-                        Ok(svc) => svc,
-                        Err(e) => match e {},
-                    };
-
-                    // Wrap the tower service so hyper-util can use it.
-                    let hyper_svc = TowerToHyperService::new(tower_svc);
-
                     let acceptor = tls.acceptor.clone();
                     let token = graceful.clone();
+                    // Router is cheap to clone (Arc internally).
+                    let svc = TowerToHyperService::new(router.clone());
 
                     connection_handles.spawn(async move {
                         // Perform TLS handshake.
@@ -464,10 +450,10 @@ impl WebhookServer {
                         // Wrap the TLS stream for hyper-util.
                         let io = hyper_util::rt::TokioIo::new(tls_stream);
 
-                        let conn = hyper_util::server::conn::auto::Builder::new(
+                        let builder = hyper_util::server::conn::auto::Builder::new(
                             hyper_util::rt::TokioExecutor::new(),
-                        )
-                        .serve_connection(io, hyper_svc);
+                        );
+                        let conn = builder.serve_connection(io, svc);
 
                         // Pin the connection future for graceful shutdown.
                         let mut conn = std::pin::pin!(conn);
