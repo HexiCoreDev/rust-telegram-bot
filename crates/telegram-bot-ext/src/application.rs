@@ -1031,7 +1031,8 @@ impl Application {
                     continue;
                 }
                 if context.is_none() {
-                    let ctx = CallbackContext::from_update(
+                    #[allow(unused_mut)]
+                    let mut ctx = CallbackContext::from_update(
                         &update,
                         Arc::clone(&self.bot),
                         Arc::clone(&self.user_data),
