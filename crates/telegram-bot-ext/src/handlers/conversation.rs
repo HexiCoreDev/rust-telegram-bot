@@ -78,6 +78,7 @@ pub type ConversationKey = Vec<i64>;
 /// The result returned by a conversation step callback, controlling the
 /// state machine transition.
 #[derive(Debug, Clone)]
+#[non_exhaustive]
 pub enum ConversationResult<S> {
     /// Transition to the given state.
     NextState(S),

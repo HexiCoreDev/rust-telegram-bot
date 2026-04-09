@@ -75,6 +75,7 @@ type PersistenceFuture<'a, T> = Pin<Box<dyn Future<Output = PersistenceResult<T>
 
 /// Errors that can occur during update processing.
 #[derive(Debug, thiserror::Error)]
+#[non_exhaustive]
 pub enum HandlerError {
     #[error("ApplicationHandlerStop")]
     HandlerStop { state: Option<Value> },
@@ -91,6 +92,7 @@ impl From<rust_tg_bot_raw::error::TelegramError> for HandlerError {
 
 /// Errors from the Application itself.
 #[derive(Debug, thiserror::Error)]
+#[non_exhaustive]
 pub enum ApplicationError {
     #[error("This Application was not initialized via `Application::initialize`")]
     NotInitialized,

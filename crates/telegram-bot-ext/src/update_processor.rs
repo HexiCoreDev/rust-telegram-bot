@@ -20,6 +20,7 @@ use rust_tg_bot_raw::types::update::Update;
 
 /// Errors that may occur during update processing.
 #[derive(Debug, thiserror::Error)]
+#[non_exhaustive]
 pub enum UpdateProcessorError {
     /// `max_concurrent_updates` was not a positive integer.
     #[error("`max_concurrent_updates` must be a positive integer")]

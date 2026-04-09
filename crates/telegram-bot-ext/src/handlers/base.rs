@@ -24,6 +24,7 @@ use crate::context::CallbackContext;
 /// a command handler yields the argument list, while a regex handler yields
 /// captured groups.
 #[derive(Debug)]
+#[non_exhaustive]
 pub enum MatchResult {
     /// The handler matched but produced no additional data.
     Empty,
@@ -52,6 +53,7 @@ pub enum MatchResult {
 
 /// The outcome of handling an update.
 #[derive(Debug)]
+#[non_exhaustive]
 pub enum HandlerResult {
     /// Processing succeeded; continue to next handler group.
     Continue,

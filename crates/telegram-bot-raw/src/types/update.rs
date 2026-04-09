@@ -48,6 +48,7 @@ pub struct Update {
 /// `callback_query`, or `poll`. This enum preserves that wire format via a
 /// custom serde implementation.
 #[derive(Debug, Clone, PartialEq)]
+#[non_exhaustive]
 pub enum UpdateKind {
     /// New incoming message of any kind — text, photo, sticker, etc.
     Message(Message),

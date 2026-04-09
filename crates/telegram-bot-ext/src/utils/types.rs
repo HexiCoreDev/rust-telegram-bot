@@ -21,6 +21,7 @@ pub type ConversationKey = Vec<ConversationKeyPart>;
 /// A single element inside a [`ConversationKey`].
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(untagged)]
+#[non_exhaustive]
 pub enum ConversationKeyPart {
     Int(i64),
     Str(String),

@@ -18,6 +18,7 @@ use crate::context::CallbackContext;
 
 /// Pattern to match against callback query data or game short name.
 #[derive(Clone)]
+#[non_exhaustive]
 pub enum CallbackPattern {
     /// Match `callback_query.data` against this compiled regex.
     Data(Regex),

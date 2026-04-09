@@ -44,6 +44,7 @@ pub fn to_value(update: &Update) -> Value {
 /// Data filters (e.g. regex) return [`MatchWithData`](FilterResult::MatchWithData) carrying
 /// named capture groups or other extracted data.
 #[derive(Debug, Clone, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum FilterResult {
     /// The filter did not match.
     NoMatch,

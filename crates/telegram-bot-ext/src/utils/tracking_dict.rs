@@ -10,6 +10,7 @@ use std::hash::Hash;
 /// Sentinel value returned by [`TrackingDict::pop_accessed_write_items`]
 /// when an entry was deleted rather than updated.
 #[derive(Debug, Clone, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum EntryValue<V> {
     /// The key still exists and holds this value.
     Value(V),

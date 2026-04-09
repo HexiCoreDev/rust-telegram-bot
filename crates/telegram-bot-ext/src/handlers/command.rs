@@ -28,6 +28,7 @@ use crate::context::CallbackContext;
 
 /// Specifies how many arguments a command must have to match.
 #[derive(Debug, Clone)]
+#[non_exhaustive]
 pub enum HasArgs {
     /// Accept any number of arguments (including zero).
     Any,

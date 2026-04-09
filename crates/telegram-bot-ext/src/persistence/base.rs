@@ -39,6 +39,7 @@ impl Default for PersistenceInput {
 
 /// Errors that a persistence back-end may produce.
 #[derive(Debug, thiserror::Error)]
+#[non_exhaustive]
 pub enum PersistenceError {
     #[error("serialization error: {0}")]
     Serialization(#[from] serde_json::Error),

@@ -535,6 +535,7 @@ impl Updater {
 // ---------------------------------------------------------------------------
 
 #[derive(Debug, thiserror::Error)]
+#[non_exhaustive]
 pub enum UpdaterError {
     #[error("this Updater is already running")]
     AlreadyRunning,

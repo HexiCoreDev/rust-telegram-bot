@@ -39,6 +39,7 @@ pub fn parse_username(username: Option<SingleOrCollection<String>>) -> HashSet<S
 
 /// Mirrors Python's `SCT[T]` (Single-or-Collection-of-T).
 #[derive(Debug, Clone)]
+#[non_exhaustive]
 pub enum SingleOrCollection<T> {
     Single(T),
     Collection(Vec<T>),

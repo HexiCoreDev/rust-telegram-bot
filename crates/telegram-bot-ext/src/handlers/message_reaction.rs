@@ -15,6 +15,7 @@ use super::base::{Handler, HandlerCallback, HandlerResult, MatchResult};
 
 /// Which kind of message reaction update to handle.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum MessageReactionType {
     /// Only `message_reaction` (individual user reaction).
     Updated,

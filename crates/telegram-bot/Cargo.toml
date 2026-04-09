@@ -37,7 +37,10 @@ job-queue = ["rust-tg-bot-ext/job-queue"]
 persistence = ["rust-tg-bot-ext/persistence"]
 persistence-json = ["rust-tg-bot-ext/persistence-json"]
 persistence-sqlite = ["rust-tg-bot-ext/persistence-sqlite"]
+persistence-redis = ["rust-tg-bot-ext/persistence-redis"]
+persistence-postgres = ["rust-tg-bot-ext/persistence-postgres"]
 rate-limiter = ["rust-tg-bot-ext/rate-limiter"]
+webhooks-tls = ["rust-tg-bot-ext/webhooks-tls"]
 
 [[example]]
 name = "echo_bot"

@@ -15,6 +15,7 @@ use super::base::{Handler, HandlerCallback, HandlerResult, MatchResult};
 
 /// Which kind of chat member update to handle.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum ChatMemberType {
     /// Only `my_chat_member` (the bot's own status changed).
     MyChatMember,

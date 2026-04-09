@@ -15,6 +15,7 @@ use super::base::{Handler, HandlerCallback, HandlerResult, MatchResult};
 
 /// Which kind of chat boost update to handle.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum ChatBoostType {
     /// Only `chat_boost`.
     ChatBoost,
