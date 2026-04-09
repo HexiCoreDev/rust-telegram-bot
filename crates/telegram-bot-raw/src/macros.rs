@@ -49,5 +49,3 @@ macro_rules! impl_new {
         }
     };
 }
-
-pub(crate) use impl_new;

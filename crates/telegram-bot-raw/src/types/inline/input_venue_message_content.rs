@@ -16,15 +16,19 @@ pub struct InputVenueMessageContent {
     /// Address of the venue.
     pub address: String,
 
+    /// Foursquare identifier of the venue, if known.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub foursquare_id: Option<String>,
 
+    /// Foursquare type of the venue, if known.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub foursquare_type: Option<String>,
 
+    /// Google Places identifier of the venue.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub google_place_id: Option<String>,
 
+    /// Google Places type of the venue.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub google_place_type: Option<String>,
 }

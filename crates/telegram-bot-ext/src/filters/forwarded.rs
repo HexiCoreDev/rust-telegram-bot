@@ -7,6 +7,9 @@ use rust_tg_bot_raw::types::message_origin::MessageOrigin;
 
 use crate::filters::base::{Filter, FilterResult, Update};
 
+/// Filters forwarded messages by the original sender's chat ID or username.
+///
+/// Thread-safe: uses [`RwLock`] for internal mutation of chat ID and username sets.
 pub struct ForwardedFromFilter {
     chat_ids: RwLock<HashSet<i64>>,
     usernames: RwLock<HashSet<String>>,
@@ -14,6 +17,8 @@ pub struct ForwardedFromFilter {
 }
 
 impl ForwardedFromFilter {
+    /// Create an empty filter. When `allow_empty` is `true`, any forwarded message
+    /// matches regardless of the original sender's identity.
     pub fn empty(allow_empty: bool) -> Self {
         Self {
             chat_ids: RwLock::new(HashSet::new()),
@@ -22,6 +27,7 @@ impl ForwardedFromFilter {
         }
     }
 
+    /// Create a filter that matches forwarded messages from senders with the given IDs.
     pub fn from_ids(ids: impl IntoIterator<Item = i64>) -> Self {
         Self {
             chat_ids: RwLock::new(ids.into_iter().collect()),
@@ -30,6 +36,8 @@ impl ForwardedFromFilter {
         }
     }
 
+    /// Create a filter that matches forwarded messages from senders with the given usernames.
+    /// Leading `@` characters are stripped automatically.
     pub fn from_usernames(names: impl IntoIterator<Item = impl Into<String>>) -> Self {
         Self {
             chat_ids: RwLock::new(HashSet::new()),
@@ -46,15 +54,18 @@ impl ForwardedFromFilter {
         }
     }
 
+    /// Add chat IDs to the filter at runtime.
     pub fn add_chat_ids(&self, ids: impl IntoIterator<Item = i64>) {
         self.chat_ids.write().unwrap().extend(ids);
     }
+    /// Remove chat IDs from the filter at runtime.
     pub fn remove_chat_ids(&self, ids: impl IntoIterator<Item = i64>) {
         let mut set = self.chat_ids.write().unwrap();
         for id in ids {
             set.remove(&id);
         }
     }
+    /// Add usernames to the filter at runtime. Leading `@` is stripped.
     pub fn add_usernames(&self, names: impl IntoIterator<Item = impl Into<String>>) {
         let mut set = self.usernames.write().unwrap();
         for n in names {
@@ -62,6 +73,7 @@ impl ForwardedFromFilter {
             set.insert(s.strip_prefix('@').unwrap_or(&s).to_owned());
         }
     }
+    /// Remove usernames from the filter at runtime. Leading `@` is stripped.
     pub fn remove_usernames(&self, names: impl IntoIterator<Item = impl Into<String>>) {
         let mut set = self.usernames.write().unwrap();
         for n in names {
@@ -69,9 +81,11 @@ impl ForwardedFromFilter {
             set.remove(s.strip_prefix('@').unwrap_or(&s));
         }
     }
+    /// Returns a snapshot of the current chat-ID set.
     pub fn chat_ids(&self) -> HashSet<i64> {
         self.chat_ids.read().unwrap().clone()
     }
+    /// Returns a snapshot of the current username set.
     pub fn usernames(&self) -> HashSet<String> {
         self.usernames.read().unwrap().clone()
     }

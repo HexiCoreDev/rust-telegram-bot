@@ -7,6 +7,9 @@ impl Bot {
     // Suggested posts
     // ======================================================================
 
+    /// Use this method to approve a suggested post in a channel managed by the bot.
+    ///
+    /// Calls the Telegram `approveSuggestedPost` API method.
     pub async fn approve_suggested_post(
         &self,
         chat_id: i64,
@@ -21,6 +24,9 @@ impl Bot {
         self.do_post("approveSuggestedPost", params).await
     }
 
+    /// Use this method to decline a suggested post in a channel managed by the bot.
+    ///
+    /// Calls the Telegram `declineSuggestedPost` API method.
     pub async fn decline_suggested_post(
         &self,
         chat_id: i64,

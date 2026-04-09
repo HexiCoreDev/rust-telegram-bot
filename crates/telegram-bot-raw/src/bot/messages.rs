@@ -10,6 +10,9 @@ impl Bot {
     // Sending messages
     // ======================================================================
 
+    /// Sends a text message. Internal raw method used by builder APIs.
+    ///
+    /// Calls the Telegram `sendMessage` API method.
     pub(crate) async fn send_message_raw(
         &self,
         chat_id: ChatId,
@@ -60,6 +63,9 @@ impl Bot {
         self.do_post("sendMessage", params).await
     }
 
+    /// Use this method to send a message draft for a business chat.
+    ///
+    /// Calls the Telegram `sendMessageDraft` API method.
     pub async fn send_message_draft(
         &self,
         chat_id: i64,
@@ -80,6 +86,9 @@ impl Bot {
         self.do_post("sendMessageDraft", params).await
     }
 
+    /// Use this method to forward messages of any kind.
+    ///
+    /// Calls the Telegram `forwardMessage` API method.
     pub async fn forward_message(
         &self,
         chat_id: ChatId,
@@ -116,6 +125,9 @@ impl Bot {
         self.do_post("forwardMessage", params).await
     }
 
+    /// Use this method to forward multiple messages of any kind.
+    ///
+    /// Calls the Telegram `forwardMessages` API method.
     pub async fn forward_messages(
         &self,
         chat_id: ChatId,
@@ -142,6 +154,9 @@ impl Bot {
         self.do_post("forwardMessages", params).await
     }
 
+    /// Use this method to copy messages of any kind.
+    ///
+    /// Calls the Telegram `copyMessage` API method.
     pub async fn copy_message(
         &self,
         chat_id: ChatId,
@@ -196,6 +211,9 @@ impl Bot {
         self.do_post("copyMessage", params).await
     }
 
+    /// Use this method to copy messages of any kind. Returns an array of MessageId.
+    ///
+    /// Calls the Telegram `copyMessages` API method.
     pub async fn copy_messages(
         &self,
         chat_id: ChatId,
@@ -224,6 +242,9 @@ impl Bot {
         self.do_post("copyMessages", params).await
     }
 
+    /// Use this method to delete a message.
+    ///
+    /// Calls the Telegram `deleteMessage` API method.
     pub async fn delete_message(&self, chat_id: ChatId, message_id: i64) -> Result<bool> {
         let params = vec![
             RequestParameter::new("chat_id", serde_json::to_value(&chat_id)?),
@@ -232,6 +253,9 @@ impl Bot {
         self.do_post("deleteMessage", params).await
     }
 
+    /// Use this method to delete multiple messages simultaneously.
+    ///
+    /// Calls the Telegram `deleteMessages` API method.
     pub async fn delete_messages(&self, chat_id: ChatId, message_ids: Vec<i64>) -> Result<bool> {
         let params = vec![
             RequestParameter::new("chat_id", serde_json::to_value(&chat_id)?),

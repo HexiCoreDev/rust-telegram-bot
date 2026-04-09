@@ -5,6 +5,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.0-beta.4] - 2026-04-09
+
+### Added
+- Comprehensive doc comments on all 1700+ public items — enums, variants, structs, fields, methods, re-exports
+- `#![forbid(unsafe_code)]` enforced on all library crates
+- Codecov integration with cargo-tarpaulin in Docker container
+- Vercel deployment for mdBook documentation site
+- Makefile with 40+ targets: build, test, lint, coverage, examples, benchmarks, release
+- CI coverage job using `xd009642/tarpaulin:develop-nightly` + `codecov-action@v5`
+- mdBook docs auto-deploy to Vercel on push to main
+
+### Fixed
+- CI: all workflows pass (check, test, clippy, fmt, examples, docs, coverage)
+- CI: dynamic mdBook version download (was hardcoded to nonexistent v0.4.44)
+- CI: `workflow_call` trigger for reusable workflow support in release pipeline
+- Release workflow: proper conditions for tag vs main-push (build/release only on tags)
+- `clippy::derivable_impls` on `UpdateKind` — now uses `#[derive(Default)]` with `#[default]`
+- Unused import removed from macros.rs
+- All rustfmt diffs resolved
+
+### Changed
+- README badges: comprehensive set matching PTB (CI, codecov, docs.rs, mdBook, rustfmt, clippy, unsafe-forbidden, MSRV, issue resolution)
+- mdBook badge points to Vercel (`rust-tg-bot-docs.vercel.app`)
+- `fail_ci_if_error: false` on coverage upload (non-blocking)
+- `RUSTDOCFLAGS: -D warnings` removed from cargo doc CI job (docs use `#![warn(missing_docs)]` instead)
+
 ## [1.0.0-beta.3] - 2026-04-09
 
 ### Breaking Changes

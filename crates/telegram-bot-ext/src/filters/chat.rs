@@ -217,10 +217,15 @@ impl Filter for ChatTypeGroups {
 pub mod chat_type {
     use super::*;
 
+    /// Matches updates from channel chats.
     pub const CHANNEL: ChatTypeChannel = ChatTypeChannel;
+    /// Matches updates from basic group chats.
     pub const GROUP: ChatTypeGroup = ChatTypeGroup;
+    /// Matches updates from either basic group or supergroup chats.
     pub const GROUPS: ChatTypeGroups = ChatTypeGroups;
+    /// Matches updates from private (one-on-one) chats.
     pub const PRIVATE: ChatTypePrivate = ChatTypePrivate;
+    /// Matches updates from supergroup chats.
     pub const SUPERGROUP: ChatTypeSuperGroup = ChatTypeSuperGroup;
 }
 
@@ -406,7 +411,9 @@ pub mod sender_chat {
     /// Matches any message with a `sender_chat`.
     pub const ALL: crate::filters::base::SenderChatPresence =
         crate::filters::base::SenderChatPresence;
+    /// Matches messages whose sender chat is a channel.
     pub const CHANNEL: SenderChatChannel = SenderChatChannel;
+    /// Matches messages whose sender chat is a supergroup.
     pub const SUPER_GROUP: SenderChatSuperGroup = SenderChatSuperGroup;
 }
 

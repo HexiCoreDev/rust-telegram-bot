@@ -6,12 +6,17 @@ use crate::filters::base::{Filter, FilterResult, Update};
 // Entity
 // ---------------------------------------------------------------------------
 
+/// Filters messages that contain at least one entity of the specified type.
+///
+/// Entity types are Telegram-defined strings such as `"hashtag"`, `"url"`,
+/// `"mention"`, `"bold"`, etc.
 pub struct EntityFilter {
     entity_type: String,
     display: String,
 }
 
 impl EntityFilter {
+    /// Create a new entity filter for the given entity type string.
     pub fn new(entity_type: impl Into<String>) -> Self {
         let et: String = entity_type.into();
         let display = format!("filters.Entity({})", et);
@@ -21,6 +26,7 @@ impl EntityFilter {
         }
     }
 
+    /// Returns the entity type this filter matches against.
     pub fn entity_type(&self) -> &str {
         &self.entity_type
     }
@@ -52,12 +58,16 @@ impl Filter for EntityFilter {
 // CaptionEntity
 // ---------------------------------------------------------------------------
 
+/// Filters messages that contain at least one caption entity of the specified type.
+///
+/// Similar to [`EntityFilter`] but operates on `caption_entities` instead of `entities`.
 pub struct CaptionEntityFilter {
     entity_type: String,
     display: String,
 }
 
 impl CaptionEntityFilter {
+    /// Create a new caption-entity filter for the given entity type string.
     pub fn new(entity_type: impl Into<String>) -> Self {
         let et: String = entity_type.into();
         let display = format!("filters.CaptionEntity({})", et);

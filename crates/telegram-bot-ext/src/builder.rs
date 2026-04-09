@@ -22,16 +22,22 @@ use crate::update_processor;
 // Typestate markers
 // ---------------------------------------------------------------------------
 
+/// Typestate marker indicating no bot token has been provided yet.
 #[derive(Debug)]
 pub struct NoToken;
 
+/// Typestate marker indicating a bot token has been set.
 #[derive(Debug)]
 pub struct HasToken;
 
 // ---------------------------------------------------------------------------
 // Builder
 // ---------------------------------------------------------------------------
-
+/// Typestate builder for constructing an [`Application`](crate::application::Application).
+///
+/// The builder enforces at compile time that a bot token is set before
+/// [`build`](ApplicationBuilder::build) can be called, using the
+/// [`NoToken`] / [`HasToken`] marker types.
 pub struct ApplicationBuilder<State = NoToken> {
     token: Option<String>,
     request: Option<Arc<dyn BaseRequest>>,
@@ -62,6 +68,7 @@ impl Default for ApplicationBuilder<NoToken> {
 }
 
 impl ApplicationBuilder<NoToken> {
+    /// Create a new builder with no token and default settings.
     #[must_use]
     pub fn new() -> Self {
         Self {
@@ -85,6 +92,7 @@ impl ApplicationBuilder<NoToken> {
         }
     }
 
+    /// Set the bot token. Transitions the builder to the [`HasToken`] state.
     #[must_use]
     pub fn token(self, token: impl Into<String>) -> ApplicationBuilder<HasToken> {
         ApplicationBuilder {
@@ -111,30 +119,35 @@ impl ApplicationBuilder<NoToken> {
 
 // Methods available in *any* state.
 impl<S> ApplicationBuilder<S> {
+    /// Set a custom HTTP request backend for the bot.
     #[must_use]
     pub fn request(mut self, request: Arc<dyn BaseRequest>) -> Self {
         self.request = Some(request);
         self
     }
 
+    /// Override the base URL for Telegram Bot API requests.
     #[must_use]
     pub fn base_url(mut self, url: impl Into<String>) -> Self {
         self.base_url = Some(url.into());
         self
     }
 
+    /// Override the base URL for downloading files from Telegram.
     #[must_use]
     pub fn base_file_url(mut self, url: impl Into<String>) -> Self {
         self.base_file_url = Some(url.into());
         self
     }
 
+    /// Set default values (e.g. parse_mode) applied to every API call.
     #[must_use]
     pub fn defaults(mut self, defaults: Defaults) -> Self {
         self.defaults = Some(defaults);
         self
     }
 
+    /// Enable the arbitrary callback data cache with the given maximum size.
     #[must_use]
     pub fn arbitrary_callback_data(mut self, maxsize: usize) -> Self {
         self.arbitrary_callback_data = Some(maxsize);
@@ -160,30 +173,35 @@ impl<S> ApplicationBuilder<S> {
         self
     }
 
+    /// Set custom context types for the application.
     #[must_use]
     pub fn context_types(mut self, ct: ContextTypes) -> Self {
         self.context_types = Some(ct);
         self
     }
 
+    /// Set the maximum number of concurrent update processing tasks. Minimum is 1.
     #[must_use]
     pub fn concurrent_updates(mut self, n: usize) -> Self {
         self.concurrent_updates = if n == 0 { 1 } else { n };
         self
     }
 
+    /// Register a hook to run after the application has been initialized.
     #[must_use]
     pub fn post_init(mut self, hook: LifecycleHook) -> Self {
         self.post_init = Some(hook);
         self
     }
 
+    /// Register a hook to run after the application has stopped.
     #[must_use]
     pub fn post_stop(mut self, hook: LifecycleHook) -> Self {
         self.post_stop = Some(hook);
         self
     }
 
+    /// Register a hook to run after the application has been fully shut down.
     #[must_use]
     pub fn post_shutdown(mut self, hook: LifecycleHook) -> Self {
         self.post_shutdown = Some(hook);
@@ -212,6 +230,7 @@ impl<S> ApplicationBuilder<S> {
 }
 
 impl ApplicationBuilder<HasToken> {
+    /// Consume the builder and construct the [`Application`](crate::application::Application).
     #[must_use]
     pub fn build(self) -> Arc<Application> {
         let token = self.token.expect("HasToken state guarantees a token");

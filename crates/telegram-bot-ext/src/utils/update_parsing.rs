@@ -41,7 +41,9 @@ pub fn parse_username(username: Option<SingleOrCollection<String>>) -> HashSet<S
 #[derive(Debug, Clone)]
 #[non_exhaustive]
 pub enum SingleOrCollection<T> {
+    /// A single value.
     Single(T),
+    /// A collection of values.
     Collection(Vec<T>),
 }
 

@@ -329,11 +329,17 @@ impl Filter for SuccessfulPaymentFilter {
 
 /// Dice emoji constants matching the Telegram Bot API.
 pub mod dice_emoji {
+    /// Basketball emoji.
     pub const BASKETBALL: &str = "\u{1F3C0}";
+    /// Bowling emoji.
     pub const BOWLING: &str = "\u{1F3B3}";
+    /// Darts emoji.
     pub const DARTS: &str = "\u{1F3AF}";
+    /// Dice (cube) emoji.
     pub const DICE: &str = "\u{1F3B2}";
+    /// Football (soccer) emoji.
     pub const FOOTBALL: &str = "\u{26BD}";
+    /// Slot machine emoji.
     pub const SLOT_MACHINE: &str = "\u{1F3B0}";
 }
 

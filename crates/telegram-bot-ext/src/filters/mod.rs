@@ -1,28 +1,42 @@
 //! Filters for routing Telegram updates to handlers.
 
+/// Core filter trait, combinator operators, and presence filters.
 pub mod base;
+/// Chat identity and chat-type filters.
 pub mod chat;
+/// Command entity filters.
 pub mod command;
+/// Document MIME type, category, and file extension filters.
 pub mod document;
+/// Message entity type filters.
 pub mod entity;
+/// Forwarded-from identity filters.
 pub mod forwarded;
+/// Photo and sticker filters.
 pub mod photo;
+/// Regex-based text matching filter.
 pub mod regex;
+/// Status update filters (new members, chat created, pinned, etc.).
 pub mod status_update;
+/// Text, caption, language, payment, dice, and mention filters.
 pub mod text;
+/// User identity filters.
 pub mod user;
+/// Via-bot identity filters.
 pub mod via_bot;
 
 // ---------------------------------------------------------------------------
 // UpdateType namespace
 // ---------------------------------------------------------------------------
 
+/// Filters based on the top-level update kind (message, edited message, channel post, etc.).
 pub mod update_type {
     use super::base::{Filter, FilterResult, Update};
     use rust_tg_bot_raw::types::update::UpdateKind;
 
     macro_rules! update_type_filter {
         ($struct_name:ident, $pattern:pat, $display:expr) => {
+            /// Matches updates of this specific update kind.
             pub struct $struct_name;
             impl Filter for $struct_name {
                 fn check_update(&self, update: &Update) -> FilterResult {
@@ -44,8 +58,10 @@ pub mod update_type {
         UpdateKind::Message(_),
         "filters.UpdateType.MESSAGE"
     );
+    /// Constant filter matching `Message` updates.
     pub const MESSAGE: Message = Message;
 
+    /// Matches updates that are either a `Message` or an `EditedMessage`.
     pub struct Messages;
     impl Filter for Messages {
         fn check_update(&self, update: &Update) -> FilterResult {
@@ -62,6 +78,7 @@ pub mod update_type {
             "filters.UpdateType.MESSAGES"
         }
     }
+    /// Constant filter matching both `Message` and `EditedMessage` updates.
     pub const MESSAGES: Messages = Messages;
 
     update_type_filter!(
@@ -69,6 +86,7 @@ pub mod update_type {
         UpdateKind::EditedMessage(_),
         "filters.UpdateType.EDITED_MESSAGE"
     );
+    /// Constant filter matching `EditedMessage` updates.
     pub const EDITED_MESSAGE: EditedMessage = EditedMessage;
 
     update_type_filter!(
@@ -76,8 +94,10 @@ pub mod update_type {
         UpdateKind::ChannelPost(_),
         "filters.UpdateType.CHANNEL_POST"
     );
+    /// Constant filter matching `ChannelPost` updates.
     pub const CHANNEL_POST: ChannelPost = ChannelPost;
 
+    /// Matches updates that are either a `ChannelPost` or an `EditedChannelPost`.
     pub struct ChannelPosts;
     impl Filter for ChannelPosts {
         fn check_update(&self, update: &Update) -> FilterResult {
@@ -94,6 +114,7 @@ pub mod update_type {
             "filters.UpdateType.CHANNEL_POSTS"
         }
     }
+    /// Constant filter matching both `ChannelPost` and `EditedChannelPost` updates.
     pub const CHANNEL_POSTS: ChannelPosts = ChannelPosts;
 
     update_type_filter!(
@@ -101,8 +122,10 @@ pub mod update_type {
         UpdateKind::EditedChannelPost(_),
         "filters.UpdateType.EDITED_CHANNEL_POST"
     );
+    /// Constant filter matching `EditedChannelPost` updates.
     pub const EDITED_CHANNEL_POST: EditedChannelPost = EditedChannelPost;
 
+    /// Matches any edited update (edited message, edited channel post, or edited business message).
     pub struct Edited;
     impl Filter for Edited {
         fn check_update(&self, update: &Update) -> FilterResult {
@@ -121,6 +144,7 @@ pub mod update_type {
             "filters.UpdateType.EDITED"
         }
     }
+    /// Constant filter matching any edited update type.
     pub const EDITED: Edited = Edited;
 
     update_type_filter!(
@@ -128,6 +152,7 @@ pub mod update_type {
         UpdateKind::BusinessMessage(_),
         "filters.UpdateType.BUSINESS_MESSAGE"
     );
+    /// Constant filter matching `BusinessMessage` updates.
     pub const BUSINESS_MESSAGE: BusinessMessage = BusinessMessage;
 
     update_type_filter!(
@@ -135,8 +160,10 @@ pub mod update_type {
         UpdateKind::EditedBusinessMessage(_),
         "filters.UpdateType.EDITED_BUSINESS_MESSAGE"
     );
+    /// Constant filter matching `EditedBusinessMessage` updates.
     pub const EDITED_BUSINESS_MESSAGE: EditedBusinessMessage = EditedBusinessMessage;
 
+    /// Matches updates that are either a `BusinessMessage` or an `EditedBusinessMessage`.
     pub struct BusinessMessages;
     impl Filter for BusinessMessages {
         fn check_update(&self, update: &Update) -> FilterResult {
@@ -153,6 +180,7 @@ pub mod update_type {
             "filters.UpdateType.BUSINESS_MESSAGES"
         }
     }
+    /// Constant filter matching both `BusinessMessage` and `EditedBusinessMessage` updates.
     pub const BUSINESS_MESSAGES: BusinessMessages = BusinessMessages;
 
     #[cfg(test)]

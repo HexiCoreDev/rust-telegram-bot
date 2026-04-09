@@ -8,6 +8,9 @@ impl Bot {
     // Stickers
     // ======================================================================
 
+    /// Sends a sticker. Internal raw method used by builder APIs.
+    ///
+    /// Calls the Telegram `sendSticker` API method.
     pub(crate) async fn send_sticker_raw(
         &self,
         chat_id: ChatId,
@@ -54,6 +57,9 @@ impl Bot {
         self.do_post("sendSticker", params).await
     }
 
+    /// Use this method to get a sticker set by name.
+    ///
+    /// Calls the Telegram `getStickerSet` API method.
     pub async fn get_sticker_set(&self, name: &str) -> Result<files::sticker::StickerSet> {
         let params = vec![RequestParameter::new(
             "name",
@@ -62,6 +68,9 @@ impl Bot {
         self.do_post("getStickerSet", params).await
     }
 
+    /// Use this method to get information about custom emoji stickers by their identifiers.
+    ///
+    /// Calls the Telegram `getCustomEmojiStickers` API method.
     pub async fn get_custom_emoji_stickers(
         &self,
         custom_emoji_ids: Vec<String>,
@@ -73,6 +82,9 @@ impl Bot {
         self.do_post("getCustomEmojiStickers", params).await
     }
 
+    /// Use this method to upload a sticker file for later use in sticker sets.
+    ///
+    /// Calls the Telegram `uploadStickerFile` API method.
     pub async fn upload_sticker_file(
         &self,
         user_id: i64,
@@ -90,6 +102,9 @@ impl Bot {
         self.do_post("uploadStickerFile", params).await
     }
 
+    /// Use this method to create a new sticker set owned by a user.
+    ///
+    /// Calls the Telegram `createNewStickerSet` API method.
     pub async fn create_new_sticker_set(
         &self,
         user_id: i64,
@@ -110,6 +125,9 @@ impl Bot {
         self.do_post("createNewStickerSet", params).await
     }
 
+    /// Use this method to add a new sticker to an existing sticker set.
+    ///
+    /// Calls the Telegram `addStickerToSet` API method.
     pub async fn add_sticker_to_set(
         &self,
         user_id: i64,
@@ -124,6 +142,9 @@ impl Bot {
         self.do_post("addStickerToSet", params).await
     }
 
+    /// Use this method to move a sticker in a set to a specific position.
+    ///
+    /// Calls the Telegram `setStickerPositionInSet` API method.
     pub async fn set_sticker_position_in_set(&self, sticker: &str, position: i64) -> Result<bool> {
         let params = vec![
             RequestParameter::new("sticker", serde_json::Value::String(sticker.to_owned())),
@@ -132,6 +153,9 @@ impl Bot {
         self.do_post("setStickerPositionInSet", params).await
     }
 
+    /// Use this method to delete a sticker from a set.
+    ///
+    /// Calls the Telegram `deleteStickerFromSet` API method.
     pub async fn delete_sticker_from_set(&self, sticker: &str) -> Result<bool> {
         let params = vec![RequestParameter::new(
             "sticker",
@@ -140,6 +164,9 @@ impl Bot {
         self.do_post("deleteStickerFromSet", params).await
     }
 
+    /// Use this method to replace an existing sticker in a sticker set with a new one.
+    ///
+    /// Calls the Telegram `replaceStickerInSet` API method.
     pub async fn replace_sticker_in_set(
         &self,
         user_id: i64,
@@ -159,6 +186,9 @@ impl Bot {
         self.do_post("replaceStickerInSet", params).await
     }
 
+    /// Use this method to change the list of emoji assigned to a regular or custom emoji sticker.
+    ///
+    /// Calls the Telegram `setStickerEmojiList` API method.
     pub async fn set_sticker_emoji_list(
         &self,
         sticker: &str,
@@ -171,6 +201,9 @@ impl Bot {
         self.do_post("setStickerEmojiList", params).await
     }
 
+    /// Use this method to change search keywords assigned to a regular or custom emoji sticker.
+    ///
+    /// Calls the Telegram `setStickerKeywords` API method.
     pub async fn set_sticker_keywords(
         &self,
         sticker: &str,
@@ -184,6 +217,9 @@ impl Bot {
         self.do_post("setStickerKeywords", params).await
     }
 
+    /// Use this method to change the mask position of a mask sticker.
+    ///
+    /// Calls the Telegram `setStickerMaskPosition` API method.
     pub async fn set_sticker_mask_position(
         &self,
         sticker: &str,
@@ -197,6 +233,9 @@ impl Bot {
         self.do_post("setStickerMaskPosition", params).await
     }
 
+    /// Use this method to set the thumbnail of a regular or mask sticker set.
+    ///
+    /// Calls the Telegram `setStickerSetThumbnail` API method.
     pub async fn set_sticker_set_thumbnail(
         &self,
         name: &str,
@@ -213,6 +252,9 @@ impl Bot {
         self.do_post("setStickerSetThumbnail", params).await
     }
 
+    /// Use this method to set the title of a created sticker set.
+    ///
+    /// Calls the Telegram `setStickerSetTitle` API method.
     pub async fn set_sticker_set_title(&self, name: &str, title: &str) -> Result<bool> {
         let params = vec![
             RequestParameter::new("name", serde_json::Value::String(name.to_owned())),
@@ -221,6 +263,9 @@ impl Bot {
         self.do_post("setStickerSetTitle", params).await
     }
 
+    /// Use this method to set the thumbnail of a custom emoji sticker set.
+    ///
+    /// Calls the Telegram `setCustomEmojiStickerSetThumbnail` API method.
     pub async fn set_custom_emoji_sticker_set_thumbnail(
         &self,
         name: &str,
@@ -235,6 +280,9 @@ impl Bot {
             .await
     }
 
+    /// Use this method to delete a sticker set that was created by the bot.
+    ///
+    /// Calls the Telegram `deleteStickerSet` API method.
     pub async fn delete_sticker_set(&self, name: &str) -> Result<bool> {
         let params = vec![RequestParameter::new(
             "name",
@@ -243,6 +291,9 @@ impl Bot {
         self.do_post("deleteStickerSet", params).await
     }
 
+    /// Use this method to get custom emoji stickers which can be used as a forum topic icon.
+    ///
+    /// Calls the Telegram `getForumTopicIconStickers` API method.
     pub async fn get_forum_topic_icon_stickers(&self) -> Result<Vec<files::sticker::Sticker>> {
         self.do_post("getForumTopicIconStickers", Vec::new()).await
     }

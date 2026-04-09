@@ -5,6 +5,9 @@ use std::sync::RwLock;
 
 use crate::filters::base::{Filter, FilterResult, Update};
 
+/// Filters messages from specific users, identified by user ID or username.
+///
+/// Thread-safe: uses [`RwLock`] for internal mutation of user ID and username sets.
 pub struct UserFilter {
     user_ids: RwLock<HashSet<i64>>,
     usernames: RwLock<HashSet<String>>,
@@ -12,6 +15,8 @@ pub struct UserFilter {
 }
 
 impl UserFilter {
+    /// Create an empty filter. When `allow_empty` is `true`, any message with a
+    /// `from_user` field matches regardless of the user's identity.
     pub fn empty(allow_empty: bool) -> Self {
         Self {
             user_ids: RwLock::new(HashSet::new()),
@@ -19,6 +24,7 @@ impl UserFilter {
             allow_empty,
         }
     }
+    /// Create a filter that matches messages from users with the given IDs.
     pub fn from_ids(ids: impl IntoIterator<Item = i64>) -> Self {
         Self {
             user_ids: RwLock::new(ids.into_iter().collect()),
@@ -26,6 +32,8 @@ impl UserFilter {
             allow_empty: false,
         }
     }
+    /// Create a filter that matches messages from users with the given usernames.
+    /// Leading `@` characters are stripped automatically.
     pub fn from_usernames(names: impl IntoIterator<Item = impl Into<String>>) -> Self {
         Self {
             user_ids: RwLock::new(HashSet::new()),
@@ -41,15 +49,18 @@ impl UserFilter {
             allow_empty: false,
         }
     }
+    /// Add user IDs to the filter at runtime.
     pub fn add_user_ids(&self, ids: impl IntoIterator<Item = i64>) {
         self.user_ids.write().unwrap().extend(ids);
     }
+    /// Remove user IDs from the filter at runtime.
     pub fn remove_user_ids(&self, ids: impl IntoIterator<Item = i64>) {
         let mut set = self.user_ids.write().unwrap();
         for id in ids {
             set.remove(&id);
         }
     }
+    /// Add usernames to the filter at runtime. Leading `@` is stripped.
     pub fn add_usernames(&self, names: impl IntoIterator<Item = impl Into<String>>) {
         let mut set = self.usernames.write().unwrap();
         for n in names {
@@ -57,6 +68,7 @@ impl UserFilter {
             set.insert(s.strip_prefix('@').unwrap_or(&s).to_owned());
         }
     }
+    /// Remove usernames from the filter at runtime. Leading `@` is stripped.
     pub fn remove_usernames(&self, names: impl IntoIterator<Item = impl Into<String>>) {
         let mut set = self.usernames.write().unwrap();
         for n in names {
@@ -64,9 +76,11 @@ impl UserFilter {
             set.remove(s.strip_prefix('@').unwrap_or(&s));
         }
     }
+    /// Returns a snapshot of the current user-ID set.
     pub fn user_ids(&self) -> HashSet<i64> {
         self.user_ids.read().unwrap().clone()
     }
+    /// Returns a snapshot of the current username set.
     pub fn usernames(&self) -> HashSet<String> {
         self.usernames.read().unwrap().clone()
     }
