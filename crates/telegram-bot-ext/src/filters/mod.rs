@@ -32,78 +32,126 @@ pub mod update_type {
                         FilterResult::NoMatch
                     }
                 }
-                fn name(&self) -> &str { $display }
+                fn name(&self) -> &str {
+                    $display
+                }
             }
         };
     }
 
-    update_type_filter!(Message, UpdateKind::Message(_), "filters.UpdateType.MESSAGE");
+    update_type_filter!(
+        Message,
+        UpdateKind::Message(_),
+        "filters.UpdateType.MESSAGE"
+    );
     pub const MESSAGE: Message = Message;
 
     pub struct Messages;
     impl Filter for Messages {
         fn check_update(&self, update: &Update) -> FilterResult {
-            if matches!(update.kind, UpdateKind::Message(_) | UpdateKind::EditedMessage(_)) {
+            if matches!(
+                update.kind,
+                UpdateKind::Message(_) | UpdateKind::EditedMessage(_)
+            ) {
                 FilterResult::Match
             } else {
                 FilterResult::NoMatch
             }
         }
-        fn name(&self) -> &str { "filters.UpdateType.MESSAGES" }
+        fn name(&self) -> &str {
+            "filters.UpdateType.MESSAGES"
+        }
     }
     pub const MESSAGES: Messages = Messages;
 
-    update_type_filter!(EditedMessage, UpdateKind::EditedMessage(_), "filters.UpdateType.EDITED_MESSAGE");
+    update_type_filter!(
+        EditedMessage,
+        UpdateKind::EditedMessage(_),
+        "filters.UpdateType.EDITED_MESSAGE"
+    );
     pub const EDITED_MESSAGE: EditedMessage = EditedMessage;
 
-    update_type_filter!(ChannelPost, UpdateKind::ChannelPost(_), "filters.UpdateType.CHANNEL_POST");
+    update_type_filter!(
+        ChannelPost,
+        UpdateKind::ChannelPost(_),
+        "filters.UpdateType.CHANNEL_POST"
+    );
     pub const CHANNEL_POST: ChannelPost = ChannelPost;
 
     pub struct ChannelPosts;
     impl Filter for ChannelPosts {
         fn check_update(&self, update: &Update) -> FilterResult {
-            if matches!(update.kind, UpdateKind::ChannelPost(_) | UpdateKind::EditedChannelPost(_)) {
+            if matches!(
+                update.kind,
+                UpdateKind::ChannelPost(_) | UpdateKind::EditedChannelPost(_)
+            ) {
                 FilterResult::Match
             } else {
                 FilterResult::NoMatch
             }
         }
-        fn name(&self) -> &str { "filters.UpdateType.CHANNEL_POSTS" }
+        fn name(&self) -> &str {
+            "filters.UpdateType.CHANNEL_POSTS"
+        }
     }
     pub const CHANNEL_POSTS: ChannelPosts = ChannelPosts;
 
-    update_type_filter!(EditedChannelPost, UpdateKind::EditedChannelPost(_), "filters.UpdateType.EDITED_CHANNEL_POST");
+    update_type_filter!(
+        EditedChannelPost,
+        UpdateKind::EditedChannelPost(_),
+        "filters.UpdateType.EDITED_CHANNEL_POST"
+    );
     pub const EDITED_CHANNEL_POST: EditedChannelPost = EditedChannelPost;
 
     pub struct Edited;
     impl Filter for Edited {
         fn check_update(&self, update: &Update) -> FilterResult {
-            if matches!(update.kind, UpdateKind::EditedMessage(_) | UpdateKind::EditedChannelPost(_) | UpdateKind::EditedBusinessMessage(_)) {
+            if matches!(
+                update.kind,
+                UpdateKind::EditedMessage(_)
+                    | UpdateKind::EditedChannelPost(_)
+                    | UpdateKind::EditedBusinessMessage(_)
+            ) {
                 FilterResult::Match
             } else {
                 FilterResult::NoMatch
             }
         }
-        fn name(&self) -> &str { "filters.UpdateType.EDITED" }
+        fn name(&self) -> &str {
+            "filters.UpdateType.EDITED"
+        }
     }
     pub const EDITED: Edited = Edited;
 
-    update_type_filter!(BusinessMessage, UpdateKind::BusinessMessage(_), "filters.UpdateType.BUSINESS_MESSAGE");
+    update_type_filter!(
+        BusinessMessage,
+        UpdateKind::BusinessMessage(_),
+        "filters.UpdateType.BUSINESS_MESSAGE"
+    );
     pub const BUSINESS_MESSAGE: BusinessMessage = BusinessMessage;
 
-    update_type_filter!(EditedBusinessMessage, UpdateKind::EditedBusinessMessage(_), "filters.UpdateType.EDITED_BUSINESS_MESSAGE");
+    update_type_filter!(
+        EditedBusinessMessage,
+        UpdateKind::EditedBusinessMessage(_),
+        "filters.UpdateType.EDITED_BUSINESS_MESSAGE"
+    );
     pub const EDITED_BUSINESS_MESSAGE: EditedBusinessMessage = EditedBusinessMessage;
 
     pub struct BusinessMessages;
     impl Filter for BusinessMessages {
         fn check_update(&self, update: &Update) -> FilterResult {
-            if matches!(update.kind, UpdateKind::BusinessMessage(_) | UpdateKind::EditedBusinessMessage(_)) {
+            if matches!(
+                update.kind,
+                UpdateKind::BusinessMessage(_) | UpdateKind::EditedBusinessMessage(_)
+            ) {
                 FilterResult::Match
             } else {
                 FilterResult::NoMatch
             }
         }
-        fn name(&self) -> &str { "filters.UpdateType.BUSINESS_MESSAGES" }
+        fn name(&self) -> &str {
+            "filters.UpdateType.BUSINESS_MESSAGES"
+        }
     }
     pub const BUSINESS_MESSAGES: BusinessMessages = BusinessMessages;
 

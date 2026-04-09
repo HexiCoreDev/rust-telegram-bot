@@ -1,9 +1,6 @@
 use crate::{
-    command_attr::CommandAttrs,
-    error::compile_error_at,
-    fields_parse::ParserType,
-    rename_rules::RenameRule,
-    Result,
+    command_attr::CommandAttrs, error::compile_error_at, fields_parse::ParserType,
+    rename_rules::RenameRule, Result,
 };
 
 /// Enum-level configuration extracted from `#[command(...)]` on the enum itself.
@@ -52,8 +49,12 @@ impl CommandEnum {
         let mut parser = parser.map(|(p, _)| p).unwrap_or(ParserType::Default);
 
         // If the global parser is `split` and a separator was provided, attach it.
-        if let (ParserType::Split { separator: ref mut sep }, Some((s, _))) =
-            (&mut parser, &separator)
+        if let (
+            ParserType::Split {
+                separator: ref mut sep,
+            },
+            Some((s, _)),
+        ) = (&mut parser, &separator)
         {
             *sep = Some(s.clone());
         }
@@ -64,7 +65,9 @@ impl CommandEnum {
             command_separator: command_separator
                 .map(|(s, _)| s)
                 .unwrap_or_else(|| " ".to_owned()),
-            rename_rule: rename_rule.map(|(rr, _)| rr).unwrap_or(RenameRule::Identity),
+            rename_rule: rename_rule
+                .map(|(rr, _)| rr)
+                .unwrap_or(RenameRule::Identity),
             parser_type: parser,
         })
     }

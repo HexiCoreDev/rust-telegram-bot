@@ -14,9 +14,8 @@
 use std::sync::Arc;
 
 use rust_tg_bot::ext::prelude::{
-    ApplicationBuilder, CommandHandler, Context, FnHandler, HandlerResult,
-    InlineKeyboardButton, InlineKeyboardMarkup, MessageHandler, Update,
-    COMMAND, TEXT,
+    ApplicationBuilder, CommandHandler, Context, FnHandler, HandlerResult, InlineKeyboardButton,
+    InlineKeyboardMarkup, MessageHandler, Update, COMMAND, TEXT,
 };
 use rust_tg_bot::ext::updater::WebhookConfig;
 use rust_tg_bot::raw::bot::ChatId;

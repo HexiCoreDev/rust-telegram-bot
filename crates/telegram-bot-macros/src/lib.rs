@@ -68,7 +68,5 @@ use crate::bot_commands::bot_commands_impl;
 #[proc_macro_derive(BotCommands, attributes(command))]
 pub fn bot_commands_derive(tokens: TokenStream) -> TokenStream {
     let input = parse_macro_input!(tokens as DeriveInput);
-    bot_commands_impl(input)
-        .unwrap_or_else(<_>::into)
-        .into()
+    bot_commands_impl(input).unwrap_or_else(<_>::into).into()
 }

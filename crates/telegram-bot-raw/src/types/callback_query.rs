@@ -58,11 +58,7 @@ impl CallbackQuery {
     /// Create a new `CallbackQuery` with the required fields.
     ///
     /// All optional fields default to `None`.
-    pub fn new(
-        id: impl Into<String>,
-        from_user: User,
-        chat_instance: impl Into<String>,
-    ) -> Self {
+    pub fn new(id: impl Into<String>, from_user: User, chat_instance: impl Into<String>) -> Self {
         Self {
             id: id.into(),
             from_user,

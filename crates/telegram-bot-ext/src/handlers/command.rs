@@ -521,8 +521,8 @@ mod tests {
     fn collect_context_populates_args() {
         use crate::context::CallbackContext;
         use crate::ext_bot::test_support::mock_request;
-        use std::collections::HashMap;
         use rust_tg_bot_raw::bot::Bot;
+        use std::collections::HashMap;
 
         let bot = Arc::new(crate::ext_bot::ExtBot::from_bot(Bot::new(
             "test",
@@ -546,8 +546,8 @@ mod tests {
     fn collect_context_no_op_for_empty() {
         use crate::context::CallbackContext;
         use crate::ext_bot::test_support::mock_request;
-        use std::collections::HashMap;
         use rust_tg_bot_raw::bot::Bot;
+        use std::collections::HashMap;
 
         let bot = Arc::new(crate::ext_bot::ExtBot::from_bot(Bot::new(
             "test",

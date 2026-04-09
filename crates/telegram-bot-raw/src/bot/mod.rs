@@ -511,10 +511,7 @@ impl Bot {
         };
         let url = self.api_url("getUpdates");
         let data = RequestData::from_parameters(params);
-        let result = self
-            .request
-            .post(&url, Some(&data), timeouts)
-            .await?;
+        let result = self.request.post(&url, Some(&data), timeouts).await?;
         serde_json::from_value(result).map_err(Into::into)
     }
 

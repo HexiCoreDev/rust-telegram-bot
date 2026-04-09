@@ -93,11 +93,7 @@ status_filter_option!(
     chat_owner_left,
     "filters.StatusUpdate.CHAT_OWNER_LEFT"
 );
-status_filter_option!(
-    ChatShared,
-    chat_shared,
-    "filters.StatusUpdate.CHAT_SHARED"
-);
+status_filter_option!(ChatShared, chat_shared, "filters.StatusUpdate.CHAT_SHARED");
 status_filter_option!(
     ChecklistTasksAdded,
     checklist_tasks_added,
@@ -286,11 +282,7 @@ status_filter_option!(
     suggested_post_refunded,
     "filters.StatusUpdate.SUGGESTED_POST_REFUNDED"
 );
-status_filter_option!(
-    UniqueGift,
-    unique_gift,
-    "filters.StatusUpdate.UNIQUE_GIFT"
-);
+status_filter_option!(UniqueGift, unique_gift, "filters.StatusUpdate.UNIQUE_GIFT");
 status_filter_option!(
     UsersShared,
     users_shared,

@@ -1,9 +1,6 @@
 use crate::{
-    command_attr::CommandAttrs,
-    command_enum::CommandEnum,
-    error::compile_error_at,
-    fields_parse::ParserType,
-    Result,
+    command_attr::CommandAttrs, command_enum::CommandEnum, error::compile_error_at,
+    fields_parse::ParserType, Result,
 };
 
 /// A single parsed command variant with all attributes resolved.

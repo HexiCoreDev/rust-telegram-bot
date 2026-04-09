@@ -152,25 +152,30 @@ impl TlsConfig {
     /// The certificate file may contain the full chain (leaf first).  The key
     /// file must contain exactly one PKCS#8, SEC1 (EC), or PKCS#1 (RSA)
     /// private key.
-    pub async fn from_pem_files(
-        cert_path: &str,
-        key_path: &str,
-    ) -> Result<Self, std::io::Error> {
+    pub async fn from_pem_files(cert_path: &str, key_path: &str) -> Result<Self, std::io::Error> {
         use rustls_pemfile::{certs, private_key};
         use std::io::{self, BufReader};
         use tokio_rustls::rustls::ServerConfig;
 
         let cert_data = tokio::fs::read(cert_path).await.map_err(|e| {
-            io::Error::new(e.kind(), format!("failed to read cert file '{cert_path}': {e}"))
+            io::Error::new(
+                e.kind(),
+                format!("failed to read cert file '{cert_path}': {e}"),
+            )
         })?;
         let key_data = tokio::fs::read(key_path).await.map_err(|e| {
-            io::Error::new(e.kind(), format!("failed to read key file '{key_path}': {e}"))
+            io::Error::new(
+                e.kind(),
+                format!("failed to read key file '{key_path}': {e}"),
+            )
         })?;
 
         // Parse certificates.
         let certs: Vec<_> = certs(&mut BufReader::new(cert_data.as_slice()))
             .collect::<Result<Vec<_>, _>>()
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, format!("invalid cert PEM: {e}")))?;
+            .map_err(|e| {
+                io::Error::new(io::ErrorKind::InvalidData, format!("invalid cert PEM: {e}"))
+            })?;
 
         if certs.is_empty() {
             return Err(io::Error::new(
@@ -181,7 +186,9 @@ impl TlsConfig {
 
         // Parse private key -- take the first key found.
         let key = private_key(&mut BufReader::new(key_data.as_slice()))
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, format!("invalid key PEM: {e}")))?
+            .map_err(|e| {
+                io::Error::new(io::ErrorKind::InvalidData, format!("invalid key PEM: {e}"))
+            })?
             .ok_or_else(|| {
                 io::Error::new(
                     io::ErrorKind::InvalidData,
@@ -192,7 +199,9 @@ impl TlsConfig {
         let server_config = ServerConfig::builder()
             .with_no_client_auth()
             .with_single_cert(certs, key)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, format!("TLS config error: {e}")))?;
+            .map_err(|e| {
+                io::Error::new(io::ErrorKind::InvalidData, format!("TLS config error: {e}"))
+            })?;
 
         Ok(Self {
             acceptor: tokio_rustls::TlsAcceptor::from(Arc::new(server_config)),

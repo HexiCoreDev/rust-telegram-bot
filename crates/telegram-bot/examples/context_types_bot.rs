@@ -171,8 +171,7 @@ async fn main() {
     let app: Arc<Application> = ApplicationBuilder::new().token(token).build();
 
     // Group -1: track all users before any other handler runs.
-    app.add_handler(FnHandler::on_any(track_users), -1)
-        .await;
+    app.add_handler(FnHandler::on_any(track_users), -1).await;
 
     // /start -- send a button
     app.add_handler(CommandHandler::new("start", start), 0)

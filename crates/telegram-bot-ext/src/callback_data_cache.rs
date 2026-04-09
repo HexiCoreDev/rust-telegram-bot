@@ -300,9 +300,7 @@ impl CallbackDataCache {
 
         self.keyboard_data.insert(keyboard_uuid, kbd_data);
 
-        InlineKeyboardMarkup::new(
-            new_rows
-        )
+        InlineKeyboardMarkup::new(new_rows)
     }
 
     /// Extracts keyboard uuid and button uuid from a raw callback data string.
@@ -480,9 +478,9 @@ mod tests {
     fn process_keyboard_replaces_callback_data() {
         let mut cache = CallbackDataCache::new(128);
 
-        let markup = InlineKeyboardMarkup::new(vec![vec![
-            InlineKeyboardButton::callback("Click", "my_data"),
-        ]]);
+        let markup = InlineKeyboardMarkup::new(vec![vec![InlineKeyboardButton::callback(
+            "Click", "my_data",
+        )]]);
 
         let new_markup = cache.process_keyboard(&markup);
         let new_data = new_markup.inline_keyboard[0][0]
@@ -499,9 +497,10 @@ mod tests {
     fn process_keyboard_noop_without_callback_data() {
         let mut cache = CallbackDataCache::new(128);
 
-        let markup = InlineKeyboardMarkup::new(vec![vec![
-            InlineKeyboardButton::url("URL", "https://example.com"),
-        ]]);
+        let markup = InlineKeyboardMarkup::new(vec![vec![InlineKeyboardButton::url(
+            "URL",
+            "https://example.com",
+        )]]);
 
         let new_markup = cache.process_keyboard(&markup);
         assert_eq!(
@@ -514,9 +513,9 @@ mod tests {
     fn roundtrip_process_and_resolve() {
         let mut cache = CallbackDataCache::new(128);
 
-        let markup = InlineKeyboardMarkup::new(vec![vec![
-            InlineKeyboardButton::callback("Click", "original"),
-        ]]);
+        let markup = InlineKeyboardMarkup::new(vec![vec![InlineKeyboardButton::callback(
+            "Click", "original",
+        )]]);
 
         let new_markup = cache.process_keyboard(&markup);
         let uuid_data = new_markup.inline_keyboard[0][0]
@@ -539,9 +538,9 @@ mod tests {
     fn drop_data_removes_entry() {
         let mut cache = CallbackDataCache::new(128);
 
-        let markup = InlineKeyboardMarkup::new(vec![vec![
-            InlineKeyboardButton::callback("Click", "payload"),
-        ]]);
+        let markup = InlineKeyboardMarkup::new(vec![vec![InlineKeyboardButton::callback(
+            "Click", "payload",
+        )]]);
 
         let new_markup = cache.process_keyboard(&markup);
         let uuid_data = new_markup.inline_keyboard[0][0]
@@ -563,9 +562,10 @@ mod tests {
         let mut cache = CallbackDataCache::new(2);
 
         for i in 0..3 {
-            let markup = InlineKeyboardMarkup::new(vec![vec![
-                InlineKeyboardButton::callback(format!("btn_{i}"), format!("data_{i}")),
-            ]]);
+            let markup = InlineKeyboardMarkup::new(vec![vec![InlineKeyboardButton::callback(
+                format!("btn_{i}"),
+                format!("data_{i}"),
+            )]]);
             cache.process_keyboard(&markup);
         }
 
@@ -577,9 +577,10 @@ mod tests {
     fn persistence_roundtrip() {
         let mut cache = CallbackDataCache::new(128);
 
-        let markup = InlineKeyboardMarkup::new(vec![vec![
-            InlineKeyboardButton::callback("Click", "persist_me"),
-        ]]);
+        let markup = InlineKeyboardMarkup::new(vec![vec![InlineKeyboardButton::callback(
+            "Click",
+            "persist_me",
+        )]]);
 
         cache.process_keyboard(&markup);
         let persisted = cache.persistence_data();
@@ -594,9 +595,9 @@ mod tests {
     fn clear_with_cutoff() {
         let mut cache = CallbackDataCache::new(128);
 
-        let markup = InlineKeyboardMarkup::new(vec![vec![
-            InlineKeyboardButton::callback("Old", "old_data"),
-        ]]);
+        let markup = InlineKeyboardMarkup::new(vec![vec![InlineKeyboardButton::callback(
+            "Old", "old_data",
+        )]]);
 
         cache.process_keyboard(&markup);
 

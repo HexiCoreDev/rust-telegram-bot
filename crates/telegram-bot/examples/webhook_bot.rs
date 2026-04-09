@@ -17,10 +17,8 @@
 use std::sync::Arc;
 
 use rust_tg_bot::ext::prelude::{
-    ApplicationBuilder, CommandHandler, Context, FnHandler, HandlerResult,
-    MessageHandler, Update, ParseMode, MessageEntityType,
-    InlineKeyboardButton, InlineKeyboardMarkup,
-    TEXT, COMMAND,
+    ApplicationBuilder, CommandHandler, Context, FnHandler, HandlerResult, InlineKeyboardButton,
+    InlineKeyboardMarkup, MessageEntityType, MessageHandler, ParseMode, Update, COMMAND, TEXT,
 };
 use rust_tg_bot::ext::updater::WebhookConfig;
 
@@ -50,7 +48,9 @@ async fn start(update: Arc<Update>, context: Context) -> HandlerResult {
 }
 
 async fn help(update: Arc<Update>, context: Context) -> HandlerResult {
-    context.reply_text(&update, "Commands: /start, /help\nSend any text to echo.").await?;
+    context
+        .reply_text(&update, "Commands: /start, /help\nSend any text to echo.")
+        .await?;
     Ok(())
 }
 
@@ -88,10 +88,8 @@ async fn button(update: Arc<Update>, context: Context) -> HandlerResult {
 async fn main() {
     tracing_subscriber::fmt::init();
 
-    let token = std::env::var("TELEGRAM_BOT_TOKEN")
-        .expect("TELEGRAM_BOT_TOKEN must be set");
-    let webhook_url = std::env::var("WEBHOOK_URL")
-        .expect("WEBHOOK_URL must be set");
+    let token = std::env::var("TELEGRAM_BOT_TOKEN").expect("TELEGRAM_BOT_TOKEN must be set");
+    let webhook_url = std::env::var("WEBHOOK_URL").expect("WEBHOOK_URL must be set");
     let port: u16 = std::env::var("PORT")
         .unwrap_or_else(|_| "8000".into())
         .parse()
@@ -99,10 +97,13 @@ async fn main() {
 
     let app = ApplicationBuilder::new().token(token).build();
 
-    app.add_handler(CommandHandler::new("start", start), 0).await;
+    app.add_handler(CommandHandler::new("start", start), 0)
+        .await;
     app.add_handler(CommandHandler::new("help", help), 0).await;
-    app.add_handler(MessageHandler::new(TEXT() & !COMMAND(), echo), 0).await;
-    app.add_handler(FnHandler::on_callback_query(button), 0).await;
+    app.add_handler(MessageHandler::new(TEXT() & !COMMAND(), echo), 0)
+        .await;
+    app.add_handler(FnHandler::on_callback_query(button), 0)
+        .await;
 
     println!("Webhook bot starting on port {port}...");
 

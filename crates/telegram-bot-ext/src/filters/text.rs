@@ -137,7 +137,10 @@ impl CaptionFilter {
 
 impl Filter for CaptionFilter {
     fn check_update(&self, update: &Update) -> FilterResult {
-        let caption = match update.effective_message().and_then(|m| m.caption.as_deref()) {
+        let caption = match update
+            .effective_message()
+            .and_then(|m| m.caption.as_deref())
+        {
             Some(c) => c,
             None => return FilterResult::NoMatch,
         };
@@ -191,7 +194,10 @@ impl CaptionRegexFilter {
 
 impl Filter for CaptionRegexFilter {
     fn check_update(&self, update: &Update) -> FilterResult {
-        let caption = match update.effective_message().and_then(|m| m.caption.as_deref()) {
+        let caption = match update
+            .effective_message()
+            .and_then(|m| m.caption.as_deref())
+        {
             Some(c) => c,
             None => return FilterResult::NoMatch,
         };

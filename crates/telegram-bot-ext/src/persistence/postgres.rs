@@ -397,7 +397,11 @@ impl BasePersistence for PostgresPersistence {
 
         // Store each top-level key as a separate row for granular access.
         // Use a transaction to ensure atomicity.
-        let mut tx = self.pool.begin().await.map_err(PersistenceError::Postgres)?;
+        let mut tx = self
+            .pool
+            .begin()
+            .await
+            .map_err(PersistenceError::Postgres)?;
 
         // Clear existing bot data, then re-insert.
         let delete_sql = format!("DELETE FROM {table}");

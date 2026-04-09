@@ -106,8 +106,7 @@ async fn main() {
 
     app.add_handler(CommandHandler::new("start", start), 0)
         .await;
-    app.add_handler(CommandHandler::new("help", help), 0)
-        .await;
+    app.add_handler(CommandHandler::new("help", help), 0).await;
     app.add_handler(FnHandler::on_callback_query(button_callback), 0)
         .await;
 

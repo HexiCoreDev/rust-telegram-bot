@@ -9,9 +9,7 @@
 use std::sync::Arc;
 
 use rust_tg_bot_raw::bot::Bot;
-use rust_tg_bot_raw::request::base::{
-    async_trait, BaseRequest, HttpMethod, TimeoutOverride,
-};
+use rust_tg_bot_raw::request::base::{async_trait, BaseRequest, HttpMethod, TimeoutOverride};
 use rust_tg_bot_raw::request::request_data::RequestData;
 use rust_tg_bot_raw::types::files::input_file::InputFile;
 use serde_json::json;
@@ -53,14 +51,18 @@ impl BaseRequest for NoopRequest {
 }
 
 fn make_bot() -> Bot {
-    Bot::new("000000000:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", Arc::new(NoopRequest))
+    Bot::new(
+        "000000000:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+        Arc::new(NoopRequest),
+    )
 }
 
 fn dummy_file() -> InputFile {
     InputFile::FileId("test_file_id".to_owned())
 }
 
-fn make_inline_keyboard_button() -> rust_tg_bot_raw::types::inline::inline_keyboard_button::InlineKeyboardButton {
+fn make_inline_keyboard_button(
+) -> rust_tg_bot_raw::types::inline::inline_keyboard_button::InlineKeyboardButton {
     serde_json::from_value(json!({"text": "btn", "callback_data": "cb"})).unwrap()
 }
 
@@ -75,7 +77,8 @@ fn make_accepted_gift_types() -> rust_tg_bot_raw::types::gifts::AcceptedGiftType
         "unique_gifts": false,
         "premium_subscription": false,
         "gifts_from_channels": false
-    })).unwrap()
+    }))
+    .unwrap()
 }
 
 // ===========================================================================
@@ -155,7 +158,9 @@ fn all_bot_api_96_raw_methods_exist() {
     let bot: &'static Bot = Box::leak(Box::new(make_bot()));
 
     macro_rules! check {
-        ($expr:expr) => { let _ = $expr; };
+        ($expr:expr) => {
+            let _ = $expr;
+        };
     }
 
     // -- Getting updates --
@@ -168,23 +173,102 @@ fn all_bot_api_96_raw_methods_exist() {
     check!(bot.close());
 
     // -- Messages --
-    check!(bot.forward_message(1i64.into(), 1i64.into(), 1, None, None, None, None, None, None, None));
+    check!(bot.forward_message(
+        1i64.into(),
+        1i64.into(),
+        1,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None
+    ));
     check!(bot.forward_messages(1i64.into(), 1i64.into(), vec![1], None, None, None, None));
-    check!(bot.copy_message(1i64.into(), 1i64.into(), 1, None, None, None, None, None, None, None, None, None, None, None, None, None, None));
-    check!(bot.copy_messages(1i64.into(), 1i64.into(), vec![1], None, None, None, None, None));
+    check!(bot.copy_message(
+        1i64.into(),
+        1i64.into(),
+        1,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None
+    ));
+    check!(bot.copy_messages(
+        1i64.into(),
+        1i64.into(),
+        vec![1],
+        None,
+        None,
+        None,
+        None,
+        None
+    ));
     check!(bot.send_message_draft(1, 1, "t", None, None, None));
     check!(bot.delete_message(1i64.into(), 1));
     check!(bot.delete_messages(1i64.into(), vec![1]));
 
     // -- Media --
-    check!(bot.send_media_group(1i64.into(), vec![], None, None, None, None, None, None, None, None, None));
-    check!(bot.send_paid_media(1i64.into(), 1, vec![], None, None, None, None, None, None, None, None, None, None, None, None, None, None));
+    check!(bot.send_media_group(
+        1i64.into(),
+        vec![],
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None
+    ));
+    check!(bot.send_paid_media(
+        1i64.into(),
+        1,
+        vec![],
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None
+    ));
 
     // -- Other content --
-    check!(bot.send_checklist("bc_id", 1, make_input_checklist(), None, None, None, None, None));
+    check!(bot.send_checklist(
+        "bc_id",
+        1,
+        make_input_checklist(),
+        None,
+        None,
+        None,
+        None,
+        None
+    ));
 
     // -- Editing --
-    check!(bot.edit_message_live_location(1.0, 1.0, None, None, None, None, None, None, None, None, None));
+    check!(bot.edit_message_live_location(
+        1.0, 1.0, None, None, None, None, None, None, None, None, None
+    ));
     check!(bot.stop_message_live_location(None, None, None, None, None));
     check!(bot.edit_message_checklist("bc_id", 1, 1, make_input_checklist(), None));
     check!(bot.stop_poll(1i64.into(), 1, None, None));
@@ -199,10 +283,40 @@ fn all_bot_api_96_raw_methods_exist() {
     check!(bot.unban_chat_member(1i64.into(), 1, None));
     check!(bot.ban_chat_sender_chat(1i64.into(), 1));
     check!(bot.unban_chat_sender_chat(1i64.into(), 1));
-    check!(bot.restrict_chat_member(1i64.into(), 1, rust_tg_bot_raw::types::chat_permissions::ChatPermissions::default(), None, None));
-    check!(bot.promote_chat_member(1i64.into(), 1, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None));
+    check!(bot.restrict_chat_member(
+        1i64.into(),
+        1,
+        rust_tg_bot_raw::types::chat_permissions::ChatPermissions::default(),
+        None,
+        None
+    ));
+    check!(bot.promote_chat_member(
+        1i64.into(),
+        1,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None
+    ));
     check!(bot.set_chat_administrator_custom_title(1i64.into(), 1, "title"));
-    check!(bot.set_chat_permissions(1i64.into(), rust_tg_bot_raw::types::chat_permissions::ChatPermissions::default(), None));
+    check!(bot.set_chat_permissions(
+        1i64.into(),
+        rust_tg_bot_raw::types::chat_permissions::ChatPermissions::default(),
+        None
+    ));
     check!(bot.set_chat_photo(1i64.into(), dummy_file()));
     check!(bot.delete_chat_photo(1i64.into()));
     check!(bot.set_chat_title(1i64.into(), "t"));
@@ -281,7 +395,30 @@ fn all_bot_api_96_raw_methods_exist() {
     check!(bot.save_prepared_inline_message(1, json!({}), None, None, None, None));
 
     // -- Payments --
-    check!(bot.create_invoice_link("t", "d", "p", "c", vec![], None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None));
+    check!(bot.create_invoice_link(
+        "t",
+        "d",
+        "p",
+        "c",
+        vec![],
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None
+    ));
     check!(bot.refund_star_payment(1, "charge_id"));
     check!(bot.get_star_transactions(None, None));
     check!(bot.edit_user_star_subscription(1, "tid", false));
@@ -301,7 +438,9 @@ fn all_bot_api_96_raw_methods_exist() {
 
     // -- Business --
     check!(bot.get_business_connection("bc_id"));
-    check!(bot.get_business_account_gifts("bc_id", None, None, None, None, None, None, None, None, None, None));
+    check!(bot.get_business_account_gifts(
+        "bc_id", None, None, None, None, None, None, None, None, None, None
+    ));
     check!(bot.get_business_account_star_balance("bc_id"));
     check!(bot.read_business_message("bc_id", 1, 1));
     check!(bot.delete_business_messages("bc_id", vec![1]));
@@ -321,7 +460,19 @@ fn all_bot_api_96_raw_methods_exist() {
     check!(bot.send_gift("gift_id", None, None, None, None, None, None));
     check!(bot.gift_premium_subscription(1, 3, 100, None, None, None));
     check!(bot.get_user_gifts(1, None, None, None, None, None, None, None, None));
-    check!(bot.get_chat_gifts(1i64.into(), None, None, None, None, None, None, None, None, None, None));
+    check!(bot.get_chat_gifts(
+        1i64.into(),
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None
+    ));
 
     // -- Verification --
     check!(bot.verify_chat(1i64.into(), None));
@@ -330,7 +481,17 @@ fn all_bot_api_96_raw_methods_exist() {
     check!(bot.remove_user_verification(1));
 
     // -- Stories --
-    check!(bot.post_story("bc_id", json!({}), 86400, None, None, None, None, None, None));
+    check!(bot.post_story(
+        "bc_id",
+        json!({}),
+        86400,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None
+    ));
     check!(bot.edit_story("bc_id", 1, json!({}), None, None, None, None));
     check!(bot.delete_story("bc_id", 1));
     check!(bot.repost_story("bc_id", 1, 1, 86400, None, None));
@@ -385,15 +546,24 @@ fn method_count_matches_api_96() {
         ("unbanChatMember", "unban_chat_member"),
         ("restrictChatMember", "restrict_chat_member"),
         ("promoteChatMember", "promote_chat_member"),
-        ("setChatAdministratorCustomTitle", "set_chat_administrator_custom_title"),
+        (
+            "setChatAdministratorCustomTitle",
+            "set_chat_administrator_custom_title",
+        ),
         ("banChatSenderChat", "ban_chat_sender_chat"),
         ("unbanChatSenderChat", "unban_chat_sender_chat"),
         ("setChatPermissions", "set_chat_permissions"),
         ("exportChatInviteLink", "export_chat_invite_link"),
         ("createChatInviteLink", "create_chat_invite_link"),
         ("editChatInviteLink", "edit_chat_invite_link"),
-        ("createChatSubscriptionInviteLink", "create_chat_subscription_invite_link"),
-        ("editChatSubscriptionInviteLink", "edit_chat_subscription_invite_link"),
+        (
+            "createChatSubscriptionInviteLink",
+            "create_chat_subscription_invite_link",
+        ),
+        (
+            "editChatSubscriptionInviteLink",
+            "edit_chat_subscription_invite_link",
+        ),
         ("revokeChatInviteLink", "revoke_chat_invite_link"),
         ("approveChatJoinRequest", "approve_chat_join_request"),
         ("declineChatJoinRequest", "decline_chat_join_request"),
@@ -417,13 +587,19 @@ fn method_count_matches_api_96() {
         ("closeForumTopic", "close_forum_topic"),
         ("reopenForumTopic", "reopen_forum_topic"),
         ("deleteForumTopic", "delete_forum_topic"),
-        ("unpinAllForumTopicMessages", "unpin_all_forum_topic_messages"),
+        (
+            "unpinAllForumTopicMessages",
+            "unpin_all_forum_topic_messages",
+        ),
         ("editGeneralForumTopic", "edit_general_forum_topic"),
         ("closeGeneralForumTopic", "close_general_forum_topic"),
         ("reopenGeneralForumTopic", "reopen_general_forum_topic"),
         ("hideGeneralForumTopic", "hide_general_forum_topic"),
         ("unhideGeneralForumTopic", "unhide_general_forum_topic"),
-        ("unpinAllGeneralForumTopicMessages", "unpin_all_general_forum_topic_messages"),
+        (
+            "unpinAllGeneralForumTopicMessages",
+            "unpin_all_general_forum_topic_messages",
+        ),
         ("answerCallbackQuery", "answer_callback_query"),
         ("getUserChatBoosts", "get_user_chat_boosts"),
         ("getBusinessConnection", "get_business_connection"),
@@ -438,8 +614,14 @@ fn method_count_matches_api_96() {
         ("getMyShortDescription", "get_my_short_description"),
         ("setChatMenuButton", "set_chat_menu_button"),
         ("getChatMenuButton", "get_chat_menu_button"),
-        ("setMyDefaultAdministratorRights", "set_my_default_administrator_rights"),
-        ("getMyDefaultAdministratorRights", "get_my_default_administrator_rights"),
+        (
+            "setMyDefaultAdministratorRights",
+            "set_my_default_administrator_rights",
+        ),
+        (
+            "getMyDefaultAdministratorRights",
+            "get_my_default_administrator_rights",
+        ),
         // -- Updating messages --
         ("editMessageText", "edit_message_text"),
         ("editMessageCaption", "edit_message_caption"),
@@ -465,7 +647,10 @@ fn method_count_matches_api_96() {
         ("setStickerMaskPosition", "set_sticker_mask_position"),
         ("setStickerSetThumbnail", "set_sticker_set_thumbnail"),
         ("setStickerSetTitle", "set_sticker_set_title"),
-        ("setCustomEmojiStickerSetThumbnail", "set_custom_emoji_sticker_set_thumbnail"),
+        (
+            "setCustomEmojiStickerSetThumbnail",
+            "set_custom_emoji_sticker_set_thumbnail",
+        ),
         ("deleteStickerSet", "delete_sticker_set"),
         // -- Inline mode --
         ("answerInlineQuery", "answer_inline_query"),
@@ -501,16 +686,34 @@ fn method_count_matches_api_96() {
         ("transferGift", "transfer_gift"),
         // -- Business --
         ("getBusinessAccountGifts", "get_business_account_gifts"),
-        ("getBusinessAccountStarBalance", "get_business_account_star_balance"),
+        (
+            "getBusinessAccountStarBalance",
+            "get_business_account_star_balance",
+        ),
         ("readBusinessMessage", "read_business_message"),
         ("deleteBusinessMessages", "delete_business_messages"),
         ("setBusinessAccountName", "set_business_account_name"),
-        ("setBusinessAccountUsername", "set_business_account_username"),
+        (
+            "setBusinessAccountUsername",
+            "set_business_account_username",
+        ),
         ("setBusinessAccountBio", "set_business_account_bio"),
-        ("setBusinessAccountGiftSettings", "set_business_account_gift_settings"),
-        ("setBusinessAccountProfilePhoto", "set_business_account_profile_photo"),
-        ("removeBusinessAccountProfilePhoto", "remove_business_account_profile_photo"),
-        ("transferBusinessAccountStars", "transfer_business_account_stars"),
+        (
+            "setBusinessAccountGiftSettings",
+            "set_business_account_gift_settings",
+        ),
+        (
+            "setBusinessAccountProfilePhoto",
+            "set_business_account_profile_photo",
+        ),
+        (
+            "removeBusinessAccountProfilePhoto",
+            "remove_business_account_profile_photo",
+        ),
+        (
+            "transferBusinessAccountStars",
+            "transfer_business_account_stars",
+        ),
         // -- Verification --
         ("verifyChat", "verify_chat"),
         ("verifyUser", "verify_user"),
@@ -530,7 +733,10 @@ fn method_count_matches_api_96() {
         ("getManagedBotToken", "get_managed_bot_token"),
         ("replaceManagedBotToken", "replace_managed_bot_token"),
         // -- Prepared keyboard --
-        ("savePreparedKeyboardButton", "save_prepared_keyboard_button"),
+        (
+            "savePreparedKeyboardButton",
+            "save_prepared_keyboard_button",
+        ),
         // -- Suggested posts --
         ("approveSuggestedPost", "approve_suggested_post"),
         ("declineSuggestedPost", "decline_suggested_post"),
@@ -593,18 +799,12 @@ fn all_bot_api_96_types_deserialize() {
             json!({"id": 1, "is_bot": false, "first_name": "Test"}),
             "User",
         );
-        assert_deserializes::<chat::Chat>(
-            json!({"id": 1, "type": "private"}),
-            "Chat",
-        );
+        assert_deserializes::<chat::Chat>(json!({"id": 1, "type": "private"}), "Chat");
         assert_deserializes::<message::Message>(
             json!({"message_id": 1, "date": 0, "chat": {"id": 1, "type": "private"}}),
             "Message",
         );
-        assert_deserializes::<message_id::MessageId>(
-            json!({"message_id": 42}),
-            "MessageId",
-        );
+        assert_deserializes::<message_id::MessageId>(json!({"message_id": 42}), "MessageId");
         assert_deserializes::<message_entity::MessageEntity>(
             json!({"type": "bold", "offset": 0, "length": 4}),
             "MessageEntity",
@@ -615,10 +815,7 @@ fn all_bot_api_96_types_deserialize() {
             json!({"id": 1, "type": "private", "accent_color_id": 0, "max_reaction_count": 3, "accepted_gift_types": {"unlimited_gifts": false, "limited_gifts": false, "unique_gifts": false, "premium_subscription": false, "gifts_from_channels": false}}),
             "ChatFullInfo",
         );
-        assert_deserializes::<chat_permissions::ChatPermissions>(
-            json!({}),
-            "ChatPermissions",
-        );
+        assert_deserializes::<chat_permissions::ChatPermissions>(json!({}), "ChatPermissions");
         assert_deserializes::<chat_administrator_rights::ChatAdministratorRights>(
             json!({"is_anonymous": false, "can_manage_chat": true, "can_delete_messages": false, "can_manage_video_chats": false, "can_restrict_members": false, "can_promote_members": false, "can_change_info": false, "can_invite_users": false, "can_post_stories": false, "can_edit_stories": false, "can_delete_stories": false}),
             "ChatAdministratorRights",
@@ -707,10 +904,7 @@ fn all_bot_api_96_types_deserialize() {
         );
 
         // -- Dice, Poll, Story --
-        assert_deserializes::<dice::Dice>(
-            json!({"emoji": "\u{1F3B2}", "value": 3}),
-            "Dice",
-        );
+        assert_deserializes::<dice::Dice>(json!({"emoji": "\u{1F3B2}", "value": 3}), "Dice");
         assert_deserializes::<poll::Poll>(
             json!({"id": "p", "question": "Q?", "options": [], "total_voter_count": 0, "is_closed": false, "is_anonymous": true, "type": "regular", "allows_multiple_answers": false}),
             "Poll",
@@ -769,10 +963,7 @@ fn all_bot_api_96_types_deserialize() {
             json!({"country_code": "US", "state": "CA", "city": "SF", "street_line1": "1", "street_line2": "", "post_code": "94102"}),
             "ShippingAddress",
         );
-        assert_deserializes::<payment::order_info::OrderInfo>(
-            json!({}),
-            "OrderInfo",
-        );
+        assert_deserializes::<payment::order_info::OrderInfo>(json!({}), "OrderInfo");
         assert_deserializes::<payment::labeled_price::LabeledPrice>(
             json!({"label": "L", "amount": 100}),
             "LabeledPrice",
@@ -833,10 +1024,7 @@ fn all_bot_api_96_types_deserialize() {
             json!({"remove_keyboard": true}),
             "ReplyKeyboardRemove",
         );
-        assert_deserializes::<force_reply::ForceReply>(
-            json!({"force_reply": true}),
-            "ForceReply",
-        );
+        assert_deserializes::<force_reply::ForceReply>(json!({"force_reply": true}), "ForceReply");
 
         // -- Bot description types --
         assert_deserializes::<bot_command::BotCommand>(
@@ -847,10 +1035,7 @@ fn all_bot_api_96_types_deserialize() {
             json!({"description": "A bot"}),
             "BotDescription",
         );
-        assert_deserializes::<bot_name::BotName>(
-            json!({"name": "TestBot"}),
-            "BotName",
-        );
+        assert_deserializes::<bot_name::BotName>(json!({"name": "TestBot"}), "BotName");
 
         // -- WebApp types --
         assert_deserializes::<web_app_info::WebAppInfo>(
@@ -901,10 +1086,7 @@ fn all_bot_api_96_types_deserialize() {
         );
 
         // -- Gift types --
-        assert_deserializes::<gifts::Gifts>(
-            json!({"gifts": []}),
-            "Gifts",
-        );
+        assert_deserializes::<gifts::Gifts>(json!({"gifts": []}), "Gifts");
         assert_deserializes::<gifts::Gift>(
             json!({"id": "g", "sticker": {"file_id": "f", "file_unique_id": "u", "type": "regular", "width": 512, "height": 512, "is_animated": false, "is_video": false}, "star_count": 100}),
             "Gift",
@@ -945,10 +1127,7 @@ fn all_bot_api_96_types_deserialize() {
         );
 
         // -- Birthdate --
-        assert_deserializes::<birthdate::Birthdate>(
-            json!({"day": 1, "month": 1}),
-            "Birthdate",
-        );
+        assert_deserializes::<birthdate::Birthdate>(json!({"day": 1, "month": 1}), "Birthdate");
 
         // -- User profile --
         assert_deserializes::<user_profile_photos::UserProfilePhotos>(
@@ -963,10 +1142,7 @@ fn all_bot_api_96_types_deserialize() {
         );
 
         // -- Reply parameters --
-        assert_deserializes::<reply::ReplyParameters>(
-            json!({"message_id": 1}),
-            "ReplyParameters",
-        );
+        assert_deserializes::<reply::ReplyParameters>(json!({"message_id": 1}), "ReplyParameters");
 
         // -- Message origin --
         assert_deserializes::<message_origin::MessageOrigin>(
@@ -1037,10 +1213,7 @@ fn all_bot_api_96_types_deserialize() {
         );
 
         // -- Video chat types --
-        assert_deserializes::<video_chat::VideoChatStarted>(
-            json!({}),
-            "VideoChatStarted",
-        );
+        assert_deserializes::<video_chat::VideoChatStarted>(json!({}), "VideoChatStarted");
         assert_deserializes::<video_chat::VideoChatEnded>(
             json!({"duration": 120}),
             "VideoChatEnded",
@@ -1051,10 +1224,7 @@ fn all_bot_api_96_types_deserialize() {
         );
 
         // -- Menu button --
-        assert_deserializes::<menu_button::MenuButton>(
-            json!({"type": "default"}),
-            "MenuButton",
-        );
+        assert_deserializes::<menu_button::MenuButton>(json!({"type": "default"}), "MenuButton");
 
         // -- Keyboard button poll type --
         assert_deserializes::<keyboard_button_poll_type::KeyboardButtonPollType>(
@@ -1063,10 +1233,7 @@ fn all_bot_api_96_types_deserialize() {
         );
 
         // -- Shared types --
-        assert_deserializes::<shared::SharedUser>(
-            json!({"user_id": 1}),
-            "SharedUser",
-        );
+        assert_deserializes::<shared::SharedUser>(json!({"user_id": 1}), "SharedUser");
 
         // -- Checklist types --
         assert_deserializes::<checklists::Checklist>(

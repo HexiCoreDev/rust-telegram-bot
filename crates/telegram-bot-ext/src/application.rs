@@ -762,12 +762,22 @@ impl Application {
         // Build TLS configuration if paths are provided.
         #[cfg(feature = "webhooks-tls")]
         let tls_config = if config.has_tls() {
-            let cert_path = config.cert_path.as_deref().expect("cert_path checked by has_tls");
-            let key_path = config.key_path.as_deref().expect("key_path checked by has_tls");
-            match crate::utils::webhook_handler::TlsConfig::from_pem_files(cert_path, key_path).await {
+            let cert_path = config
+                .cert_path
+                .as_deref()
+                .expect("cert_path checked by has_tls");
+            let key_path = config
+                .key_path
+                .as_deref()
+                .expect("key_path checked by has_tls");
+            match crate::utils::webhook_handler::TlsConfig::from_pem_files(cert_path, key_path)
+                .await
+            {
                 Ok(tls) => Some(tls),
                 Err(e) => {
-                    return Err(ApplicationError::Webhook(format!("TLS configuration failed: {e}")));
+                    return Err(ApplicationError::Webhook(format!(
+                        "TLS configuration failed: {e}"
+                    )));
                 }
             }
         } else {

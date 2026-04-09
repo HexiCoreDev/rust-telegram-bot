@@ -145,8 +145,7 @@ fn params_to_value_map(request_data: Option<&RequestData>) -> HashMap<String, se
     rd.json_parameters()
         .into_iter()
         .map(|(k, v)| {
-            let value =
-                serde_json::from_str(&v).unwrap_or_else(|_| serde_json::Value::String(v));
+            let value = serde_json::from_str(&v).unwrap_or_else(|_| serde_json::Value::String(v));
             (k, value)
         })
         .collect()
@@ -259,8 +258,7 @@ impl BaseRequest for RateLimitedRequest {
 // ---------------------------------------------------------------------------
 
 fn base64_encode(data: &[u8]) -> String {
-    const ALPHABET: &[u8; 64] =
-        b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    const ALPHABET: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
     let mut out = Vec::with_capacity((data.len() + 2) / 3 * 4);
     for chunk in data.chunks(3) {

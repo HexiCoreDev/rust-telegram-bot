@@ -1,8 +1,7 @@
 use crate::error::{compile_error, Result};
 
 use heck::{
-    ToKebabCase, ToLowerCamelCase, ToPascalCase, ToShoutyKebabCase, ToShoutySnakeCase,
-    ToSnakeCase,
+    ToKebabCase, ToLowerCamelCase, ToPascalCase, ToShoutyKebabCase, ToShoutySnakeCase, ToSnakeCase,
 };
 
 /// Rules for converting Rust enum variant names into Telegram command strings.

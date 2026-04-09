@@ -20,12 +20,12 @@
 //! - `/set 30` -- sets a timer for 30 seconds
 //! - `/unset` -- cancels any active timer for your chat
 
-use std::time::Duration;
 use rust_tg_bot::ext::job_queue::{JobCallbackFn, JobContext, JobQueue};
 use rust_tg_bot::ext::prelude::{
     Application, ApplicationBuilder, Arc, Context, FnHandler, HandlerError, HandlerResult,
     MessageEntityType, RwLock, Update,
 };
+use std::time::Duration;
 
 /// A shared map to track active timer job IDs per chat.
 type TimerStore = Arc<RwLock<std::collections::HashMap<i64, u64>>>;

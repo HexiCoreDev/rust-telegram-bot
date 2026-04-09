@@ -1,11 +1,7 @@
 use proc_macro2::Span;
 use syn::{spanned::Spanned, Attribute, Expr, ExprLit, Lit, Meta};
 
-use crate::{
-    fields_parse::ParserType,
-    rename_rules::RenameRule,
-    Result,
-};
+use crate::{fields_parse::ParserType, rename_rules::RenameRule, Result};
 
 /// Parsed `#[command(...)]` attributes that may appear on either the enum or a
 /// variant.
@@ -50,7 +46,10 @@ impl CommandAttrs {
                 // Only use it if no explicit description has been set yet.
                 if desc_source != Some(DescriptionSource::Explicit) {
                     if let Meta::NameValue(nv) = &attr.meta {
-                        if let Expr::Lit(ExprLit { lit: Lit::Str(s), .. }) = &nv.value {
+                        if let Expr::Lit(ExprLit {
+                            lit: Lit::Str(s), ..
+                        }) = &nv.value
+                        {
                             let text = s.value();
                             let text = text.strip_prefix(' ').unwrap_or(&text);
                             match &mut this.description {
@@ -97,10 +96,9 @@ impl CommandAttrs {
                 } else if meta.path.is_ident("rename_rule") {
                     let value: Lit = meta.value()?.parse()?;
                     if let Lit::Str(s) = value {
-                        let rule = RenameRule::parse(&s.value())
-                            .map_err(|_| syn::Error::new(span, format!(
-                                "invalid rename rule `{}`", s.value()
-                            )))?;
+                        let rule = RenameRule::parse(&s.value()).map_err(|_| {
+                            syn::Error::new(span, format!("invalid rename rule `{}`", s.value()))
+                        })?;
                         insert_syn(&mut this.rename_rule, rule, span)?;
                     }
                 } else if meta.path.is_ident("rename") {
@@ -111,10 +109,12 @@ impl CommandAttrs {
                 } else if meta.path.is_ident("parse_with") {
                     let value: Lit = meta.value()?.parse()?;
                     if let Lit::Str(s) = value {
-                        let parser = ParserType::parse(&s.value())
-                            .map_err(|_| syn::Error::new(span, format!(
-                                "invalid parse_with value `{}`", s.value()
-                            )))?;
+                        let parser = ParserType::parse(&s.value()).map_err(|_| {
+                            syn::Error::new(
+                                span,
+                                format!("invalid parse_with value `{}`", s.value()),
+                            )
+                        })?;
                         insert_syn(&mut this.parser, parser, span)?;
                     }
                 } else if meta.path.is_ident("separator") {

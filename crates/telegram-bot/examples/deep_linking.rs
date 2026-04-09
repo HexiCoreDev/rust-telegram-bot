@@ -195,11 +195,7 @@ async fn deep_link_level_3_callback(update: Arc<Update>, context: Context) -> Ha
     let bot_username = get_bot_username(&context);
     let url = create_deep_linked_url(&bot_username, USING_KEYBOARD, false);
 
-    context
-        .bot()
-        .answer_callback_query(&cq.id)
-        .url(url)
-        .await?;
+    context.bot().answer_callback_query(&cq.id).url(url).await?;
 
     Ok(())
 }

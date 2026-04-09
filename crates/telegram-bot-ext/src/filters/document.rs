@@ -109,10 +109,7 @@ impl DocumentFileExtension {
 
 impl Filter for DocumentFileExtension {
     fn check_update(&self, update: &Update) -> FilterResult {
-        let doc = match update
-            .effective_message()
-            .and_then(|m| m.document.as_ref())
-        {
+        let doc = match update.effective_message().and_then(|m| m.document.as_ref()) {
             Some(d) => d,
             None => return FilterResult::NoMatch,
         };

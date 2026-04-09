@@ -36,10 +36,7 @@ impl Filter for EntityFilter {
             Some(arr) => arr,
             None => return FilterResult::NoMatch,
         };
-        if entities
-            .iter()
-            .any(|e| e.entity_type == self.entity_type)
-        {
+        if entities.iter().any(|e| e.entity_type == self.entity_type) {
             FilterResult::Match
         } else {
             FilterResult::NoMatch
@@ -81,10 +78,7 @@ impl Filter for CaptionEntityFilter {
             Some(arr) => arr,
             None => return FilterResult::NoMatch,
         };
-        if entities
-            .iter()
-            .any(|e| e.entity_type == self.entity_type)
-        {
+        if entities.iter().any(|e| e.entity_type == self.entity_type) {
             FilterResult::Match
         } else {
             FilterResult::NoMatch

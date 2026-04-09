@@ -133,28 +133,52 @@ impl WebhookConfig {
     }
 
     /// Set the listen address (default: "127.0.0.1").
-    pub fn listen(mut self, addr: impl Into<String>) -> Self { self.listen = addr.into(); self }
+    pub fn listen(mut self, addr: impl Into<String>) -> Self {
+        self.listen = addr.into();
+        self
+    }
 
     /// Set the port (default: 80).
-    pub fn port(mut self, port: u16) -> Self { self.port = port; self }
+    pub fn port(mut self, port: u16) -> Self {
+        self.port = port;
+        self
+    }
 
     /// Set the URL path the webhook listens on (default: "").
-    pub fn url_path(mut self, path: impl Into<String>) -> Self { self.url_path = path.into(); self }
+    pub fn url_path(mut self, path: impl Into<String>) -> Self {
+        self.url_path = path.into();
+        self
+    }
 
     /// Set the secret token for webhook validation.
-    pub fn secret_token(mut self, token: impl Into<String>) -> Self { self.secret_token = Some(token.into()); self }
+    pub fn secret_token(mut self, token: impl Into<String>) -> Self {
+        self.secret_token = Some(token.into());
+        self
+    }
 
     /// Set the number of bootstrap retries (default: 0).
-    pub fn bootstrap_retries(mut self, n: i32) -> Self { self.bootstrap_retries = n; self }
+    pub fn bootstrap_retries(mut self, n: i32) -> Self {
+        self.bootstrap_retries = n;
+        self
+    }
 
     /// Drop pending updates before starting (default: false).
-    pub fn drop_pending_updates(mut self, drop: bool) -> Self { self.drop_pending_updates = drop; self }
+    pub fn drop_pending_updates(mut self, drop: bool) -> Self {
+        self.drop_pending_updates = drop;
+        self
+    }
 
     /// Set allowed update types.
-    pub fn allowed_updates(mut self, types: Vec<String>) -> Self { self.allowed_updates = Some(types); self }
+    pub fn allowed_updates(mut self, types: Vec<String>) -> Self {
+        self.allowed_updates = Some(types);
+        self
+    }
 
     /// Set max webhook connections (default: 40).
-    pub fn max_connections(mut self, n: u32) -> Self { self.max_connections = n; self }
+    pub fn max_connections(mut self, n: u32) -> Self {
+        self.max_connections = n;
+        self
+    }
 
     /// Configure TLS with certificate and private key PEM files.
     ///
@@ -420,13 +444,24 @@ impl Updater {
         // Build the TLS configuration if paths are provided.
         #[cfg(feature = "webhooks-tls")]
         let tls_config = if config.has_tls() {
-            let cert_path = config.cert_path.as_deref().expect("cert_path checked by has_tls");
-            let key_path = config.key_path.as_deref().expect("key_path checked by has_tls");
-            match crate::utils::webhook_handler::TlsConfig::from_pem_files(cert_path, key_path).await {
+            let cert_path = config
+                .cert_path
+                .as_deref()
+                .expect("cert_path checked by has_tls");
+            let key_path = config
+                .key_path
+                .as_deref()
+                .expect("key_path checked by has_tls");
+            match crate::utils::webhook_handler::TlsConfig::from_pem_files(cert_path, key_path)
+                .await
+            {
                 Ok(tls) => Some(tls),
                 Err(e) => {
-                    self.running.store(false, std::sync::atomic::Ordering::Relaxed);
-                    return Err(UpdaterError::Bootstrap(format!("TLS configuration failed: {e}")));
+                    self.running
+                        .store(false, std::sync::atomic::Ordering::Relaxed);
+                    return Err(UpdaterError::Bootstrap(format!(
+                        "TLS configuration failed: {e}"
+                    )));
                 }
             }
         } else {

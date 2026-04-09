@@ -15,7 +15,7 @@
 [![CI](https://github.com/HexiCoreDev/rust-telegram-bot/actions/workflows/ci.yml/badge.svg?branch=dev)](https://github.com/HexiCoreDev/rust-telegram-bot/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/HexiCoreDev/rust-telegram-bot/graph/badge.svg?token=F2Y0CC4WNG)](https://codecov.io/gh/HexiCoreDev/rust-telegram-bot)
 [![docs.rs](https://img.shields.io/badge/docs.rs-API-blue)](https://docs.rs/rust-tg-bot)
-[![mdBook](https://img.shields.io/badge/book-guide-blue)](https://hexicoredev.github.io/rust-telegram-bot/)
+[![mdBook](https://img.shields.io/badge/book-guide-blue)](https://rust-tg-bot-docs.vercel.app/)
 [![Code Style: rustfmt](https://img.shields.io/badge/code%20style-rustfmt-blue)](https://github.com/rust-lang/rustfmt)
 [![Code Quality: clippy](https://img.shields.io/badge/code%20quality-clippy%20%E2%9C%93-brightgreen)](https://doc.rust-lang.org/clippy/)
 [![Unsafe: forbidden](https://img.shields.io/badge/unsafe-forbidden-success.svg)](https://github.com/rust-secure-code/safety-dance/)
@@ -571,7 +571,7 @@ This is a deliberate trade-off: `#[non_exhaustive]` provides compile-time forwar
 
 ## Documentation
 
-- **Guide**: [hexicoredev.github.io/rust-telegram-bot](https://hexicoredev.github.io/rust-telegram-bot/) — mdBook with tutorials, guides, and architecture docs
+- **Guide**: [rust-tg-bot-docs.vercel.app](https://rust-tg-bot-docs.vercel.app/) — mdBook with tutorials, guides, and architecture docs
 - **API reference**: [docs.rs/rust-tg-bot](https://docs.rs/rust-tg-bot) — auto-generated from source (available after crates.io publish)
 
 Generate API docs locally:

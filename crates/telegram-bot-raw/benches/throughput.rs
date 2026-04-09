@@ -9,9 +9,7 @@ use criterion::{black_box, criterion_group, criterion_main, BatchSize, Criterion
 use serde_json::json;
 
 use rust_tg_bot_raw::bot::Bot;
-use rust_tg_bot_raw::request::base::{
-    async_trait, BaseRequest, HttpMethod, TimeoutOverride,
-};
+use rust_tg_bot_raw::request::base::{async_trait, BaseRequest, HttpMethod, TimeoutOverride};
 use rust_tg_bot_raw::request::request_data::RequestData;
 use rust_tg_bot_raw::types::update::Update;
 
@@ -192,8 +190,7 @@ fn bench_update_deserialization(c: &mut Criterion) {
     group.bench_function("1000_text_updates", |b| {
         b.iter(|| {
             for payload in &payloads {
-                let _update: Update =
-                    black_box(serde_json::from_slice(payload).unwrap());
+                let _update: Update = black_box(serde_json::from_slice(payload).unwrap());
             }
         });
     });
@@ -233,8 +230,7 @@ fn bench_update_deserialization(c: &mut Criterion) {
     group.bench_function("1000_mixed_updates", |b| {
         b.iter(|| {
             for payload in &mixed_payloads {
-                let _update: Update =
-                    black_box(serde_json::from_slice(payload).unwrap());
+                let _update: Update = black_box(serde_json::from_slice(payload).unwrap());
             }
         });
     });
@@ -373,7 +369,9 @@ fn bench_single_update_latency(c: &mut Criterion) {
 fn bench_type_deserialization(c: &mut Criterion) {
     let mut group = c.benchmark_group("type_deserialization");
 
-    let user_json = json_bytes(&json!({"id": 1, "is_bot": false, "first_name": "Test", "username": "test_user"}));
+    let user_json = json_bytes(
+        &json!({"id": 1, "is_bot": false, "first_name": "Test", "username": "test_user"}),
+    );
     let chat_json = json_bytes(&json!({"id": -100, "type": "supergroup", "title": "Test"}));
     let message_json = json_bytes(&json!({
         "message_id": 1, "date": 0,
@@ -421,15 +419,13 @@ fn bench_value_vs_typed(c: &mut Criterion) {
 
     group.bench_function("to_serde_value", |b| {
         b.iter(|| {
-            let _: serde_json::Value =
-                black_box(serde_json::from_slice(&update_bytes).unwrap());
+            let _: serde_json::Value = black_box(serde_json::from_slice(&update_bytes).unwrap());
         });
     });
 
     group.bench_function("to_typed_update", |b| {
         b.iter(|| {
-            let _: Update =
-                black_box(serde_json::from_slice(&update_bytes).unwrap());
+            let _: Update = black_box(serde_json::from_slice(&update_bytes).unwrap());
         });
     });
 

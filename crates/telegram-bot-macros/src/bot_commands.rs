@@ -1,8 +1,5 @@
 use crate::{
-    command::Command,
-    command_enum::CommandEnum,
-    compile_error,
-    fields_parse::impl_parse_args,
+    command::Command, command_enum::CommandEnum, compile_error, fields_parse::impl_parse_args,
     Result,
 };
 
@@ -19,8 +16,7 @@ pub(crate) fn bot_commands_impl(input: DeriveInput) -> Result<TokenStream> {
     let mut commands = Vec::new();
 
     for variant in &data_enum.variants {
-        let command =
-            Command::new(&variant.ident.to_string(), &variant.attrs, &command_enum)?;
+        let command = Command::new(&variant.ident.to_string(), &variant.attrs, &command_enum)?;
 
         let variant_name = &variant.ident;
         let self_variant = quote! { Self::#variant_name };

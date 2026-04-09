@@ -377,7 +377,10 @@ mod tests {
 
     #[test]
     fn id_from_key_extracts_numeric_suffix() {
-        assert_eq!(RedisPersistence::id_from_key("rtb:user_data:123"), Some(123));
+        assert_eq!(
+            RedisPersistence::id_from_key("rtb:user_data:123"),
+            Some(123)
+        );
         assert_eq!(
             RedisPersistence::id_from_key("rtb:chat_data:-100"),
             Some(-100)

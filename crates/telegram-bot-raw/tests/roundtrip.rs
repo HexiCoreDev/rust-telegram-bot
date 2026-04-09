@@ -4,7 +4,6 @@
 //! important fields survive the round-trip. We do not require byte-exact JSON
 //! (field ordering may differ), but verify all critical fields match.
 
-use serde_json::json;
 use rust_tg_bot_raw::types::callback_query::CallbackQuery;
 use rust_tg_bot_raw::types::chat::Chat;
 use rust_tg_bot_raw::types::chat_full_info::ChatFullInfo;
@@ -12,6 +11,7 @@ use rust_tg_bot_raw::types::inline::inline_query::InlineQuery;
 use rust_tg_bot_raw::types::message::Message;
 use rust_tg_bot_raw::types::update::Update;
 use rust_tg_bot_raw::types::user::User;
+use serde_json::json;
 
 // ---------------------------------------------------------------------------
 // Helpers
