@@ -5,6 +5,7 @@ on:
     branches: [main, dev]
   push:
     branches: [dev, "release/**"]
+  workflow_call:
 
 env:
   CARGO_TERM_COLOR: always
