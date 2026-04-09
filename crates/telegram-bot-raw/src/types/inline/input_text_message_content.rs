@@ -10,12 +10,15 @@ pub struct InputTextMessageContent {
     /// Text of the message to be sent.
     pub message_text: String,
 
+    /// Mode for parsing entities in the message text.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub parse_mode: Option<String>,
 
+    /// List of special entities that appear in the message text.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub entities: Option<Vec<MessageEntity>>,
 
+    /// Link preview generation options for the message.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub link_preview_options: Option<LinkPreviewOptions>,
 }

@@ -47,14 +47,14 @@ pub struct Update {
 /// Telegram sends update kinds as a single top-level key such as `message`,
 /// `callback_query`, or `poll`. This enum preserves that wire format via a
 /// custom serde implementation.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Default)]
 #[non_exhaustive]
 pub enum UpdateKind {
-    /// New incoming message of any kind — text, photo, sticker, etc.
+    /// New incoming message of any kind -- text, photo, sticker, etc.
     Message(Message),
     /// New version of a message that is known to the bot and was edited.
     EditedMessage(Message),
-    /// New incoming channel post of any kind — text, photo, sticker, etc.
+    /// New incoming channel post of any kind -- text, photo, sticker, etc.
     ChannelPost(Message),
     /// New version of a channel post that is known to the bot and was edited.
     EditedChannelPost(Message),
@@ -99,13 +99,8 @@ pub enum UpdateKind {
     /// A managed bot was created or updated.
     ManagedBot(ManagedBotUpdated),
     /// Unknown or unsupported update types, or an update with no payload fields.
+    #[default]
     Unknown,
-}
-
-impl Default for UpdateKind {
-    fn default() -> Self {
-        Self::Unknown
-    }
 }
 
 impl Serialize for UpdateKind {
@@ -304,6 +299,7 @@ impl<'de> Visitor<'de> for UpdateKindVisitor {
 macro_rules! update_kind_accessors {
     ($(($name:ident, $variant:ident, $ty:ty)),* $(,)?) => {
         $(
+            /// Returns the payload if this update is of the corresponding variant.
             #[must_use]
             pub fn $name(&self) -> Option<&$ty> {
                 match &self.kind {

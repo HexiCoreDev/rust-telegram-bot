@@ -77,9 +77,14 @@ type PersistenceFuture<'a, T> = Pin<Box<dyn Future<Output = PersistenceResult<T>
 #[derive(Debug, thiserror::Error)]
 #[non_exhaustive]
 pub enum HandlerError {
+    /// A handler explicitly requested dispatch to stop, optionally carrying state.
     #[error("ApplicationHandlerStop")]
-    HandlerStop { state: Option<Value> },
+    HandlerStop {
+        /// Optional state data carried by the stop signal.
+        state: Option<Value>,
+    },
 
+    /// A wrapped error from a handler or Telegram API call.
     #[error("{0}")]
     Other(Box<dyn std::error::Error + Send + Sync>),
 }
@@ -94,24 +99,31 @@ impl From<rust_tg_bot_raw::error::TelegramError> for HandlerError {
 #[derive(Debug, thiserror::Error)]
 #[non_exhaustive]
 pub enum ApplicationError {
+    /// The application was not initialized before use.
     #[error("This Application was not initialized via `Application::initialize`")]
     NotInitialized,
 
+    /// The application is already running and cannot be started again.
     #[error("This Application is already running")]
     AlreadyRunning,
 
+    /// The application is not currently running.
     #[error("This Application is not running")]
     NotRunning,
 
+    /// The application is still running and cannot be shut down yet.
     #[error("This Application is still running")]
     StillRunning,
 
+    /// An error from the underlying Telegram Bot API.
     #[error("{0}")]
     Bot(#[from] rust_tg_bot_raw::error::TelegramError),
 
+    /// An error from the update processor subsystem.
     #[error("{0}")]
     UpdateProcessor(#[from] crate::update_processor::UpdateProcessorError),
 
+    /// A webhook-related error.
     #[error("webhook error: {0}")]
     Webhook(String),
 }
@@ -252,7 +264,7 @@ impl std::fmt::Debug for Application {
             .finish()
     }
 }
-
+/// The default handler dispatch group (group 0).
 pub const DEFAULT_GROUP: i32 = 0;
 
 pub(crate) struct ApplicationConfig {
@@ -426,6 +438,7 @@ impl Application {
         Ok(())
     }
 
+    /// Shut down the application. Must be called after stopping. Flushes persistence and releases resources.
     // -- Lifecycle: shutdown --
     pub async fn shutdown(&self) -> Result<(), ApplicationError> {
         if self.running.load(Ordering::Acquire) {
@@ -556,7 +569,7 @@ impl Application {
         info!("Application.stop() complete");
         Ok(())
     }
-
+    /// Signal the update dispatch loop to stop without awaiting completion.
     pub fn stop_running(&self) {
         self.stop_notify.notify_waiters();
     }
@@ -573,6 +586,7 @@ impl Application {
         self.pending_tasks.write().await.push(handle);
     }
 
+    /// Flush in-memory user, chat, and bot data to the persistence backend.
     // -- C8: Persistence update --
     pub async fn update_persistence(&self) {
         #[cfg(feature = "persistence")]
@@ -991,6 +1005,7 @@ impl Application {
         self.add_raw_handler(legacy, group).await;
     }
 
+    /// Dispatch a single update through all registered handler groups.
     // -- Core dispatch --
     pub async fn process_update(&self, update: Arc<Update>) -> Result<(), ApplicationError> {
         self.check_initialized()?;
@@ -1016,7 +1031,7 @@ impl Application {
                     continue;
                 }
                 if context.is_none() {
-                    let mut ctx = CallbackContext::from_update(
+                    let ctx = CallbackContext::from_update(
                         &update,
                         Arc::clone(&self.bot),
                         Arc::clone(&self.user_data),
@@ -1073,7 +1088,7 @@ impl Application {
         }
         let error_arc: Arc<dyn std::error::Error + Send + Sync> = Arc::from(error);
         for (callback, block) in handlers.iter() {
-            let mut ctx = CallbackContext::from_error(
+            let ctx = CallbackContext::from_error(
                 update.as_deref(),
                 Arc::clone(&error_arc),
                 Arc::clone(&self.bot),
@@ -1100,13 +1115,18 @@ impl Application {
         false
     }
 
+    /// Remove all stored data for the given chat.
     // -- Data management --
     pub async fn drop_chat_data(&self, chat_id: i64) {
         self.chat_data.write().await.remove(&chat_id);
     }
+
+    /// Remove all stored data for the given user.
     pub async fn drop_user_data(&self, user_id: i64) {
         self.user_data.write().await.remove(&user_id);
     }
+
+    /// Move chat data from `old` chat ID to `new` chat ID (e.g. after a group migration).
     pub async fn migrate_chat_data(&self, old: i64, new: i64) {
         let mut s = self.chat_data.write().await;
         if let Some(d) = s.remove(&old) {

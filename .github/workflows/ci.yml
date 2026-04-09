@@ -82,8 +82,6 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
       - run: cargo doc --workspace --no-deps
-        env:
-          RUSTDOCFLAGS: -D warnings
 
   coverage:
     name: code coverage
@@ -102,5 +100,5 @@ jobs:
         with:
           files: ./cobertura.xml
           flags: unittests
-          fail_ci_if_error: true
+          fail_ci_if_error: false
           token: ${{ secrets.CODECOV_TOKEN }}

@@ -5,6 +5,9 @@ use std::sync::RwLock;
 
 use crate::filters::base::{Filter, FilterResult, Update};
 
+/// Filters messages sent via a specific inline bot, identified by bot ID or username.
+///
+/// Thread-safe: uses [`RwLock`] for internal mutation of bot ID and username sets.
 pub struct ViaBotFilter {
     bot_ids: RwLock<HashSet<i64>>,
     usernames: RwLock<HashSet<String>>,
@@ -12,6 +15,8 @@ pub struct ViaBotFilter {
 }
 
 impl ViaBotFilter {
+    /// Create an empty filter. When `allow_empty` is `true`, any message with a
+    /// `via_bot` field matches regardless of the bot's identity.
     pub fn empty(allow_empty: bool) -> Self {
         Self {
             bot_ids: RwLock::new(HashSet::new()),
@@ -19,6 +24,7 @@ impl ViaBotFilter {
             allow_empty,
         }
     }
+    /// Create a filter that matches messages sent via bots with the given IDs.
     pub fn from_ids(ids: impl IntoIterator<Item = i64>) -> Self {
         Self {
             bot_ids: RwLock::new(ids.into_iter().collect()),
@@ -26,6 +32,8 @@ impl ViaBotFilter {
             allow_empty: false,
         }
     }
+    /// Create a filter that matches messages sent via bots with the given usernames.
+    /// Leading `@` characters are stripped automatically.
     pub fn from_usernames(names: impl IntoIterator<Item = impl Into<String>>) -> Self {
         Self {
             bot_ids: RwLock::new(HashSet::new()),
@@ -41,15 +49,18 @@ impl ViaBotFilter {
             allow_empty: false,
         }
     }
+    /// Add bot IDs to the filter at runtime.
     pub fn add_bot_ids(&self, ids: impl IntoIterator<Item = i64>) {
         self.bot_ids.write().unwrap().extend(ids);
     }
+    /// Remove bot IDs from the filter at runtime.
     pub fn remove_bot_ids(&self, ids: impl IntoIterator<Item = i64>) {
         let mut set = self.bot_ids.write().unwrap();
         for id in ids {
             set.remove(&id);
         }
     }
+    /// Add bot usernames to the filter at runtime. Leading `@` is stripped.
     pub fn add_usernames(&self, names: impl IntoIterator<Item = impl Into<String>>) {
         let mut set = self.usernames.write().unwrap();
         for n in names {
@@ -57,6 +68,7 @@ impl ViaBotFilter {
             set.insert(s.strip_prefix('@').unwrap_or(&s).to_owned());
         }
     }
+    /// Remove bot usernames from the filter at runtime. Leading `@` is stripped.
     pub fn remove_usernames(&self, names: impl IntoIterator<Item = impl Into<String>>) {
         let mut set = self.usernames.write().unwrap();
         for n in names {
@@ -64,9 +76,11 @@ impl ViaBotFilter {
             set.remove(s.strip_prefix('@').unwrap_or(&s));
         }
     }
+    /// Returns a snapshot of the current bot-ID set.
     pub fn bot_ids(&self) -> HashSet<i64> {
         self.bot_ids.read().unwrap().clone()
     }
+    /// Returns a snapshot of the current username set.
     pub fn usernames(&self) -> HashSet<String> {
         self.usernames.read().unwrap().clone()
     }

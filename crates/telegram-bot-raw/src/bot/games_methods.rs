@@ -8,6 +8,9 @@ impl Bot {
     // Games
     // ======================================================================
 
+    /// Use this method to send a game.
+    ///
+    /// Calls the Telegram `sendGame` API method.
     pub async fn send_game(
         &self,
         chat_id: i64,
@@ -43,6 +46,9 @@ impl Bot {
         self.do_post("sendGame", params).await
     }
 
+    /// Use this method to set the score of the specified user in a game message.
+    ///
+    /// Calls the Telegram `setGameScore` API method.
     pub async fn set_game_score(
         &self,
         user_id: i64,
@@ -65,6 +71,9 @@ impl Bot {
         self.do_post("setGameScore", params).await
     }
 
+    /// Use this method to get data for high score tables.
+    ///
+    /// Calls the Telegram `getGameHighScores` API method.
     pub async fn get_game_high_scores(
         &self,
         user_id: i64,

@@ -25,7 +25,12 @@ pub enum CallbackPattern {
     /// Match `callback_query.game_short_name` against this compiled regex.
     Game(Regex),
     /// Match both: data against the first regex, game against the second.
-    Both { data: Regex, game: Regex },
+    Both {
+        /// Regex to match against `callback_query.data`.
+        data: Regex,
+        /// Regex to match against `callback_query.game_short_name`.
+        game: Regex,
+    },
     /// Match `callback_query.data` using an arbitrary predicate function.
     ///
     /// This covers Python's `callable(data)` and `isinstance(data, type)`

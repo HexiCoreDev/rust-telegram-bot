@@ -23,7 +23,9 @@ pub type ConversationKey = Vec<ConversationKeyPart>;
 #[serde(untagged)]
 #[non_exhaustive]
 pub enum ConversationKeyPart {
+    /// An integer component (typically a user or chat ID).
     Int(i64),
+    /// A string component (e.g. a conversation state name).
     Str(String),
 }
 

@@ -31,12 +31,17 @@ impl Filter for DocumentAll {
 // Document.Category
 // ---------------------------------------------------------------------------
 
+/// Matches documents whose MIME type starts with a given category prefix
+/// (e.g. `"audio/"`, `"image/"`).
 pub struct DocumentCategory {
+    /// The MIME type category prefix to match against.
     category: String,
+    /// Human-readable display name for debugging.
     display: String,
 }
 
 impl DocumentCategory {
+    /// Create a new category filter for the given MIME type prefix.
     pub fn new(category: impl Into<String>) -> Self {
         let cat: String = category.into();
         let display = format!("filters.Document.Category('{}')", cat);
@@ -72,13 +77,26 @@ impl Filter for DocumentCategory {
 // Document.FileExtension
 // ---------------------------------------------------------------------------
 
+/// Matches documents by file extension.
+///
+/// When `extension` is `None`, matches files with no extension. When set,
+/// matches files whose name ends with the given extension. Comparison is
+/// case-insensitive by default unless `case_sensitive` is `true`.
 pub struct DocumentFileExtension {
+    /// The file extension to match (including leading dot), or `None` to match
+    /// files without an extension.
     extension: Option<String>,
+    /// Whether the extension comparison is case-sensitive.
     case_sensitive: bool,
+    /// Human-readable display name for debugging.
     display: String,
 }
 
 impl DocumentFileExtension {
+    /// Create a new file extension filter.
+    ///
+    /// Pass `None` to match documents without a file extension. When
+    /// `case_sensitive` is `false`, comparison is done in lowercase.
     pub fn new(extension: Option<&str>, case_sensitive: bool) -> Self {
         let (ext, display) = match extension {
             None => (None, "filters.Document.FileExtension(None)".to_owned()),
@@ -146,12 +164,16 @@ impl Filter for DocumentFileExtension {
 // Document.MimeType
 // ---------------------------------------------------------------------------
 
+/// Matches documents whose MIME type exactly equals a given string.
 pub struct DocumentMimeType {
+    /// The exact MIME type to match.
     mimetype: String,
+    /// Human-readable display name for debugging.
     display: String,
 }
 
 impl DocumentMimeType {
+    /// Create a new MIME type filter for the given type string.
     pub fn new(mimetype: impl Into<String>) -> Self {
         let mt: String = mimetype.into();
         let display = format!("filters.Document.MimeType('{}')", mt);
@@ -187,79 +209,103 @@ impl Filter for DocumentMimeType {
 // Pre-built constants (namespace module)
 // ---------------------------------------------------------------------------
 
+/// Pre-built document filter constants and convenience constructors.
 pub mod presets {
     use super::*;
 
+    /// Matches any message containing a document.
     pub const ALL: DocumentAll = DocumentAll;
 
+    /// Create a filter matching documents with an `application/*` MIME type.
     pub fn application() -> DocumentCategory {
         DocumentCategory::new("application/")
     }
+    /// Create a filter matching documents with an `audio/*` MIME type.
     pub fn audio() -> DocumentCategory {
         DocumentCategory::new("audio/")
     }
+    /// Create a filter matching documents with an `image/*` MIME type.
     pub fn image() -> DocumentCategory {
         DocumentCategory::new("image/")
     }
+    /// Create a filter matching documents with a `video/*` MIME type.
     pub fn video() -> DocumentCategory {
         DocumentCategory::new("video/")
     }
+    /// Create a filter matching documents with a `text/*` MIME type.
     pub fn text() -> DocumentCategory {
         DocumentCategory::new("text/")
     }
 
+    /// Create a filter matching APK files (`application/vnd.android.package-archive`).
     pub fn apk() -> DocumentMimeType {
         DocumentMimeType::new("application/vnd.android.package-archive")
     }
+    /// Create a filter matching DOC files (`application/msword`).
     pub fn doc() -> DocumentMimeType {
         DocumentMimeType::new("application/msword")
     }
+    /// Create a filter matching DOCX files.
     pub fn docx() -> DocumentMimeType {
         DocumentMimeType::new(
             "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         )
     }
+    /// Create a filter matching EXE files (`application/x-msdos-program`).
     pub fn exe() -> DocumentMimeType {
         DocumentMimeType::new("application/x-msdos-program")
     }
+    /// Create a filter matching GIF files (`image/gif`).
     pub fn gif() -> DocumentMimeType {
         DocumentMimeType::new("image/gif")
     }
+    /// Create a filter matching JPG files (`image/jpeg`).
     pub fn jpg() -> DocumentMimeType {
         DocumentMimeType::new("image/jpeg")
     }
+    /// Create a filter matching MP3 files (`audio/mpeg`).
     pub fn mp3() -> DocumentMimeType {
         DocumentMimeType::new("audio/mpeg")
     }
+    /// Create a filter matching MP4 files (`video/mp4`).
     pub fn mp4() -> DocumentMimeType {
         DocumentMimeType::new("video/mp4")
     }
+    /// Create a filter matching PDF files (`application/pdf`).
     pub fn pdf() -> DocumentMimeType {
         DocumentMimeType::new("application/pdf")
     }
+    /// Create a filter matching Python files (`text/x-python`).
     pub fn py() -> DocumentMimeType {
         DocumentMimeType::new("text/x-python")
     }
+    /// Create a filter matching SVG files (`image/svg+xml`).
     pub fn svg() -> DocumentMimeType {
         DocumentMimeType::new("image/svg+xml")
     }
+    /// Create a filter matching plain text files (`text/plain`).
     pub fn txt() -> DocumentMimeType {
         DocumentMimeType::new("text/plain")
     }
+    /// Create a filter matching tar.gz files (`application/x-compressed-tar`).
     pub fn targz() -> DocumentMimeType {
         DocumentMimeType::new("application/x-compressed-tar")
     }
+    /// Create a filter matching WAV files (`audio/x-wav`).
     pub fn wav() -> DocumentMimeType {
         DocumentMimeType::new("audio/x-wav")
     }
+    /// Create a filter matching XML files (`text/xml`).
     pub fn xml() -> DocumentMimeType {
         DocumentMimeType::new("text/xml")
     }
+    /// Create a filter matching ZIP files (`application/zip`).
     pub fn zip() -> DocumentMimeType {
         DocumentMimeType::new("application/zip")
     }
 }
 
+/// Re-export of [`presets`] for ergonomic `document::ALL` access.
 pub use presets as document;
 
 // ---------------------------------------------------------------------------

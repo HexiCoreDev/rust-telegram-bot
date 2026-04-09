@@ -30,11 +30,17 @@ pub enum TelegramError {
 
     /// The chat was migrated to a supergroup with a new ID.
     #[error("Group migrated to supergroup. New chat id: {new_chat_id}")]
-    ChatMigrated { new_chat_id: i64 },
+    ChatMigrated {
+        /// The new chat ID of the supergroup.
+        new_chat_id: i64,
+    },
 
-    /// Flood control — must wait before retrying.
+    /// Flood control -- must wait before retrying.
     #[error("Flood control exceeded. Retry in {retry_after:?}")]
-    RetryAfter { retry_after: Duration },
+    RetryAfter {
+        /// Duration to wait before retrying the request.
+        retry_after: Duration,
+    },
 
     /// A long-poll or webhook conflicts with another one.
     #[error("{0}")]
@@ -78,4 +84,5 @@ impl TelegramError {
     }
 }
 
+/// A type alias for `Result<T, TelegramError>`.
 pub type Result<T> = std::result::Result<T, TelegramError>;

@@ -41,12 +41,15 @@ pub struct InputInvoiceMessageContent {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub photo_url: Option<String>,
 
+    /// Photo size in bytes.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub photo_size: Option<i64>,
 
+    /// Photo width.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub photo_width: Option<i32>,
 
+    /// Photo height.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub photo_height: Option<i32>,
 
@@ -54,18 +57,23 @@ pub struct InputInvoiceMessageContent {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub need_name: Option<bool>,
 
+    /// Pass `true` if you require the user's phone number to complete the order.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub need_phone_number: Option<bool>,
 
+    /// Pass `true` if you require the user's email address to complete the order.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub need_email: Option<bool>,
 
+    /// Pass `true` if you require the user's shipping address to complete the order.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub need_shipping_address: Option<bool>,
 
+    /// Pass `true` if the user's phone number should be sent to the provider.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub send_phone_number_to_provider: Option<bool>,
 
+    /// Pass `true` if the user's email address should be sent to the provider.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub send_email_to_provider: Option<bool>,
 

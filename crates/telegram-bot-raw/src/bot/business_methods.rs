@@ -8,6 +8,9 @@ impl Bot {
     // Business account management
     // ======================================================================
 
+    /// Use this method to get information about the connection of the bot with a business account.
+    ///
+    /// Calls the Telegram `getBusinessConnection` API method.
     pub async fn get_business_connection(
         &self,
         business_connection_id: &str,
@@ -19,6 +22,9 @@ impl Bot {
         self.do_post("getBusinessConnection", params).await
     }
 
+    /// Use this method to get the gifts received by a business account.
+    ///
+    /// Calls the Telegram `getBusinessAccountGifts` API method.
     pub async fn get_business_account_gifts(
         &self,
         business_connection_id: &str,
@@ -62,6 +68,9 @@ impl Bot {
         self.do_post("getBusinessAccountGifts", params).await
     }
 
+    /// Use this method to get the current star balance of a business account.
+    ///
+    /// Calls the Telegram `getBusinessAccountStarBalance` API method.
     pub async fn get_business_account_star_balance(
         &self,
         business_connection_id: &str,
@@ -73,6 +82,9 @@ impl Bot {
         self.do_post("getBusinessAccountStarBalance", params).await
     }
 
+    /// Use this method to mark a message as read on behalf of a business account.
+    ///
+    /// Calls the Telegram `readBusinessMessage` API method.
     pub async fn read_business_message(
         &self,
         business_connection_id: &str,
@@ -90,6 +102,9 @@ impl Bot {
         self.do_post("readBusinessMessage", params).await
     }
 
+    /// Use this method to delete messages on behalf of a business account.
+    ///
+    /// Calls the Telegram `deleteBusinessMessages` API method.
     pub async fn delete_business_messages(
         &self,
         business_connection_id: &str,
@@ -105,6 +120,9 @@ impl Bot {
         self.do_post("deleteBusinessMessages", params).await
     }
 
+    /// Use this method to set the name of a business account.
+    ///
+    /// Calls the Telegram `setBusinessAccountName` API method.
     pub async fn set_business_account_name(
         &self,
         business_connection_id: &str,
@@ -125,6 +143,9 @@ impl Bot {
         self.do_post("setBusinessAccountName", params).await
     }
 
+    /// Use this method to set the username of a business account.
+    ///
+    /// Calls the Telegram `setBusinessAccountUsername` API method.
     pub async fn set_business_account_username(
         &self,
         business_connection_id: &str,
@@ -138,6 +159,9 @@ impl Bot {
         self.do_post("setBusinessAccountUsername", params).await
     }
 
+    /// Use this method to set the bio of a business account.
+    ///
+    /// Calls the Telegram `setBusinessAccountBio` API method.
     pub async fn set_business_account_bio(
         &self,
         business_connection_id: &str,
@@ -151,6 +175,9 @@ impl Bot {
         self.do_post("setBusinessAccountBio", params).await
     }
 
+    /// Use this method to set the gift settings of a business account.
+    ///
+    /// Calls the Telegram `setBusinessAccountGiftSettings` API method.
     pub async fn set_business_account_gift_settings(
         &self,
         business_connection_id: &str,
@@ -171,6 +198,9 @@ impl Bot {
         self.do_post("setBusinessAccountGiftSettings", params).await
     }
 
+    /// Use this method to set the profile photo of a business account.
+    ///
+    /// Calls the Telegram `setBusinessAccountProfilePhoto` API method.
     pub async fn set_business_account_profile_photo(
         &self,
         business_connection_id: &str,
@@ -188,6 +218,9 @@ impl Bot {
         self.do_post("setBusinessAccountProfilePhoto", params).await
     }
 
+    /// Use this method to remove the profile photo of a business account.
+    ///
+    /// Calls the Telegram `removeBusinessAccountProfilePhoto` API method.
     pub async fn remove_business_account_profile_photo(
         &self,
         business_connection_id: &str,
@@ -202,6 +235,9 @@ impl Bot {
             .await
     }
 
+    /// Use this method to convert a regular gift owned by a business account to Telegram Stars.
+    ///
+    /// Calls the Telegram `convertGiftToStars` API method.
     pub async fn convert_gift_to_stars(
         &self,
         business_connection_id: &str,
@@ -220,6 +256,9 @@ impl Bot {
         self.do_post("convertGiftToStars", params).await
     }
 
+    /// Use this method to upgrade a regular gift to a unique gift.
+    ///
+    /// Calls the Telegram `upgradeGift` API method.
     pub async fn upgrade_gift(
         &self,
         business_connection_id: &str,
@@ -242,6 +281,9 @@ impl Bot {
         self.do_post("upgradeGift", params).await
     }
 
+    /// Use this method to transfer a unique gift to another user or channel chat.
+    ///
+    /// Calls the Telegram `transferGift` API method.
     pub async fn transfer_gift(
         &self,
         business_connection_id: &str,
@@ -267,6 +309,9 @@ impl Bot {
         self.do_post("transferGift", params).await
     }
 
+    /// Use this method to transfer Telegram Stars from a business account to the bot's balance.
+    ///
+    /// Calls the Telegram `transferBusinessAccountStars` API method.
     pub async fn transfer_business_account_stars(
         &self,
         business_connection_id: &str,

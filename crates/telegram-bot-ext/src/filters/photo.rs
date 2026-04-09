@@ -4,6 +4,7 @@ use std::collections::HashSet;
 
 use crate::filters::base::{Filter, FilterResult, Update};
 
+/// Matches messages that contain at least one photo.
 pub struct PhotoFilter;
 impl Filter for PhotoFilter {
     fn check_update(&self, update: &Update) -> FilterResult {
@@ -22,8 +23,10 @@ impl Filter for PhotoFilter {
         "filters.PHOTO"
     }
 }
+/// Constant instance of [`PhotoFilter`] -- matches messages containing a photo.
 pub const PHOTO: PhotoFilter = PhotoFilter;
 
+/// Matches messages containing any sticker.
 pub struct StickerAll;
 impl Filter for StickerAll {
     fn check_update(&self, update: &Update) -> FilterResult {
@@ -42,6 +45,7 @@ impl Filter for StickerAll {
     }
 }
 
+/// Matches messages containing an animated sticker (TGS format).
 pub struct StickerAnimated;
 impl Filter for StickerAnimated {
     fn check_update(&self, update: &Update) -> FilterResult {
@@ -61,6 +65,7 @@ impl Filter for StickerAnimated {
     }
 }
 
+/// Matches messages containing a static (non-animated, non-video) sticker.
 pub struct StickerStatic;
 impl Filter for StickerStatic {
     fn check_update(&self, update: &Update) -> FilterResult {
@@ -79,6 +84,7 @@ impl Filter for StickerStatic {
     }
 }
 
+/// Matches messages containing a video sticker (WEBM format).
 pub struct StickerVideo;
 impl Filter for StickerVideo {
     fn check_update(&self, update: &Update) -> FilterResult {
@@ -98,6 +104,7 @@ impl Filter for StickerVideo {
     }
 }
 
+/// Matches messages containing a sticker with a premium animation.
 pub struct StickerPremium;
 impl Filter for StickerPremium {
     fn check_update(&self, update: &Update) -> FilterResult {
@@ -152,12 +159,18 @@ impl Filter for StickerEmoji {
     }
 }
 
+/// Convenience namespace grouping all `Sticker` filter constants and constructors.
 pub mod sticker {
     use super::*;
+    /// Matches any sticker message.
     pub const ALL: StickerAll = StickerAll;
+    /// Matches animated sticker messages (TGS format).
     pub const ANIMATED: StickerAnimated = StickerAnimated;
+    /// Matches static (non-animated, non-video) sticker messages.
     pub const STATIC: StickerStatic = StickerStatic;
+    /// Matches video sticker messages (WEBM format).
     pub const VIDEO: StickerVideo = StickerVideo;
+    /// Matches sticker messages with a premium animation.
     pub const PREMIUM: StickerPremium = StickerPremium;
 
     /// Create a `StickerEmoji` filter for the given emoji strings.

@@ -20,11 +20,14 @@ use tokio::sync::OnceCell;
 // Shared enums
 // ---------------------------------------------------------------------------
 
+/// Represents a chat identifier, which can be either a numeric ID or a `@username` string.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 #[non_exhaustive]
 pub enum ChatId {
+    /// Numeric chat identifier.
     Id(i64),
+    /// Username of the target channel (in the format `@channelusername`).
     Username(String),
 }
 
@@ -55,11 +58,17 @@ impl From<&str> for ChatId {
     }
 }
 
+/// Result type for edit methods that return either a [`Message`](message::Message) or a `bool`.
+///
+/// Some Telegram API edit methods return the edited `Message` when called with `chat_id`
+/// and `message_id`, but return `true` when called with `inline_message_id`.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 #[non_exhaustive]
 pub enum MessageOrBool {
+    /// The edited message object.
     Message(Box<message::Message>),
+    /// `true` on success (for inline messages).
     Bool(bool),
 }
 
@@ -422,7 +431,7 @@ impl Bot {
     }
 
     /// Send pre-serialized JSON bytes directly to the API, bypassing the
-    /// `RequestParameter` → `RequestData` → double-serialize path.
+    /// `RequestParameter` -> `RequestData` -> double-serialize path.
     ///
     /// This is the fast path for text-only API methods whose builders
     /// derive `Serialize` and produce a `Vec<u8>` via `serde_json::to_vec`.
@@ -458,12 +467,12 @@ impl Bot {
     }
 
     /// Shuts down the bot and releases the HTTP request backend.
-    /// Shuts down the bot and releases the HTTP request backend.
     pub async fn shutdown(&self) -> Result<()> {
         self.request.shutdown().await?;
         Ok(())
     }
 
+    /// Sends a raw API request with the given method name and parameters.
     pub async fn do_api_request<T: serde::de::DeserializeOwned>(
         &self,
         method: &str,
@@ -472,6 +481,7 @@ impl Bot {
         self.do_post(method, params).await
     }
 
+    /// Sends a raw API request with additional keyword arguments merged into the parameters.
     pub async fn do_api_request_with_kwargs<T: serde::de::DeserializeOwned>(
         &self,
         method: &str,
@@ -515,6 +525,9 @@ impl Bot {
         serde_json::from_value(result).map_err(Into::into)
     }
 
+    /// Sets a webhook for receiving updates. Internal raw method.
+    ///
+    /// Calls the Telegram `setWebhook` API method.
     pub(crate) async fn set_webhook_raw(
         &self,
         url: &str,
@@ -538,6 +551,9 @@ impl Bot {
         self.do_post("setWebhook", params).await
     }
 
+    /// Removes the webhook integration. Internal raw method.
+    ///
+    /// Calls the Telegram `deleteWebhook` API method.
     pub(crate) async fn delete_webhook_raw(
         &self,
         drop_pending_updates: Option<bool>,
@@ -547,6 +563,9 @@ impl Bot {
         self.do_post("deleteWebhook", params).await
     }
 
+    /// Use this method to get current webhook status.
+    ///
+    /// Calls the Telegram `getWebhookInfo` API method.
     pub async fn get_webhook_info(&self) -> Result<webhook_info::WebhookInfo> {
         self.do_post("getWebhookInfo", Vec::new()).await
     }
@@ -560,10 +579,16 @@ impl Bot {
         self.do_post("getMe", Vec::new()).await
     }
 
+    /// Use this method to log out from the cloud Bot API server.
+    ///
+    /// Calls the Telegram `logOut` API method.
     pub async fn log_out(&self) -> Result<bool> {
         self.do_post("logOut", Vec::new()).await
     }
 
+    /// Use this method to close the bot instance before moving it from one local server to another.
+    ///
+    /// Calls the Telegram `close` API method.
     pub async fn close(&self) -> Result<bool> {
         self.do_post("close", Vec::new()).await
     }

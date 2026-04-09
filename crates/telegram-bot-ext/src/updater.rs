@@ -63,10 +63,15 @@ pub type DeleteWebhookFn = Arc<
 /// Configuration for [`Updater::start_polling`].
 #[derive(Clone)]
 pub struct PollingConfig {
+    /// Interval between successive poll requests.
     pub poll_interval: Duration,
+    /// Long-polling timeout sent to the Telegram API.
     pub timeout: Duration,
+    /// Maximum number of retries during the bootstrap phase.
     pub bootstrap_retries: i32,
+    /// List of update types the bot should receive, or `None` for all types.
     pub allowed_updates: Option<Vec<String>>,
+    /// Whether to drop pending updates before starting the polling loop.
     pub drop_pending_updates: bool,
     /// The function used to call `getUpdates`.
     pub get_updates: GetUpdatesFn,
@@ -262,7 +267,7 @@ impl Updater {
     pub async fn take_update_rx(&self) -> Option<mpsc::Receiver<serde_json::Value>> {
         self.update_rx.lock().await.take()
     }
-
+    /// Returns `true` if the updater is currently running (polling or webhook).
     pub fn is_running(&self) -> bool {
         self.running.load(std::sync::atomic::Ordering::Relaxed)
     }
@@ -570,20 +575,26 @@ impl Updater {
 // ---------------------------------------------------------------------------
 
 #[derive(Debug, thiserror::Error)]
+/// Errors that can occur within the [`Updater`] lifecycle.
 #[non_exhaustive]
 pub enum UpdaterError {
+    /// The updater is already running and cannot be started again.
     #[error("this Updater is already running")]
     AlreadyRunning,
 
+    /// The updater is not currently running.
     #[error("this Updater is not running")]
     NotRunning,
 
+    /// The updater has not been initialized yet.
     #[error("this Updater was not initialized")]
     NotInitialized,
 
+    /// The updater is still running and cannot be shut down.
     #[error("this Updater is still running")]
     StillRunning,
 
+    /// The bootstrap phase (e.g. deleting webhooks) failed.
     #[error("bootstrap failed: {0}")]
     Bootstrap(String),
 }

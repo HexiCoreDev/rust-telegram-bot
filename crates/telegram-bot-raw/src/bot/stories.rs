@@ -8,6 +8,9 @@ impl Bot {
     // Stories
     // ======================================================================
 
+    /// Use this method to post a story on behalf of a managed business account.
+    ///
+    /// Calls the Telegram `postStory` API method.
     pub async fn post_story(
         &self,
         business_connection_id: &str,
@@ -37,6 +40,9 @@ impl Bot {
         self.do_post("postStory", params).await
     }
 
+    /// Use this method to edit a story posted on behalf of a managed business account.
+    ///
+    /// Calls the Telegram `editStory` API method.
     pub async fn edit_story(
         &self,
         business_connection_id: &str,
@@ -62,6 +68,9 @@ impl Bot {
         self.do_post("editStory", params).await
     }
 
+    /// Use this method to delete a story posted on behalf of a managed business account.
+    ///
+    /// Calls the Telegram `deleteStory` API method.
     pub async fn delete_story(&self, business_connection_id: &str, story_id: i64) -> Result<bool> {
         let params = vec![
             RequestParameter::new(
@@ -73,6 +82,9 @@ impl Bot {
         self.do_post("deleteStory", params).await
     }
 
+    /// Use this method to repost a story on behalf of a managed business account.
+    ///
+    /// Calls the Telegram `repostStory` API method.
     pub async fn repost_story(
         &self,
         business_connection_id: &str,

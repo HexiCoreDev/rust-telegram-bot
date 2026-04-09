@@ -8,10 +8,16 @@ impl Bot {
     // Gifts
     // ======================================================================
 
+    /// Use this method to get the list of gifts that can be sent by the bot to users.
+    ///
+    /// Calls the Telegram `getAvailableGifts` API method.
     pub async fn get_available_gifts(&self) -> Result<gifts::Gifts> {
         self.do_post("getAvailableGifts", Vec::new()).await
     }
 
+    /// Use this method to send a gift to a user or channel chat.
+    ///
+    /// Calls the Telegram `sendGift` API method.
     pub async fn send_gift(
         &self,
         gift_id: &str,
@@ -35,6 +41,9 @@ impl Bot {
         self.do_post("sendGift", params).await
     }
 
+    /// Use this method to gift a Telegram Premium subscription to a user.
+    ///
+    /// Calls the Telegram `giftPremiumSubscription` API method.
     pub async fn gift_premium_subscription(
         &self,
         user_id: i64,
@@ -55,6 +64,9 @@ impl Bot {
         self.do_post("giftPremiumSubscription", params).await
     }
 
+    /// Use this method to get the list of gifts received by a user.
+    ///
+    /// Calls the Telegram `getUserGifts` API method.
     pub async fn get_user_gifts(
         &self,
         user_id: i64,
@@ -94,6 +106,9 @@ impl Bot {
         self.do_post("getUserGifts", params).await
     }
 
+    /// Use this method to get the list of gifts received by a chat.
+    ///
+    /// Calls the Telegram `getChatGifts` API method.
     pub async fn get_chat_gifts(
         &self,
         chat_id: ChatId,

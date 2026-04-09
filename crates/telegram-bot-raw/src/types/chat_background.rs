@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use super::files::document::Document;
 
 // ---------------------------------------------------------------------------
-// BackgroundFill — tagged union on the "type" field
+// BackgroundFill -- tagged union on the "type" field
 // ---------------------------------------------------------------------------
 
 /// The background is filled using a single color.
@@ -22,7 +22,7 @@ pub struct BackgroundFillGradient {
     pub top_color: i64,
     /// Bottom color of the gradient in the RGB24 format.
     pub bottom_color: i64,
-    /// Clockwise rotation angle of the background fill in degrees (0–359).
+    /// Clockwise rotation angle of the background fill in degrees (0-359).
     pub rotation_angle: i64,
 }
 
@@ -40,13 +40,16 @@ pub struct BackgroundFillFreeformGradient {
 #[serde(tag = "type", rename_all = "snake_case")]
 #[non_exhaustive]
 pub enum BackgroundFill {
+    /// A solid single-color fill.
     Solid(BackgroundFillSolid),
+    /// A two-color gradient fill.
     Gradient(BackgroundFillGradient),
+    /// A freeform gradient fill with 3 or 4 colors.
     FreeformGradient(BackgroundFillFreeformGradient),
 }
 
 // ---------------------------------------------------------------------------
-// BackgroundType — tagged union on the "type" field
+// BackgroundType -- tagged union on the "type" field
 // ---------------------------------------------------------------------------
 
 /// The background is automatically filled based on the selected colors.
@@ -55,7 +58,7 @@ pub enum BackgroundFill {
 pub struct BackgroundTypeFill {
     /// The background fill.
     pub fill: BackgroundFill,
-    /// Dimming of the background in dark themes, as a percentage (0–100).
+    /// Dimming of the background in dark themes, as a percentage (0-100).
     pub dark_theme_dimming: i64,
 }
 
@@ -65,7 +68,7 @@ pub struct BackgroundTypeFill {
 pub struct BackgroundTypeWallpaper {
     /// Document with the wallpaper.
     pub document: Document,
-    /// Dimming of the background in dark themes, as a percentage (0–100).
+    /// Dimming of the background in dark themes, as a percentage (0-100).
     pub dark_theme_dimming: i64,
 
     /// True if the wallpaper is downscaled to fit in a 450x450 square and then box-blurred.
@@ -84,7 +87,7 @@ pub struct BackgroundTypePattern {
     pub document: Document,
     /// The background fill that is combined with the pattern.
     pub fill: BackgroundFill,
-    /// Intensity of the pattern when shown above the filled background (0–100).
+    /// Intensity of the pattern when shown above the filled background (0-100).
     pub intensity: i64,
 
     /// True if the background fill must be applied only to the pattern itself.
@@ -108,9 +111,13 @@ pub struct BackgroundTypeChatTheme {
 #[serde(tag = "type", rename_all = "snake_case")]
 #[non_exhaustive]
 pub enum BackgroundType {
+    /// The background is automatically filled based on selected colors.
     Fill(BackgroundTypeFill),
+    /// The background is a wallpaper in JPEG format.
     Wallpaper(BackgroundTypeWallpaper),
+    /// The background is a PNG or TGV pattern combined with a fill.
     Pattern(BackgroundTypePattern),
+    /// The background is taken directly from a built-in chat theme.
     ChatTheme(BackgroundTypeChatTheme),
 }
 

@@ -20,21 +20,27 @@ pub struct InlineQueryResultArticle {
     /// Content of the message to be sent.
     pub input_message_content: InputMessageContent,
 
+    /// Inline keyboard attached to the message.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub reply_markup: Option<InlineKeyboardMarkup>,
 
+    /// URL of the result.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub url: Option<String>,
 
+    /// Short description of the result.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
 
+    /// URL of the thumbnail for the result.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub thumbnail_url: Option<String>,
 
+    /// Thumbnail width.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub thumbnail_width: Option<i32>,
 
+    /// Thumbnail height.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub thumbnail_height: Option<i32>,
 }

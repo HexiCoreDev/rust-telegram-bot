@@ -507,138 +507,161 @@ message_presence_filter!(
     /// Messages containing an animation (GIF).
     AnimationFilter, animation, "filters.ANIMATION"
 );
+/// Constant instance of [`AnimationFilter`] -- matches messages containing an animation (GIF).
 pub const ANIMATION: AnimationFilter = AnimationFilter;
 
 message_presence_filter!(
     /// Messages containing audio.
     AudioFilter, audio, "filters.AUDIO"
 );
+/// Constant instance of [`AudioFilter`] -- matches messages containing audio.
 pub const AUDIO: AudioFilter = AudioFilter;
 
 message_presence_filter!(
     /// Messages containing a boost_added notification.
     BoostAdded, boost_added, "filters.BOOST_ADDED"
 );
+/// Constant instance of [`BoostAdded`] -- matches messages containing a boost-added notification.
 pub const BOOST_ADDED: BoostAdded = BoostAdded;
 
 message_presence_filter!(
     /// Messages containing a checklist.
     ChecklistFilter, checklist, "filters.CHECKLIST"
 );
+/// Constant instance of [`ChecklistFilter`] -- matches messages containing a checklist.
 pub const CHECKLIST: ChecklistFilter = ChecklistFilter;
 
 message_presence_filter!(
     /// Messages containing a contact.
     ContactFilter, contact, "filters.CONTACT"
 );
+/// Constant instance of [`ContactFilter`] -- matches messages containing a contact.
 pub const CONTACT: ContactFilter = ContactFilter;
 
 message_presence_filter!(
     /// Messages containing an effect_id.
     EffectId, effect_id, "filters.EFFECT_ID"
 );
+/// Constant instance of [`EffectId`] -- matches messages containing an effect ID.
 pub const EFFECT_ID: EffectId = EffectId;
 
 message_presence_filter!(
     /// Messages that have a forward_origin.
     ForwardedPresence, forward_origin, "filters.FORWARDED"
 );
+/// Constant instance of [`ForwardedPresence`] -- matches messages that have a forward origin.
 pub const FORWARDED: ForwardedPresence = ForwardedPresence;
 
 message_presence_filter!(
     /// Messages containing a game.
     GameFilter, game, "filters.GAME"
 );
+/// Constant instance of [`GameFilter`] -- matches messages containing a game.
 pub const GAME: GameFilter = GameFilter;
 
 message_presence_filter!(
     /// Messages containing a giveaway.
     GiveawayFilter, giveaway, "filters.GIVEAWAY"
 );
+/// Constant instance of [`GiveawayFilter`] -- matches messages containing a giveaway.
 pub const GIVEAWAY: GiveawayFilter = GiveawayFilter;
 
 message_presence_filter!(
     /// Messages containing giveaway_winners.
     GiveawayWinners, giveaway_winners, "filters.GIVEAWAY_WINNERS"
 );
+/// Constant instance of [`GiveawayWinners`] -- matches messages containing giveaway winners.
 pub const GIVEAWAY_WINNERS: GiveawayWinners = GiveawayWinners;
 
 message_presence_filter!(
     /// Messages containing an invoice.
     InvoiceFilter, invoice, "filters.INVOICE"
 );
+/// Constant instance of [`InvoiceFilter`] -- matches messages containing an invoice.
 pub const INVOICE: InvoiceFilter = InvoiceFilter;
 
 message_presence_filter!(
     /// Messages containing a location.
     LocationFilter, location, "filters.LOCATION"
 );
+/// Constant instance of [`LocationFilter`] -- matches messages containing a location.
 pub const LOCATION: LocationFilter = LocationFilter;
 
 message_presence_filter!(
     /// Messages containing paid media.
     PaidMediaFilter, paid_media, "filters.PAID_MEDIA"
 );
+/// Constant instance of [`PaidMediaFilter`] -- matches messages containing paid media.
 pub const PAID_MEDIA: PaidMediaFilter = PaidMediaFilter;
 
 message_presence_filter!(
     /// Messages containing passport data.
     PassportDataFilter, passport_data, "filters.PASSPORT_DATA"
 );
+/// Constant instance of [`PassportDataFilter`] -- matches messages containing passport data.
 pub const PASSPORT_DATA: PassportDataFilter = PassportDataFilter;
 
 message_presence_filter!(
     /// Messages containing a poll.
     PollFilter, poll, "filters.POLL"
 );
+/// Constant instance of [`PollFilter`] -- matches messages containing a poll.
 pub const POLL: PollFilter = PollFilter;
 
 message_presence_filter!(
     /// Messages that are replies.
     ReplyFilter, reply_to_message, "filters.REPLY"
 );
+/// Constant instance of [`ReplyFilter`] -- matches messages that are replies.
 pub const REPLY: ReplyFilter = ReplyFilter;
 
 message_presence_filter!(
     /// Messages that are replies to a story.
     ReplyToStory, reply_to_story, "filters.REPLY_TO_STORY"
 );
+/// Constant instance of [`ReplyToStory`] -- matches messages that are replies to a story.
 pub const REPLY_TO_STORY: ReplyToStory = ReplyToStory;
 
 message_presence_filter!(
     /// Messages containing a story.
     StoryFilter, story, "filters.STORY"
 );
+/// Constant instance of [`StoryFilter`] -- matches messages containing a story.
 pub const STORY: StoryFilter = StoryFilter;
 
 message_presence_filter!(
     /// Messages containing a venue.
     VenueFilter, venue, "filters.VENUE"
 );
+/// Constant instance of [`VenueFilter`] -- matches messages containing a venue.
 pub const VENUE: VenueFilter = VenueFilter;
 
 message_presence_filter!(
     /// Messages containing a video.
     VideoFilter, video, "filters.VIDEO"
 );
+/// Constant instance of [`VideoFilter`] -- matches messages containing a video.
 pub const VIDEO: VideoFilter = VideoFilter;
 
 message_presence_filter!(
     /// Messages containing a video note.
     VideoNoteFilter, video_note, "filters.VIDEO_NOTE"
 );
+/// Constant instance of [`VideoNoteFilter`] -- matches messages containing a video note.
 pub const VIDEO_NOTE: VideoNoteFilter = VideoNoteFilter;
 
 message_presence_filter!(
     /// Messages containing voice audio.
     VoiceFilter, voice, "filters.VOICE"
 );
+/// Constant instance of [`VoiceFilter`] -- matches messages containing voice audio.
 pub const VOICE: VoiceFilter = VoiceFilter;
 
 message_presence_filter!(
     /// Messages containing suggested_post_info.
     SuggestedPostInfo, suggested_post_info, "filters.SUGGESTED_POST_INFO"
 );
+/// Constant instance of [`SuggestedPostInfo`] -- matches messages containing suggested post info.
 pub const SUGGESTED_POST_INFO: SuggestedPostInfo = SuggestedPostInfo;
 
 // Bool-field presence filters
@@ -647,34 +670,39 @@ message_presence_filter!(
     /// Messages with has_media_spoiler set.
     bool: HasMediaSpoiler, has_media_spoiler, "filters.HAS_MEDIA_SPOILER"
 );
+/// Constant instance of [`HasMediaSpoiler`] -- matches messages with the media spoiler flag set.
 pub const HAS_MEDIA_SPOILER: HasMediaSpoiler = HasMediaSpoiler;
 
 message_presence_filter!(
     /// Messages with has_protected_content set.
     bool: HasProtectedContent, has_protected_content, "filters.HAS_PROTECTED_CONTENT"
 );
+/// Constant instance of [`HasProtectedContent`] -- matches messages with protected content.
 pub const HAS_PROTECTED_CONTENT: HasProtectedContent = HasProtectedContent;
 
 message_presence_filter!(
     /// Messages that are automatic forwards.
     bool: IsAutomaticForward, is_automatic_forward, "filters.IS_AUTOMATIC_FORWARD"
 );
+/// Constant instance of [`IsAutomaticForward`] -- matches automatically forwarded messages.
 pub const IS_AUTOMATIC_FORWARD: IsAutomaticForward = IsAutomaticForward;
 
 message_presence_filter!(
     /// Messages that are topic messages.
     bool: IsTopicMessage, is_topic_message, "filters.IS_TOPIC_MESSAGE"
 );
+/// Constant instance of [`IsTopicMessage`] -- matches messages that are topic messages.
 pub const IS_TOPIC_MESSAGE: IsTopicMessage = IsTopicMessage;
 
 message_presence_filter!(
     /// Messages sent from offline.
     bool: IsFromOffline, is_from_offline, "filters.IS_FROM_OFFLINE"
 );
+/// Constant instance of [`IsFromOffline`] -- matches messages sent from an offline client.
 pub const IS_FROM_OFFLINE: IsFromOffline = IsFromOffline;
 
 // sender_boost_count is Option<i32> — present when Some(_)
-/// Messages with sender_boost_count.
+/// Messages with a non-`None` `sender_boost_count` field.
 pub struct SenderBoostCount;
 
 impl Filter for SenderBoostCount {
@@ -695,6 +723,7 @@ impl Filter for SenderBoostCount {
     }
 }
 
+/// Constant instance of [`SenderBoostCount`] -- matches messages where the sender has a boost count.
 pub const SENDER_BOOST_COUNT: SenderBoostCount = SenderBoostCount;
 
 // ---------------------------------------------------------------------------
@@ -741,6 +770,7 @@ impl Filter for AttachmentFilter {
     }
 }
 
+/// Constant instance of [`AttachmentFilter`] -- matches messages containing any attachment.
 pub const ATTACHMENT: AttachmentFilter = AttachmentFilter;
 
 // ---------------------------------------------------------------------------
@@ -768,6 +798,7 @@ impl Filter for ForumFilter {
     }
 }
 
+/// Constant instance of [`ForumFilter`] -- matches messages from a forum chat.
 pub const FORUM: ForumFilter = ForumFilter;
 
 /// Messages from a direct-messages chat of a channel.
@@ -791,6 +822,7 @@ impl Filter for DirectMessages {
     }
 }
 
+/// Constant instance of [`DirectMessages`] -- matches messages from a channel's direct-messages chat.
 pub const DIRECT_MESSAGES: DirectMessages = DirectMessages;
 
 /// Messages that have a `from` (from_user) field.
@@ -814,6 +846,7 @@ impl Filter for UserPresence {
     }
 }
 
+/// Constant instance of [`UserPresence`] -- matches messages that have a `from_user` field.
 pub const USER: UserPresence = UserPresence;
 
 /// Messages from a user who added the bot to the attachment menu.
@@ -837,6 +870,7 @@ impl Filter for UserAttachmentMenu {
     }
 }
 
+/// Constant instance of [`UserAttachmentMenu`] -- matches messages from users with the bot in their attachment menu.
 pub const USER_ATTACHMENT: UserAttachmentMenu = UserAttachmentMenu;
 
 /// Messages from a Telegram Premium user.
@@ -860,6 +894,7 @@ impl Filter for PremiumUser {
     }
 }
 
+/// Constant instance of [`PremiumUser`] -- matches messages from Telegram Premium users.
 pub const PREMIUM_USER: PremiumUser = PremiumUser;
 
 /// Messages with a `sender_chat` field present.
@@ -904,6 +939,7 @@ impl Filter for ViaBotPresence {
     }
 }
 
+/// Constant instance of [`ViaBotPresence`] -- matches messages sent via an inline bot.
 pub const VIA_BOT: ViaBotPresence = ViaBotPresence;
 
 // ---------------------------------------------------------------------------

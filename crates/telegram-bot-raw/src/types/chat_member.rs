@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use super::user::User;
 
 // ---------------------------------------------------------------------------
-// ChatMember — tagged union on the "status" field (wire values)
+// ChatMember -- tagged union on the "status" field (wire values)
 // ---------------------------------------------------------------------------
 
 /// Represents a chat member that owns the chat and has all administrator privileges.
@@ -173,22 +173,28 @@ pub struct ChatMemberBanned {
 #[serde(tag = "status")]
 #[non_exhaustive]
 pub enum ChatMember {
+    /// Chat creator (owner) with all privileges.
     #[serde(rename = "creator")]
     Owner(ChatMemberOwner),
+    /// Chat administrator with additional privileges.
     #[serde(rename = "administrator")]
     Administrator(ChatMemberAdministrator),
+    /// Regular chat member without additional privileges or restrictions.
     #[serde(rename = "member")]
     Member(ChatMemberMember),
+    /// Chat member under certain restrictions.
     #[serde(rename = "restricted")]
     Restricted(ChatMemberRestricted),
+    /// User that is not a member of the chat but may join.
     #[serde(rename = "left")]
     Left(ChatMemberLeft),
+    /// User that was banned from the chat.
     #[serde(rename = "kicked")]
     Banned(ChatMemberBanned),
 }
 
 // ---------------------------------------------------------------------------
-// ChatOwnerChanged / ChatOwnerLeft — from _chatowner.py
+// ChatOwnerChanged / ChatOwnerLeft -- from _chatowner.py
 // These are service message types distinct from the ChatMember status system.
 // ---------------------------------------------------------------------------
 

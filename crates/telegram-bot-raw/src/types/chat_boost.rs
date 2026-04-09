@@ -16,7 +16,7 @@ pub struct ChatBoostAdded {
 }
 
 // ---------------------------------------------------------------------------
-// ChatBoostSource — tagged union on the "source" field
+// ChatBoostSource -- tagged union on the "source" field
 // ---------------------------------------------------------------------------
 
 /// The boost was obtained by subscribing to Telegram Premium or gifting a subscription.
@@ -58,8 +58,11 @@ pub struct ChatBoostSourceGiveaway {
 #[serde(tag = "source", rename_all = "snake_case")]
 #[non_exhaustive]
 pub enum ChatBoostSource {
+    /// The boost was obtained by subscribing to Telegram Premium.
     Premium(ChatBoostSourcePremium),
+    /// The boost was obtained by creating Telegram Premium gift codes.
     GiftCode(ChatBoostSourceGiftCode),
+    /// The boost was obtained through a giveaway.
     Giveaway(ChatBoostSourceGiveaway),
 }
 

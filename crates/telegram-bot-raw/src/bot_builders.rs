@@ -118,6 +118,7 @@ fn input_file_param(name: &'static str, file: files::input_file::InputFile) -> R
 // SendMessageBuilder
 // =========================================================================
 
+/// Builder for the [`sendMessage`] API method.
 #[derive(Serialize)]
 pub struct SendMessageBuilder<'a> {
     #[serde(skip)]
@@ -153,54 +154,67 @@ pub struct SendMessageBuilder<'a> {
 }
 
 impl<'a> SendMessageBuilder<'a> {
+    /// Sets the `parse_mode` parameter.
     pub fn parse_mode(mut self, val: impl Into<String>) -> Self {
         self.parse_mode = Some(val.into());
         self
     }
+    /// Sets the `entities` parameter.
     pub fn entities(mut self, val: Vec<message_entity::MessageEntity>) -> Self {
         self.entities = Some(val);
         self
     }
+    /// Sets the `link_preview_options` parameter.
     pub fn link_preview_options(mut self, val: link_preview_options::LinkPreviewOptions) -> Self {
         self.link_preview_options = Some(val);
         self
     }
+    /// Sets the `disable_notification` parameter.
     pub fn disable_notification(mut self, val: bool) -> Self {
         self.disable_notification = Some(val);
         self
     }
+    /// Sets the `protect_content` parameter.
     pub fn protect_content(mut self, val: bool) -> Self {
         self.protect_content = Some(val);
         self
     }
+    /// Sets the `reply_parameters` parameter.
     pub fn reply_parameters(mut self, val: reply::ReplyParameters) -> Self {
         self.reply_parameters = Some(val);
         self
     }
+    /// Sets the `reply_markup` parameter.
     pub fn reply_markup(mut self, val: serde_json::Value) -> Self {
         self.reply_markup = Some(val);
         self
     }
+    /// Sets the `message_thread_id` parameter.
     pub fn message_thread_id(mut self, val: i64) -> Self {
         self.message_thread_id = Some(val);
         self
     }
+    /// Sets the `business_connection_id` parameter.
     pub fn business_connection_id(mut self, val: impl Into<String>) -> Self {
         self.business_connection_id = Some(val.into());
         self
     }
+    /// Sets the `message_effect_id` parameter.
     pub fn message_effect_id(mut self, val: impl Into<String>) -> Self {
         self.message_effect_id = Some(val.into());
         self
     }
+    /// Sets the `allow_paid_broadcast` parameter.
     pub fn allow_paid_broadcast(mut self, val: bool) -> Self {
         self.allow_paid_broadcast = Some(val);
         self
     }
+    /// Sets the `direct_messages_topic_id` parameter.
     pub fn direct_messages_topic_id(mut self, val: i64) -> Self {
         self.direct_messages_topic_id = Some(val);
         self
     }
+    /// Sets the `suggested_post_parameters` parameter.
     pub fn suggested_post_parameters(
         mut self,
         val: suggested_post::SuggestedPostParameters,
@@ -209,6 +223,7 @@ impl<'a> SendMessageBuilder<'a> {
         self
     }
 
+    /// Sends the request to the Telegram Bot API.
     pub async fn send(self) -> Result<message::Message> {
         let payload = serde_json::to_vec(&self)?;
         self.bot.do_post_json("sendMessage", &payload).await
@@ -221,6 +236,7 @@ impl_into_future!(SendMessageBuilder, message::Message);
 // SendPhotoBuilder
 // =========================================================================
 
+/// Builder for the [`sendPhoto`] API method.
 pub struct SendPhotoBuilder<'a> {
     bot: &'a Bot,
     chat_id: ChatId,
@@ -243,62 +259,77 @@ pub struct SendPhotoBuilder<'a> {
 }
 
 impl<'a> SendPhotoBuilder<'a> {
+    /// Sets the `caption` parameter.
     pub fn caption(mut self, val: impl Into<String>) -> Self {
         self.caption = Some(val.into());
         self
     }
+    /// Sets the `parse_mode` parameter.
     pub fn parse_mode(mut self, val: impl Into<String>) -> Self {
         self.parse_mode = Some(val.into());
         self
     }
+    /// Sets the `caption_entities` parameter.
     pub fn caption_entities(mut self, val: Vec<message_entity::MessageEntity>) -> Self {
         self.caption_entities = Some(val);
         self
     }
+    /// Sets the `disable_notification` parameter.
     pub fn disable_notification(mut self, val: bool) -> Self {
         self.disable_notification = Some(val);
         self
     }
+    /// Sets the `protect_content` parameter.
     pub fn protect_content(mut self, val: bool) -> Self {
         self.protect_content = Some(val);
         self
     }
+    /// Sets the `reply_parameters` parameter.
     pub fn reply_parameters(mut self, val: reply::ReplyParameters) -> Self {
         self.reply_parameters = Some(val);
         self
     }
+    /// Sets the `reply_markup` parameter.
     pub fn reply_markup(mut self, val: serde_json::Value) -> Self {
         self.reply_markup = Some(val);
         self
     }
+    /// Sets the `message_thread_id` parameter.
     pub fn message_thread_id(mut self, val: i64) -> Self {
         self.message_thread_id = Some(val);
         self
     }
+    /// Sets the `has_spoiler` parameter.
     pub fn has_spoiler(mut self, val: bool) -> Self {
         self.has_spoiler = Some(val);
         self
     }
+    /// Sets the `business_connection_id` parameter.
     pub fn business_connection_id(mut self, val: impl Into<String>) -> Self {
         self.business_connection_id = Some(val.into());
         self
     }
+    /// Sets the `message_effect_id` parameter.
     pub fn message_effect_id(mut self, val: impl Into<String>) -> Self {
         self.message_effect_id = Some(val.into());
         self
     }
+    /// Sets the `allow_paid_broadcast` parameter.
     pub fn allow_paid_broadcast(mut self, val: bool) -> Self {
         self.allow_paid_broadcast = Some(val);
         self
     }
+    /// Sets the `show_caption_above_media` parameter.
     pub fn show_caption_above_media(mut self, val: bool) -> Self {
         self.show_caption_above_media = Some(val);
         self
     }
+    /// Sets the `direct_messages_topic_id` parameter.
     pub fn direct_messages_topic_id(mut self, val: i64) -> Self {
         self.direct_messages_topic_id = Some(val);
         self
     }
+    /// Sets the `suggested_post_parameters` parameter.
     pub fn suggested_post_parameters(
         mut self,
         val: suggested_post::SuggestedPostParameters,
@@ -307,6 +338,7 @@ impl<'a> SendPhotoBuilder<'a> {
         self
     }
 
+    /// Sends the request to the Telegram Bot API.
     pub async fn send(self) -> Result<message::Message> {
         let mut params = vec![
             RequestParameter::new("chat_id", serde_json::to_value(&self.chat_id)?),
@@ -361,6 +393,7 @@ impl_into_future!(SendPhotoBuilder, message::Message);
 // SendDocumentBuilder
 // =========================================================================
 
+/// Builder for the [`sendDocument`] API method.
 pub struct SendDocumentBuilder<'a> {
     bot: &'a Bot,
     chat_id: ChatId,
@@ -383,62 +416,77 @@ pub struct SendDocumentBuilder<'a> {
 }
 
 impl<'a> SendDocumentBuilder<'a> {
+    /// Sets the `caption` parameter.
     pub fn caption(mut self, val: impl Into<String>) -> Self {
         self.caption = Some(val.into());
         self
     }
+    /// Sets the `parse_mode` parameter.
     pub fn parse_mode(mut self, val: impl Into<String>) -> Self {
         self.parse_mode = Some(val.into());
         self
     }
+    /// Sets the `caption_entities` parameter.
     pub fn caption_entities(mut self, val: Vec<message_entity::MessageEntity>) -> Self {
         self.caption_entities = Some(val);
         self
     }
+    /// Sets the `disable_content_type_detection` parameter.
     pub fn disable_content_type_detection(mut self, val: bool) -> Self {
         self.disable_content_type_detection = Some(val);
         self
     }
+    /// Sets the `thumbnail` parameter.
     pub fn thumbnail(mut self, val: files::input_file::InputFile) -> Self {
         self.thumbnail = Some(val);
         self
     }
+    /// Sets the `disable_notification` parameter.
     pub fn disable_notification(mut self, val: bool) -> Self {
         self.disable_notification = Some(val);
         self
     }
+    /// Sets the `protect_content` parameter.
     pub fn protect_content(mut self, val: bool) -> Self {
         self.protect_content = Some(val);
         self
     }
+    /// Sets the `reply_parameters` parameter.
     pub fn reply_parameters(mut self, val: reply::ReplyParameters) -> Self {
         self.reply_parameters = Some(val);
         self
     }
+    /// Sets the `reply_markup` parameter.
     pub fn reply_markup(mut self, val: serde_json::Value) -> Self {
         self.reply_markup = Some(val);
         self
     }
+    /// Sets the `message_thread_id` parameter.
     pub fn message_thread_id(mut self, val: i64) -> Self {
         self.message_thread_id = Some(val);
         self
     }
+    /// Sets the `business_connection_id` parameter.
     pub fn business_connection_id(mut self, val: impl Into<String>) -> Self {
         self.business_connection_id = Some(val.into());
         self
     }
+    /// Sets the `message_effect_id` parameter.
     pub fn message_effect_id(mut self, val: impl Into<String>) -> Self {
         self.message_effect_id = Some(val.into());
         self
     }
+    /// Sets the `allow_paid_broadcast` parameter.
     pub fn allow_paid_broadcast(mut self, val: bool) -> Self {
         self.allow_paid_broadcast = Some(val);
         self
     }
+    /// Sets the `direct_messages_topic_id` parameter.
     pub fn direct_messages_topic_id(mut self, val: i64) -> Self {
         self.direct_messages_topic_id = Some(val);
         self
     }
+    /// Sets the `suggested_post_parameters` parameter.
     pub fn suggested_post_parameters(
         mut self,
         val: suggested_post::SuggestedPostParameters,
@@ -447,6 +495,7 @@ impl<'a> SendDocumentBuilder<'a> {
         self
     }
 
+    /// Sends the request to the Telegram Bot API.
     pub async fn send(self) -> Result<message::Message> {
         let mut params = vec![
             RequestParameter::new("chat_id", serde_json::to_value(&self.chat_id)?),
@@ -501,6 +550,7 @@ impl_into_future!(SendDocumentBuilder, message::Message);
 // SendVideoBuilder
 // =========================================================================
 
+/// Builder for the [`sendVideo`] API method.
 pub struct SendVideoBuilder<'a> {
     bot: &'a Bot,
     chat_id: ChatId,
@@ -530,90 +580,112 @@ pub struct SendVideoBuilder<'a> {
 }
 
 impl<'a> SendVideoBuilder<'a> {
+    /// Sets the `duration` parameter.
     pub fn duration(mut self, val: i64) -> Self {
         self.duration = Some(val);
         self
     }
+    /// Sets the `width` parameter.
     pub fn width(mut self, val: i64) -> Self {
         self.width = Some(val);
         self
     }
+    /// Sets the `height` parameter.
     pub fn height(mut self, val: i64) -> Self {
         self.height = Some(val);
         self
     }
+    /// Sets the `caption` parameter.
     pub fn caption(mut self, val: impl Into<String>) -> Self {
         self.caption = Some(val.into());
         self
     }
+    /// Sets the `parse_mode` parameter.
     pub fn parse_mode(mut self, val: impl Into<String>) -> Self {
         self.parse_mode = Some(val.into());
         self
     }
+    /// Sets the `caption_entities` parameter.
     pub fn caption_entities(mut self, val: Vec<message_entity::MessageEntity>) -> Self {
         self.caption_entities = Some(val);
         self
     }
+    /// Sets the `supports_streaming` parameter.
     pub fn supports_streaming(mut self, val: bool) -> Self {
         self.supports_streaming = Some(val);
         self
     }
+    /// Sets the `thumbnail` parameter.
     pub fn thumbnail(mut self, val: files::input_file::InputFile) -> Self {
         self.thumbnail = Some(val);
         self
     }
+    /// Sets the `has_spoiler` parameter.
     pub fn has_spoiler(mut self, val: bool) -> Self {
         self.has_spoiler = Some(val);
         self
     }
+    /// Sets the `show_caption_above_media` parameter.
     pub fn show_caption_above_media(mut self, val: bool) -> Self {
         self.show_caption_above_media = Some(val);
         self
     }
+    /// Sets the `cover` parameter.
     pub fn cover(mut self, val: files::input_file::InputFile) -> Self {
         self.cover = Some(val);
         self
     }
+    /// Sets the `start_timestamp` parameter.
     pub fn start_timestamp(mut self, val: i64) -> Self {
         self.start_timestamp = Some(val);
         self
     }
+    /// Sets the `disable_notification` parameter.
     pub fn disable_notification(mut self, val: bool) -> Self {
         self.disable_notification = Some(val);
         self
     }
+    /// Sets the `protect_content` parameter.
     pub fn protect_content(mut self, val: bool) -> Self {
         self.protect_content = Some(val);
         self
     }
+    /// Sets the `reply_parameters` parameter.
     pub fn reply_parameters(mut self, val: reply::ReplyParameters) -> Self {
         self.reply_parameters = Some(val);
         self
     }
+    /// Sets the `reply_markup` parameter.
     pub fn reply_markup(mut self, val: serde_json::Value) -> Self {
         self.reply_markup = Some(val);
         self
     }
+    /// Sets the `message_thread_id` parameter.
     pub fn message_thread_id(mut self, val: i64) -> Self {
         self.message_thread_id = Some(val);
         self
     }
+    /// Sets the `business_connection_id` parameter.
     pub fn business_connection_id(mut self, val: impl Into<String>) -> Self {
         self.business_connection_id = Some(val.into());
         self
     }
+    /// Sets the `message_effect_id` parameter.
     pub fn message_effect_id(mut self, val: impl Into<String>) -> Self {
         self.message_effect_id = Some(val.into());
         self
     }
+    /// Sets the `allow_paid_broadcast` parameter.
     pub fn allow_paid_broadcast(mut self, val: bool) -> Self {
         self.allow_paid_broadcast = Some(val);
         self
     }
+    /// Sets the `direct_messages_topic_id` parameter.
     pub fn direct_messages_topic_id(mut self, val: i64) -> Self {
         self.direct_messages_topic_id = Some(val);
         self
     }
+    /// Sets the `suggested_post_parameters` parameter.
     pub fn suggested_post_parameters(
         mut self,
         val: suggested_post::SuggestedPostParameters,
@@ -622,6 +694,7 @@ impl<'a> SendVideoBuilder<'a> {
         self
     }
 
+    /// Sends the request to the Telegram Bot API.
     pub async fn send(self) -> Result<message::Message> {
         let mut params = vec![
             RequestParameter::new("chat_id", serde_json::to_value(&self.chat_id)?),
@@ -683,6 +756,7 @@ impl_into_future!(SendVideoBuilder, message::Message);
 // SendAudioBuilder
 // =========================================================================
 
+/// Builder for the [`sendAudio`] API method.
 pub struct SendAudioBuilder<'a> {
     bot: &'a Bot,
     chat_id: ChatId,
@@ -707,70 +781,87 @@ pub struct SendAudioBuilder<'a> {
 }
 
 impl<'a> SendAudioBuilder<'a> {
+    /// Sets the `caption` parameter.
     pub fn caption(mut self, val: impl Into<String>) -> Self {
         self.caption = Some(val.into());
         self
     }
+    /// Sets the `parse_mode` parameter.
     pub fn parse_mode(mut self, val: impl Into<String>) -> Self {
         self.parse_mode = Some(val.into());
         self
     }
+    /// Sets the `caption_entities` parameter.
     pub fn caption_entities(mut self, val: Vec<message_entity::MessageEntity>) -> Self {
         self.caption_entities = Some(val);
         self
     }
+    /// Sets the `duration` parameter.
     pub fn duration(mut self, val: i64) -> Self {
         self.duration = Some(val);
         self
     }
+    /// Sets the `performer` parameter.
     pub fn performer(mut self, val: impl Into<String>) -> Self {
         self.performer = Some(val.into());
         self
     }
+    /// Sets the `title` parameter.
     pub fn title(mut self, val: impl Into<String>) -> Self {
         self.title = Some(val.into());
         self
     }
+    /// Sets the `thumbnail` parameter.
     pub fn thumbnail(mut self, val: files::input_file::InputFile) -> Self {
         self.thumbnail = Some(val);
         self
     }
+    /// Sets the `disable_notification` parameter.
     pub fn disable_notification(mut self, val: bool) -> Self {
         self.disable_notification = Some(val);
         self
     }
+    /// Sets the `protect_content` parameter.
     pub fn protect_content(mut self, val: bool) -> Self {
         self.protect_content = Some(val);
         self
     }
+    /// Sets the `reply_parameters` parameter.
     pub fn reply_parameters(mut self, val: reply::ReplyParameters) -> Self {
         self.reply_parameters = Some(val);
         self
     }
+    /// Sets the `reply_markup` parameter.
     pub fn reply_markup(mut self, val: serde_json::Value) -> Self {
         self.reply_markup = Some(val);
         self
     }
+    /// Sets the `message_thread_id` parameter.
     pub fn message_thread_id(mut self, val: i64) -> Self {
         self.message_thread_id = Some(val);
         self
     }
+    /// Sets the `business_connection_id` parameter.
     pub fn business_connection_id(mut self, val: impl Into<String>) -> Self {
         self.business_connection_id = Some(val.into());
         self
     }
+    /// Sets the `message_effect_id` parameter.
     pub fn message_effect_id(mut self, val: impl Into<String>) -> Self {
         self.message_effect_id = Some(val.into());
         self
     }
+    /// Sets the `allow_paid_broadcast` parameter.
     pub fn allow_paid_broadcast(mut self, val: bool) -> Self {
         self.allow_paid_broadcast = Some(val);
         self
     }
+    /// Sets the `direct_messages_topic_id` parameter.
     pub fn direct_messages_topic_id(mut self, val: i64) -> Self {
         self.direct_messages_topic_id = Some(val);
         self
     }
+    /// Sets the `suggested_post_parameters` parameter.
     pub fn suggested_post_parameters(
         mut self,
         val: suggested_post::SuggestedPostParameters,
@@ -779,6 +870,7 @@ impl<'a> SendAudioBuilder<'a> {
         self
     }
 
+    /// Sends the request to the Telegram Bot API.
     pub async fn send(self) -> Result<message::Message> {
         let mut params = vec![
             RequestParameter::new("chat_id", serde_json::to_value(&self.chat_id)?),
@@ -831,6 +923,7 @@ impl_into_future!(SendAudioBuilder, message::Message);
 // SendAnimationBuilder
 // =========================================================================
 
+/// Builder for the [`sendAnimation`] API method.
 pub struct SendAnimationBuilder<'a> {
     bot: &'a Bot,
     chat_id: ChatId,
@@ -857,78 +950,97 @@ pub struct SendAnimationBuilder<'a> {
 }
 
 impl<'a> SendAnimationBuilder<'a> {
+    /// Sets the `duration` parameter.
     pub fn duration(mut self, val: i64) -> Self {
         self.duration = Some(val);
         self
     }
+    /// Sets the `width` parameter.
     pub fn width(mut self, val: i64) -> Self {
         self.width = Some(val);
         self
     }
+    /// Sets the `height` parameter.
     pub fn height(mut self, val: i64) -> Self {
         self.height = Some(val);
         self
     }
+    /// Sets the `caption` parameter.
     pub fn caption(mut self, val: impl Into<String>) -> Self {
         self.caption = Some(val.into());
         self
     }
+    /// Sets the `parse_mode` parameter.
     pub fn parse_mode(mut self, val: impl Into<String>) -> Self {
         self.parse_mode = Some(val.into());
         self
     }
+    /// Sets the `caption_entities` parameter.
     pub fn caption_entities(mut self, val: Vec<message_entity::MessageEntity>) -> Self {
         self.caption_entities = Some(val);
         self
     }
+    /// Sets the `thumbnail` parameter.
     pub fn thumbnail(mut self, val: files::input_file::InputFile) -> Self {
         self.thumbnail = Some(val);
         self
     }
+    /// Sets the `has_spoiler` parameter.
     pub fn has_spoiler(mut self, val: bool) -> Self {
         self.has_spoiler = Some(val);
         self
     }
+    /// Sets the `show_caption_above_media` parameter.
     pub fn show_caption_above_media(mut self, val: bool) -> Self {
         self.show_caption_above_media = Some(val);
         self
     }
+    /// Sets the `disable_notification` parameter.
     pub fn disable_notification(mut self, val: bool) -> Self {
         self.disable_notification = Some(val);
         self
     }
+    /// Sets the `protect_content` parameter.
     pub fn protect_content(mut self, val: bool) -> Self {
         self.protect_content = Some(val);
         self
     }
+    /// Sets the `reply_parameters` parameter.
     pub fn reply_parameters(mut self, val: reply::ReplyParameters) -> Self {
         self.reply_parameters = Some(val);
         self
     }
+    /// Sets the `reply_markup` parameter.
     pub fn reply_markup(mut self, val: serde_json::Value) -> Self {
         self.reply_markup = Some(val);
         self
     }
+    /// Sets the `message_thread_id` parameter.
     pub fn message_thread_id(mut self, val: i64) -> Self {
         self.message_thread_id = Some(val);
         self
     }
+    /// Sets the `business_connection_id` parameter.
     pub fn business_connection_id(mut self, val: impl Into<String>) -> Self {
         self.business_connection_id = Some(val.into());
         self
     }
+    /// Sets the `message_effect_id` parameter.
     pub fn message_effect_id(mut self, val: impl Into<String>) -> Self {
         self.message_effect_id = Some(val.into());
         self
     }
+    /// Sets the `allow_paid_broadcast` parameter.
     pub fn allow_paid_broadcast(mut self, val: bool) -> Self {
         self.allow_paid_broadcast = Some(val);
         self
     }
+    /// Sets the `direct_messages_topic_id` parameter.
     pub fn direct_messages_topic_id(mut self, val: i64) -> Self {
         self.direct_messages_topic_id = Some(val);
         self
     }
+    /// Sets the `suggested_post_parameters` parameter.
     pub fn suggested_post_parameters(
         mut self,
         val: suggested_post::SuggestedPostParameters,
@@ -937,6 +1049,7 @@ impl<'a> SendAnimationBuilder<'a> {
         self
     }
 
+    /// Sends the request to the Telegram Bot API.
     pub async fn send(self) -> Result<message::Message> {
         let mut params = vec![
             RequestParameter::new("chat_id", serde_json::to_value(&self.chat_id)?),
@@ -995,6 +1108,7 @@ impl_into_future!(SendAnimationBuilder, message::Message);
 // SendVoiceBuilder
 // =========================================================================
 
+/// Builder for the [`sendVoice`] API method.
 pub struct SendVoiceBuilder<'a> {
     bot: &'a Bot,
     chat_id: ChatId,
@@ -1016,58 +1130,72 @@ pub struct SendVoiceBuilder<'a> {
 }
 
 impl<'a> SendVoiceBuilder<'a> {
+    /// Sets the `caption` parameter.
     pub fn caption(mut self, val: impl Into<String>) -> Self {
         self.caption = Some(val.into());
         self
     }
+    /// Sets the `parse_mode` parameter.
     pub fn parse_mode(mut self, val: impl Into<String>) -> Self {
         self.parse_mode = Some(val.into());
         self
     }
+    /// Sets the `caption_entities` parameter.
     pub fn caption_entities(mut self, val: Vec<message_entity::MessageEntity>) -> Self {
         self.caption_entities = Some(val);
         self
     }
+    /// Sets the `duration` parameter.
     pub fn duration(mut self, val: i64) -> Self {
         self.duration = Some(val);
         self
     }
+    /// Sets the `disable_notification` parameter.
     pub fn disable_notification(mut self, val: bool) -> Self {
         self.disable_notification = Some(val);
         self
     }
+    /// Sets the `protect_content` parameter.
     pub fn protect_content(mut self, val: bool) -> Self {
         self.protect_content = Some(val);
         self
     }
+    /// Sets the `reply_parameters` parameter.
     pub fn reply_parameters(mut self, val: reply::ReplyParameters) -> Self {
         self.reply_parameters = Some(val);
         self
     }
+    /// Sets the `reply_markup` parameter.
     pub fn reply_markup(mut self, val: serde_json::Value) -> Self {
         self.reply_markup = Some(val);
         self
     }
+    /// Sets the `message_thread_id` parameter.
     pub fn message_thread_id(mut self, val: i64) -> Self {
         self.message_thread_id = Some(val);
         self
     }
+    /// Sets the `business_connection_id` parameter.
     pub fn business_connection_id(mut self, val: impl Into<String>) -> Self {
         self.business_connection_id = Some(val.into());
         self
     }
+    /// Sets the `message_effect_id` parameter.
     pub fn message_effect_id(mut self, val: impl Into<String>) -> Self {
         self.message_effect_id = Some(val.into());
         self
     }
+    /// Sets the `allow_paid_broadcast` parameter.
     pub fn allow_paid_broadcast(mut self, val: bool) -> Self {
         self.allow_paid_broadcast = Some(val);
         self
     }
+    /// Sets the `direct_messages_topic_id` parameter.
     pub fn direct_messages_topic_id(mut self, val: i64) -> Self {
         self.direct_messages_topic_id = Some(val);
         self
     }
+    /// Sets the `suggested_post_parameters` parameter.
     pub fn suggested_post_parameters(
         mut self,
         val: suggested_post::SuggestedPostParameters,
@@ -1076,6 +1204,7 @@ impl<'a> SendVoiceBuilder<'a> {
         self
     }
 
+    /// Sends the request to the Telegram Bot API.
     pub async fn send(self) -> Result<message::Message> {
         let mut params = vec![
             RequestParameter::new("chat_id", serde_json::to_value(&self.chat_id)?),
@@ -1125,6 +1254,7 @@ impl_into_future!(SendVoiceBuilder, message::Message);
 // SendVideoNoteBuilder
 // =========================================================================
 
+/// Builder for the [`sendVideoNote`] API method.
 pub struct SendVideoNoteBuilder<'a> {
     bot: &'a Bot,
     chat_id: ChatId,
@@ -1145,54 +1275,67 @@ pub struct SendVideoNoteBuilder<'a> {
 }
 
 impl<'a> SendVideoNoteBuilder<'a> {
+    /// Sets the `duration` parameter.
     pub fn duration(mut self, val: i64) -> Self {
         self.duration = Some(val);
         self
     }
+    /// Sets the `length` parameter.
     pub fn length(mut self, val: i64) -> Self {
         self.length = Some(val);
         self
     }
+    /// Sets the `thumbnail` parameter.
     pub fn thumbnail(mut self, val: files::input_file::InputFile) -> Self {
         self.thumbnail = Some(val);
         self
     }
+    /// Sets the `disable_notification` parameter.
     pub fn disable_notification(mut self, val: bool) -> Self {
         self.disable_notification = Some(val);
         self
     }
+    /// Sets the `protect_content` parameter.
     pub fn protect_content(mut self, val: bool) -> Self {
         self.protect_content = Some(val);
         self
     }
+    /// Sets the `reply_parameters` parameter.
     pub fn reply_parameters(mut self, val: reply::ReplyParameters) -> Self {
         self.reply_parameters = Some(val);
         self
     }
+    /// Sets the `reply_markup` parameter.
     pub fn reply_markup(mut self, val: serde_json::Value) -> Self {
         self.reply_markup = Some(val);
         self
     }
+    /// Sets the `message_thread_id` parameter.
     pub fn message_thread_id(mut self, val: i64) -> Self {
         self.message_thread_id = Some(val);
         self
     }
+    /// Sets the `business_connection_id` parameter.
     pub fn business_connection_id(mut self, val: impl Into<String>) -> Self {
         self.business_connection_id = Some(val.into());
         self
     }
+    /// Sets the `message_effect_id` parameter.
     pub fn message_effect_id(mut self, val: impl Into<String>) -> Self {
         self.message_effect_id = Some(val.into());
         self
     }
+    /// Sets the `allow_paid_broadcast` parameter.
     pub fn allow_paid_broadcast(mut self, val: bool) -> Self {
         self.allow_paid_broadcast = Some(val);
         self
     }
+    /// Sets the `direct_messages_topic_id` parameter.
     pub fn direct_messages_topic_id(mut self, val: i64) -> Self {
         self.direct_messages_topic_id = Some(val);
         self
     }
+    /// Sets the `suggested_post_parameters` parameter.
     pub fn suggested_post_parameters(
         mut self,
         val: suggested_post::SuggestedPostParameters,
@@ -1201,6 +1344,7 @@ impl<'a> SendVideoNoteBuilder<'a> {
         self
     }
 
+    /// Sends the request to the Telegram Bot API.
     pub async fn send(self) -> Result<message::Message> {
         let mut params = vec![
             RequestParameter::new("chat_id", serde_json::to_value(&self.chat_id)?),
@@ -1249,6 +1393,7 @@ impl_into_future!(SendVideoNoteBuilder, message::Message);
 // SendLocationBuilder
 // =========================================================================
 
+/// Builder for the [`sendLocation`] API method.
 #[derive(Serialize)]
 pub struct SendLocationBuilder<'a> {
     #[serde(skip)]
@@ -1287,58 +1432,72 @@ pub struct SendLocationBuilder<'a> {
 }
 
 impl<'a> SendLocationBuilder<'a> {
+    /// Sets the `horizontal_accuracy` parameter.
     pub fn horizontal_accuracy(mut self, val: f64) -> Self {
         self.horizontal_accuracy = Some(val);
         self
     }
+    /// Sets the `live_period` parameter.
     pub fn live_period(mut self, val: i64) -> Self {
         self.live_period = Some(val);
         self
     }
+    /// Sets the `heading` parameter.
     pub fn heading(mut self, val: i64) -> Self {
         self.heading = Some(val);
         self
     }
+    /// Sets the `proximity_alert_radius` parameter.
     pub fn proximity_alert_radius(mut self, val: i64) -> Self {
         self.proximity_alert_radius = Some(val);
         self
     }
+    /// Sets the `disable_notification` parameter.
     pub fn disable_notification(mut self, val: bool) -> Self {
         self.disable_notification = Some(val);
         self
     }
+    /// Sets the `protect_content` parameter.
     pub fn protect_content(mut self, val: bool) -> Self {
         self.protect_content = Some(val);
         self
     }
+    /// Sets the `reply_parameters` parameter.
     pub fn reply_parameters(mut self, val: reply::ReplyParameters) -> Self {
         self.reply_parameters = Some(val);
         self
     }
+    /// Sets the `reply_markup` parameter.
     pub fn reply_markup(mut self, val: serde_json::Value) -> Self {
         self.reply_markup = Some(val);
         self
     }
+    /// Sets the `message_thread_id` parameter.
     pub fn message_thread_id(mut self, val: i64) -> Self {
         self.message_thread_id = Some(val);
         self
     }
+    /// Sets the `business_connection_id` parameter.
     pub fn business_connection_id(mut self, val: impl Into<String>) -> Self {
         self.business_connection_id = Some(val.into());
         self
     }
+    /// Sets the `message_effect_id` parameter.
     pub fn message_effect_id(mut self, val: impl Into<String>) -> Self {
         self.message_effect_id = Some(val.into());
         self
     }
+    /// Sets the `allow_paid_broadcast` parameter.
     pub fn allow_paid_broadcast(mut self, val: bool) -> Self {
         self.allow_paid_broadcast = Some(val);
         self
     }
+    /// Sets the `direct_messages_topic_id` parameter.
     pub fn direct_messages_topic_id(mut self, val: i64) -> Self {
         self.direct_messages_topic_id = Some(val);
         self
     }
+    /// Sets the `suggested_post_parameters` parameter.
     pub fn suggested_post_parameters(
         mut self,
         val: suggested_post::SuggestedPostParameters,
@@ -1347,6 +1506,7 @@ impl<'a> SendLocationBuilder<'a> {
         self
     }
 
+    /// Sends the request to the Telegram Bot API.
     pub async fn send(self) -> Result<message::Message> {
         let payload = serde_json::to_vec(&self)?;
         self.bot.do_post_json("sendLocation", &payload).await
@@ -1359,6 +1519,7 @@ impl_into_future!(SendLocationBuilder, message::Message);
 // SendVenueBuilder
 // =========================================================================
 
+/// Builder for the [`sendVenue`] API method.
 #[derive(Serialize)]
 pub struct SendVenueBuilder<'a> {
     #[serde(skip)]
@@ -1399,58 +1560,72 @@ pub struct SendVenueBuilder<'a> {
 }
 
 impl<'a> SendVenueBuilder<'a> {
+    /// Sets the `foursquare_id` parameter.
     pub fn foursquare_id(mut self, val: impl Into<String>) -> Self {
         self.foursquare_id = Some(val.into());
         self
     }
+    /// Sets the `foursquare_type` parameter.
     pub fn foursquare_type(mut self, val: impl Into<String>) -> Self {
         self.foursquare_type = Some(val.into());
         self
     }
+    /// Sets the `google_place_id` parameter.
     pub fn google_place_id(mut self, val: impl Into<String>) -> Self {
         self.google_place_id = Some(val.into());
         self
     }
+    /// Sets the `google_place_type` parameter.
     pub fn google_place_type(mut self, val: impl Into<String>) -> Self {
         self.google_place_type = Some(val.into());
         self
     }
+    /// Sets the `disable_notification` parameter.
     pub fn disable_notification(mut self, val: bool) -> Self {
         self.disable_notification = Some(val);
         self
     }
+    /// Sets the `protect_content` parameter.
     pub fn protect_content(mut self, val: bool) -> Self {
         self.protect_content = Some(val);
         self
     }
+    /// Sets the `reply_parameters` parameter.
     pub fn reply_parameters(mut self, val: reply::ReplyParameters) -> Self {
         self.reply_parameters = Some(val);
         self
     }
+    /// Sets the `reply_markup` parameter.
     pub fn reply_markup(mut self, val: serde_json::Value) -> Self {
         self.reply_markup = Some(val);
         self
     }
+    /// Sets the `message_thread_id` parameter.
     pub fn message_thread_id(mut self, val: i64) -> Self {
         self.message_thread_id = Some(val);
         self
     }
+    /// Sets the `business_connection_id` parameter.
     pub fn business_connection_id(mut self, val: impl Into<String>) -> Self {
         self.business_connection_id = Some(val.into());
         self
     }
+    /// Sets the `message_effect_id` parameter.
     pub fn message_effect_id(mut self, val: impl Into<String>) -> Self {
         self.message_effect_id = Some(val.into());
         self
     }
+    /// Sets the `allow_paid_broadcast` parameter.
     pub fn allow_paid_broadcast(mut self, val: bool) -> Self {
         self.allow_paid_broadcast = Some(val);
         self
     }
+    /// Sets the `direct_messages_topic_id` parameter.
     pub fn direct_messages_topic_id(mut self, val: i64) -> Self {
         self.direct_messages_topic_id = Some(val);
         self
     }
+    /// Sets the `suggested_post_parameters` parameter.
     pub fn suggested_post_parameters(
         mut self,
         val: suggested_post::SuggestedPostParameters,
@@ -1459,6 +1634,7 @@ impl<'a> SendVenueBuilder<'a> {
         self
     }
 
+    /// Sends the request to the Telegram Bot API.
     pub async fn send(self) -> Result<message::Message> {
         let payload = serde_json::to_vec(&self)?;
         self.bot.do_post_json("sendVenue", &payload).await
@@ -1471,6 +1647,7 @@ impl_into_future!(SendVenueBuilder, message::Message);
 // SendContactBuilder
 // =========================================================================
 
+/// Builder for the [`sendContact`] API method.
 #[derive(Serialize)]
 pub struct SendContactBuilder<'a> {
     #[serde(skip)]
@@ -1505,50 +1682,62 @@ pub struct SendContactBuilder<'a> {
 }
 
 impl<'a> SendContactBuilder<'a> {
+    /// Sets the `last_name` parameter.
     pub fn last_name(mut self, val: impl Into<String>) -> Self {
         self.last_name = Some(val.into());
         self
     }
+    /// Sets the `vcard` parameter.
     pub fn vcard(mut self, val: impl Into<String>) -> Self {
         self.vcard = Some(val.into());
         self
     }
+    /// Sets the `disable_notification` parameter.
     pub fn disable_notification(mut self, val: bool) -> Self {
         self.disable_notification = Some(val);
         self
     }
+    /// Sets the `protect_content` parameter.
     pub fn protect_content(mut self, val: bool) -> Self {
         self.protect_content = Some(val);
         self
     }
+    /// Sets the `reply_parameters` parameter.
     pub fn reply_parameters(mut self, val: reply::ReplyParameters) -> Self {
         self.reply_parameters = Some(val);
         self
     }
+    /// Sets the `reply_markup` parameter.
     pub fn reply_markup(mut self, val: serde_json::Value) -> Self {
         self.reply_markup = Some(val);
         self
     }
+    /// Sets the `message_thread_id` parameter.
     pub fn message_thread_id(mut self, val: i64) -> Self {
         self.message_thread_id = Some(val);
         self
     }
+    /// Sets the `business_connection_id` parameter.
     pub fn business_connection_id(mut self, val: impl Into<String>) -> Self {
         self.business_connection_id = Some(val.into());
         self
     }
+    /// Sets the `message_effect_id` parameter.
     pub fn message_effect_id(mut self, val: impl Into<String>) -> Self {
         self.message_effect_id = Some(val.into());
         self
     }
+    /// Sets the `allow_paid_broadcast` parameter.
     pub fn allow_paid_broadcast(mut self, val: bool) -> Self {
         self.allow_paid_broadcast = Some(val);
         self
     }
+    /// Sets the `direct_messages_topic_id` parameter.
     pub fn direct_messages_topic_id(mut self, val: i64) -> Self {
         self.direct_messages_topic_id = Some(val);
         self
     }
+    /// Sets the `suggested_post_parameters` parameter.
     pub fn suggested_post_parameters(
         mut self,
         val: suggested_post::SuggestedPostParameters,
@@ -1557,6 +1746,7 @@ impl<'a> SendContactBuilder<'a> {
         self
     }
 
+    /// Sends the request to the Telegram Bot API.
     pub async fn send(self) -> Result<message::Message> {
         let payload = serde_json::to_vec(&self)?;
         self.bot.do_post_json("sendContact", &payload).await
@@ -1569,6 +1759,7 @@ impl_into_future!(SendContactBuilder, message::Message);
 // SendPollBuilder
 // =========================================================================
 
+/// Builder for the [`sendPoll`] API method.
 #[derive(Serialize)]
 pub struct SendPollBuilder<'a> {
     #[serde(skip)]
@@ -1623,90 +1814,112 @@ pub struct SendPollBuilder<'a> {
 }
 
 impl<'a> SendPollBuilder<'a> {
+    /// Sets the `is_anonymous` parameter.
     pub fn is_anonymous(mut self, val: bool) -> Self {
         self.is_anonymous = Some(val);
         self
     }
+    /// Sets the `poll_type` parameter.
     pub fn poll_type(mut self, val: impl Into<String>) -> Self {
         self.poll_type = Some(val.into());
         self
     }
+    /// Sets the `allows_multiple_answers` parameter.
     pub fn allows_multiple_answers(mut self, val: bool) -> Self {
         self.allows_multiple_answers = Some(val);
         self
     }
+    /// Sets the `correct_option_id` parameter.
     pub fn correct_option_id(mut self, val: i64) -> Self {
         self.correct_option_id = Some(val);
         self
     }
+    /// Sets the `explanation` parameter.
     pub fn explanation(mut self, val: impl Into<String>) -> Self {
         self.explanation = Some(val.into());
         self
     }
+    /// Sets the `explanation_parse_mode` parameter.
     pub fn explanation_parse_mode(mut self, val: impl Into<String>) -> Self {
         self.explanation_parse_mode = Some(val.into());
         self
     }
+    /// Sets the `explanation_entities` parameter.
     pub fn explanation_entities(mut self, val: Vec<message_entity::MessageEntity>) -> Self {
         self.explanation_entities = Some(val);
         self
     }
+    /// Sets the `open_period` parameter.
     pub fn open_period(mut self, val: i64) -> Self {
         self.open_period = Some(val);
         self
     }
+    /// Sets the `close_date` parameter.
     pub fn close_date(mut self, val: i64) -> Self {
         self.close_date = Some(val);
         self
     }
+    /// Sets the `is_closed` parameter.
     pub fn is_closed(mut self, val: bool) -> Self {
         self.is_closed = Some(val);
         self
     }
+    /// Sets the `disable_notification` parameter.
     pub fn disable_notification(mut self, val: bool) -> Self {
         self.disable_notification = Some(val);
         self
     }
+    /// Sets the `protect_content` parameter.
     pub fn protect_content(mut self, val: bool) -> Self {
         self.protect_content = Some(val);
         self
     }
+    /// Sets the `reply_parameters` parameter.
     pub fn reply_parameters(mut self, val: reply::ReplyParameters) -> Self {
         self.reply_parameters = Some(val);
         self
     }
+    /// Sets the `reply_markup` parameter.
     pub fn reply_markup(mut self, val: serde_json::Value) -> Self {
         self.reply_markup = Some(val);
         self
     }
+    /// Sets the `message_thread_id` parameter.
     pub fn message_thread_id(mut self, val: i64) -> Self {
         self.message_thread_id = Some(val);
         self
     }
+    /// Sets the `business_connection_id` parameter.
     pub fn business_connection_id(mut self, val: impl Into<String>) -> Self {
         self.business_connection_id = Some(val.into());
         self
     }
+    /// Sets the `question_parse_mode` parameter.
     pub fn question_parse_mode(mut self, val: impl Into<String>) -> Self {
         self.question_parse_mode = Some(val.into());
         self
     }
+    /// Sets the `question_entities` parameter.
     pub fn question_entities(mut self, val: Vec<message_entity::MessageEntity>) -> Self {
         self.question_entities = Some(val);
         self
     }
+    /// Sets the `message_effect_id` parameter.
     pub fn message_effect_id(mut self, val: impl Into<String>) -> Self {
         self.message_effect_id = Some(val.into());
         self
     }
+    /// Sets the `allow_paid_broadcast` parameter.
     pub fn allow_paid_broadcast(mut self, val: bool) -> Self {
         self.allow_paid_broadcast = Some(val);
         self
     }
+    /// Sets the `direct_messages_topic_id` parameter.
     pub fn direct_messages_topic_id(mut self, val: i64) -> Self {
         self.direct_messages_topic_id = Some(val);
         self
     }
+    /// Sets the `suggested_post_parameters` parameter.
     pub fn suggested_post_parameters(
         mut self,
         val: suggested_post::SuggestedPostParameters,
@@ -1715,6 +1928,7 @@ impl<'a> SendPollBuilder<'a> {
         self
     }
 
+    /// Sends the request to the Telegram Bot API.
     pub async fn send(self) -> Result<message::Message> {
         let payload = serde_json::to_vec(&self)?;
         self.bot.do_post_json("sendPoll", &payload).await
@@ -1727,6 +1941,7 @@ impl_into_future!(SendPollBuilder, message::Message);
 // SendDiceBuilder
 // =========================================================================
 
+/// Builder for the [`sendDice`] API method.
 #[derive(Serialize)]
 pub struct SendDiceBuilder<'a> {
     #[serde(skip)]
@@ -1757,46 +1972,57 @@ pub struct SendDiceBuilder<'a> {
 }
 
 impl<'a> SendDiceBuilder<'a> {
+    /// Sets the `emoji` parameter.
     pub fn emoji(mut self, val: impl Into<String>) -> Self {
         self.emoji = Some(val.into());
         self
     }
+    /// Sets the `disable_notification` parameter.
     pub fn disable_notification(mut self, val: bool) -> Self {
         self.disable_notification = Some(val);
         self
     }
+    /// Sets the `protect_content` parameter.
     pub fn protect_content(mut self, val: bool) -> Self {
         self.protect_content = Some(val);
         self
     }
+    /// Sets the `reply_parameters` parameter.
     pub fn reply_parameters(mut self, val: reply::ReplyParameters) -> Self {
         self.reply_parameters = Some(val);
         self
     }
+    /// Sets the `reply_markup` parameter.
     pub fn reply_markup(mut self, val: serde_json::Value) -> Self {
         self.reply_markup = Some(val);
         self
     }
+    /// Sets the `message_thread_id` parameter.
     pub fn message_thread_id(mut self, val: i64) -> Self {
         self.message_thread_id = Some(val);
         self
     }
+    /// Sets the `business_connection_id` parameter.
     pub fn business_connection_id(mut self, val: impl Into<String>) -> Self {
         self.business_connection_id = Some(val.into());
         self
     }
+    /// Sets the `message_effect_id` parameter.
     pub fn message_effect_id(mut self, val: impl Into<String>) -> Self {
         self.message_effect_id = Some(val.into());
         self
     }
+    /// Sets the `allow_paid_broadcast` parameter.
     pub fn allow_paid_broadcast(mut self, val: bool) -> Self {
         self.allow_paid_broadcast = Some(val);
         self
     }
+    /// Sets the `direct_messages_topic_id` parameter.
     pub fn direct_messages_topic_id(mut self, val: i64) -> Self {
         self.direct_messages_topic_id = Some(val);
         self
     }
+    /// Sets the `suggested_post_parameters` parameter.
     pub fn suggested_post_parameters(
         mut self,
         val: suggested_post::SuggestedPostParameters,
@@ -1805,6 +2031,7 @@ impl<'a> SendDiceBuilder<'a> {
         self
     }
 
+    /// Sends the request to the Telegram Bot API.
     pub async fn send(self) -> Result<message::Message> {
         let payload = serde_json::to_vec(&self)?;
         self.bot.do_post_json("sendDice", &payload).await
@@ -1817,6 +2044,7 @@ impl_into_future!(SendDiceBuilder, message::Message);
 // SendStickerBuilder
 // =========================================================================
 
+/// Builder for the [`sendSticker`] API method.
 pub struct SendStickerBuilder<'a> {
     bot: &'a Bot,
     chat_id: ChatId,
@@ -1835,46 +2063,57 @@ pub struct SendStickerBuilder<'a> {
 }
 
 impl<'a> SendStickerBuilder<'a> {
+    /// Sets the `emoji` parameter.
     pub fn emoji(mut self, val: impl Into<String>) -> Self {
         self.emoji = Some(val.into());
         self
     }
+    /// Sets the `disable_notification` parameter.
     pub fn disable_notification(mut self, val: bool) -> Self {
         self.disable_notification = Some(val);
         self
     }
+    /// Sets the `protect_content` parameter.
     pub fn protect_content(mut self, val: bool) -> Self {
         self.protect_content = Some(val);
         self
     }
+    /// Sets the `reply_parameters` parameter.
     pub fn reply_parameters(mut self, val: reply::ReplyParameters) -> Self {
         self.reply_parameters = Some(val);
         self
     }
+    /// Sets the `reply_markup` parameter.
     pub fn reply_markup(mut self, val: serde_json::Value) -> Self {
         self.reply_markup = Some(val);
         self
     }
+    /// Sets the `message_thread_id` parameter.
     pub fn message_thread_id(mut self, val: i64) -> Self {
         self.message_thread_id = Some(val);
         self
     }
+    /// Sets the `business_connection_id` parameter.
     pub fn business_connection_id(mut self, val: impl Into<String>) -> Self {
         self.business_connection_id = Some(val.into());
         self
     }
+    /// Sets the `message_effect_id` parameter.
     pub fn message_effect_id(mut self, val: impl Into<String>) -> Self {
         self.message_effect_id = Some(val.into());
         self
     }
+    /// Sets the `allow_paid_broadcast` parameter.
     pub fn allow_paid_broadcast(mut self, val: bool) -> Self {
         self.allow_paid_broadcast = Some(val);
         self
     }
+    /// Sets the `direct_messages_topic_id` parameter.
     pub fn direct_messages_topic_id(mut self, val: i64) -> Self {
         self.direct_messages_topic_id = Some(val);
         self
     }
+    /// Sets the `suggested_post_parameters` parameter.
     pub fn suggested_post_parameters(
         mut self,
         val: suggested_post::SuggestedPostParameters,
@@ -1883,6 +2122,7 @@ impl<'a> SendStickerBuilder<'a> {
         self
     }
 
+    /// Sends the request to the Telegram Bot API.
     pub async fn send(self) -> Result<message::Message> {
         let mut params = vec![
             RequestParameter::new("chat_id", serde_json::to_value(&self.chat_id)?),
@@ -1929,6 +2169,7 @@ impl_into_future!(SendStickerBuilder, message::Message);
 // EditMessageTextBuilder
 // =========================================================================
 
+/// Builder for the [`editMessageText`] API method.
 #[derive(Serialize)]
 pub struct EditMessageTextBuilder<'a> {
     #[serde(skip)]
@@ -1953,39 +2194,48 @@ pub struct EditMessageTextBuilder<'a> {
 }
 
 impl<'a> EditMessageTextBuilder<'a> {
+    /// Sets the `chat_id` parameter.
     pub fn chat_id(mut self, val: impl Into<ChatId>) -> Self {
         self.chat_id = Some(val.into());
         self
     }
+    /// Sets the `message_id` parameter.
     pub fn message_id(mut self, val: i64) -> Self {
         self.message_id = Some(val);
         self
     }
+    /// Sets the `inline_message_id` parameter.
     pub fn inline_message_id(mut self, val: impl Into<String>) -> Self {
         self.inline_message_id = Some(val.into());
         self
     }
+    /// Sets the `parse_mode` parameter.
     pub fn parse_mode(mut self, val: impl Into<String>) -> Self {
         self.parse_mode = Some(val.into());
         self
     }
+    /// Sets the `entities` parameter.
     pub fn entities(mut self, val: Vec<message_entity::MessageEntity>) -> Self {
         self.entities = Some(val);
         self
     }
+    /// Sets the `link_preview_options` parameter.
     pub fn link_preview_options(mut self, val: link_preview_options::LinkPreviewOptions) -> Self {
         self.link_preview_options = Some(val);
         self
     }
+    /// Sets the `reply_markup` parameter.
     pub fn reply_markup(mut self, val: serde_json::Value) -> Self {
         self.reply_markup = Some(val);
         self
     }
+    /// Sets the `business_connection_id` parameter.
     pub fn business_connection_id(mut self, val: impl Into<String>) -> Self {
         self.business_connection_id = Some(val.into());
         self
     }
 
+    /// Sends the request to the Telegram Bot API.
     pub async fn send(self) -> Result<MessageOrBool> {
         let payload = serde_json::to_vec(&self)?;
         self.bot.do_post_json("editMessageText", &payload).await
@@ -1998,6 +2248,7 @@ impl_into_future!(EditMessageTextBuilder, MessageOrBool);
 // EditMessageCaptionBuilder
 // =========================================================================
 
+/// Builder for the [`editMessageCaption`] API method.
 #[derive(Serialize)]
 pub struct EditMessageCaptionBuilder<'a> {
     #[serde(skip)]
@@ -2023,43 +2274,53 @@ pub struct EditMessageCaptionBuilder<'a> {
 }
 
 impl<'a> EditMessageCaptionBuilder<'a> {
+    /// Sets the `chat_id` parameter.
     pub fn chat_id(mut self, val: impl Into<ChatId>) -> Self {
         self.chat_id = Some(val.into());
         self
     }
+    /// Sets the `message_id` parameter.
     pub fn message_id(mut self, val: i64) -> Self {
         self.message_id = Some(val);
         self
     }
+    /// Sets the `inline_message_id` parameter.
     pub fn inline_message_id(mut self, val: impl Into<String>) -> Self {
         self.inline_message_id = Some(val.into());
         self
     }
+    /// Sets the `caption` parameter.
     pub fn caption(mut self, val: impl Into<String>) -> Self {
         self.caption = Some(val.into());
         self
     }
+    /// Sets the `parse_mode` parameter.
     pub fn parse_mode(mut self, val: impl Into<String>) -> Self {
         self.parse_mode = Some(val.into());
         self
     }
+    /// Sets the `caption_entities` parameter.
     pub fn caption_entities(mut self, val: Vec<message_entity::MessageEntity>) -> Self {
         self.caption_entities = Some(val);
         self
     }
+    /// Sets the `reply_markup` parameter.
     pub fn reply_markup(mut self, val: serde_json::Value) -> Self {
         self.reply_markup = Some(val);
         self
     }
+    /// Sets the `show_caption_above_media` parameter.
     pub fn show_caption_above_media(mut self, val: bool) -> Self {
         self.show_caption_above_media = Some(val);
         self
     }
+    /// Sets the `business_connection_id` parameter.
     pub fn business_connection_id(mut self, val: impl Into<String>) -> Self {
         self.business_connection_id = Some(val.into());
         self
     }
 
+    /// Sends the request to the Telegram Bot API.
     pub async fn send(self) -> Result<MessageOrBool> {
         let payload = serde_json::to_vec(&self)?;
         self.bot.do_post_json("editMessageCaption", &payload).await
@@ -2072,6 +2333,7 @@ impl_into_future!(EditMessageCaptionBuilder, MessageOrBool);
 // EditMessageMediaBuilder
 // =========================================================================
 
+/// Builder for the [`editMessageMedia`] API method.
 #[derive(Serialize)]
 pub struct EditMessageMediaBuilder<'a> {
     #[serde(skip)]
@@ -2090,27 +2352,33 @@ pub struct EditMessageMediaBuilder<'a> {
 }
 
 impl<'a> EditMessageMediaBuilder<'a> {
+    /// Sets the `chat_id` parameter.
     pub fn chat_id(mut self, val: impl Into<ChatId>) -> Self {
         self.chat_id = Some(val.into());
         self
     }
+    /// Sets the `message_id` parameter.
     pub fn message_id(mut self, val: i64) -> Self {
         self.message_id = Some(val);
         self
     }
+    /// Sets the `inline_message_id` parameter.
     pub fn inline_message_id(mut self, val: impl Into<String>) -> Self {
         self.inline_message_id = Some(val.into());
         self
     }
+    /// Sets the `reply_markup` parameter.
     pub fn reply_markup(mut self, val: serde_json::Value) -> Self {
         self.reply_markup = Some(val);
         self
     }
+    /// Sets the `business_connection_id` parameter.
     pub fn business_connection_id(mut self, val: impl Into<String>) -> Self {
         self.business_connection_id = Some(val.into());
         self
     }
 
+    /// Sends the request to the Telegram Bot API.
     pub async fn send(self) -> Result<MessageOrBool> {
         let payload = serde_json::to_vec(&self)?;
         self.bot.do_post_json("editMessageMedia", &payload).await
@@ -2123,6 +2391,7 @@ impl_into_future!(EditMessageMediaBuilder, MessageOrBool);
 // EditMessageReplyMarkupBuilder
 // =========================================================================
 
+/// Builder for the [`editMessageReplyMarkup`] API method.
 #[derive(Serialize)]
 pub struct EditMessageReplyMarkupBuilder<'a> {
     #[serde(skip)]
@@ -2140,27 +2409,33 @@ pub struct EditMessageReplyMarkupBuilder<'a> {
 }
 
 impl<'a> EditMessageReplyMarkupBuilder<'a> {
+    /// Sets the `chat_id` parameter.
     pub fn chat_id(mut self, val: impl Into<ChatId>) -> Self {
         self.chat_id = Some(val.into());
         self
     }
+    /// Sets the `message_id` parameter.
     pub fn message_id(mut self, val: i64) -> Self {
         self.message_id = Some(val);
         self
     }
+    /// Sets the `inline_message_id` parameter.
     pub fn inline_message_id(mut self, val: impl Into<String>) -> Self {
         self.inline_message_id = Some(val.into());
         self
     }
+    /// Sets the `reply_markup` parameter.
     pub fn reply_markup(mut self, val: serde_json::Value) -> Self {
         self.reply_markup = Some(val);
         self
     }
+    /// Sets the `business_connection_id` parameter.
     pub fn business_connection_id(mut self, val: impl Into<String>) -> Self {
         self.business_connection_id = Some(val.into());
         self
     }
 
+    /// Sends the request to the Telegram Bot API.
     pub async fn send(self) -> Result<MessageOrBool> {
         let payload = serde_json::to_vec(&self)?;
         self.bot
@@ -2175,6 +2450,7 @@ impl_into_future!(EditMessageReplyMarkupBuilder, MessageOrBool);
 // AnswerCallbackQueryBuilder
 // =========================================================================
 
+/// Builder for the [`answerCallbackQuery`] API method.
 #[derive(Serialize)]
 pub struct AnswerCallbackQueryBuilder<'a> {
     #[serde(skip)]
@@ -2191,23 +2467,28 @@ pub struct AnswerCallbackQueryBuilder<'a> {
 }
 
 impl<'a> AnswerCallbackQueryBuilder<'a> {
+    /// Sets the `text` parameter.
     pub fn text(mut self, val: impl Into<String>) -> Self {
         self.text = Some(val.into());
         self
     }
+    /// Sets the `show_alert` parameter.
     pub fn show_alert(mut self, val: bool) -> Self {
         self.show_alert = Some(val);
         self
     }
+    /// Sets the `url` parameter.
     pub fn url(mut self, val: impl Into<String>) -> Self {
         self.url = Some(val.into());
         self
     }
+    /// Sets the `cache_time` parameter.
     pub fn cache_time(mut self, val: i64) -> Self {
         self.cache_time = Some(val);
         self
     }
 
+    /// Sends the request to the Telegram Bot API.
     pub async fn send(self) -> Result<bool> {
         let payload = serde_json::to_vec(&self)?;
         self.bot.do_post_json("answerCallbackQuery", &payload).await
@@ -2220,6 +2501,7 @@ impl_into_future!(AnswerCallbackQueryBuilder, bool);
 // AnswerInlineQueryBuilder
 // =========================================================================
 
+/// Builder for the [`answerInlineQuery`] API method.
 #[derive(Serialize)]
 pub struct AnswerInlineQueryBuilder<'a> {
     #[serde(skip)]
@@ -2237,23 +2519,28 @@ pub struct AnswerInlineQueryBuilder<'a> {
 }
 
 impl<'a> AnswerInlineQueryBuilder<'a> {
+    /// Sets the `cache_time` parameter.
     pub fn cache_time(mut self, val: i64) -> Self {
         self.cache_time = Some(val);
         self
     }
+    /// Sets the `is_personal` parameter.
     pub fn is_personal(mut self, val: bool) -> Self {
         self.is_personal = Some(val);
         self
     }
+    /// Sets the `next_offset` parameter.
     pub fn next_offset(mut self, val: impl Into<String>) -> Self {
         self.next_offset = Some(val.into());
         self
     }
+    /// Sets the `button` parameter.
     pub fn button(mut self, val: serde_json::Value) -> Self {
         self.button = Some(val);
         self
     }
 
+    /// Sends the request to the Telegram Bot API.
     pub async fn send(self) -> Result<bool> {
         let payload = serde_json::to_vec(&self)?;
         self.bot.do_post_json("answerInlineQuery", &payload).await
@@ -2266,6 +2553,7 @@ impl_into_future!(AnswerInlineQueryBuilder, bool);
 // SetWebhookBuilder
 // =========================================================================
 
+/// Builder for the [`setWebhook`] API method.
 pub struct SetWebhookBuilder<'a> {
     bot: &'a Bot,
     url: String,
@@ -2278,31 +2566,38 @@ pub struct SetWebhookBuilder<'a> {
 }
 
 impl<'a> SetWebhookBuilder<'a> {
+    /// Sets the `certificate` parameter.
     pub fn certificate(mut self, val: files::input_file::InputFile) -> Self {
         self.certificate = Some(val);
         self
     }
+    /// Sets the `ip_address` parameter.
     pub fn ip_address(mut self, val: impl Into<String>) -> Self {
         self.ip_address = Some(val.into());
         self
     }
+    /// Sets the `max_connections` parameter.
     pub fn max_connections(mut self, val: i32) -> Self {
         self.max_connections = Some(val);
         self
     }
+    /// Sets the `allowed_updates` parameter.
     pub fn allowed_updates(mut self, val: Vec<String>) -> Self {
         self.allowed_updates = Some(val);
         self
     }
+    /// Sets the `drop_pending_updates` parameter.
     pub fn drop_pending_updates(mut self, val: bool) -> Self {
         self.drop_pending_updates = Some(val);
         self
     }
+    /// Sets the `secret_token` parameter.
     pub fn secret_token(mut self, val: impl Into<String>) -> Self {
         self.secret_token = Some(val.into());
         self
     }
 
+    /// Sends the request to the Telegram Bot API.
     pub async fn send(self) -> Result<bool> {
         let mut params = vec![RequestParameter::new(
             "url",
@@ -2328,6 +2623,7 @@ impl_into_future!(SetWebhookBuilder, bool);
 // DeleteWebhookBuilder
 // =========================================================================
 
+/// Builder for the [`deleteWebhook`] API method.
 #[derive(Serialize)]
 pub struct DeleteWebhookBuilder<'a> {
     #[serde(skip)]
@@ -2337,11 +2633,13 @@ pub struct DeleteWebhookBuilder<'a> {
 }
 
 impl<'a> DeleteWebhookBuilder<'a> {
+    /// Sets the `drop_pending_updates` parameter.
     pub fn drop_pending_updates(mut self, val: bool) -> Self {
         self.drop_pending_updates = Some(val);
         self
     }
 
+    /// Sends the request to the Telegram Bot API.
     pub async fn send(self) -> Result<bool> {
         let payload = serde_json::to_vec(&self)?;
         self.bot.do_post_json("deleteWebhook", &payload).await
@@ -2354,6 +2652,7 @@ impl_into_future!(DeleteWebhookBuilder, bool);
 // GetFileBuilder
 // =========================================================================
 
+/// Builder for the [`getFile`] API method.
 #[derive(Serialize)]
 pub struct GetFileBuilder<'a> {
     #[serde(skip)]
@@ -2362,6 +2661,7 @@ pub struct GetFileBuilder<'a> {
 }
 
 impl<'a> GetFileBuilder<'a> {
+    /// Sends the request to the Telegram Bot API.
     pub async fn send(self) -> Result<files::file::File> {
         let payload = serde_json::to_vec(&self)?;
         self.bot.do_post_json("getFile", &payload).await
@@ -2374,6 +2674,7 @@ impl_into_future!(GetFileBuilder, files::file::File);
 // SendInvoiceBuilder
 // =========================================================================
 
+/// Builder for the [`sendInvoice`] API method.
 #[derive(Serialize)]
 pub struct SendInvoiceBuilder<'a> {
     #[serde(skip)]
@@ -2437,102 +2738,127 @@ pub struct SendInvoiceBuilder<'a> {
 }
 
 impl<'a> SendInvoiceBuilder<'a> {
+    /// Sets the `provider_token` parameter.
     pub fn provider_token(mut self, val: impl Into<String>) -> Self {
         self.provider_token = Some(val.into());
         self
     }
+    /// Sets the `max_tip_amount` parameter.
     pub fn max_tip_amount(mut self, val: i64) -> Self {
         self.max_tip_amount = Some(val);
         self
     }
+    /// Sets the `suggested_tip_amounts` parameter.
     pub fn suggested_tip_amounts(mut self, val: Vec<i64>) -> Self {
         self.suggested_tip_amounts = Some(val);
         self
     }
+    /// Sets the `start_parameter` parameter.
     pub fn start_parameter(mut self, val: impl Into<String>) -> Self {
         self.start_parameter = Some(val.into());
         self
     }
+    /// Sets the `provider_data` parameter.
     pub fn provider_data(mut self, val: impl Into<String>) -> Self {
         self.provider_data = Some(val.into());
         self
     }
+    /// Sets the `photo_url` parameter.
     pub fn photo_url(mut self, val: impl Into<String>) -> Self {
         self.photo_url = Some(val.into());
         self
     }
+    /// Sets the `photo_size` parameter.
     pub fn photo_size(mut self, val: i64) -> Self {
         self.photo_size = Some(val);
         self
     }
+    /// Sets the `photo_width` parameter.
     pub fn photo_width(mut self, val: i64) -> Self {
         self.photo_width = Some(val);
         self
     }
+    /// Sets the `photo_height` parameter.
     pub fn photo_height(mut self, val: i64) -> Self {
         self.photo_height = Some(val);
         self
     }
+    /// Sets the `need_name` parameter.
     pub fn need_name(mut self, val: bool) -> Self {
         self.need_name = Some(val);
         self
     }
+    /// Sets the `need_phone_number` parameter.
     pub fn need_phone_number(mut self, val: bool) -> Self {
         self.need_phone_number = Some(val);
         self
     }
+    /// Sets the `need_email` parameter.
     pub fn need_email(mut self, val: bool) -> Self {
         self.need_email = Some(val);
         self
     }
+    /// Sets the `need_shipping_address` parameter.
     pub fn need_shipping_address(mut self, val: bool) -> Self {
         self.need_shipping_address = Some(val);
         self
     }
+    /// Sets the `send_phone_number_to_provider` parameter.
     pub fn send_phone_number_to_provider(mut self, val: bool) -> Self {
         self.send_phone_number_to_provider = Some(val);
         self
     }
+    /// Sets the `send_email_to_provider` parameter.
     pub fn send_email_to_provider(mut self, val: bool) -> Self {
         self.send_email_to_provider = Some(val);
         self
     }
+    /// Sets the `is_flexible` parameter.
     pub fn is_flexible(mut self, val: bool) -> Self {
         self.is_flexible = Some(val);
         self
     }
+    /// Sets the `disable_notification` parameter.
     pub fn disable_notification(mut self, val: bool) -> Self {
         self.disable_notification = Some(val);
         self
     }
+    /// Sets the `protect_content` parameter.
     pub fn protect_content(mut self, val: bool) -> Self {
         self.protect_content = Some(val);
         self
     }
+    /// Sets the `reply_parameters` parameter.
     pub fn reply_parameters(mut self, val: reply::ReplyParameters) -> Self {
         self.reply_parameters = Some(val);
         self
     }
+    /// Sets the `reply_markup` parameter.
     pub fn reply_markup(mut self, val: serde_json::Value) -> Self {
         self.reply_markup = Some(val);
         self
     }
+    /// Sets the `message_thread_id` parameter.
     pub fn message_thread_id(mut self, val: i64) -> Self {
         self.message_thread_id = Some(val);
         self
     }
+    /// Sets the `message_effect_id` parameter.
     pub fn message_effect_id(mut self, val: impl Into<String>) -> Self {
         self.message_effect_id = Some(val.into());
         self
     }
+    /// Sets the `allow_paid_broadcast` parameter.
     pub fn allow_paid_broadcast(mut self, val: bool) -> Self {
         self.allow_paid_broadcast = Some(val);
         self
     }
+    /// Sets the `direct_messages_topic_id` parameter.
     pub fn direct_messages_topic_id(mut self, val: i64) -> Self {
         self.direct_messages_topic_id = Some(val);
         self
     }
+    /// Sets the `suggested_post_parameters` parameter.
     pub fn suggested_post_parameters(
         mut self,
         val: suggested_post::SuggestedPostParameters,
@@ -2541,6 +2867,7 @@ impl<'a> SendInvoiceBuilder<'a> {
         self
     }
 
+    /// Sends the request to the Telegram Bot API.
     pub async fn send(self) -> Result<message::Message> {
         let payload = serde_json::to_vec(&self)?;
         self.bot.do_post_json("sendInvoice", &payload).await
@@ -2553,6 +2880,7 @@ impl_into_future!(SendInvoiceBuilder, message::Message);
 // AnswerShippingQueryBuilder
 // =========================================================================
 
+/// Builder for the [`answerShippingQuery`] API method.
 #[derive(Serialize)]
 pub struct AnswerShippingQueryBuilder<'a> {
     #[serde(skip)]
@@ -2566,15 +2894,18 @@ pub struct AnswerShippingQueryBuilder<'a> {
 }
 
 impl<'a> AnswerShippingQueryBuilder<'a> {
+    /// Sets the `shipping_options` parameter.
     pub fn shipping_options(mut self, val: Vec<serde_json::Value>) -> Self {
         self.shipping_options = Some(val);
         self
     }
+    /// Sets the `error_message` parameter.
     pub fn error_message(mut self, val: impl Into<String>) -> Self {
         self.error_message = Some(val.into());
         self
     }
 
+    /// Sends the request to the Telegram Bot API.
     pub async fn send(self) -> Result<bool> {
         let payload = serde_json::to_vec(&self)?;
         self.bot.do_post_json("answerShippingQuery", &payload).await
@@ -2587,6 +2918,7 @@ impl_into_future!(AnswerShippingQueryBuilder, bool);
 // AnswerPreCheckoutQueryBuilder
 // =========================================================================
 
+/// Builder for the [`answerPreCheckoutQuery`] API method.
 #[derive(Serialize)]
 pub struct AnswerPreCheckoutQueryBuilder<'a> {
     #[serde(skip)]
@@ -2598,11 +2930,13 @@ pub struct AnswerPreCheckoutQueryBuilder<'a> {
 }
 
 impl<'a> AnswerPreCheckoutQueryBuilder<'a> {
+    /// Sets the `error_message` parameter.
     pub fn error_message(mut self, val: impl Into<String>) -> Self {
         self.error_message = Some(val.into());
         self
     }
 
+    /// Sends the request to the Telegram Bot API.
     pub async fn send(self) -> Result<bool> {
         let payload = serde_json::to_vec(&self)?;
         self.bot
@@ -3236,6 +3570,7 @@ impl Bot {
 // GetManagedBotTokenBuilder
 // =========================================================================
 
+/// Builder for the [`getManagedBotToken`] API method.
 #[derive(Serialize)]
 pub struct GetManagedBotTokenBuilder<'a> {
     #[serde(skip)]
@@ -3244,6 +3579,7 @@ pub struct GetManagedBotTokenBuilder<'a> {
 }
 
 impl<'a> GetManagedBotTokenBuilder<'a> {
+    /// Sends the request to the Telegram Bot API.
     pub async fn send(self) -> Result<String> {
         let payload = serde_json::to_vec(&self)?;
         self.bot.do_post_json("getManagedBotToken", &payload).await
@@ -3256,6 +3592,7 @@ impl_into_future!(GetManagedBotTokenBuilder, String);
 // ReplaceManagedBotTokenBuilder
 // =========================================================================
 
+/// Builder for the [`replaceManagedBotToken`] API method.
 #[derive(Serialize)]
 pub struct ReplaceManagedBotTokenBuilder<'a> {
     #[serde(skip)]
@@ -3264,6 +3601,7 @@ pub struct ReplaceManagedBotTokenBuilder<'a> {
 }
 
 impl<'a> ReplaceManagedBotTokenBuilder<'a> {
+    /// Sends the request to the Telegram Bot API.
     pub async fn send(self) -> Result<String> {
         let payload = serde_json::to_vec(&self)?;
         self.bot
@@ -3278,6 +3616,7 @@ impl_into_future!(ReplaceManagedBotTokenBuilder, String);
 // SavePreparedKeyboardButtonBuilder
 // =========================================================================
 
+/// Builder for the [`savePreparedKeyboardButton`] API method.
 #[derive(Serialize)]
 pub struct SavePreparedKeyboardButtonBuilder<'a> {
     #[serde(skip)]
@@ -3295,23 +3634,28 @@ pub struct SavePreparedKeyboardButtonBuilder<'a> {
 }
 
 impl<'a> SavePreparedKeyboardButtonBuilder<'a> {
+    /// Sets the `allow_user_chats` parameter.
     pub fn allow_user_chats(mut self, val: bool) -> Self {
         self.allow_user_chats = Some(val);
         self
     }
+    /// Sets the `allow_bot_chats` parameter.
     pub fn allow_bot_chats(mut self, val: bool) -> Self {
         self.allow_bot_chats = Some(val);
         self
     }
+    /// Sets the `allow_group_chats` parameter.
     pub fn allow_group_chats(mut self, val: bool) -> Self {
         self.allow_group_chats = Some(val);
         self
     }
+    /// Sets the `allow_channel_chats` parameter.
     pub fn allow_channel_chats(mut self, val: bool) -> Self {
         self.allow_channel_chats = Some(val);
         self
     }
 
+    /// Sends the request to the Telegram Bot API.
     pub async fn send(self) -> Result<prepared_keyboard_button::PreparedKeyboardButton> {
         let payload = serde_json::to_vec(&self)?;
         self.bot
@@ -3363,6 +3707,7 @@ impl Bot {
         }
     }
 
+    /// Build a `sendChatAction` request.
     pub fn send_chat_action(
         &self,
         chat_id: impl Into<ChatId>,
@@ -3382,6 +3727,7 @@ impl Bot {
 // SendChatActionBuilder
 // ---------------------------------------------------------------------------
 
+/// Builder for the [`sendChatAction`] API method.
 #[derive(Serialize)]
 pub struct SendChatActionBuilder<'a> {
     #[serde(skip)]
@@ -3395,15 +3741,18 @@ pub struct SendChatActionBuilder<'a> {
 }
 
 impl<'a> SendChatActionBuilder<'a> {
+    /// Sets the `message_thread_id` parameter.
     pub fn message_thread_id(mut self, id: i64) -> Self {
         self.message_thread_id = Some(id);
         self
     }
+    /// Sets the `business_connection_id` parameter.
     pub fn business_connection_id(mut self, id: impl Into<String>) -> Self {
         self.business_connection_id = Some(id.into());
         self
     }
 
+    /// Sends the request to the Telegram Bot API.
     pub async fn send(self) -> Result<bool> {
         let payload = serde_json::to_vec(&self)?;
         self.bot.do_post_json("sendChatAction", &payload).await

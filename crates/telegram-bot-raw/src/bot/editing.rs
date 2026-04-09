@@ -8,6 +8,9 @@ impl Bot {
     // Editing messages
     // ======================================================================
 
+    /// Edits the text of a message. Internal raw method used by builder APIs.
+    ///
+    /// Calls the Telegram `editMessageText` API method.
     pub(crate) async fn edit_message_text_raw(
         &self,
         text: &str,
@@ -39,6 +42,9 @@ impl Bot {
         self.do_post("editMessageText", params).await
     }
 
+    /// Edits the caption of a message. Internal raw method used by builder APIs.
+    ///
+    /// Calls the Telegram `editMessageCaption` API method.
     pub(crate) async fn edit_message_caption_raw(
         &self,
         chat_id: Option<ChatId>,
@@ -72,6 +78,9 @@ impl Bot {
         self.do_post("editMessageCaption", params).await
     }
 
+    /// Edits the media content of a message. Internal raw method used by builder APIs.
+    ///
+    /// Calls the Telegram `editMessageMedia` API method.
     pub(crate) async fn edit_message_media_raw(
         &self,
         media: serde_json::Value,
@@ -94,6 +103,9 @@ impl Bot {
         self.do_post("editMessageMedia", params).await
     }
 
+    /// Edits the reply markup of a message. Internal raw method used by builder APIs.
+    ///
+    /// Calls the Telegram `editMessageReplyMarkup` API method.
     pub(crate) async fn edit_message_reply_markup_raw(
         &self,
         chat_id: Option<ChatId>,
@@ -115,6 +127,9 @@ impl Bot {
         self.do_post("editMessageReplyMarkup", params).await
     }
 
+    /// Use this method to edit live location messages.
+    ///
+    /// Calls the Telegram `editMessageLiveLocation` API method.
     pub async fn edit_message_live_location(
         &self,
         latitude: f64,
@@ -153,6 +168,9 @@ impl Bot {
         self.do_post("editMessageLiveLocation", params).await
     }
 
+    /// Use this method to stop updating a live location message.
+    ///
+    /// Calls the Telegram `stopMessageLiveLocation` API method.
     pub async fn stop_message_live_location(
         &self,
         chat_id: Option<ChatId>,
@@ -174,6 +192,9 @@ impl Bot {
         self.do_post("stopMessageLiveLocation", params).await
     }
 
+    /// Use this method to edit a checklist message sent by the bot on behalf of a business account.
+    ///
+    /// Calls the Telegram `editMessageChecklist` API method.
     pub async fn edit_message_checklist(
         &self,
         business_connection_id: &str,
@@ -195,6 +216,9 @@ impl Bot {
         self.do_post("editMessageChecklist", params).await
     }
 
+    /// Use this method to stop a poll which was sent by the bot.
+    ///
+    /// Calls the Telegram `stopPoll` API method.
     pub async fn stop_poll(
         &self,
         chat_id: ChatId,

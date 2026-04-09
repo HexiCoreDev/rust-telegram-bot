@@ -8,6 +8,9 @@ impl Bot {
     // Callback & inline queries
     // ======================================================================
 
+    /// Answers a callback query. Internal raw method used by builder APIs.
+    ///
+    /// Calls the Telegram `answerCallbackQuery` API method.
     pub(crate) async fn answer_callback_query_raw(
         &self,
         callback_query_id: &str,
@@ -27,6 +30,9 @@ impl Bot {
         self.do_post("answerCallbackQuery", params).await
     }
 
+    /// Answers an inline query. Internal raw method used by builder APIs.
+    ///
+    /// Calls the Telegram `answerInlineQuery` API method.
     pub(crate) async fn answer_inline_query_raw(
         &self,
         inline_query_id: &str,
@@ -50,6 +56,9 @@ impl Bot {
         self.do_post("answerInlineQuery", params).await
     }
 
+    /// Use this method to store a message that can be sent by a user of a Mini App.
+    ///
+    /// Calls the Telegram `savePreparedInlineMessage` API method.
     pub async fn save_prepared_inline_message(
         &self,
         user_id: i64,
@@ -70,6 +79,9 @@ impl Bot {
         self.do_post("savePreparedInlineMessage", params).await
     }
 
+    /// Use this method to set the result of an interaction with a Web App.
+    ///
+    /// Calls the Telegram `answerWebAppQuery` API method.
     pub async fn answer_web_app_query(
         &self,
         web_app_query_id: &str,
