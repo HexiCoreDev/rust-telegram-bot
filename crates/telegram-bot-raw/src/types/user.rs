@@ -83,6 +83,30 @@ pub struct User {
 }
 
 impl User {
+    /// Create a new `User` with the required fields.
+    ///
+    /// All optional fields default to `None`.
+    pub fn new(id: i64, is_bot: bool, first_name: impl Into<String>) -> Self {
+        Self {
+            id,
+            is_bot,
+            first_name: first_name.into(),
+            last_name: None,
+            username: None,
+            language_code: None,
+            can_join_groups: None,
+            can_read_all_group_messages: None,
+            supports_inline_queries: None,
+            is_premium: None,
+            added_to_attachment_menu: None,
+            can_connect_to_business: None,
+            has_main_web_app: None,
+            has_topics_enabled: None,
+            allows_users_to_create_topics: None,
+            can_manage_bots: None,
+        }
+    }
+
     /// Returns the user's full name (first + optional last name).
     pub fn full_name(&self) -> String {
         match &self.last_name {

@@ -1,4 +1,5 @@
 #![doc = include_str!("../../../README.md")]
+#![forbid(unsafe_code)]
 
 // Re-export everything from both crates for convenience
 pub use rust_tg_bot_raw as raw;
