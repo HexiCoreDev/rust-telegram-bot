@@ -13,13 +13,13 @@
 //! # Usage
 //!
 //! ```sh
-//! TELEGRAM_BOT_TOKEN="your-token-here" cargo run -p telegram-bot --example chat_member_bot
+//! TELEGRAM_BOT_TOKEN="your-token-here" cargo run -p rust-tg-bot --example chat_member_bot
 //! ```
 
-use telegram_bot::ext::prelude::{
+use rust_tg_bot::ext::prelude::{
     ApplicationBuilder, Arc, ChatType, CommandHandler, Context, FnHandler, HandlerResult, Update,
 };
-use telegram_bot::raw::types::chat_member::ChatMember;
+use rust_tg_bot::raw::types::chat_member::ChatMember;
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -235,19 +235,19 @@ async fn main() {
     let app = ApplicationBuilder::new().token(token).build();
 
     // Track which chats the bot is in (my_chat_member updates).
-    app.add_typed_handler(FnHandler::on_my_chat_member(track_chats), 0)
+    app.add_handler(FnHandler::on_my_chat_member(track_chats), 0)
         .await;
 
     // /show_chats command.
-    app.add_typed_handler(CommandHandler::new("show_chats", show_chats), 0)
+    app.add_handler(CommandHandler::new("show_chats", show_chats), 0)
         .await;
 
     // Greet members joining/leaving (chat_member updates).
-    app.add_typed_handler(FnHandler::on_chat_member(greet_chat_members), 0)
+    app.add_handler(FnHandler::on_chat_member(greet_chat_members), 0)
         .await;
 
     // Catch-all: record private chats.
-    app.add_typed_handler(FnHandler::on_message(start_private_chat), 1)
+    app.add_handler(FnHandler::on_message(start_private_chat), 1)
         .await;
 
     println!("Chat member bot is running. Press Ctrl+C to stop.");

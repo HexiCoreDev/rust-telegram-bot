@@ -13,7 +13,7 @@ use std::time::Duration;
 use tokio::sync::{mpsc, watch, Mutex};
 use tracing::{debug, error, warn};
 
-use telegram_bot_raw::error::TelegramError;
+use rust_tg_bot_raw::error::TelegramError;
 
 use crate::utils::network_loop::{network_retry_loop, NetworkLoopConfig};
 
@@ -24,7 +24,7 @@ use tokio::sync::Notify;
 use crate::utils::webhook_handler::WebhookServer;
 
 #[cfg(feature = "webhooks")]
-use telegram_bot_raw::types::update::Update;
+use rust_tg_bot_raw::types::update::Update;
 
 // ---------------------------------------------------------------------------
 // Function types

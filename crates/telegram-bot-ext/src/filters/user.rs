@@ -3,7 +3,7 @@
 use std::collections::HashSet;
 use std::sync::RwLock;
 
-use crate::filters::base::{effective_message_val, to_value, Filter, FilterResult, Update};
+use crate::filters::base::{Filter, FilterResult, Update};
 
 pub struct UserFilter {
     user_ids: RwLock<HashSet<i64>>,
@@ -74,19 +74,16 @@ impl UserFilter {
 
 impl Filter for UserFilter {
     fn check_update(&self, update: &Update) -> FilterResult {
-        let __v = to_value(update);
-        let user = match effective_message_val(&__v).and_then(|m| m.get("from")) {
-            Some(u) if !u.is_null() => u,
-            _ => return FilterResult::NoMatch,
+        let user = match update
+            .effective_message()
+            .and_then(|m| m.from_user.as_ref())
+        {
+            Some(u) => u,
+            None => return FilterResult::NoMatch,
         };
         let ids = self.user_ids.read().unwrap();
         if !ids.is_empty() {
-            return if user
-                .get("id")
-                .and_then(|v| v.as_i64())
-                .map(|id| ids.contains(&id))
-                .unwrap_or(false)
-            {
+            return if ids.contains(&user.id) {
                 FilterResult::Match
             } else {
                 FilterResult::NoMatch
@@ -95,8 +92,8 @@ impl Filter for UserFilter {
         let names = self.usernames.read().unwrap();
         if !names.is_empty() {
             return if user
-                .get("username")
-                .and_then(|v| v.as_str())
+                .username
+                .as_deref()
                 .map(|u| names.contains(u))
                 .unwrap_or(false)
             {

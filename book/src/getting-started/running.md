@@ -51,13 +51,13 @@ Enable the `webhooks` feature:
 
 ```toml
 [dependencies]
-telegram-bot = { version = "1.0.0-beta.2", features = ["webhooks"] }
+rust-tg-bot = { version = "1.0.0-beta.2", features = ["webhooks"] }
 ```
 
 ### Simple Webhook
 
 ```rust
-use telegram_bot::ext::prelude::{ApplicationBuilder, Arc, Context, HandlerResult, Update};
+use rust_tg_bot::ext::prelude::{ApplicationBuilder, Arc, Context, HandlerResult, Update};
 
 // ... define handlers ...
 
@@ -101,7 +101,7 @@ When you call `run_polling()` or `run_webhook()`, all of these stages are manage
 You can register hooks that run at specific lifecycle stages:
 
 ```rust
-use telegram_bot::ext::prelude::{ApplicationBuilder, Arc};
+use rust_tg_bot::ext::prelude::{ApplicationBuilder, Arc};
 
 let post_init = Arc::new(|app: Arc<_>| Box::pin(async move {
     println!("Bot initialized! Username: {:?}",
@@ -149,7 +149,7 @@ Control verbosity with the `RUST_LOG` environment variable:
 
 ```sh
 RUST_LOG=info TELEGRAM_BOT_TOKEN="..." cargo run
-RUST_LOG=telegram_bot=debug cargo run
+RUST_LOG=rust_tg_bot=debug cargo run
 RUST_LOG=trace cargo run
 ```
 

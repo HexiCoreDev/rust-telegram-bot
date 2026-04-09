@@ -1,7 +1,7 @@
 //! Convenient re-exports for writing clean Telegram bot code.
 //!
 //! ```rust,ignore
-//! use telegram_bot_ext::prelude::*;
+//! use rust_tg_bot_ext::prelude::*;
 //! ```
 
 pub use crate::application::{Application, HandlerError};
@@ -14,33 +14,33 @@ pub use crate::handlers::command::CommandHandler;
 pub use crate::handlers::message::MessageHandler;
 pub use std::sync::Arc;
 
-pub use telegram_bot_raw::types::message::Message;
-pub use telegram_bot_raw::types::update::Update;
+pub use rust_tg_bot_raw::types::message::Message;
+pub use rust_tg_bot_raw::types::update::Update;
 
 // Typed constant enums — prefer these over magic strings.
-pub use telegram_bot_raw::constants::{
+pub use rust_tg_bot_raw::constants::{
     ChatAction, ChatMemberStatus, ChatType, MessageEntityType, ParseMode,
 };
 
 // ---------------------------------------------------------------------------
 // Keyboard & inline keyboard constructors (D1-D4)
 // ---------------------------------------------------------------------------
-pub use telegram_bot_raw::types::force_reply::ForceReply;
-pub use telegram_bot_raw::types::inline::inline_keyboard_button::InlineKeyboardButton;
-pub use telegram_bot_raw::types::inline::inline_keyboard_markup::InlineKeyboardMarkup;
-pub use telegram_bot_raw::types::keyboard_button::KeyboardButton;
-pub use telegram_bot_raw::types::reply_keyboard_markup::ReplyKeyboardMarkup;
-pub use telegram_bot_raw::types::reply_keyboard_remove::ReplyKeyboardRemove;
+pub use rust_tg_bot_raw::types::force_reply::ForceReply;
+pub use rust_tg_bot_raw::types::inline::inline_keyboard_button::InlineKeyboardButton;
+pub use rust_tg_bot_raw::types::inline::inline_keyboard_markup::InlineKeyboardMarkup;
+pub use rust_tg_bot_raw::types::keyboard_button::KeyboardButton;
+pub use rust_tg_bot_raw::types::reply_keyboard_markup::ReplyKeyboardMarkup;
+pub use rust_tg_bot_raw::types::reply_keyboard_remove::ReplyKeyboardRemove;
 
 // ---------------------------------------------------------------------------
 // Common types developers always need
 // ---------------------------------------------------------------------------
-pub use telegram_bot_raw::bot::ChatId;
-pub use telegram_bot_raw::types::callback_query::CallbackQuery;
-pub use telegram_bot_raw::types::chat::Chat;
-pub use telegram_bot_raw::types::files::input_file::InputFile;
-pub use telegram_bot_raw::types::files::photo_size::PhotoSize;
-pub use telegram_bot_raw::types::user::User;
+pub use rust_tg_bot_raw::bot::ChatId;
+pub use rust_tg_bot_raw::types::callback_query::CallbackQuery;
+pub use rust_tg_bot_raw::types::chat::Chat;
+pub use rust_tg_bot_raw::types::files::input_file::InputFile;
+pub use rust_tg_bot_raw::types::files::photo_size::PhotoSize;
+pub use rust_tg_bot_raw::types::user::User;
 
 // ---------------------------------------------------------------------------
 // Re-export serde_json so users don't need it as a direct dependency

@@ -3,7 +3,7 @@
 //! This crate provides a faithful Rust port of the core Telegram Bot API layer,
 //! including all request/response types, the [`Bot`](bot::Bot) client, and
 //! helper utilities.  It is designed to be used directly for low-level API
-//! access or as the foundation for the higher-level `telegram-bot-ext` framework.
+//! access or as the foundation for the higher-level `rust-tg-bot-ext` framework.
 
 #![warn(missing_docs)]
 
@@ -29,5 +29,5 @@ pub mod types;
 pub mod utils;
 
 // Re-export serde_json so downstream crates (including tests and examples)
-// can use `telegram_bot_raw::serde_json` without adding it as a direct dependency.
+// can use `rust_tg_bot_raw::serde_json` without adding it as a direct dependency.
 pub use serde_json;

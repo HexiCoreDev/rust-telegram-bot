@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Message large fields boxed (game, poll, venue, invoice, etc.)
 - `Option<bool>` fields on Message changed to `bool` with `#[serde(default)]`
 - Handler callbacks receive `Arc<Update>` (was `Update`)
-- `telegram_bot::run()` deprecated — use `#[tokio::main]` directly
+- `rust_tg_bot::run()` deprecated — use `#[tokio::main]` directly
 
 ### Performance
 - Idle memory: 20 → 17 MB (-15%)
@@ -44,7 +44,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Specific imports replacing all wildcard `*` imports in library code
 - All examples use typed constructors (no json!() for API types)
 - All examples use specific prelude imports (no prelude::*)
-- All examples use #[tokio::main] (not telegram_bot::run())
+- All examples use #[tokio::main] (not rust_tg_bot::run())
 
 ## [1.0.0-beta] - 2026-04-07
 
@@ -52,7 +52,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Complete port of python-telegram-bot's architecture to Rust
 - Full Telegram Bot API 9.6 coverage (169 methods, 301 types)
-- Three-crate workspace: `telegram-bot-raw`, `telegram-bot-ext`, `telegram-bot`
+- Three-crate workspace: `rust-tg-bot-raw`, `rust-tg-bot-ext`, `rust-tg-bot`
 - 29 builder structs with `IntoFuture` (directly awaitable, no `.send()`)
 - 94 typed constant enums (`ParseMode`, `ChatType`, `MessageEntityType`, etc.)
 - Typed `Update` struct with `effective_user()`, `effective_chat()`, `effective_message()` helpers
@@ -67,7 +67,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Token bucket rate limiter
 - `Updater` with polling (offset tracking, long-poll timeout) and webhook (axum) support
 - `ExtBot` with `Deref<Target = Bot>` for zero-cost method access
-- `telegram_bot::run()` helper for correct async runtime configuration
+- `rust_tg_bot::run()` helper for correct async runtime configuration
 - `Defaults` builder for default `parse_mode`, `disable_notification`, etc.
 - `prelude` module for ergonomic imports
 - 20 example bots matching python-telegram-bot's full example set
@@ -76,9 +76,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Architecture
 
-- **telegram-bot-raw**: Pure API types + Bot methods. No framework opinions. Depends only on serde, reqwest, tokio.
-- **telegram-bot-ext**: Application framework. Handlers, filters, persistence, job queue.
-- **telegram-bot**: Umbrella crate re-exporting both.
+- **rust-tg-bot-raw**: Pure API types + Bot methods. No framework opinions. Depends only on serde, reqwest, tokio.
+- **rust-tg-bot-ext**: Application framework. Handlers, filters, persistence, job queue.
+- **rust-tg-bot**: Umbrella crate re-exporting both.
 
 ### Heritage
 

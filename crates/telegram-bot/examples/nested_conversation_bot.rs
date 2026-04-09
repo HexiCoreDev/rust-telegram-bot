@@ -19,10 +19,10 @@
 //! # Usage
 //!
 //! ```sh
-//! TELEGRAM_BOT_TOKEN="your-token-here" cargo run -p telegram-bot --example nested_conversation_bot
+//! TELEGRAM_BOT_TOKEN="your-token-here" cargo run -p rust-tg-bot --example nested_conversation_bot
 //! ```
 
-use telegram_bot::ext::prelude::{
+use rust_tg_bot::ext::prelude::{
     Application, ApplicationBuilder, Arc, Context, FnHandler, HandlerError, HandlerResult, HashMap,
     InlineKeyboardButton, InlineKeyboardMarkup, JsonValue, MessageEntityType, RwLock, Update,
 };
@@ -767,7 +767,7 @@ async fn main() {
     // /start
     {
         let s = Arc::clone(&store);
-        app.add_typed_handler(
+        app.add_handler(
             FnHandler::new(
                 |u| check_command(u, "start"),
                 move |update, ctx| {
@@ -783,7 +783,7 @@ async fn main() {
     // /stop
     {
         let s = Arc::clone(&store);
-        app.add_typed_handler(
+        app.add_handler(
             FnHandler::new(
                 |u| check_command(u, "stop"),
                 move |update, ctx| {
@@ -800,7 +800,7 @@ async fn main() {
     {
         let s = Arc::clone(&store);
         let s_check = Arc::clone(&store);
-        app.add_typed_handler(
+        app.add_handler(
             FnHandler::new(
                 move |u| is_callback_in_top_state(u, &s_check),
                 move |update, ctx| {
@@ -817,7 +817,7 @@ async fn main() {
     {
         let s = Arc::clone(&store);
         let s_check = Arc::clone(&store);
-        app.add_typed_handler(
+        app.add_handler(
             FnHandler::new(
                 move |u| is_callback_in_member_state(u, &s_check),
                 move |update, ctx| {
@@ -834,7 +834,7 @@ async fn main() {
     {
         let s = Arc::clone(&store);
         let s_check = Arc::clone(&store);
-        app.add_typed_handler(
+        app.add_handler(
             FnHandler::new(
                 move |u| is_callback_in_gender_or_feature_state(u, &s_check),
                 move |update, ctx| {
@@ -851,7 +851,7 @@ async fn main() {
     {
         let s = Arc::clone(&store);
         let s_check = Arc::clone(&store);
-        app.add_typed_handler(
+        app.add_handler(
             FnHandler::new(
                 move |u| is_text_in_typing_state(u, &s_check),
                 move |update, ctx| {

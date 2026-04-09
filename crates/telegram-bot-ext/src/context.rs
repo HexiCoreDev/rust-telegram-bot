@@ -8,9 +8,9 @@ use std::sync::Arc;
 use serde_json::Value;
 use tokio::sync::RwLock;
 
-use telegram_bot_raw::bot::MessageOrBool;
-use telegram_bot_raw::types::files::input_file::InputFile;
-use telegram_bot_raw::types::update::Update;
+use rust_tg_bot_raw::bot::MessageOrBool;
+use rust_tg_bot_raw::types::files::input_file::InputFile;
+use rust_tg_bot_raw::types::update::Update;
 
 use crate::context_types::DefaultData;
 use crate::ext_bot::ExtBot;
@@ -527,10 +527,10 @@ impl CallbackContext {
         &self,
         update: &Update,
         text: &str,
-    ) -> Result<telegram_bot_raw::types::message::Message, telegram_bot_raw::error::TelegramError>
+    ) -> Result<rust_tg_bot_raw::types::message::Message, rust_tg_bot_raw::error::TelegramError>
     {
         let chat_id = update.effective_chat().map(|c| c.id).ok_or_else(|| {
-            telegram_bot_raw::error::TelegramError::Network("No chat in update".into())
+            rust_tg_bot_raw::error::TelegramError::Network("No chat in update".into())
         })?;
         self.bot().send_message(chat_id, text).await
     }
@@ -547,10 +547,10 @@ impl CallbackContext {
         &self,
         update: &Update,
         text: &str,
-    ) -> Result<telegram_bot_raw::types::message::Message, telegram_bot_raw::error::TelegramError>
+    ) -> Result<rust_tg_bot_raw::types::message::Message, rust_tg_bot_raw::error::TelegramError>
     {
         let chat_id = update.effective_chat().map(|c| c.id).ok_or_else(|| {
-            telegram_bot_raw::error::TelegramError::Network("No chat in update".into())
+            rust_tg_bot_raw::error::TelegramError::Network("No chat in update".into())
         })?;
         self.bot()
             .send_message(chat_id, text)
@@ -570,10 +570,10 @@ impl CallbackContext {
         &self,
         update: &Update,
         text: &str,
-    ) -> Result<telegram_bot_raw::types::message::Message, telegram_bot_raw::error::TelegramError>
+    ) -> Result<rust_tg_bot_raw::types::message::Message, rust_tg_bot_raw::error::TelegramError>
     {
         let chat_id = update.effective_chat().map(|c| c.id).ok_or_else(|| {
-            telegram_bot_raw::error::TelegramError::Network("No chat in update".into())
+            rust_tg_bot_raw::error::TelegramError::Network("No chat in update".into())
         })?;
         self.bot()
             .send_message(chat_id, text)
@@ -591,10 +591,10 @@ impl CallbackContext {
         &self,
         update: &Update,
         photo: InputFile,
-    ) -> Result<telegram_bot_raw::types::message::Message, telegram_bot_raw::error::TelegramError>
+    ) -> Result<rust_tg_bot_raw::types::message::Message, rust_tg_bot_raw::error::TelegramError>
     {
         let chat_id = update.effective_chat().map(|c| c.id).ok_or_else(|| {
-            telegram_bot_raw::error::TelegramError::Network("No chat in update".into())
+            rust_tg_bot_raw::error::TelegramError::Network("No chat in update".into())
         })?;
         self.bot().send_photo(chat_id, photo).await
     }
@@ -609,10 +609,10 @@ impl CallbackContext {
         &self,
         update: &Update,
         document: InputFile,
-    ) -> Result<telegram_bot_raw::types::message::Message, telegram_bot_raw::error::TelegramError>
+    ) -> Result<rust_tg_bot_raw::types::message::Message, rust_tg_bot_raw::error::TelegramError>
     {
         let chat_id = update.effective_chat().map(|c| c.id).ok_or_else(|| {
-            telegram_bot_raw::error::TelegramError::Network("No chat in update".into())
+            rust_tg_bot_raw::error::TelegramError::Network("No chat in update".into())
         })?;
         self.bot().send_document(chat_id, document).await
     }
@@ -627,10 +627,10 @@ impl CallbackContext {
         &self,
         update: &Update,
         sticker: InputFile,
-    ) -> Result<telegram_bot_raw::types::message::Message, telegram_bot_raw::error::TelegramError>
+    ) -> Result<rust_tg_bot_raw::types::message::Message, rust_tg_bot_raw::error::TelegramError>
     {
         let chat_id = update.effective_chat().map(|c| c.id).ok_or_else(|| {
-            telegram_bot_raw::error::TelegramError::Network("No chat in update".into())
+            rust_tg_bot_raw::error::TelegramError::Network("No chat in update".into())
         })?;
         self.bot().send_sticker(chat_id, sticker).await
     }
@@ -646,10 +646,10 @@ impl CallbackContext {
         update: &Update,
         latitude: f64,
         longitude: f64,
-    ) -> Result<telegram_bot_raw::types::message::Message, telegram_bot_raw::error::TelegramError>
+    ) -> Result<rust_tg_bot_raw::types::message::Message, rust_tg_bot_raw::error::TelegramError>
     {
         let chat_id = update.effective_chat().map(|c| c.id).ok_or_else(|| {
-            telegram_bot_raw::error::TelegramError::Network("No chat in update".into())
+            rust_tg_bot_raw::error::TelegramError::Network("No chat in update".into())
         })?;
         self.bot().send_location(chat_id, latitude, longitude).await
     }
@@ -667,9 +667,9 @@ impl CallbackContext {
     pub async fn answer_callback_query(
         &self,
         update: &Update,
-    ) -> Result<bool, telegram_bot_raw::error::TelegramError> {
+    ) -> Result<bool, rust_tg_bot_raw::error::TelegramError> {
         let cq = update.callback_query().ok_or_else(|| {
-            telegram_bot_raw::error::TelegramError::Network("No callback query in update".into())
+            rust_tg_bot_raw::error::TelegramError::Network("No callback query in update".into())
         })?;
         self.bot().answer_callback_query(&cq.id).await
     }
@@ -687,9 +687,9 @@ impl CallbackContext {
         &self,
         update: &Update,
         text: &str,
-    ) -> Result<MessageOrBool, telegram_bot_raw::error::TelegramError> {
+    ) -> Result<MessageOrBool, rust_tg_bot_raw::error::TelegramError> {
         let cq = update.callback_query().ok_or_else(|| {
-            telegram_bot_raw::error::TelegramError::Network("No callback query in update".into())
+            rust_tg_bot_raw::error::TelegramError::Network("No callback query in update".into())
         })?;
 
         if let Some(msg) = cq.message.as_deref() {
@@ -704,7 +704,7 @@ impl CallbackContext {
                 .inline_message_id(iid)
                 .await
         } else {
-            Err(telegram_bot_raw::error::TelegramError::Network(
+            Err(rust_tg_bot_raw::error::TelegramError::Network(
                 "No message in callback query".into(),
             ))
         }
@@ -727,7 +727,7 @@ fn extract_ids(update: &Update) -> (Option<i64>, Option<i64>) {
 mod tests {
     use super::*;
     use crate::ext_bot::test_support::mock_request;
-    use telegram_bot_raw::bot::Bot;
+    use rust_tg_bot_raw::bot::Bot;
 
     fn make_bot() -> Arc<ExtBot> {
         let bot = Bot::new("test", mock_request());

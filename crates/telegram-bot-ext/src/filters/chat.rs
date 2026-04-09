@@ -8,7 +8,7 @@
 use std::collections::HashSet;
 use std::sync::RwLock;
 
-use crate::filters::base::{effective_message_val, to_value, Filter, FilterResult, Update};
+use crate::filters::base::{Filter, FilterResult, Update};
 
 // ---------------------------------------------------------------------------
 // ChatFilter (identity)
@@ -104,20 +104,14 @@ impl ChatFilter {
 
 impl Filter for ChatFilter {
     fn check_update(&self, update: &Update) -> FilterResult {
-        let __v = to_value(update);
-        let chat = match effective_message_val(&__v).and_then(|m| m.get("chat")) {
-            Some(c) if !c.is_null() => c,
-            _ => return FilterResult::NoMatch,
+        let chat = match update.effective_message().map(|m| &m.chat) {
+            Some(c) => c,
+            None => return FilterResult::NoMatch,
         };
 
         let ids = self.chat_ids.read().unwrap();
         if !ids.is_empty() {
-            return if chat
-                .get("id")
-                .and_then(|v| v.as_i64())
-                .map(|id| ids.contains(&id))
-                .unwrap_or(false)
-            {
+            return if ids.contains(&chat.id) {
                 FilterResult::Match
             } else {
                 FilterResult::NoMatch
@@ -127,8 +121,8 @@ impl Filter for ChatFilter {
         let names = self.usernames.read().unwrap();
         if !names.is_empty() {
             return if chat
-                .get("username")
-                .and_then(|v| v.as_str())
+                .username
+                .as_deref()
                 .map(|u| names.contains(u))
                 .unwrap_or(false)
             {
@@ -160,12 +154,11 @@ macro_rules! chat_type_filter {
         pub struct $struct_name;
 
         impl Filter for $struct_name {
-            fn check_update(&self, update: &Update) -> FilterResult { let __v = to_value(update);
-                if effective_message_val(&__v)
-                    .and_then(|m| m.get("chat"))
-                    .and_then(|c| c.get("type"))
-                    .and_then(|v| v.as_str())
-                    == Some($chat_type)
+            fn check_update(&self, update: &Update) -> FilterResult {
+                if update
+                    .effective_message()
+                    .map(|m| m.chat.chat_type.as_str() == $chat_type)
+                    .unwrap_or(false)
                 {
                     FilterResult::Match
                 } else {
@@ -205,11 +198,9 @@ pub struct ChatTypeGroups;
 
 impl Filter for ChatTypeGroups {
     fn check_update(&self, update: &Update) -> FilterResult {
-        let __v = to_value(update);
-        let chat_type = effective_message_val(&__v)
-            .and_then(|m| m.get("chat"))
-            .and_then(|c| c.get("type"))
-            .and_then(|v| v.as_str());
+        let chat_type = update
+            .effective_message()
+            .map(|m| m.chat.chat_type.as_str());
         if matches!(chat_type, Some("group") | Some("supergroup")) {
             FilterResult::Match
         } else {
@@ -317,20 +308,17 @@ impl SenderChatFilter {
 
 impl Filter for SenderChatFilter {
     fn check_update(&self, update: &Update) -> FilterResult {
-        let __v = to_value(update);
-        let sender_chat = match effective_message_val(&__v).and_then(|m| m.get("sender_chat")) {
-            Some(sc) if !sc.is_null() => sc,
-            _ => return FilterResult::NoMatch,
+        let sender_chat = match update
+            .effective_message()
+            .and_then(|m| m.sender_chat.as_ref())
+        {
+            Some(sc) => sc,
+            None => return FilterResult::NoMatch,
         };
 
         let ids = self.chat_ids.read().unwrap();
         if !ids.is_empty() {
-            return if sender_chat
-                .get("id")
-                .and_then(|v| v.as_i64())
-                .map(|id| ids.contains(&id))
-                .unwrap_or(false)
-            {
+            return if ids.contains(&sender_chat.id) {
                 FilterResult::Match
             } else {
                 FilterResult::NoMatch
@@ -340,8 +328,8 @@ impl Filter for SenderChatFilter {
         let names = self.usernames.read().unwrap();
         if !names.is_empty() {
             return if sender_chat
-                .get("username")
-                .and_then(|v| v.as_str())
+                .username
+                .as_deref()
                 .map(|u| names.contains(u))
                 .unwrap_or(false)
             {
@@ -372,12 +360,11 @@ pub struct SenderChatChannel;
 
 impl Filter for SenderChatChannel {
     fn check_update(&self, update: &Update) -> FilterResult {
-        let __v = to_value(update);
-        if effective_message_val(&__v)
-            .and_then(|m| m.get("sender_chat"))
-            .and_then(|sc| sc.get("type"))
-            .and_then(|v| v.as_str())
-            == Some("channel")
+        if update
+            .effective_message()
+            .and_then(|m| m.sender_chat.as_ref())
+            .map(|sc| sc.chat_type.as_str() == "channel")
+            .unwrap_or(false)
         {
             FilterResult::Match
         } else {
@@ -395,12 +382,11 @@ pub struct SenderChatSuperGroup;
 
 impl Filter for SenderChatSuperGroup {
     fn check_update(&self, update: &Update) -> FilterResult {
-        let __v = to_value(update);
-        if effective_message_val(&__v)
-            .and_then(|m| m.get("sender_chat"))
-            .and_then(|sc| sc.get("type"))
-            .and_then(|v| v.as_str())
-            == Some("supergroup")
+        if update
+            .effective_message()
+            .and_then(|m| m.sender_chat.as_ref())
+            .map(|sc| sc.chat_type.as_str() == "supergroup")
+            .unwrap_or(false)
         {
             FilterResult::Match
         } else {

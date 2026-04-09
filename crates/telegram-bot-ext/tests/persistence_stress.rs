@@ -11,9 +11,9 @@ use std::sync::Arc;
 use serde_json::Value;
 use tokio::sync::Barrier;
 
-use telegram_bot_ext::persistence::base::BasePersistence;
-use telegram_bot_ext::persistence::dict::DictPersistence;
-use telegram_bot_ext::utils::types::JsonMap;
+use rust_tg_bot_ext::persistence::base::BasePersistence;
+use rust_tg_bot_ext::persistence::dict::DictPersistence;
+use rust_tg_bot_ext::utils::types::JsonMap;
 
 // ---------------------------------------------------------------------------
 // DictPersistence stress tests
@@ -238,7 +238,7 @@ async fn dict_drop_chat_data_under_concurrent_access() {
 #[cfg(feature = "persistence-json")]
 mod json_file_stress {
     use super::*;
-    use telegram_bot_ext::persistence::json_file::JsonFilePersistence;
+    use rust_tg_bot_ext::persistence::json_file::JsonFilePersistence;
 
     /// Concurrent writes to in-memory state with `on_flush=true`, then a single
     /// `flush()` persists everything atomically.  This is the recommended usage

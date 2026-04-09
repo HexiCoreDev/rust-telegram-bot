@@ -20,16 +20,16 @@ use serde_json::Value;
 // ---------------------------------------------------------------------------
 
 /// The canonical typed `Update` from the raw Telegram types.
-pub type Update = telegram_bot_raw::types::update::Update;
+pub type Update = rust_tg_bot_raw::types::update::Update;
 
 // ---------------------------------------------------------------------------
-// Value bridge for filters
+// Value bridge for filters (legacy — kept for compatibility)
 // ---------------------------------------------------------------------------
 
 /// Convert a typed [`Update`] reference to a [`serde_json::Value`].
 ///
-/// Filters that still operate on JSON field access call this internally.
-/// Individual filters can be migrated to typed access incrementally.
+/// Retained for callers that still need raw JSON inspection.  All filter
+/// `check_update` implementations use typed field access instead.
 pub fn to_value(update: &Update) -> Value {
     serde_json::to_value(update).unwrap_or_default()
 }
@@ -85,13 +85,10 @@ impl FilterResult {
 }
 
 // ---------------------------------------------------------------------------
-// Value-based extraction helpers (for filter submodules)
+// Message / user / chat extraction helpers (Value-based, retained for tests)
 // ---------------------------------------------------------------------------
 
 /// Extract the effective message from a raw [`Value`] (reference-based).
-///
-/// Filter submodules call `to_value(update)` once at the top of
-/// `check_update`, then pass the resulting `&Value` here.
 pub fn effective_message_val(v: &Value) -> Option<&Value> {
     v.get("message")
         .or_else(|| v.get("edited_message"))
@@ -151,79 +148,34 @@ pub fn effective_chat_val(v: &Value) -> Option<&Value> {
 }
 
 // ---------------------------------------------------------------------------
-// Message / user / chat extraction helpers
+// Message / user / chat extraction helpers (Value-based, owned)
 // ---------------------------------------------------------------------------
 
 /// Best-effort extraction of the *effective message* from an [`Update`] as a
-/// [`Value`] for filters that still operate on JSON field access.
-///
-/// Checks, in order: `message`, `edited_message`, `channel_post`,
-/// `edited_channel_post`, `business_message`, `edited_business_message`.
+/// [`Value`] for callers that still operate on JSON field access.
 pub fn effective_message(update: &Update) -> Option<Value> {
-    let v = to_value(update);
-    v.get("message")
-        .or_else(|| v.get("edited_message"))
-        .or_else(|| v.get("channel_post"))
-        .or_else(|| v.get("edited_channel_post"))
-        .or_else(|| v.get("business_message"))
-        .or_else(|| v.get("edited_business_message"))
-        .cloned()
+    update
+        .effective_message()
+        .and_then(|m| serde_json::to_value(m).ok())
 }
 
 /// Extract the effective user from an [`Update`] as a [`Value`].
 pub fn effective_user(update: &Update) -> Option<Value> {
-    if let Some(msg) = effective_message(update) {
-        if let Some(u) = msg.get("from") {
-            return Some(u.clone());
-        }
-    }
-    let v = to_value(update);
-    for key in &[
-        "callback_query",
-        "inline_query",
-        "chosen_inline_result",
-        "shipping_query",
-        "pre_checkout_query",
-        "poll_answer",
-        "my_chat_member",
-        "chat_member",
-        "chat_join_request",
-    ] {
-        if let Some(obj) = v.get(key) {
-            if let Some(u) = obj.get("from") {
-                return Some(u.clone());
-            }
-        }
-    }
-    None
+    update
+        .effective_user()
+        .and_then(|u| serde_json::to_value(u).ok())
 }
 
 /// Extract the effective chat from an [`Update`] as a [`Value`].
 pub fn effective_chat(update: &Update) -> Option<Value> {
-    if let Some(msg) = effective_message(update) {
-        if let Some(c) = msg.get("chat") {
-            return Some(c.clone());
-        }
-    }
-    let v = to_value(update);
-    for key in &[
-        "callback_query",
-        "my_chat_member",
-        "chat_member",
-        "chat_join_request",
-    ] {
-        if let Some(obj) = v.get(key) {
-            if let Some(c) = obj.get("chat") {
-                return Some(c.clone());
-            }
-        }
-    }
-    None
+    update
+        .effective_chat()
+        .and_then(|c| serde_json::to_value(c).ok())
 }
 
 /// Returns `true` when the update carries a message-like field.
 pub fn has_effective_message(update: &Update) -> bool {
-    effective_message(update).is_some()
+    update.effective_message().is_some()
 }
 
 // ---------------------------------------------------------------------------
@@ -495,16 +447,42 @@ pub const ALL: All = All;
 macro_rules! message_presence_filter {
     (
         $(#[$meta:meta])*
-        $struct_name:ident, $field:expr, $display:expr
+        $struct_name:ident, $field:ident, $display:expr
     ) => {
         $(#[$meta])*
         pub struct $struct_name;
 
         impl Filter for $struct_name {
             fn check_update(&self, update: &Update) -> FilterResult {
-                if effective_message(update)
-                    .and_then(|m| m.get($field).cloned())
-                    .map(|v| !v.is_null())
+                if update
+                    .effective_message()
+                    .and_then(|m| m.$field.as_ref())
+                    .is_some()
+                {
+                    FilterResult::Match
+                } else {
+                    FilterResult::NoMatch
+                }
+            }
+
+            fn name(&self) -> &str {
+                $display
+            }
+        }
+    };
+    // Variant for bool fields (non-Option, true = present)
+    (
+        $(#[$meta:meta])*
+        bool: $struct_name:ident, $field:ident, $display:expr
+    ) => {
+        $(#[$meta])*
+        pub struct $struct_name;
+
+        impl Filter for $struct_name {
+            fn check_update(&self, update: &Update) -> FilterResult {
+                if update
+                    .effective_message()
+                    .map(|m| m.$field)
                     .unwrap_or(false)
                 {
                     FilterResult::Match
@@ -526,177 +504,197 @@ macro_rules! message_presence_filter {
 
 message_presence_filter!(
     /// Messages containing an animation (GIF).
-    AnimationFilter, "animation", "filters.ANIMATION"
+    AnimationFilter, animation, "filters.ANIMATION"
 );
 pub const ANIMATION: AnimationFilter = AnimationFilter;
 
 message_presence_filter!(
     /// Messages containing audio.
-    AudioFilter, "audio", "filters.AUDIO"
+    AudioFilter, audio, "filters.AUDIO"
 );
 pub const AUDIO: AudioFilter = AudioFilter;
 
 message_presence_filter!(
     /// Messages containing a boost_added notification.
-    BoostAdded, "boost_added", "filters.BOOST_ADDED"
+    BoostAdded, boost_added, "filters.BOOST_ADDED"
 );
 pub const BOOST_ADDED: BoostAdded = BoostAdded;
 
 message_presence_filter!(
     /// Messages containing a checklist.
-    ChecklistFilter, "checklist", "filters.CHECKLIST"
+    ChecklistFilter, checklist, "filters.CHECKLIST"
 );
 pub const CHECKLIST: ChecklistFilter = ChecklistFilter;
 
 message_presence_filter!(
     /// Messages containing a contact.
-    ContactFilter, "contact", "filters.CONTACT"
+    ContactFilter, contact, "filters.CONTACT"
 );
 pub const CONTACT: ContactFilter = ContactFilter;
 
 message_presence_filter!(
     /// Messages containing an effect_id.
-    EffectId, "effect_id", "filters.EFFECT_ID"
+    EffectId, effect_id, "filters.EFFECT_ID"
 );
 pub const EFFECT_ID: EffectId = EffectId;
 
 message_presence_filter!(
     /// Messages that have a forward_origin.
-    ForwardedPresence, "forward_origin", "filters.FORWARDED"
+    ForwardedPresence, forward_origin, "filters.FORWARDED"
 );
 pub const FORWARDED: ForwardedPresence = ForwardedPresence;
 
 message_presence_filter!(
     /// Messages containing a game.
-    GameFilter, "game", "filters.GAME"
+    GameFilter, game, "filters.GAME"
 );
 pub const GAME: GameFilter = GameFilter;
 
 message_presence_filter!(
     /// Messages containing a giveaway.
-    GiveawayFilter, "giveaway", "filters.GIVEAWAY"
+    GiveawayFilter, giveaway, "filters.GIVEAWAY"
 );
 pub const GIVEAWAY: GiveawayFilter = GiveawayFilter;
 
 message_presence_filter!(
     /// Messages containing giveaway_winners.
-    GiveawayWinners, "giveaway_winners", "filters.GIVEAWAY_WINNERS"
+    GiveawayWinners, giveaway_winners, "filters.GIVEAWAY_WINNERS"
 );
 pub const GIVEAWAY_WINNERS: GiveawayWinners = GiveawayWinners;
 
 message_presence_filter!(
-    /// Messages containing has_media_spoiler.
-    HasMediaSpoiler, "has_media_spoiler", "filters.HAS_MEDIA_SPOILER"
-);
-pub const HAS_MEDIA_SPOILER: HasMediaSpoiler = HasMediaSpoiler;
-
-message_presence_filter!(
-    /// Messages containing has_protected_content.
-    HasProtectedContent, "has_protected_content", "filters.HAS_PROTECTED_CONTENT"
-);
-pub const HAS_PROTECTED_CONTENT: HasProtectedContent = HasProtectedContent;
-
-message_presence_filter!(
     /// Messages containing an invoice.
-    InvoiceFilter, "invoice", "filters.INVOICE"
+    InvoiceFilter, invoice, "filters.INVOICE"
 );
 pub const INVOICE: InvoiceFilter = InvoiceFilter;
 
 message_presence_filter!(
-    /// Messages that are automatic forwards.
-    IsAutomaticForward, "is_automatic_forward", "filters.IS_AUTOMATIC_FORWARD"
-);
-pub const IS_AUTOMATIC_FORWARD: IsAutomaticForward = IsAutomaticForward;
-
-message_presence_filter!(
-    /// Messages that are topic messages.
-    IsTopicMessage, "is_topic_message", "filters.IS_TOPIC_MESSAGE"
-);
-pub const IS_TOPIC_MESSAGE: IsTopicMessage = IsTopicMessage;
-
-message_presence_filter!(
-    /// Messages sent from offline.
-    IsFromOffline, "is_from_offline", "filters.IS_FROM_OFFLINE"
-);
-pub const IS_FROM_OFFLINE: IsFromOffline = IsFromOffline;
-
-message_presence_filter!(
     /// Messages containing a location.
-    LocationFilter, "location", "filters.LOCATION"
+    LocationFilter, location, "filters.LOCATION"
 );
 pub const LOCATION: LocationFilter = LocationFilter;
 
 message_presence_filter!(
     /// Messages containing paid media.
-    PaidMediaFilter, "paid_media", "filters.PAID_MEDIA"
+    PaidMediaFilter, paid_media, "filters.PAID_MEDIA"
 );
 pub const PAID_MEDIA: PaidMediaFilter = PaidMediaFilter;
 
 message_presence_filter!(
     /// Messages containing passport data.
-    PassportDataFilter, "passport_data", "filters.PASSPORT_DATA"
+    PassportDataFilter, passport_data, "filters.PASSPORT_DATA"
 );
 pub const PASSPORT_DATA: PassportDataFilter = PassportDataFilter;
 
 message_presence_filter!(
     /// Messages containing a poll.
-    PollFilter, "poll", "filters.POLL"
+    PollFilter, poll, "filters.POLL"
 );
 pub const POLL: PollFilter = PollFilter;
 
 message_presence_filter!(
     /// Messages that are replies.
-    ReplyFilter, "reply_to_message", "filters.REPLY"
+    ReplyFilter, reply_to_message, "filters.REPLY"
 );
 pub const REPLY: ReplyFilter = ReplyFilter;
 
 message_presence_filter!(
     /// Messages that are replies to a story.
-    ReplyToStory, "reply_to_story", "filters.REPLY_TO_STORY"
+    ReplyToStory, reply_to_story, "filters.REPLY_TO_STORY"
 );
 pub const REPLY_TO_STORY: ReplyToStory = ReplyToStory;
 
 message_presence_filter!(
-    /// Messages with sender_boost_count.
-    SenderBoostCount, "sender_boost_count", "filters.SENDER_BOOST_COUNT"
-);
-pub const SENDER_BOOST_COUNT: SenderBoostCount = SenderBoostCount;
-
-message_presence_filter!(
     /// Messages containing a story.
-    StoryFilter, "story", "filters.STORY"
+    StoryFilter, story, "filters.STORY"
 );
 pub const STORY: StoryFilter = StoryFilter;
 
 message_presence_filter!(
     /// Messages containing a venue.
-    VenueFilter, "venue", "filters.VENUE"
+    VenueFilter, venue, "filters.VENUE"
 );
 pub const VENUE: VenueFilter = VenueFilter;
 
 message_presence_filter!(
     /// Messages containing a video.
-    VideoFilter, "video", "filters.VIDEO"
+    VideoFilter, video, "filters.VIDEO"
 );
 pub const VIDEO: VideoFilter = VideoFilter;
 
 message_presence_filter!(
     /// Messages containing a video note.
-    VideoNoteFilter, "video_note", "filters.VIDEO_NOTE"
+    VideoNoteFilter, video_note, "filters.VIDEO_NOTE"
 );
 pub const VIDEO_NOTE: VideoNoteFilter = VideoNoteFilter;
 
 message_presence_filter!(
     /// Messages containing voice audio.
-    VoiceFilter, "voice", "filters.VOICE"
+    VoiceFilter, voice, "filters.VOICE"
 );
 pub const VOICE: VoiceFilter = VoiceFilter;
 
 message_presence_filter!(
     /// Messages containing suggested_post_info.
-    SuggestedPostInfo, "suggested_post_info", "filters.SUGGESTED_POST_INFO"
+    SuggestedPostInfo, suggested_post_info, "filters.SUGGESTED_POST_INFO"
 );
 pub const SUGGESTED_POST_INFO: SuggestedPostInfo = SuggestedPostInfo;
+
+// Bool-field presence filters
+
+message_presence_filter!(
+    /// Messages with has_media_spoiler set.
+    bool: HasMediaSpoiler, has_media_spoiler, "filters.HAS_MEDIA_SPOILER"
+);
+pub const HAS_MEDIA_SPOILER: HasMediaSpoiler = HasMediaSpoiler;
+
+message_presence_filter!(
+    /// Messages with has_protected_content set.
+    bool: HasProtectedContent, has_protected_content, "filters.HAS_PROTECTED_CONTENT"
+);
+pub const HAS_PROTECTED_CONTENT: HasProtectedContent = HasProtectedContent;
+
+message_presence_filter!(
+    /// Messages that are automatic forwards.
+    bool: IsAutomaticForward, is_automatic_forward, "filters.IS_AUTOMATIC_FORWARD"
+);
+pub const IS_AUTOMATIC_FORWARD: IsAutomaticForward = IsAutomaticForward;
+
+message_presence_filter!(
+    /// Messages that are topic messages.
+    bool: IsTopicMessage, is_topic_message, "filters.IS_TOPIC_MESSAGE"
+);
+pub const IS_TOPIC_MESSAGE: IsTopicMessage = IsTopicMessage;
+
+message_presence_filter!(
+    /// Messages sent from offline.
+    bool: IsFromOffline, is_from_offline, "filters.IS_FROM_OFFLINE"
+);
+pub const IS_FROM_OFFLINE: IsFromOffline = IsFromOffline;
+
+// sender_boost_count is Option<i32> — present when Some(_)
+/// Messages with sender_boost_count.
+pub struct SenderBoostCount;
+
+impl Filter for SenderBoostCount {
+    fn check_update(&self, update: &Update) -> FilterResult {
+        if update
+            .effective_message()
+            .and_then(|m| m.sender_boost_count)
+            .is_some()
+        {
+            FilterResult::Match
+        } else {
+            FilterResult::NoMatch
+        }
+    }
+
+    fn name(&self) -> &str {
+        "filters.SENDER_BOOST_COUNT"
+    }
+}
+
+pub const SENDER_BOOST_COUNT: SenderBoostCount = SenderBoostCount;
 
 // ---------------------------------------------------------------------------
 // Attachment (computed)
@@ -708,33 +706,28 @@ pub struct AttachmentFilter;
 
 impl Filter for AttachmentFilter {
     fn check_update(&self, update: &Update) -> FilterResult {
-        let msg = match effective_message(update) {
+        let msg = match update.effective_message() {
             Some(m) => m,
             None => return FilterResult::NoMatch,
         };
-        let has = |key: &str| msg.get(key).map(|v| !v.is_null()).unwrap_or(false);
-        let matched = has("animation")
-            || has("audio")
-            || has("contact")
-            || has("dice")
-            || has("document")
-            || has("game")
-            || has("invoice")
-            || has("location")
-            || has("paid_media")
-            || has("passport_data")
-            || msg
-                .get("photo")
-                .and_then(|v| v.as_array())
-                .map(|a| !a.is_empty())
-                .unwrap_or(false)
-            || has("poll")
-            || has("sticker")
-            || has("story")
-            || has("venue")
-            || has("video")
-            || has("video_note")
-            || has("voice");
+        let matched = msg.animation.is_some()
+            || msg.audio.is_some()
+            || msg.contact.is_some()
+            || msg.dice.is_some()
+            || msg.document.is_some()
+            || msg.game.is_some()
+            || msg.invoice.is_some()
+            || msg.location.is_some()
+            || msg.paid_media.is_some()
+            || msg.passport_data.is_some()
+            || msg.photo.as_ref().map(|a| !a.is_empty()).unwrap_or(false)
+            || msg.poll.is_some()
+            || msg.sticker.is_some()
+            || msg.story.is_some()
+            || msg.venue.is_some()
+            || msg.video.is_some()
+            || msg.video_note.is_some()
+            || msg.voice.is_some();
         if matched {
             FilterResult::Match
         } else {
@@ -758,9 +751,9 @@ pub struct ForumFilter;
 
 impl Filter for ForumFilter {
     fn check_update(&self, update: &Update) -> FilterResult {
-        if effective_chat(update)
-            .and_then(|c| c.get("is_forum").cloned())
-            .and_then(|v| v.as_bool())
+        if update
+            .effective_message()
+            .and_then(|m| m.chat.is_forum)
             .unwrap_or(false)
         {
             FilterResult::Match
@@ -781,9 +774,9 @@ pub struct DirectMessages;
 
 impl Filter for DirectMessages {
     fn check_update(&self, update: &Update) -> FilterResult {
-        if effective_chat(update)
-            .and_then(|c| c.get("is_direct_messages").cloned())
-            .and_then(|v| v.as_bool())
+        if update
+            .effective_message()
+            .and_then(|m| m.chat.is_direct_messages)
             .unwrap_or(false)
         {
             FilterResult::Match
@@ -804,10 +797,10 @@ pub struct UserPresence;
 
 impl Filter for UserPresence {
     fn check_update(&self, update: &Update) -> FilterResult {
-        if effective_message(update)
-            .and_then(|m| m.get("from").cloned())
-            .map(|v| !v.is_null())
-            .unwrap_or(false)
+        if update
+            .effective_message()
+            .and_then(|m| m.from_user.as_ref())
+            .is_some()
         {
             FilterResult::Match
         } else {
@@ -827,9 +820,9 @@ pub struct UserAttachmentMenu;
 
 impl Filter for UserAttachmentMenu {
     fn check_update(&self, update: &Update) -> FilterResult {
-        if effective_user(update)
-            .and_then(|u| u.get("added_to_attachment_menu").cloned())
-            .and_then(|v| v.as_bool())
+        if update
+            .effective_user()
+            .and_then(|u| u.added_to_attachment_menu)
             .unwrap_or(false)
         {
             FilterResult::Match
@@ -850,9 +843,9 @@ pub struct PremiumUser;
 
 impl Filter for PremiumUser {
     fn check_update(&self, update: &Update) -> FilterResult {
-        if effective_user(update)
-            .and_then(|u| u.get("is_premium").cloned())
-            .and_then(|v| v.as_bool())
+        if update
+            .effective_user()
+            .and_then(|u| u.is_premium)
             .unwrap_or(false)
         {
             FilterResult::Match
@@ -873,10 +866,10 @@ pub struct SenderChatPresence;
 
 impl Filter for SenderChatPresence {
     fn check_update(&self, update: &Update) -> FilterResult {
-        if effective_message(update)
-            .and_then(|m| m.get("sender_chat").cloned())
-            .map(|v| !v.is_null())
-            .unwrap_or(false)
+        if update
+            .effective_message()
+            .and_then(|m| m.sender_chat.as_ref())
+            .is_some()
         {
             FilterResult::Match
         } else {
@@ -894,10 +887,10 @@ pub struct ViaBotPresence;
 
 impl Filter for ViaBotPresence {
     fn check_update(&self, update: &Update) -> FilterResult {
-        if effective_message(update)
-            .and_then(|m| m.get("via_bot").cloned())
-            .map(|v| !v.is_null())
-            .unwrap_or(false)
+        if update
+            .effective_message()
+            .and_then(|m| m.via_bot.as_ref())
+            .is_some()
         {
             FilterResult::Match
         } else {

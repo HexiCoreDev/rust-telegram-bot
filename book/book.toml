@@ -1,5 +1,5 @@
 [book]
-title = "rust-telegram-bot"
+title = "rust-tg-bot"
 authors = ["Jude Etuka"]
 description = "Complete Telegram Bot API framework for Rust"
 language = "en"
@@ -8,5 +8,5 @@ src = "src"
 [output.html]
 git-repository-url = "https://github.com/HexiCoreDev/rust-telegram-bot"
 edit-url-template = "https://github.com/HexiCoreDev/rust-telegram-bot/edit/main/book/{path}"
-default-theme = "navy"
-preferred-dark-theme = "navy"
+default-theme = "rust"
+preferred-dark-theme = "ayu"

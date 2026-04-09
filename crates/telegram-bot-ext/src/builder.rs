@@ -3,8 +3,8 @@
 use std::marker::PhantomData;
 use std::sync::Arc;
 
-use telegram_bot_raw::bot::Bot;
-use telegram_bot_raw::request::base::BaseRequest;
+use rust_tg_bot_raw::bot::Bot;
+use rust_tg_bot_raw::request::base::BaseRequest;
 
 #[cfg(feature = "persistence")]
 use crate::application::DynPersistence;
@@ -200,7 +200,7 @@ impl ApplicationBuilder<HasToken> {
 
         let request: Arc<dyn BaseRequest> = self.request.unwrap_or_else(|| {
             Arc::new(
-                telegram_bot_raw::request::reqwest_impl::ReqwestRequest::new()
+                rust_tg_bot_raw::request::reqwest_impl::ReqwestRequest::new()
                     .expect("Failed to create default ReqwestRequest"),
             )
         });

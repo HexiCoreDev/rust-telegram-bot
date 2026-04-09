@@ -12,9 +12,9 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 use serde_json::Value;
 
-use telegram_bot_raw::types::callback_query::CallbackQuery;
-use telegram_bot_raw::types::inline::inline_keyboard_button::InlineKeyboardButton;
-use telegram_bot_raw::types::inline::inline_keyboard_markup::InlineKeyboardMarkup;
+use rust_tg_bot_raw::types::callback_query::CallbackQuery;
+use rust_tg_bot_raw::types::inline::inline_keyboard_button::InlineKeyboardButton;
+use rust_tg_bot_raw::types::inline::inline_keyboard_markup::InlineKeyboardMarkup;
 
 // ---------------------------------------------------------------------------
 // UUID generation (SystemTime + atomic counter -- no external crate)
@@ -346,7 +346,7 @@ impl CallbackDataCache {
     /// Replaces the data in the inline keyboard attached to a raw JSON message value.
     ///
     /// Works with `Message.reply_markup` being `Option<Value>` (the raw type from the
-    /// `telegram-bot-raw` crate).
+    /// `rust-tg-bot-raw` crate).
     ///
     /// Returns the keyboard UUID if resolution succeeded.
     pub fn process_message_value(&mut self, message: &mut Value) -> Option<String> {
@@ -411,7 +411,7 @@ impl CallbackDataCache {
             if let Ok(mut msg_val) = serde_json::to_value(&**msg) {
                 self.process_message_value(&mut msg_val);
                 if let Ok(processed_msg) = serde_json::from_value::<
-                    telegram_bot_raw::types::message::MaybeInaccessibleMessage,
+                    rust_tg_bot_raw::types::message::MaybeInaccessibleMessage,
                 >(msg_val)
                 {
                     **msg = processed_msg;
@@ -539,7 +539,7 @@ mod tests {
         // Simulate receiving the callback query
         let mut cq = CallbackQuery {
             id: "query_1".into(),
-            from_user: telegram_bot_raw::types::user::User {
+            from_user: rust_tg_bot_raw::types::user::User {
                 id: 1,
                 is_bot: false,
                 first_name: "Test".into(),
@@ -590,7 +590,7 @@ mod tests {
 
         let mut cq = CallbackQuery {
             id: "q2".into(),
-            from_user: telegram_bot_raw::types::user::User {
+            from_user: rust_tg_bot_raw::types::user::User {
                 id: 1,
                 is_bot: false,
                 first_name: "T".into(),

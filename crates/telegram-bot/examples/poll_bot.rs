@@ -12,13 +12,13 @@
 //! # Usage
 //!
 //! ```sh
-//! TELEGRAM_BOT_TOKEN="your-token-here" cargo run -p telegram-bot --example poll_bot
+//! TELEGRAM_BOT_TOKEN="your-token-here" cargo run -p rust-tg-bot --example poll_bot
 //! ```
-use telegram_bot::ext::prelude::{
+use rust_tg_bot::ext::prelude::{
     json, ApplicationBuilder, Arc, CommandHandler, Context, FnHandler, HandlerResult, JsonValue,
     Update,
 };
-use telegram_bot::raw::types::poll::InputPollOption;
+use rust_tg_bot::raw::types::poll::InputPollOption;
 
 /// After this many voters, polls and quizzes are automatically closed.
 const TOTAL_VOTER_COUNT: i64 = 3;
@@ -242,21 +242,21 @@ async fn main() {
     let app = ApplicationBuilder::new().token(token).build();
 
     // Command handlers.
-    app.add_typed_handler(CommandHandler::new("start", start), 0)
+    app.add_handler(CommandHandler::new("start", start), 0)
         .await;
-    app.add_typed_handler(CommandHandler::new("poll", poll_command), 0)
+    app.add_handler(CommandHandler::new("poll", poll_command), 0)
         .await;
-    app.add_typed_handler(CommandHandler::new("quiz", quiz_command), 0)
+    app.add_handler(CommandHandler::new("quiz", quiz_command), 0)
         .await;
-    app.add_typed_handler(CommandHandler::new("help", help_handler), 0)
+    app.add_handler(CommandHandler::new("help", help_handler), 0)
         .await;
 
     // Poll answer handler (fires when a user votes in a non-anonymous poll).
-    app.add_typed_handler(FnHandler::on_poll_answer(receive_poll_answer), 0)
+    app.add_handler(FnHandler::on_poll_answer(receive_poll_answer), 0)
         .await;
 
     // Poll handler (fires when a poll state changes, e.g., vote counts).
-    app.add_typed_handler(FnHandler::on_poll(receive_quiz_answer), 0)
+    app.add_handler(FnHandler::on_poll(receive_quiz_answer), 0)
         .await;
 
     println!("Poll bot is running. Press Ctrl+C to stop.");

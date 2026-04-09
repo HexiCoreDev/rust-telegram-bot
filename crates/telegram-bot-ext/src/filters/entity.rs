@@ -1,6 +1,6 @@
 //! Entity and CaptionEntity filters.
 
-use crate::filters::base::{effective_message_val, to_value, Filter, FilterResult, Update};
+use crate::filters::base::{Filter, FilterResult, Update};
 
 // ---------------------------------------------------------------------------
 // Entity
@@ -28,18 +28,17 @@ impl EntityFilter {
 
 impl Filter for EntityFilter {
     fn check_update(&self, update: &Update) -> FilterResult {
-        let __v = to_value(update);
-        let msg = match effective_message_val(&__v) {
+        let msg = match update.effective_message() {
             Some(m) => m,
             None => return FilterResult::NoMatch,
         };
-        let entities = match msg.get("entities").and_then(|v| v.as_array()) {
+        let entities = match msg.entities.as_ref() {
             Some(arr) => arr,
             None => return FilterResult::NoMatch,
         };
         if entities
             .iter()
-            .any(|e| e.get("type").and_then(|v| v.as_str()) == Some(&self.entity_type))
+            .any(|e| e.entity_type == self.entity_type)
         {
             FilterResult::Match
         } else {
@@ -74,18 +73,17 @@ impl CaptionEntityFilter {
 
 impl Filter for CaptionEntityFilter {
     fn check_update(&self, update: &Update) -> FilterResult {
-        let __v = to_value(update);
-        let msg = match effective_message_val(&__v) {
+        let msg = match update.effective_message() {
             Some(m) => m,
             None => return FilterResult::NoMatch,
         };
-        let entities = match msg.get("caption_entities").and_then(|v| v.as_array()) {
+        let entities = match msg.caption_entities.as_ref() {
             Some(arr) => arr,
             None => return FilterResult::NoMatch,
         };
         if entities
             .iter()
-            .any(|e| e.get("type").and_then(|v| v.as_str()) == Some(&self.entity_type))
+            .any(|e| e.entity_type == self.entity_type)
         {
             FilterResult::Match
         } else {

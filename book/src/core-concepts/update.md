@@ -7,7 +7,7 @@ Every interaction with your bot -- a message, a button press, an inline query, a
 An `Update` is a strongly typed Rust struct that mirrors the [Telegram Bot API Update object](https://core.telegram.org/bots/api#update). It contains an `update_id` and exactly one of many optional fields indicating what type of event occurred.
 
 ```rust
-use telegram_bot::ext::prelude::Update;
+use rust_tg_bot::ext::prelude::Update;
 ```
 
 ## Accessing Update Fields

@@ -5,7 +5,7 @@
 
 use std::collections::HashMap;
 
-use crate::filters::base::{effective_message_val, to_value, Filter, FilterResult, Update};
+use crate::filters::base::{Filter, FilterResult, Update};
 
 /// Filters messages whose `text` matches a compiled regex pattern.
 ///
@@ -48,11 +48,7 @@ impl RegexFilter {
 
 impl Filter for RegexFilter {
     fn check_update(&self, update: &Update) -> FilterResult {
-        let __v = to_value(update);
-        let text = match effective_message_val(&__v)
-            .and_then(|m| m.get("text"))
-            .and_then(|v| v.as_str())
-        {
+        let text = match update.effective_message().and_then(|m| m.text.as_deref()) {
             Some(t) => t,
             None => return FilterResult::NoMatch,
         };

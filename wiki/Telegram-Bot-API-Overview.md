@@ -1,6 +1,6 @@
 # Telegram Bot API Overview
 
-A quick primer on how the Telegram Bot API works, tailored for `rust-telegram-bot` developers.
+A quick primer on how the Telegram Bot API works, tailored for `rust-tg-bot` developers.
 
 ---
 
@@ -11,7 +11,7 @@ Telegram bots communicate through an HTTPS-based API hosted at `https://api.tele
 1. **Telegram sends updates to your bot** -- either via long polling (your bot asks "any new updates?") or via webhooks (Telegram pushes them to your server).
 2. **Your bot processes the update** and optionally responds by calling Bot API methods (send a message, edit a message, answer a query, etc.).
 
-All data is transferred as JSON. The `rust-telegram-bot` framework handles serialization, deserialization, HTTP transport, and retry logic for you.
+All data is transferred as JSON. The `rust-tg-bot` framework handles serialization, deserialization, HTTP transport, and retry logic for you.
 
 ---
 
@@ -36,7 +36,7 @@ An Update is the atomic unit of communication from Telegram to your bot. Each up
 | My Chat Member | `my_chat_member` | The bot's own status changed |
 | Chat Join Request | `chat_join_request` | Someone asked to join a chat |
 
-In `rust-telegram-bot`, the `Update` struct provides these as `Option<T>` fields. Convenience methods search across types:
+In `rust-tg-bot`, the `Update` struct provides these as `Option<T>` fields. Convenience methods search across types:
 
 ```rust
 update.effective_user()     // works for messages, callbacks, inline queries, etc.
@@ -76,7 +76,7 @@ A message also has metadata:
 
 ## Bot API Methods
 
-The Bot API provides methods your bot calls to interact with Telegram. In `rust-telegram-bot`, every method is a builder on `context.bot()`:
+The Bot API provides methods your bot calls to interact with Telegram. In `rust-tg-bot`, every method is a builder on `context.bot()`:
 
 ### Messaging
 

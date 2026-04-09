@@ -7,7 +7,7 @@ This page provides an overview of the crate structure, key types, and how to exp
 The most detailed and always-up-to-date reference is the `cargo doc` output. Generate and open it with:
 
 ```sh
-cargo doc --open -p telegram-bot --all-features
+cargo doc --open -p rust-tg-bot --all-features
 ```
 
 This builds HTML documentation for all public types, traits, and functions, including source links and cross-references.
@@ -24,18 +24,18 @@ The framework is split into three crates:
 
 | Crate | Purpose | You Use Directly? |
 |---|---|---|
-| `telegram-bot` | Facade crate -- re-exports both of the below | Yes |
-| `telegram-bot-raw` | Low-level Bot API types, HTTP methods, request builders | Rarely |
-| `telegram-bot-ext` | High-level Application, handlers, filters, context, persistence | Rarely |
+| `rust-tg-bot` | Facade crate -- re-exports both of the below | Yes |
+| `rust-tg-bot-raw` | Low-level Bot API types, HTTP methods, request builders | Rarely |
+| `rust-tg-bot-ext` | High-level Application, handlers, filters, context, persistence | Rarely |
 
-You almost always depend only on `telegram-bot` in your `Cargo.toml`. It re-exports everything you need through two module paths:
+You almost always depend only on `rust-tg-bot` in your `Cargo.toml`. It re-exports everything you need through two module paths:
 
-- `telegram_bot::ext::prelude` -- handlers, filters, context, application
-- `telegram_bot::raw::types` -- low-level Telegram types when needed
+- `rust_tg_bot::ext::prelude` -- handlers, filters, context, application
+- `rust_tg_bot::raw::types` -- low-level Telegram types when needed
 
 ## The Prelude
 
-The `telegram_bot::ext::prelude` module re-exports the most commonly needed types:
+The `rust_tg_bot::ext::prelude` module re-exports the most commonly needed types:
 
 ### Core Application Types
 
@@ -120,20 +120,20 @@ The `telegram_bot::ext::prelude` module re-exports the most commonly needed type
 
 ## Raw Types Module
 
-For types not in the prelude, import from `telegram_bot::raw::types`:
+For types not in the prelude, import from `rust_tg_bot::raw::types`:
 
 ```rust
 // Inline query types
-use telegram_bot::raw::types::inline::inline_query_result_article::InlineQueryResultArticle;
-use telegram_bot::raw::types::inline::input_message_content::InputMessageContent;
-use telegram_bot::raw::types::inline::input_text_message_content::InputTextMessageContent;
+use rust_tg_bot::raw::types::inline::inline_query_result_article::InlineQueryResultArticle;
+use rust_tg_bot::raw::types::inline::input_message_content::InputMessageContent;
+use rust_tg_bot::raw::types::inline::input_text_message_content::InputTextMessageContent;
 
 // Payment types
-use telegram_bot::raw::types::payment::labeled_price::LabeledPrice;
-use telegram_bot::raw::types::payment::shipping_option::ShippingOption;
+use rust_tg_bot::raw::types::payment::labeled_price::LabeledPrice;
+use rust_tg_bot::raw::types::payment::shipping_option::ShippingOption;
 
 // Chat member types
-use telegram_bot::raw::types::chat_member::ChatMember;
+use rust_tg_bot::raw::types::chat_member::ChatMember;
 ```
 
 ## Persistence Module
@@ -142,15 +142,15 @@ Persistence types live outside the prelude:
 
 ```rust
 // The trait
-use telegram_bot::ext::persistence::base::{
+use rust_tg_bot::ext::persistence::base::{
     BasePersistence, PersistenceError, PersistenceInput, PersistenceResult,
 };
 
 // Backends
-use telegram_bot::ext::persistence::json_file::JsonFilePersistence;
+use rust_tg_bot::ext::persistence::json_file::JsonFilePersistence;
 
 #[cfg(feature = "persistence-sqlite")]
-use telegram_bot::ext::persistence::sqlite::SqlitePersistence;
+use rust_tg_bot::ext::persistence::sqlite::SqlitePersistence;
 ```
 
 ## Filters Module
@@ -158,16 +158,16 @@ use telegram_bot::ext::persistence::sqlite::SqlitePersistence;
 Advanced filter types beyond `TEXT()` and `COMMAND()`:
 
 ```rust
-use telegram_bot::ext::filters::base::{
+use rust_tg_bot::ext::filters::base::{
     Filter, FilterResult, FnFilter, F, ALL,
     PHOTO, VIDEO, AUDIO, VOICE, LOCATION, CONTACT,
 };
 
-use telegram_bot::ext::filters::text::{TextFilter, CaptionFilter, CAPTION};
-use telegram_bot::ext::filters::regex::RegexFilter;
-use telegram_bot::ext::filters::user::UserFilter;
-use telegram_bot::ext::filters::chat::{ChatTypePrivate, ChatTypeGroup};
-use telegram_bot::ext::filters::update_type::{MESSAGE, EDITED_MESSAGE};
+use rust_tg_bot::ext::filters::text::{TextFilter, CaptionFilter, CAPTION};
+use rust_tg_bot::ext::filters::regex::RegexFilter;
+use rust_tg_bot::ext::filters::user::UserFilter;
+use rust_tg_bot::ext::filters::chat::{ChatTypePrivate, ChatTypeGroup};
+use rust_tg_bot::ext::filters::update_type::{MESSAGE, EDITED_MESSAGE};
 ```
 
 ## Bot Methods
@@ -228,4 +228,4 @@ context.reply_markdown_v2(&update, "*Bold*").await?;
 
 ## Next Steps
 
-For the complete API surface, run `cargo doc --open -p telegram-bot --all-features` in your project. The generated documentation includes every public type, method, and trait implementation with source links.
+For the complete API surface, run `cargo doc --open -p rust-tg-bot --all-features` in your project. The generated documentation includes every public type, method, and trait implementation with source links.

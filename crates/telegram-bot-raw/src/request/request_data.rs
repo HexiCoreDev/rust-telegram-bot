@@ -35,8 +35,8 @@ impl RequestData {
     /// Create a [`RequestData`] from an existing list of parameters.
     ///
     /// ```
-    /// use telegram_bot_raw::request::request_data::RequestData;
-    /// use telegram_bot_raw::request::request_parameter::RequestParameter;
+    /// use rust_tg_bot_raw::request::request_data::RequestData;
+    /// use rust_tg_bot_raw::request::request_parameter::RequestParameter;
     /// use serde_json::json;
     ///
     /// let params = vec![RequestParameter::new("chat_id", json!(42))];
@@ -62,8 +62,8 @@ impl RequestData {
     /// Mirrors `RequestData.contains_files` in Python.
     ///
     /// ```
-    /// use telegram_bot_raw::request::request_data::RequestData;
-    /// use telegram_bot_raw::request::request_parameter::{InputFileRef, RequestParameter};
+    /// use rust_tg_bot_raw::request::request_data::RequestData;
+    /// use rust_tg_bot_raw::request::request_parameter::{InputFileRef, RequestParameter};
     ///
     /// let file = InputFileRef::direct(vec![0u8]);
     /// let p = RequestParameter::file_only("photo", file);
@@ -91,8 +91,8 @@ impl RequestData {
     /// Mirrors `RequestData.json_parameters` in Python.
     ///
     /// ```
-    /// use telegram_bot_raw::request::request_data::RequestData;
-    /// use telegram_bot_raw::request::request_parameter::RequestParameter;
+    /// use rust_tg_bot_raw::request::request_data::RequestData;
+    /// use rust_tg_bot_raw::request::request_parameter::RequestParameter;
     /// use serde_json::json;
     ///
     /// let data = RequestData::from_parameters(vec![
@@ -115,8 +115,8 @@ impl RequestData {
     /// Mirrors `RequestData.json_payload` in Python.
     ///
     /// ```
-    /// use telegram_bot_raw::request::request_data::RequestData;
-    /// use telegram_bot_raw::request::request_parameter::RequestParameter;
+    /// use rust_tg_bot_raw::request::request_data::RequestData;
+    /// use rust_tg_bot_raw::request::request_parameter::RequestParameter;
     /// use serde_json::json;
     ///
     /// let data = RequestData::from_parameters(vec![
@@ -139,8 +139,8 @@ impl RequestData {
     /// that).
     ///
     /// ```
-    /// use telegram_bot_raw::request::request_data::RequestData;
-    /// use telegram_bot_raw::request::request_parameter::RequestParameter;
+    /// use rust_tg_bot_raw::request::request_data::RequestData;
+    /// use rust_tg_bot_raw::request::request_parameter::RequestParameter;
     /// use serde_json::json;
     ///
     /// let data = RequestData::from_parameters(vec![
@@ -164,8 +164,8 @@ impl RequestData {
     /// Mirrors `RequestData.parametrized_url` in Python.
     ///
     /// ```
-    /// use telegram_bot_raw::request::request_data::RequestData;
-    /// use telegram_bot_raw::request::request_parameter::RequestParameter;
+    /// use rust_tg_bot_raw::request::request_data::RequestData;
+    /// use rust_tg_bot_raw::request::request_parameter::RequestParameter;
     /// use serde_json::json;
     ///
     /// let data = RequestData::from_parameters(vec![

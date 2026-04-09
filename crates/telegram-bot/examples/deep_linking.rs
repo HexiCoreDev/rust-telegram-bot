@@ -11,10 +11,10 @@
 //! # Usage
 //!
 //! ```sh
-//! TELEGRAM_BOT_TOKEN="your-token-here" cargo run -p telegram-bot --example deep_linking
+//! TELEGRAM_BOT_TOKEN="your-token-here" cargo run -p rust-tg-bot --example deep_linking
 //! ```
 
-use telegram_bot::ext::prelude::{
+use rust_tg_bot::ext::prelude::{
     ApplicationBuilder, Arc, Context, FnHandler, HandlerResult, InlineKeyboardButton,
     InlineKeyboardMarkup, JsonValue, MessageEntityType, ParseMode, Update,
 };
@@ -239,7 +239,7 @@ async fn main() {
     // The first matching handler wins within its group.
 
     // Level 1: /start check-this-out
-    app.add_typed_handler(
+    app.add_handler(
         FnHandler::new(
             |u| is_start_with_payload(u, CHECK_THIS_OUT),
             deep_linked_level_1,
@@ -249,14 +249,14 @@ async fn main() {
     .await;
 
     // Level 2: /start so-cool
-    app.add_typed_handler(
+    app.add_handler(
         FnHandler::new(|u| is_start_with_payload(u, SO_COOL), deep_linked_level_2),
         0,
     )
     .await;
 
     // Level 3: /start using-entities-here
-    app.add_typed_handler(
+    app.add_handler(
         FnHandler::new(
             |u| is_start_with_payload(u, USING_ENTITIES),
             deep_linked_level_3,
@@ -266,7 +266,7 @@ async fn main() {
     .await;
 
     // Level 4: /start using-keyboard-here
-    app.add_typed_handler(
+    app.add_handler(
         FnHandler::new(
             |u| is_start_with_payload(u, USING_KEYBOARD),
             deep_linked_level_4,
@@ -276,7 +276,7 @@ async fn main() {
     .await;
 
     // Callback query handler for the inline keyboard button.
-    app.add_typed_handler(
+    app.add_handler(
         FnHandler::new(
             |u| u.callback_query().and_then(|cq| cq.data.as_deref()) == Some(KEYBOARD_CALLBACKDATA),
             deep_link_level_3_callback,
@@ -286,7 +286,7 @@ async fn main() {
     .await;
 
     // Plain /start -- must be registered AFTER the deep-link handlers.
-    app.add_typed_handler(FnHandler::new(is_plain_start, start), 0)
+    app.add_handler(FnHandler::new(is_plain_start, start), 0)
         .await;
 
     println!("Deep linking bot is running. Press Ctrl+C to stop.");

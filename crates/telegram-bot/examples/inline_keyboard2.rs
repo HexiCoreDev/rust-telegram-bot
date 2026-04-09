@@ -12,13 +12,13 @@
 //! # Usage
 //!
 //! ```sh
-//! TELEGRAM_BOT_TOKEN="your-token-here" cargo run -p telegram-bot --example inline_keyboard2
+//! TELEGRAM_BOT_TOKEN="your-token-here" cargo run -p rust-tg-bot --example inline_keyboard2
 //! ```
 //!
 //! Then in Telegram:
 //! - `/start` -- begins the interactive menu
 
-use telegram_bot::ext::prelude::{
+use rust_tg_bot::ext::prelude::{
     ApplicationBuilder, Arc, Context, FnHandler, HandlerError, HandlerResult, HashMap,
     InlineKeyboardButton, InlineKeyboardMarkup, JsonValue, MessageEntityType, RwLock, Update,
 };
@@ -358,7 +358,7 @@ async fn main() {
     // Entry point: /start
     {
         let cs = Arc::clone(&conv_store);
-        app.add_typed_handler(
+        app.add_handler(
             FnHandler::new(
                 |u| check_command(u, "start"),
                 move |update, ctx| {
@@ -375,7 +375,7 @@ async fn main() {
     {
         let cs = Arc::clone(&conv_store);
         let cs_check = Arc::clone(&conv_store);
-        app.add_typed_handler(
+        app.add_handler(
             FnHandler::new(
                 move |u| is_callback_with_data_in_stage(u, &cs_check, ONE, Stage::StartRoutes),
                 move |update, ctx| {
@@ -392,7 +392,7 @@ async fn main() {
     {
         let cs = Arc::clone(&conv_store);
         let cs_check = Arc::clone(&conv_store);
-        app.add_typed_handler(
+        app.add_handler(
             FnHandler::new(
                 move |u| is_callback_with_data_in_stage(u, &cs_check, TWO, Stage::StartRoutes),
                 move |update, ctx| {
@@ -409,7 +409,7 @@ async fn main() {
     {
         let cs = Arc::clone(&conv_store);
         let cs_check = Arc::clone(&conv_store);
-        app.add_typed_handler(
+        app.add_handler(
             FnHandler::new(
                 move |u| is_callback_with_data_in_stage(u, &cs_check, THREE, Stage::StartRoutes),
                 move |update, ctx| {
@@ -426,7 +426,7 @@ async fn main() {
     {
         let cs = Arc::clone(&conv_store);
         let cs_check = Arc::clone(&conv_store);
-        app.add_typed_handler(
+        app.add_handler(
             FnHandler::new(
                 move |u| is_callback_with_data_in_stage(u, &cs_check, FOUR, Stage::StartRoutes),
                 move |update, ctx| {
@@ -443,7 +443,7 @@ async fn main() {
     {
         let cs = Arc::clone(&conv_store);
         let cs_check = Arc::clone(&conv_store);
-        app.add_typed_handler(
+        app.add_handler(
             FnHandler::new(
                 move |u| is_callback_with_data_in_stage(u, &cs_check, ONE, Stage::EndRoutes),
                 move |update, ctx| {
@@ -460,7 +460,7 @@ async fn main() {
     {
         let cs = Arc::clone(&conv_store);
         let cs_check = Arc::clone(&conv_store);
-        app.add_typed_handler(
+        app.add_handler(
             FnHandler::new(
                 move |u| is_callback_with_data_in_stage(u, &cs_check, TWO, Stage::EndRoutes),
                 move |update, ctx| {

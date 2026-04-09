@@ -34,7 +34,7 @@ context.bot()
 Use `ParseMode` constants -- never raw strings:
 
 ```rust
-use telegram_bot::ext::prelude::ParseMode;
+use rust_tg_bot::ext::prelude::ParseMode;
 
 context.bot()
     .send_message(chat_id, "<b>Bold</b> and <i>italic</i>")
@@ -53,7 +53,7 @@ Available parse modes:
 Attach keyboards or inline keyboards to messages:
 
 ```rust
-use telegram_bot::ext::prelude::{InlineKeyboardButton, InlineKeyboardMarkup};
+use rust_tg_bot::ext::prelude::{InlineKeyboardButton, InlineKeyboardMarkup};
 
 let keyboard = InlineKeyboardMarkup::new(vec![
     vec![

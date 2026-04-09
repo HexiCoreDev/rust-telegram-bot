@@ -17,7 +17,7 @@
 //! # Usage
 //!
 //! ```sh
-//! TELEGRAM_BOT_TOKEN="your-token-here" cargo run -p telegram-bot --example arbitrary_callback_data_bot
+//! TELEGRAM_BOT_TOKEN="your-token-here" cargo run -p rust-tg-bot --example arbitrary_callback_data_bot
 //! ```
 //!
 //! Then in Telegram:
@@ -25,7 +25,7 @@
 //! - `/help` -- shows usage info
 //! - `/clear` -- clears the callback data cache (demonstrates invalid data handling)
 
-use telegram_bot::ext::prelude::{
+use rust_tg_bot::ext::prelude::{
     Application, ApplicationBuilder, Arc, CommandHandler, Context, FnHandler, HandlerError,
     HandlerResult, InlineKeyboardButton, InlineKeyboardMarkup, JsonValue, Update,
 };
@@ -210,13 +210,13 @@ async fn main() {
         .arbitrary_callback_data(CALLBACK_DATA_CACHE_SIZE)
         .build();
 
-    app.add_typed_handler(CommandHandler::new("start", start), 0)
+    app.add_handler(CommandHandler::new("start", start), 0)
         .await;
-    app.add_typed_handler(CommandHandler::new("help", help_command), 0)
+    app.add_handler(CommandHandler::new("help", help_command), 0)
         .await;
-    app.add_typed_handler(CommandHandler::new("clear", clear), 0)
+    app.add_handler(CommandHandler::new("clear", clear), 0)
         .await;
-    app.add_typed_handler(FnHandler::on_callback_query(list_button), 0)
+    app.add_handler(FnHandler::on_callback_query(list_button), 0)
         .await;
 
     println!("Arbitrary callback data bot is running. Press Ctrl+C to stop.");

@@ -1,5 +1,5 @@
 [package]
-name = "telegram-bot"
+name = "rust-tg-bot"
 description = "Complete Telegram Bot API framework for Rust, inspired by python-telegram-bot"
 version.workspace = true
 edition.workspace = true
@@ -9,14 +9,14 @@ repository.workspace = true
 authors = ["Jude Etuka <judechinedu122@gmail.com>"]
 keywords = ["telegram", "bot", "api", "async", "framework"]
 categories = ["api-bindings", "asynchronous", "web-programming"]
-documentation = "https://docs.rs/telegram-bot"
+documentation = "https://docs.rs/rust-tg-bot"
 homepage = "https://github.com/HexiCoreDev/rust-telegram-bot"
 readme = "../../README.md"
 exclude = ["target/", ".github/", "docs/", "examples/"]
 
 [dependencies]
-telegram-bot-raw = { path = "../telegram-bot-raw" }
-telegram-bot-ext = { path = "../telegram-bot-ext" }
+rust-tg-bot-raw = { path = "../telegram-bot-raw" }
+rust-tg-bot-ext = { path = "../telegram-bot-ext" }
 tokio = { workspace = true }
 
 [dev-dependencies]
@@ -28,14 +28,14 @@ tracing-subscriber = { workspace = true }
 axum = { workspace = true }
 
 [features]
-default = ["telegram-bot-ext/default"]
-full = ["telegram-bot-ext/full"]
-webhooks = ["telegram-bot-ext/webhooks"]
-job-queue = ["telegram-bot-ext/job-queue"]
-persistence = ["telegram-bot-ext/persistence"]
-persistence-json = ["telegram-bot-ext/persistence-json"]
-persistence-sqlite = ["telegram-bot-ext/persistence-sqlite"]
-rate-limiter = ["telegram-bot-ext/rate-limiter"]
+default = ["rust-tg-bot-ext/default"]
+full = ["rust-tg-bot-ext/full"]
+webhooks = ["rust-tg-bot-ext/webhooks"]
+job-queue = ["rust-tg-bot-ext/job-queue"]
+persistence = ["rust-tg-bot-ext/persistence"]
+persistence-json = ["rust-tg-bot-ext/persistence-json"]
+persistence-sqlite = ["rust-tg-bot-ext/persistence-sqlite"]
+rate-limiter = ["rust-tg-bot-ext/rate-limiter"]
 
 [[example]]
 name = "echo_bot"

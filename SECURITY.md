@@ -8,7 +8,7 @@
 
 ## Reporting a Vulnerability
 
-If you discover a security vulnerability in rust-telegram-bot, please report it responsibly.
+If you discover a security vulnerability in rust-tg-bot, please report it responsibly.
 
 **Do NOT open a public GitHub issue for security vulnerabilities.**
 
@@ -31,7 +31,7 @@ Include:
 
 This policy covers:
 
-- The `telegram-bot-raw`, `telegram-bot-ext`, and `telegram-bot` crates
+- The `rust-tg-bot-raw`, `rust-tg-bot-ext`, and `rust-tg-bot` crates
 - Security issues in request handling, token management, webhook validation
 - Dependency vulnerabilities that affect this project
 

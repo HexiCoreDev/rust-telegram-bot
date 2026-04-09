@@ -1,5 +1,5 @@
 [package]
-name = "telegram-bot-ext"
+name = "rust-tg-bot-ext"
 description = "Application framework for Telegram bots -- handlers, filters, persistence, job queue"
 version.workspace = true
 edition.workspace = true
@@ -9,13 +9,13 @@ repository.workspace = true
 authors = ["Jude Etuka <judechinedu122@gmail.com>"]
 keywords = ["telegram", "bot", "framework", "async", "handler"]
 categories = ["api-bindings", "asynchronous", "web-programming"]
-documentation = "https://docs.rs/telegram-bot-ext"
+documentation = "https://docs.rs/rust-tg-bot-ext"
 homepage = "https://github.com/HexiCoreDev/rust-telegram-bot"
 readme = "../../README.md"
 exclude = ["target/", ".github/", "docs/", "examples/"]
 
 [dependencies]
-telegram-bot-raw = { path = "../telegram-bot-raw" }
+rust-tg-bot-raw = { path = "../telegram-bot-raw" }
 serde.workspace = true
 serde_json.workspace = true
 tokio.workspace = true

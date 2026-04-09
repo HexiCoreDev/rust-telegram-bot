@@ -323,7 +323,7 @@ pub trait BaseRequest: Send + Sync {
 /// error on failure.
 ///
 /// ```
-/// use telegram_bot_raw::request::base::parse_json_payload_impl;
+/// use rust_tg_bot_raw::request::base::parse_json_payload_impl;
 ///
 /// let raw = br#"{"ok":true,"result":42}"#;
 /// let v = parse_json_payload_impl(raw).unwrap();

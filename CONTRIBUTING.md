@@ -1,4 +1,4 @@
-# Contributing to rust-telegram-bot
+# Contributing to rust-tg-bot
 
 Welcome, and thank you for your interest in contributing. Whether you are fixing a typo, reporting a bug, adding a feature, or improving documentation, your contribution is valued.
 
@@ -30,7 +30,7 @@ This guide covers everything you need to know to contribute effectively.
 If you find a bug, please open an issue on [GitHub Issues](https://github.com/HexiCoreDev/rust-telegram-bot/issues) with the following information:
 
 - **Rust version**: output of `rustc --version`
-- **Crate version**: the version of `telegram-bot` you are using
+- **Crate version**: the version of `rust-tg-bot` you are using
 - **Operating system**: platform and version
 - **Bot API version**: which Telegram Bot API version you are targeting
 - **Description**: what you expected to happen versus what actually happened
@@ -65,7 +65,7 @@ Feature requests are welcome. When opening a feature request issue, please inclu
 ```sh
 # Fork the repository on GitHub, then clone your fork
 git clone https://github.com/<your-username>/rust-telegram-bot.git
-cd rust-telegram-bot
+cd rust-tg-bot
 
 # Build the entire workspace
 cargo build --workspace --all-features
@@ -90,7 +90,7 @@ cargo install cargo-tarpaulin
 ### Running Examples
 
 ```sh
-TELEGRAM_BOT_TOKEN="your-token" cargo run -p telegram-bot --example echo_bot
+TELEGRAM_BOT_TOKEN="your-token" cargo run -p rust-tg-bot --example echo_bot
 ```
 
 See the `crates/telegram-bot/examples/` directory for all 20 example bots.
@@ -113,13 +113,13 @@ rust-telegram-bot/
 
 | I want to...                                          | Modify this crate    |
 |-------------------------------------------------------|----------------------|
-| Add or fix a Bot API type (e.g., `Message`, `Update`) | `telegram-bot-raw`   |
-| Add or fix a Bot API method (e.g., `send_message`)    | `telegram-bot-raw`   |
-| Add a handler (e.g., `PollHandler`)                   | `telegram-bot-ext`   |
-| Add a filter (e.g., `PREMIUM_USER`)                   | `telegram-bot-ext`   |
-| Modify persistence, job queue, or application logic   | `telegram-bot-ext`   |
-| Add or update an example bot                          | `telegram-bot`       |
-| Update re-exports or the facade                       | `telegram-bot`       |
+| Add or fix a Bot API type (e.g., `Message`, `Update`) | `rust-tg-bot-raw`   |
+| Add or fix a Bot API method (e.g., `send_message`)    | `rust-tg-bot-raw`   |
+| Add a handler (e.g., `PollHandler`)                   | `rust-tg-bot-ext`   |
+| Add a filter (e.g., `PREMIUM_USER`)                   | `rust-tg-bot-ext`   |
+| Modify persistence, job queue, or application logic   | `rust-tg-bot-ext`   |
+| Add or update an example bot                          | `rust-tg-bot`       |
+| Update re-exports or the facade                       | `rust-tg-bot`       |
 
 ### Key Directories
 
@@ -201,10 +201,10 @@ cargo clippy --workspace --all-targets --all-features -- -D warnings
 cargo test --workspace --all-features
 
 # Run tests for a specific crate
-cargo test -p telegram-bot-ext --all-features
+cargo test -p rust-tg-bot-ext --all-features
 
 # Run a specific test
-cargo test -p telegram-bot-ext --all-features -- test_name
+cargo test -p rust-tg-bot-ext --all-features -- test_name
 
 # With cargo-nextest (faster)
 cargo nextest run --workspace --all-features
@@ -386,8 +386,8 @@ For enforcement concerns, contact [[judechinedu122@gmail.com](mailto:judechinedu
 
 ## License
 
-By contributing to rust-telegram-bot, you agree that your contributions will be licensed under the [GNU Lesser General Public License v3.0](LICENSE).
+By contributing to rust-tg-bot, you agree that your contributions will be licensed under the [GNU Lesser General Public License v3.0](LICENSE).
 
 ---
 
-Thank you for helping make rust-telegram-bot better. We look forward to your contributions.
+Thank you for helping make rust-tg-bot better. We look forward to your contributions.

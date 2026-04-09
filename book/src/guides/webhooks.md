@@ -17,13 +17,13 @@ The framework includes a built-in webhook server. Enable it with the `webhooks` 
 
 ```toml
 [dependencies]
-telegram-bot = { version = "0.1", features = ["webhooks"] }
+rust-tg-bot = { version = "0.1", features = ["webhooks"] }
 ```
 
 Then use `run_webhook()` instead of `run_polling()`:
 
 ```rust
-use telegram_bot::ext::prelude::{
+use rust_tg_bot::ext::prelude::{
     ApplicationBuilder, Arc, CommandHandler, Context, HandlerResult,
     Update, WebhookConfig,
 };
@@ -41,7 +41,7 @@ async fn main() {
 
     let app = ApplicationBuilder::new().token(token).build();
 
-    app.add_typed_handler(CommandHandler::new("start", start), 0).await;
+    app.add_handler(CommandHandler::new("start", start), 0).await;
 
     let config = WebhookConfig {
         listen: "0.0.0.0".into(),
@@ -97,11 +97,11 @@ use axum::Router;
 use tokio::net::TcpListener;
 use tokio::sync::mpsc;
 
-use telegram_bot::ext::prelude::{
+use rust_tg_bot::ext::prelude::{
     Application, ApplicationBuilder, Arc, CommandHandler, Context,
     HandlerResult, ParseMode, Update,
 };
-use telegram_bot::raw::types::update::Update as RawUpdate;
+use rust_tg_bot::raw::types::update::Update as RawUpdate;
 
 async fn start(update: Arc<Update>, context: Context) -> HandlerResult {
     let chat_id = update
@@ -155,7 +155,7 @@ async fn main() {
 
     let app = ApplicationBuilder::new().token(&token).build();
 
-    app.add_typed_handler(CommandHandler::new("start", start), 0).await;
+    app.add_handler(CommandHandler::new("start", start), 0).await;
 
     // Initialize and start the Application manually
     app.initialize().await.expect("Failed to initialize");
@@ -217,7 +217,7 @@ server {
         proxy_pass http://127.0.0.1:8080/webhook;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Telegram-Bot-Api-Secret-Token $http_x_telegram_bot_api_secret_token;
+        proxy_set_header X-Telegram-Bot-Api-Secret-Token $http_x_rust_tg_bot_api_secret_token;
     }
 }
 ```

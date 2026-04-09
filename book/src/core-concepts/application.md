@@ -7,7 +7,7 @@ The `Application` is the central orchestrator. It owns the bot, manages handler 
 Use `ApplicationBuilder` with the typestate pattern -- you cannot call `.build()` without first providing a token:
 
 ```rust
-use telegram_bot::ext::prelude::ApplicationBuilder;
+use rust_tg_bot::ext::prelude::ApplicationBuilder;
 
 let app = ApplicationBuilder::new()
     .token("your-token")
@@ -34,9 +34,9 @@ The builder returns `Arc<Application>`, which is cheap to clone and share across
 ### Example: Full Configuration
 
 ```rust
-use telegram_bot::ext::prelude::ApplicationBuilder;
-use telegram_bot::ext::job_queue::JobQueue;
-use telegram_bot::ext::persistence::json_file::JsonFilePersistence;
+use rust_tg_bot::ext::prelude::ApplicationBuilder;
+use rust_tg_bot::ext::job_queue::JobQueue;
+use rust_tg_bot::ext::persistence::json_file::JsonFilePersistence;
 
 let jq = Arc::new(JobQueue::new());
 let persistence = JsonFilePersistence::new("my_bot", true, false);
@@ -52,7 +52,7 @@ let app = ApplicationBuilder::new()
 ## Registering Handlers
 
 ```rust
-app.add_typed_handler(handler, group).await;
+app.add_handler(handler, group).await;
 ```
 
 - `handler` -- any handler type (`CommandHandler`, `MessageHandler`, `FnHandler`, etc.).
@@ -83,7 +83,7 @@ Each group is independent. One handler per group can fire.
 Register global error handlers that catch any `HandlerError`:
 
 ```rust
-use telegram_bot::ext::prelude::{Arc, CallbackContext, Update};
+use rust_tg_bot::ext::prelude::{Arc, CallbackContext, Update};
 
 async fn on_error(update: Option<Arc<Update>>, ctx: CallbackContext) -> bool {
     tracing::error!("Handler error: {:?}", ctx.error);

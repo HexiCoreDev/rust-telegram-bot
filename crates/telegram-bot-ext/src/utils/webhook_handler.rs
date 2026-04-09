@@ -40,7 +40,7 @@ use tokio::net::TcpListener;
 use tokio::sync::{mpsc, Notify};
 use tracing::{debug, error, info, warn};
 
-use telegram_bot_raw::types::update::Update;
+use rust_tg_bot_raw::types::update::Update;
 
 // ---------------------------------------------------------------------------
 // Constant-time comparison
@@ -126,7 +126,7 @@ struct WebhookState {
 /// # Example
 ///
 /// ```rust,ignore
-/// use telegram_bot_ext::utils::webhook_handler::WebhookHandler;
+/// use rust_tg_bot_ext::utils::webhook_handler::WebhookHandler;
 /// use tokio::sync::mpsc;
 ///
 /// let (tx, rx) = mpsc::channel(256);

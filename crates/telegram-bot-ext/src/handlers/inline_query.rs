@@ -10,7 +10,7 @@ use std::pin::Pin;
 use std::sync::Arc;
 
 use regex::Regex;
-use telegram_bot_raw::types::update::Update;
+use rust_tg_bot_raw::types::update::Update;
 
 use super::base::{Handler, HandlerCallback, HandlerResult, MatchResult};
 use crate::context::CallbackContext;

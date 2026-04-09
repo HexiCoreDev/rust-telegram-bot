@@ -7,7 +7,7 @@ Every handler returns `HandlerResult`, which is `Result<(), HandlerError>`. When
 `HandlerError` wraps any error type. The `Other` variant holds a `Box<dyn std::error::Error + Send + Sync>`:
 
 ```rust
-use telegram_bot::ext::prelude::HandlerError;
+use rust_tg_bot::ext::prelude::HandlerError;
 
 // From any std error type
 let io_err = std::io::Error::new(std::io::ErrorKind::NotFound, "file missing");
@@ -17,7 +17,7 @@ let e = HandlerError::Other(Box::new(io_err));
 Inside handlers, the `?` operator on Telegram API calls automatically converts errors to `HandlerError`. For other error types, use `.map_err`:
 
 ```rust
-use telegram_bot::ext::prelude::{Arc, Context, HandlerError, HandlerResult, Update};
+use rust_tg_bot::ext::prelude::{Arc, Context, HandlerError, HandlerResult, Update};
 
 async fn handler(update: Arc<Update>, context: Context) -> HandlerResult {
     let chat_id = update.effective_chat().map(|c| c.id).unwrap();
@@ -54,7 +54,7 @@ async fn bad_command(
 `app.add_error_handler` registers a callback that runs whenever any handler returns `Err`:
 
 ```rust
-use telegram_bot::ext::prelude::{
+use rust_tg_bot::ext::prelude::{
     ApplicationBuilder, Arc, CallbackContext, Context, HandlerError,
     HandlerResult, CommandHandler, Update,
 };
@@ -175,7 +175,7 @@ Define a domain error type with `thiserror` for structured error handling:
 
 ```rust
 use thiserror::Error;
-use telegram_bot::ext::prelude::HandlerError;
+use rust_tg_bot::ext::prelude::HandlerError;
 
 #[derive(Debug, Error)]
 pub enum BotError {
@@ -276,7 +276,7 @@ let Some(msg) = update.effective_message() else {
 ## Complete Example
 
 ```rust
-use telegram_bot::ext::prelude::{
+use rust_tg_bot::ext::prelude::{
     ApplicationBuilder, Arc, CallbackContext, CommandHandler, Context,
     HandlerError, HandlerResult, Update,
 };
@@ -337,8 +337,8 @@ async fn main() {
     let token = std::env::var("TELEGRAM_BOT_TOKEN").unwrap();
     let app = ApplicationBuilder::new().token(token).build();
 
-    app.add_typed_handler(CommandHandler::new("start", start), 0).await;
-    app.add_typed_handler(CommandHandler::new("bad_command", bad_command), 0).await;
+    app.add_handler(CommandHandler::new("start", start), 0).await;
+    app.add_handler(CommandHandler::new("bad_command", bad_command), 0).await;
 
     app.add_error_handler(
         Arc::new(|update, ctx| Box::pin(on_error(update, ctx))),

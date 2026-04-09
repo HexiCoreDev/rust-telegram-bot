@@ -2,15 +2,14 @@
 
 use std::collections::HashSet;
 
-use crate::filters::base::{effective_message_val, to_value, Filter, FilterResult, Update};
+use crate::filters::base::{Filter, FilterResult, Update};
 
 pub struct PhotoFilter;
 impl Filter for PhotoFilter {
     fn check_update(&self, update: &Update) -> FilterResult {
-        let __v = to_value(update);
-        if effective_message_val(&__v)
-            .and_then(|m| m.get("photo"))
-            .and_then(|v| v.as_array())
+        if update
+            .effective_message()
+            .and_then(|m| m.photo.as_ref())
             .map(|a| !a.is_empty())
             .unwrap_or(false)
         {
@@ -28,11 +27,10 @@ pub const PHOTO: PhotoFilter = PhotoFilter;
 pub struct StickerAll;
 impl Filter for StickerAll {
     fn check_update(&self, update: &Update) -> FilterResult {
-        let __v = to_value(update);
-        if effective_message_val(&__v)
-            .and_then(|m| m.get("sticker"))
-            .map(|v| !v.is_null())
-            .unwrap_or(false)
+        if update
+            .effective_message()
+            .and_then(|m| m.sticker.as_ref())
+            .is_some()
         {
             FilterResult::Match
         } else {
@@ -47,12 +45,10 @@ impl Filter for StickerAll {
 pub struct StickerAnimated;
 impl Filter for StickerAnimated {
     fn check_update(&self, update: &Update) -> FilterResult {
-        let __v = to_value(update);
-        if effective_message_val(&__v)
-            .and_then(|m| m.get("sticker"))
-            .filter(|s| !s.is_null())
-            .and_then(|s| s.get("is_animated"))
-            .and_then(|v| v.as_bool())
+        if update
+            .effective_message()
+            .and_then(|m| m.sticker.as_ref())
+            .map(|s| s.is_animated)
             .unwrap_or(false)
         {
             FilterResult::Match
@@ -68,20 +64,11 @@ impl Filter for StickerAnimated {
 pub struct StickerStatic;
 impl Filter for StickerStatic {
     fn check_update(&self, update: &Update) -> FilterResult {
-        let __v = to_value(update);
-        let sticker = match effective_message_val(&__v).and_then(|m| m.get("sticker")) {
-            Some(s) if !s.is_null() => s,
-            _ => return FilterResult::NoMatch,
+        let sticker = match update.effective_message().and_then(|m| m.sticker.as_ref()) {
+            Some(s) => s,
+            None => return FilterResult::NoMatch,
         };
-        let is_animated = sticker
-            .get("is_animated")
-            .and_then(|v| v.as_bool())
-            .unwrap_or(false);
-        let is_video = sticker
-            .get("is_video")
-            .and_then(|v| v.as_bool())
-            .unwrap_or(false);
-        if !is_animated && !is_video {
+        if !sticker.is_animated && !sticker.is_video {
             FilterResult::Match
         } else {
             FilterResult::NoMatch
@@ -95,12 +82,10 @@ impl Filter for StickerStatic {
 pub struct StickerVideo;
 impl Filter for StickerVideo {
     fn check_update(&self, update: &Update) -> FilterResult {
-        let __v = to_value(update);
-        if effective_message_val(&__v)
-            .and_then(|m| m.get("sticker"))
-            .filter(|s| !s.is_null())
-            .and_then(|s| s.get("is_video"))
-            .and_then(|v| v.as_bool())
+        if update
+            .effective_message()
+            .and_then(|m| m.sticker.as_ref())
+            .map(|s| s.is_video)
             .unwrap_or(false)
         {
             FilterResult::Match
@@ -116,13 +101,11 @@ impl Filter for StickerVideo {
 pub struct StickerPremium;
 impl Filter for StickerPremium {
     fn check_update(&self, update: &Update) -> FilterResult {
-        let __v = to_value(update);
-        if effective_message_val(&__v)
-            .and_then(|m| m.get("sticker"))
-            .filter(|s| !s.is_null())
-            .and_then(|s| s.get("premium_animation"))
-            .map(|v| !v.is_null())
-            .unwrap_or(false)
+        if update
+            .effective_message()
+            .and_then(|m| m.sticker.as_ref())
+            .and_then(|s| s.premium_animation.as_ref())
+            .is_some()
         {
             FilterResult::Match
         } else {
@@ -153,12 +136,10 @@ impl StickerEmoji {
 
 impl Filter for StickerEmoji {
     fn check_update(&self, update: &Update) -> FilterResult {
-        let __v = to_value(update);
-        let emoji = effective_message_val(&__v)
-            .and_then(|m| m.get("sticker"))
-            .filter(|s| !s.is_null())
-            .and_then(|s| s.get("emoji"))
-            .and_then(|v| v.as_str());
+        let emoji = update
+            .effective_message()
+            .and_then(|m| m.sticker.as_ref())
+            .and_then(|s| s.emoji.as_deref());
 
         match emoji {
             Some(e) if self.emojis.contains(e) => FilterResult::Match,
@@ -184,7 +165,7 @@ pub mod sticker {
     /// # Example
     ///
     /// ```rust,ignore
-    /// use telegram_bot_ext::filters::photo::sticker;
+    /// use rust_tg_bot_ext::filters::photo::sticker;
     ///
     /// let emoji_filter = sticker::emoji(vec!["😀", "😂"]);
     /// ```

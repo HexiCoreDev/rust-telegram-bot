@@ -13,7 +13,7 @@ An echo bot does one thing: it repeats back whatever text the user sends. Despit
 ## Full Source
 
 ```rust
-use telegram_bot::ext::prelude::{
+use rust_tg_bot::ext::prelude::{
     ApplicationBuilder, Arc, CommandHandler, Context, HandlerResult,
     MessageHandler, Update, COMMAND, TEXT,
 };
@@ -69,9 +69,9 @@ async fn main() {
 
     let app = ApplicationBuilder::new().token(token).build();
 
-    app.add_typed_handler(CommandHandler::new("start", start), 0).await;
-    app.add_typed_handler(CommandHandler::new("help", help), 0).await;
-    app.add_typed_handler(
+    app.add_handler(CommandHandler::new("start", start), 0).await;
+    app.add_handler(CommandHandler::new("help", help), 0).await;
+    app.add_handler(
         MessageHandler::new(TEXT() & !COMMAND(), echo), 0,
     ).await;
 
@@ -88,7 +88,7 @@ async fn main() {
 ### Imports
 
 ```rust
-use telegram_bot::ext::prelude::{
+use rust_tg_bot::ext::prelude::{
     ApplicationBuilder, Arc, CommandHandler, Context, HandlerResult,
     MessageHandler, Update, COMMAND, TEXT,
 };
@@ -159,8 +159,8 @@ let app = ApplicationBuilder::new().token(token).build();
 ### Registering Handlers
 
 ```rust
-app.add_typed_handler(CommandHandler::new("start", start), 0).await;
-app.add_typed_handler(MessageHandler::new(TEXT() & !COMMAND(), echo), 0).await;
+app.add_handler(CommandHandler::new("start", start), 0).await;
+app.add_handler(MessageHandler::new(TEXT() & !COMMAND(), echo), 0).await;
 ```
 
 - `CommandHandler::new("start", start)` -- matches `/start` and calls the `start` function.

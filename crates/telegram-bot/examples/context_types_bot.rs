@@ -12,9 +12,9 @@
 //! # Usage
 //!
 //! ```sh
-//! TELEGRAM_BOT_TOKEN="your-token-here" cargo run -p telegram-bot --example context_types_bot
+//! TELEGRAM_BOT_TOKEN="your-token-here" cargo run -p rust-tg-bot --example context_types_bot
 //! ```
-use telegram_bot::ext::prelude::{
+use rust_tg_bot::ext::prelude::{
     Application, ApplicationBuilder, Arc, CommandHandler, Context, FnHandler, HandlerError,
     HandlerResult, InlineKeyboardButton, InlineKeyboardMarkup, JsonValue, Update,
 };
@@ -171,15 +171,15 @@ async fn main() {
     let app: Arc<Application> = ApplicationBuilder::new().token(token).build();
 
     // Group -1: track all users before any other handler runs.
-    app.add_typed_handler(FnHandler::on_any(track_users), -1)
+    app.add_handler(FnHandler::on_any(track_users), -1)
         .await;
 
     // /start -- send a button
-    app.add_typed_handler(CommandHandler::new("start", start), 0)
+    app.add_handler(CommandHandler::new("start", start), 0)
         .await;
 
     // Callback query handler for button clicks
-    app.add_typed_handler(
+    app.add_handler(
         FnHandler::new(
             |u| {
                 u.callback_query()
@@ -193,7 +193,7 @@ async fn main() {
     .await;
 
     // /print_users -- show tracked user IDs
-    app.add_typed_handler(CommandHandler::new("print_users", print_users), 0)
+    app.add_handler(CommandHandler::new("print_users", print_users), 0)
         .await;
 
     println!("Context types bot is running. Press Ctrl+C to stop.");

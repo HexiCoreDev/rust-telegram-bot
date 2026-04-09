@@ -18,142 +18,92 @@ pub mod via_bot;
 // ---------------------------------------------------------------------------
 
 pub mod update_type {
-    use super::base::{to_value, Filter, FilterResult, Update};
+    use super::base::{Filter, FilterResult, Update};
+    use rust_tg_bot_raw::types::update::UpdateKind;
 
     macro_rules! update_type_filter {
-        ($struct_name:ident, $key:expr, $display:expr) => {
+        ($struct_name:ident, $pattern:pat, $display:expr) => {
             pub struct $struct_name;
             impl Filter for $struct_name {
                 fn check_update(&self, update: &Update) -> FilterResult {
-                    let v = to_value(update);
-                    if v.get($key).map(|v| !v.is_null()).unwrap_or(false) {
+                    if matches!(update.kind, $pattern) {
                         FilterResult::Match
                     } else {
                         FilterResult::NoMatch
                     }
                 }
-                fn name(&self) -> &str {
-                    $display
-                }
+                fn name(&self) -> &str { $display }
             }
         };
     }
 
-    update_type_filter!(Message, "message", "filters.UpdateType.MESSAGE");
+    update_type_filter!(Message, UpdateKind::Message(_), "filters.UpdateType.MESSAGE");
     pub const MESSAGE: Message = Message;
 
     pub struct Messages;
     impl Filter for Messages {
         fn check_update(&self, update: &Update) -> FilterResult {
-            let v = to_value(update);
-            if v.get("message").map(|v| !v.is_null()).unwrap_or(false)
-                || v.get("edited_message")
-                    .map(|v| !v.is_null())
-                    .unwrap_or(false)
-            {
+            if matches!(update.kind, UpdateKind::Message(_) | UpdateKind::EditedMessage(_)) {
                 FilterResult::Match
             } else {
                 FilterResult::NoMatch
             }
         }
-        fn name(&self) -> &str {
-            "filters.UpdateType.MESSAGES"
-        }
+        fn name(&self) -> &str { "filters.UpdateType.MESSAGES" }
     }
     pub const MESSAGES: Messages = Messages;
 
-    update_type_filter!(
-        EditedMessage,
-        "edited_message",
-        "filters.UpdateType.EDITED_MESSAGE"
-    );
+    update_type_filter!(EditedMessage, UpdateKind::EditedMessage(_), "filters.UpdateType.EDITED_MESSAGE");
     pub const EDITED_MESSAGE: EditedMessage = EditedMessage;
 
-    update_type_filter!(
-        ChannelPost,
-        "channel_post",
-        "filters.UpdateType.CHANNEL_POST"
-    );
+    update_type_filter!(ChannelPost, UpdateKind::ChannelPost(_), "filters.UpdateType.CHANNEL_POST");
     pub const CHANNEL_POST: ChannelPost = ChannelPost;
 
     pub struct ChannelPosts;
     impl Filter for ChannelPosts {
         fn check_update(&self, update: &Update) -> FilterResult {
-            let v = to_value(update);
-            if v.get("channel_post").map(|v| !v.is_null()).unwrap_or(false)
-                || v.get("edited_channel_post")
-                    .map(|v| !v.is_null())
-                    .unwrap_or(false)
-            {
+            if matches!(update.kind, UpdateKind::ChannelPost(_) | UpdateKind::EditedChannelPost(_)) {
                 FilterResult::Match
             } else {
                 FilterResult::NoMatch
             }
         }
-        fn name(&self) -> &str {
-            "filters.UpdateType.CHANNEL_POSTS"
-        }
+        fn name(&self) -> &str { "filters.UpdateType.CHANNEL_POSTS" }
     }
     pub const CHANNEL_POSTS: ChannelPosts = ChannelPosts;
 
-    update_type_filter!(
-        EditedChannelPost,
-        "edited_channel_post",
-        "filters.UpdateType.EDITED_CHANNEL_POST"
-    );
+    update_type_filter!(EditedChannelPost, UpdateKind::EditedChannelPost(_), "filters.UpdateType.EDITED_CHANNEL_POST");
     pub const EDITED_CHANNEL_POST: EditedChannelPost = EditedChannelPost;
 
     pub struct Edited;
     impl Filter for Edited {
         fn check_update(&self, update: &Update) -> FilterResult {
-            let v = to_value(update);
-            let has = |key: &str| v.get(key).map(|v| !v.is_null()).unwrap_or(false);
-            if has("edited_message") || has("edited_channel_post") || has("edited_business_message")
-            {
+            if matches!(update.kind, UpdateKind::EditedMessage(_) | UpdateKind::EditedChannelPost(_) | UpdateKind::EditedBusinessMessage(_)) {
                 FilterResult::Match
             } else {
                 FilterResult::NoMatch
             }
         }
-        fn name(&self) -> &str {
-            "filters.UpdateType.EDITED"
-        }
+        fn name(&self) -> &str { "filters.UpdateType.EDITED" }
     }
     pub const EDITED: Edited = Edited;
 
-    update_type_filter!(
-        BusinessMessage,
-        "business_message",
-        "filters.UpdateType.BUSINESS_MESSAGE"
-    );
+    update_type_filter!(BusinessMessage, UpdateKind::BusinessMessage(_), "filters.UpdateType.BUSINESS_MESSAGE");
     pub const BUSINESS_MESSAGE: BusinessMessage = BusinessMessage;
 
-    update_type_filter!(
-        EditedBusinessMessage,
-        "edited_business_message",
-        "filters.UpdateType.EDITED_BUSINESS_MESSAGE"
-    );
+    update_type_filter!(EditedBusinessMessage, UpdateKind::EditedBusinessMessage(_), "filters.UpdateType.EDITED_BUSINESS_MESSAGE");
     pub const EDITED_BUSINESS_MESSAGE: EditedBusinessMessage = EditedBusinessMessage;
 
     pub struct BusinessMessages;
     impl Filter for BusinessMessages {
         fn check_update(&self, update: &Update) -> FilterResult {
-            let v = to_value(update);
-            if v.get("business_message")
-                .map(|v| !v.is_null())
-                .unwrap_or(false)
-                || v.get("edited_business_message")
-                    .map(|v| !v.is_null())
-                    .unwrap_or(false)
-            {
+            if matches!(update.kind, UpdateKind::BusinessMessage(_) | UpdateKind::EditedBusinessMessage(_)) {
                 FilterResult::Match
             } else {
                 FilterResult::NoMatch
             }
         }
-        fn name(&self) -> &str {
-            "filters.UpdateType.BUSINESS_MESSAGES"
-        }
+        fn name(&self) -> &str { "filters.UpdateType.BUSINESS_MESSAGES" }
     }
     pub const BUSINESS_MESSAGES: BusinessMessages = BusinessMessages;
 

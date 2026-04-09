@@ -1,4 +1,4 @@
-# rust-telegram-bot Wiki
+# rust-tg-bot Wiki
 
 **A Rust framework for building Telegram bots with the same developer experience as python-telegram-bot.**
 
@@ -35,14 +35,14 @@ cargo new my_bot && cd my_bot
 
 ```toml
 [dependencies]
-telegram-bot = { git = "https://github.com/HexiCoreDev/rust-telegram-bot", package = "telegram-bot" }
+rust-tg-bot = { git = "https://github.com/HexiCoreDev/rust-telegram-bot", package = "rust-tg-bot" }
 tracing-subscriber = "0.3"
 ```
 
 4. Write your bot in `src/main.rs`:
 
 ```rust
-use telegram_bot::ext::prelude::*;
+use rust_tg_bot::ext::prelude::*;
 
 async fn hello(update: Update, context: Context) -> HandlerResult {
     context.reply_text(&update, "Hello from Rust!").await?;
@@ -50,11 +50,11 @@ async fn hello(update: Update, context: Context) -> HandlerResult {
 }
 
 fn main() {
-    telegram_bot::run(async {
+    rust_tg_bot::run(async {
         tracing_subscriber::fmt::init();
         let token = std::env::var("TELEGRAM_BOT_TOKEN").unwrap();
         let app = ApplicationBuilder::new().token(token).build();
-        app.add_typed_handler(CommandHandler::new("start", hello), 0).await;
+        app.add_handler(CommandHandler::new("start", hello), 0).await;
         app.run_polling().await.unwrap();
     });
 }
@@ -74,11 +74,11 @@ The framework is split into three crates:
 
 | Crate | Purpose |
 |-------|---------|
-| `telegram-bot-raw` | Low-level Bot API types, HTTP client, request builders |
-| `telegram-bot-ext` | Application framework: handlers, filters, context, persistence, job queue |
-| `telegram-bot` | Convenience crate that re-exports both and provides `telegram_bot::run()` |
+| `rust-tg-bot-raw` | Low-level Bot API types, HTTP client, request builders |
+| `rust-tg-bot-ext` | Application framework: handlers, filters, context, persistence, job queue |
+| `rust-tg-bot` | Convenience crate that re-exports both and provides `rust_tg_bot::run()` |
 
-You only need to depend on `telegram-bot`. The other two are implementation details.
+You only need to depend on `rust-tg-bot`. The other two are implementation details.
 
 ### Handler Dispatch Model
 
@@ -113,7 +113,7 @@ Groups are processed in ascending numeric order. Within each group, the first ha
 Enable features in your `Cargo.toml`:
 
 ```toml
-telegram-bot = { git = "...", features = ["persistence-json", "webhooks"] }
+rust-tg-bot = { git = "...", features = ["persistence-json", "webhooks"] }
 ```
 
 ---

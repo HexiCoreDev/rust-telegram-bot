@@ -6,9 +6,9 @@
 
 use proptest::prelude::*;
 
-use telegram_bot_ext::filters::base::{Filter, FilterResult, FnFilter, F};
+use rust_tg_bot_ext::filters::base::{Filter, FilterResult, FnFilter, F};
 
-type Update = telegram_bot_ext::filters::base::Update;
+type Update = rust_tg_bot_ext::filters::base::Update;
 
 // ---------------------------------------------------------------------------
 // Strategy: generate a minimal Update from JSON

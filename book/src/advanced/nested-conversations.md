@@ -66,7 +66,7 @@ impl Default for ConvState {
 Store per-user conversation state in a thread-safe map:
 
 ```rust
-use telegram_bot::ext::prelude::{Arc, HashMap, RwLock};
+use rust_tg_bot::ext::prelude::{Arc, HashMap, RwLock};
 
 #[derive(Debug, Clone, Default)]
 struct PersonInfo {
@@ -124,7 +124,7 @@ Use `try_read()` instead of `.read().await` because predicates are synchronous -
 When the user selects "Add member" at the top level, transition to the member level:
 
 ```rust
-use telegram_bot::ext::prelude::{
+use rust_tg_bot::ext::prelude::{
     Arc, Context, HandlerError, HandlerResult, InlineKeyboardButton,
     InlineKeyboardMarkup, Update,
 };
@@ -232,7 +232,7 @@ When "Done" is pressed in the feature level, save the collected data and return 
 When the user is in a "typing" state, text messages should be captured as feature values instead of being treated as commands:
 
 ```rust
-use telegram_bot::ext::prelude::MessageEntityType;
+use rust_tg_bot::ext::prelude::MessageEntityType;
 
 fn is_text_in_typing_state(update: &Update, store: &StateStore) -> bool {
     let msg = match update.effective_message() {
@@ -302,7 +302,7 @@ async fn handle_text_input(
 Each handler needs its own clones of the store for both the predicate and the handler body:
 
 ```rust
-use telegram_bot::ext::prelude::{
+use rust_tg_bot::ext::prelude::{
     Application, ApplicationBuilder, Arc, FnHandler, HashMap, RwLock,
 };
 
@@ -318,7 +318,7 @@ async fn main() {
     {
         let s = Arc::clone(&store);
         let s_check = Arc::clone(&store);
-        app.add_typed_handler(
+        app.add_handler(
             FnHandler::new(
                 move |u| is_callback_in_top_state(u, &s_check),
                 move |update, ctx| {
@@ -334,7 +334,7 @@ async fn main() {
     {
         let s = Arc::clone(&store);
         let s_check = Arc::clone(&store);
-        app.add_typed_handler(
+        app.add_handler(
             FnHandler::new(
                 move |u| is_text_in_typing_state(u, &s_check),
                 move |update, ctx| {
@@ -394,7 +394,7 @@ Register it in group 0 so it takes priority over conversation handlers:
 ```rust
 {
     let s = Arc::clone(&store);
-    app.add_typed_handler(
+    app.add_handler(
         FnHandler::new(
             |u| check_command(u, "stop"),
             move |update, ctx| {

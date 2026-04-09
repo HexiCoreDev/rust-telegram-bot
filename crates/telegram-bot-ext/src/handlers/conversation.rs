@@ -30,9 +30,9 @@
 //! # Example
 //!
 //! ```rust,ignore
-//! use telegram_bot_ext::handlers::conversation::*;
-//! use telegram_bot_ext::handlers::base::*;
-//! use telegram_bot_ext::handlers::command::CommandHandler;
+//! use rust_tg_bot_ext::handlers::conversation::*;
+//! use rust_tg_bot_ext::handlers::base::*;
+//! use rust_tg_bot_ext::handlers::command::CommandHandler;
 //! use std::sync::Arc;
 //! use std::collections::HashMap;
 //!
@@ -57,7 +57,7 @@ use std::time::Duration;
 use tokio::sync::{watch, RwLock};
 use tracing::{debug, error, warn};
 
-use telegram_bot_raw::types::update::Update;
+use rust_tg_bot_raw::types::update::Update;
 
 use super::base::{Handler, HandlerResult, MatchResult};
 

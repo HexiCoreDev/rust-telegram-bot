@@ -12,13 +12,13 @@
 //! # Usage
 //!
 //! ```sh
-//! TELEGRAM_BOT_TOKEN="your-token-here" cargo run -p telegram-bot --example raw_api_bot
+//! TELEGRAM_BOT_TOKEN="your-token-here" cargo run -p rust-tg-bot --example raw_api_bot
 //! ```
 use std::sync::Arc;
-use telegram_bot::raw::bot::Bot;
-use telegram_bot::raw::constants::MessageEntityType;
-use telegram_bot::raw::request::reqwest_impl::ReqwestRequest;
-use telegram_bot::raw::types::files::input_file::InputFile;
+use rust_tg_bot::raw::bot::Bot;
+use rust_tg_bot::raw::constants::MessageEntityType;
+use rust_tg_bot::raw::request::reqwest_impl::ReqwestRequest;
+use rust_tg_bot::raw::types::files::input_file::InputFile;
 
 #[tokio::main]
 async fn main() {

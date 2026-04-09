@@ -11,10 +11,10 @@
 //! # Usage
 //!
 //! ```sh
-//! TELEGRAM_BOT_TOKEN="your-token-here" cargo run -p telegram-bot --example inline_keyboard
+//! TELEGRAM_BOT_TOKEN="your-token-here" cargo run -p rust-tg-bot --example inline_keyboard
 //! ```
 
-use telegram_bot::ext::prelude::{
+use rust_tg_bot::ext::prelude::{
     ApplicationBuilder, Arc, CommandHandler, Context, FnHandler, HandlerError, HandlerResult,
     InlineKeyboardButton, InlineKeyboardMarkup, Update,
 };
@@ -106,11 +106,11 @@ async fn main() {
 
     let app = ApplicationBuilder::new().token(token).build();
 
-    app.add_typed_handler(CommandHandler::new("start", start), 0)
+    app.add_handler(CommandHandler::new("start", start), 0)
         .await;
-    app.add_typed_handler(CommandHandler::new("help", help), 0)
+    app.add_handler(CommandHandler::new("help", help), 0)
         .await;
-    app.add_typed_handler(FnHandler::on_callback_query(button_callback), 0)
+    app.add_handler(FnHandler::on_callback_query(button_callback), 0)
         .await;
 
     println!("Inline keyboard bot is running. Press Ctrl+C to stop.");

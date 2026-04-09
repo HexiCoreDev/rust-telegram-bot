@@ -12,7 +12,7 @@ use std::sync::Arc;
 
 use tokio::sync::Semaphore;
 
-use telegram_bot_raw::types::update::Update;
+use rust_tg_bot_raw::types::update::Update;
 
 // ---------------------------------------------------------------------------
 // Error type

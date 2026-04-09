@@ -3,7 +3,7 @@
 use std::collections::HashSet;
 use std::sync::RwLock;
 
-use crate::filters::base::{effective_message_val, to_value, Filter, FilterResult, Update};
+use crate::filters::base::{Filter, FilterResult, Update};
 
 pub struct ViaBotFilter {
     bot_ids: RwLock<HashSet<i64>>,
@@ -74,19 +74,13 @@ impl ViaBotFilter {
 
 impl Filter for ViaBotFilter {
     fn check_update(&self, update: &Update) -> FilterResult {
-        let __v = to_value(update);
-        let via_bot = match effective_message_val(&__v).and_then(|m| m.get("via_bot")) {
-            Some(vb) if !vb.is_null() => vb,
-            _ => return FilterResult::NoMatch,
+        let via_bot = match update.effective_message().and_then(|m| m.via_bot.as_ref()) {
+            Some(vb) => vb,
+            None => return FilterResult::NoMatch,
         };
         let ids = self.bot_ids.read().unwrap();
         if !ids.is_empty() {
-            return if via_bot
-                .get("id")
-                .and_then(|v| v.as_i64())
-                .map(|id| ids.contains(&id))
-                .unwrap_or(false)
-            {
+            return if ids.contains(&via_bot.id) {
                 FilterResult::Match
             } else {
                 FilterResult::NoMatch
@@ -95,8 +89,8 @@ impl Filter for ViaBotFilter {
         let names = self.usernames.read().unwrap();
         if !names.is_empty() {
             return if via_bot
-                .get("username")
-                .and_then(|v| v.as_str())
+                .username
+                .as_deref()
                 .map(|u| names.contains(u))
                 .unwrap_or(false)
             {

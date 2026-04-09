@@ -19,7 +19,7 @@ pub trait Filter: Send + Sync + 'static {
 Implement it on any type:
 
 ```rust
-use telegram_bot::ext::prelude::{Filter, FilterResult, Update};
+use rust_tg_bot::ext::prelude::{Filter, FilterResult, Update};
 
 pub struct TextLengthFilter {
     min: usize,
@@ -70,7 +70,7 @@ Data filters pass extracted information directly to the handler, avoiding redund
 
 ```rust
 use std::collections::HashMap;
-use telegram_bot::ext::prelude::{Filter, FilterResult, Update};
+use rust_tg_bot::ext::prelude::{Filter, FilterResult, Update};
 
 pub struct HashtagFilter;
 
@@ -120,12 +120,12 @@ The `F` wrapper provides bitwise operators for combining filters:
 Wrap your custom filter in `F` to use the operators:
 
 ```rust
-use telegram_bot::ext::prelude::{F, MessageHandler, TEXT, COMMAND};
+use rust_tg_bot::ext::prelude::{F, MessageHandler, TEXT, COMMAND};
 
 let length_filter = F::new(TextLengthFilter::new(1, 100));
 let combined = TEXT() & !COMMAND() & length_filter;
 
-app.add_typed_handler(
+app.add_handler(
     MessageHandler::new(combined, my_handler), 0,
 ).await;
 ```
@@ -142,11 +142,11 @@ app.add_typed_handler(
 For one-off filters that do not warrant their own struct, use `FnFilter`:
 
 ```rust
-use telegram_bot::ext::prelude::{F, Filter, FilterResult};
-use telegram_bot::ext::prelude::Update;
+use rust_tg_bot::ext::prelude::{F, Filter, FilterResult};
+use rust_tg_bot::ext::prelude::Update;
 
 // Import FnFilter from the filters module
-use telegram_bot::ext::filters::base::FnFilter;
+use rust_tg_bot::ext::filters::base::FnFilter;
 
 let admin_only = FnFilter::new("admin_only", |update: &Update| {
     update
@@ -167,7 +167,7 @@ Filters can hold state. Since they must be `Send + Sync`, use thread-safe wrappe
 ```rust
 use std::collections::HashSet;
 use std::sync::Mutex;
-use telegram_bot::ext::prelude::{Filter, FilterResult, Update};
+use rust_tg_bot::ext::prelude::{Filter, FilterResult, Update};
 
 pub struct AllowlistFilter {
     allowed: Mutex<HashSet<i64>>,
@@ -213,12 +213,12 @@ Use `std::sync::Mutex` (not `tokio::sync::Mutex`) because `check_update` is sync
 The crate ships a comprehensive set of filters. Here are the most common ones:
 
 ```rust
-use telegram_bot::ext::prelude::{TEXT, COMMAND, F};
-use telegram_bot::ext::filters::base::{ALL, PHOTO, VIDEO, AUDIO, VOICE, LOCATION, CONTACT};
-use telegram_bot::ext::filters::chat::{ChatTypePrivate, ChatTypeGroup};
-use telegram_bot::ext::filters::text::{CAPTION, TextFilter, CaptionFilter};
-use telegram_bot::ext::filters::regex::RegexFilter;
-use telegram_bot::ext::filters::user::UserFilter;
+use rust_tg_bot::ext::prelude::{TEXT, COMMAND, F};
+use rust_tg_bot::ext::filters::base::{ALL, PHOTO, VIDEO, AUDIO, VOICE, LOCATION, CONTACT};
+use rust_tg_bot::ext::filters::chat::{ChatTypePrivate, ChatTypeGroup};
+use rust_tg_bot::ext::filters::text::{CAPTION, TextFilter, CaptionFilter};
+use rust_tg_bot::ext::filters::regex::RegexFilter;
+use rust_tg_bot::ext::filters::user::UserFilter;
 
 // Text and commands
 TEXT()                          // Any text message

@@ -2,7 +2,7 @@
 //!
 //! Ported from `python-telegram-bot/src/telegram/ext/_extbot.py`.
 //!
-//! [`ExtBot`] wraps the low-level [`telegram_bot_raw::bot::Bot`] and adds:
+//! [`ExtBot`] wraps the low-level [`rust_tg_bot_raw::bot::Bot`] and adds:
 //!
 //! * [`Defaults`](crate::defaults::Defaults) injection into API calls
 //! * [`CallbackDataCache`](crate::callback_data_cache::CallbackDataCache) for arbitrary
@@ -39,8 +39,8 @@ use std::sync::Arc;
 
 use tokio::sync::RwLock;
 
-use telegram_bot_raw::bot::Bot;
-use telegram_bot_raw::request::base::BaseRequest;
+use rust_tg_bot_raw::bot::Bot;
+use rust_tg_bot_raw::request::base::BaseRequest;
 
 use crate::callback_data_cache::CallbackDataCache;
 use crate::defaults::Defaults;
@@ -200,12 +200,12 @@ impl ExtBot {
     /// Initializes the bot.
     ///
     /// Currently a no-op.  If a rate-limiter is present it would be initialized here.
-    pub async fn initialize(&self) -> telegram_bot_raw::error::Result<()> {
+    pub async fn initialize(&self) -> rust_tg_bot_raw::error::Result<()> {
         Ok(())
     }
 
     /// Shuts down the bot.
-    pub async fn shutdown(&self) -> telegram_bot_raw::error::Result<()> {
+    pub async fn shutdown(&self) -> rust_tg_bot_raw::error::Result<()> {
         Ok(())
     }
 }
@@ -319,8 +319,8 @@ impl std::fmt::Debug for ExtBotBuilder {
 pub(crate) mod test_support {
     use std::time::Duration;
 
-    use telegram_bot_raw::request::base::{HttpMethod, TimeoutOverride};
-    use telegram_bot_raw::request::request_data::RequestData;
+    use rust_tg_bot_raw::request::base::{HttpMethod, TimeoutOverride};
+    use rust_tg_bot_raw::request::request_data::RequestData;
 
     use super::*;
 
@@ -329,11 +329,11 @@ pub(crate) mod test_support {
 
     #[async_trait::async_trait]
     impl BaseRequest for MockRequest {
-        async fn initialize(&self) -> telegram_bot_raw::error::Result<()> {
+        async fn initialize(&self) -> rust_tg_bot_raw::error::Result<()> {
             Ok(())
         }
 
-        async fn shutdown(&self) -> telegram_bot_raw::error::Result<()> {
+        async fn shutdown(&self) -> rust_tg_bot_raw::error::Result<()> {
             Ok(())
         }
 
@@ -347,7 +347,7 @@ pub(crate) mod test_support {
             _method: HttpMethod,
             _request_data: Option<&RequestData>,
             _timeouts: TimeoutOverride,
-        ) -> telegram_bot_raw::error::Result<(u16, bytes::Bytes)> {
+        ) -> rust_tg_bot_raw::error::Result<(u16, bytes::Bytes)> {
             let body = br#"{"ok":true,"result":[]}"#;
             Ok((200, bytes::Bytes::from_static(body)))
         }
@@ -357,7 +357,7 @@ pub(crate) mod test_support {
             _url: &str,
             _body: &[u8],
             _timeouts: TimeoutOverride,
-        ) -> telegram_bot_raw::error::Result<(u16, bytes::Bytes)> {
+        ) -> rust_tg_bot_raw::error::Result<(u16, bytes::Bytes)> {
             let body = br#"{"ok":true,"result":[]}"#;
             Ok((200, bytes::Bytes::from_static(body)))
         }

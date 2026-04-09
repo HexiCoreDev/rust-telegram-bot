@@ -1,5 +1,5 @@
 [package]
-name = "telegram-bot-raw"
+name = "rust-tg-bot-raw"
 description = "Pure Telegram Bot API types and methods for Rust -- a faithful port of python-telegram-bot's core layer"
 version.workspace = true
 edition.workspace = true
@@ -9,7 +9,7 @@ repository.workspace = true
 authors = ["Jude Etuka <judechinedu122@gmail.com>"]
 keywords = ["telegram", "bot", "api", "async", "types"]
 categories = ["api-bindings", "asynchronous", "web-programming"]
-documentation = "https://docs.rs/telegram-bot-raw"
+documentation = "https://docs.rs/rust-tg-bot-raw"
 homepage = "https://github.com/HexiCoreDev/rust-telegram-bot"
 readme = "../../README.md"
 exclude = ["target/", ".github/", "docs/", "examples/"]

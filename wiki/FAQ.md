@@ -10,7 +10,7 @@ A: Rust 1.75 or later. The framework uses `async fn` in traits, which was stabil
 
 **Q: Do I need to use `#[tokio::main]`?**
 
-A: No. Use `telegram_bot::run(async { ... })` instead. This creates a multi-threaded tokio runtime with 8MB thread stacks, which prevents stack overflow errors caused by the deeply nested async state machines in the Bot API call chain. If you prefer to manage your own runtime, configure it with `thread_stack_size(8 * 1024 * 1024)`.
+A: No. Use `rust_tg_bot::run(async { ... })` instead. This creates a multi-threaded tokio runtime with 8MB thread stacks, which prevents stack overflow errors caused by the deeply nested async state machines in the Bot API call chain. If you prefer to manage your own runtime, configure it with `thread_stack_size(8 * 1024 * 1024)`.
 
 **Q: Can I use this in production?**
 
@@ -29,9 +29,9 @@ A: See the [Comparison with Python](Comparison-with-Python) page for a detailed 
 A: Register a `CommandHandler` for each command, all in the same group:
 
 ```rust
-app.add_typed_handler(CommandHandler::new("start", start_fn), 0).await;
-app.add_typed_handler(CommandHandler::new("help", help_fn), 0).await;
-app.add_typed_handler(CommandHandler::new("settings", settings_fn), 0).await;
+app.add_handler(CommandHandler::new("start", start_fn), 0).await;
+app.add_handler(CommandHandler::new("help", help_fn), 0).await;
+app.add_handler(CommandHandler::new("settings", settings_fn), 0).await;
 ```
 
 **Q: How do I access command arguments?**
@@ -63,7 +63,7 @@ async fn button(update: Update, context: Context) -> HandlerResult {
     Ok(())
 }
 
-app.add_typed_handler(FnHandler::on_callback_query(button), 0).await;
+app.add_handler(FnHandler::on_callback_query(button), 0).await;
 ```
 
 Always call `answer_callback_query` to dismiss the loading indicator.
@@ -164,7 +164,7 @@ context.bot().send_message(chat_id, "<b>Formatted</b>")
 A: Configure a persistence backend:
 
 ```rust
-use telegram_bot::ext::persistence::json_file::JsonFilePersistence;
+use rust_tg_bot::ext::persistence::json_file::JsonFilePersistence;
 
 let persistence = JsonFilePersistence::new("my_bot", true, false);
 let app = ApplicationBuilder::new()

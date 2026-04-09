@@ -8,15 +8,15 @@ Enable the `job-queue` feature:
 
 ```toml
 [dependencies]
-telegram-bot = { version = "1.0.0-beta.2", features = ["job-queue"] }
+rust-tg-bot = { version = "1.0.0-beta.2", features = ["job-queue"] }
 ```
 
 Create a `JobQueue` and pass it to the application builder:
 
 ```rust
 use std::sync::Arc;
-use telegram_bot::ext::job_queue::JobQueue;
-use telegram_bot::ext::prelude::ApplicationBuilder;
+use rust_tg_bot::ext::job_queue::JobQueue;
+use rust_tg_bot::ext::prelude::ApplicationBuilder;
 
 let jq = Arc::new(JobQueue::new());
 
@@ -32,7 +32,7 @@ Schedule a job that fires once after a delay:
 
 ```rust
 use std::time::Duration;
-use telegram_bot::ext::job_queue::{JobCallbackFn, JobContext};
+use rust_tg_bot::ext::job_queue::{JobCallbackFn, JobContext};
 
 async fn set_timer(
     update: Arc<Update>,
@@ -155,7 +155,7 @@ Use a shared store to map chat IDs to job IDs:
 
 ```rust
 use std::collections::HashMap;
-use telegram_bot::ext::prelude::{Arc, RwLock};
+use rust_tg_bot::ext::prelude::{Arc, RwLock};
 
 type TimerStore = Arc<RwLock<HashMap<i64, u64>>>;
 ```
@@ -182,7 +182,7 @@ Before scheduling a new job, cancel any existing one for the same chat:
 See the `timer_bot` example in the repository for a full working implementation:
 
 ```sh
-TELEGRAM_BOT_TOKEN="..." cargo run -p telegram-bot --example timer_bot --features job-queue
+TELEGRAM_BOT_TOKEN="..." cargo run -p rust-tg-bot --example timer_bot --features job-queue
 ```
 
 Commands:

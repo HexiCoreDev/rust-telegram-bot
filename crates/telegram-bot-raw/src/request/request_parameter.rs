@@ -97,7 +97,7 @@ impl RequestParameter {
     /// Construct a plain (non-file) parameter.
     ///
     /// ```
-    /// use telegram_bot_raw::request::request_parameter::RequestParameter;
+    /// use rust_tg_bot_raw::request::request_parameter::RequestParameter;
     /// use serde_json::json;
     ///
     /// let p = RequestParameter::new("chat_id", json!(12345));
@@ -142,7 +142,7 @@ impl RequestParameter {
     /// - All other values are serialised with `serde_json::to_string`.
     ///
     /// ```
-    /// use telegram_bot_raw::request::request_parameter::RequestParameter;
+    /// use rust_tg_bot_raw::request::request_parameter::RequestParameter;
     /// use serde_json::json;
     ///
     /// let string_param = RequestParameter::new("text", json!("hello"));

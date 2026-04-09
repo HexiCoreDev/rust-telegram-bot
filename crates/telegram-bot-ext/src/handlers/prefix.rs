@@ -10,14 +10,14 @@
 //!
 //! An optional `filter_fn` runs *before* prefix matching. The default filter
 //! accepts message-like updates via
-//! [`Update::message`](telegram_bot_raw::types::update::Update::message).
+//! [`Update::message`](rust_tg_bot_raw::types::update::Update::message).
 
 use std::collections::HashSet;
 use std::future::Future;
 use std::pin::Pin;
 use std::sync::Arc;
 
-use telegram_bot_raw::types::update::Update;
+use rust_tg_bot_raw::types::update::Update;
 
 use super::base::{Handler, HandlerCallback, HandlerResult, MatchResult};
 
@@ -34,8 +34,8 @@ fn default_update_filter(update: &Update) -> bool {
 /// # Example
 ///
 /// ```rust,ignore
-/// use telegram_bot_ext::handlers::prefix::PrefixHandler;
-/// use telegram_bot_ext::handlers::base::*;
+/// use rust_tg_bot_ext::handlers::prefix::PrefixHandler;
+/// use rust_tg_bot_ext::handlers::base::*;
 /// use std::sync::Arc;
 ///
 /// // Responds to "!test", "#test", "!help", "#help"

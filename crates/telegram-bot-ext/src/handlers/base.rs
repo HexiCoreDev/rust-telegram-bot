@@ -10,7 +10,7 @@ use std::future::Future;
 use std::pin::Pin;
 use std::sync::Arc;
 
-use telegram_bot_raw::types::update::Update;
+use rust_tg_bot_raw::types::update::Update;
 
 use crate::context::CallbackContext;
 
@@ -162,13 +162,13 @@ pub trait Handler: Send + Sync {
 ///
 /// `FnHandler` bridges the gap between raw `application::Handler` structs and
 /// the typed handler trait system. It implements [`Handler`] so it can be
-/// registered via [`Application::add_typed_handler`].
+/// registered via [`Application::add_handler`].
 ///
 /// # Examples
 ///
 /// ```rust,ignore
-/// use telegram_bot::ext::prelude::*;
-/// use telegram_bot::ext::handlers::base::FnHandler;
+/// use rust_tg_bot::ext::prelude::*;
+/// use rust_tg_bot::ext::handlers::base::FnHandler;
 ///
 /// async fn button_handler(update: Update, context: Context) -> HandlerResult {
 ///     // handle callback query ...
@@ -176,13 +176,13 @@ pub trait Handler: Send + Sync {
 /// }
 ///
 /// // Register with a predicate:
-/// app.add_typed_handler(
+/// app.add_handler(
 ///     FnHandler::new(|u| u.callback_query().is_some(), button_handler),
 ///     0,
 /// ).await;
 ///
 /// // Or use a convenience constructor:
-/// app.add_typed_handler(FnHandler::on_callback_query(button_handler), 0).await;
+/// app.add_handler(FnHandler::on_callback_query(button_handler), 0).await;
 /// ```
 pub struct FnHandler {
     check: Arc<dyn Fn(&Update) -> bool + Send + Sync>,

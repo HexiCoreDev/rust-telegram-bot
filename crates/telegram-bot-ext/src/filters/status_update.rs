@@ -1,38 +1,78 @@
 //! StatusUpdate namespace -- all ~35+ status update sub-filters.
 
-use crate::filters::base::{effective_message_val, to_value, Filter, FilterResult, Update};
+use crate::filters::base::{Filter, FilterResult, Update};
 
-macro_rules! status_filter {
-    ($(#[$meta:meta])* $struct_name:ident, $field:expr, $display:expr) => {
+// ---------------------------------------------------------------------------
+// Macro helpers
+// ---------------------------------------------------------------------------
+
+/// Generate a status filter that matches when `msg.<field>.is_some()`.
+macro_rules! status_filter_option {
+    ($(#[$meta:meta])* $struct_name:ident, $field:ident, $display:expr) => {
         $(#[$meta])*
         pub struct $struct_name;
         impl Filter for $struct_name {
-            fn check_update(&self, update: &Update) -> FilterResult { let __v = to_value(update);
-                if effective_message_val(&__v).and_then(|m| m.get($field).cloned()).map(|v| !v.is_null()).unwrap_or(false) { FilterResult::Match } else { FilterResult::NoMatch }
+            fn check_update(&self, update: &Update) -> FilterResult {
+                if update
+                    .effective_message()
+                    .map(|m| m.$field.is_some())
+                    .unwrap_or(false)
+                {
+                    FilterResult::Match
+                } else {
+                    FilterResult::NoMatch
+                }
             }
-            fn name(&self) -> &str { $display }
+            fn name(&self) -> &str {
+                $display
+            }
         }
     };
 }
 
-status_filter!(
+/// Generate a status filter that matches when a `bool` field is `true`.
+macro_rules! status_filter_bool {
+    ($(#[$meta:meta])* $struct_name:ident, $field:ident, $display:expr) => {
+        $(#[$meta])*
+        pub struct $struct_name;
+        impl Filter for $struct_name {
+            fn check_update(&self, update: &Update) -> FilterResult {
+                if update
+                    .effective_message()
+                    .map(|m| m.$field)
+                    .unwrap_or(false)
+                {
+                    FilterResult::Match
+                } else {
+                    FilterResult::NoMatch
+                }
+            }
+            fn name(&self) -> &str {
+                $display
+            }
+        }
+    };
+}
+
+// ---------------------------------------------------------------------------
+// Individual status filters
+// ---------------------------------------------------------------------------
+
+status_filter_option!(
     /// `chat_background_set` status update.
-    ChatBackgroundSet, "chat_background_set", "filters.StatusUpdate.CHAT_BACKGROUND_SET"
+    ChatBackgroundSet,
+    chat_background_set,
+    "filters.StatusUpdate.CHAT_BACKGROUND_SET"
 );
 
 pub struct ChatCreated;
 impl Filter for ChatCreated {
     fn check_update(&self, update: &Update) -> FilterResult {
-        let __v = to_value(update);
-        let msg = match effective_message_val(&__v) {
+        let msg = match update.effective_message() {
             Some(m) => m,
             None => return FilterResult::NoMatch,
         };
-        let has = |key: &str| msg.get(key).map(|v| !v.is_null()).unwrap_or(false);
-        if has("group_chat_created")
-            || has("supergroup_chat_created")
-            || has("channel_chat_created")
-        {
+        if msg.group_chat_created || msg.supergroup_chat_created || msg.channel_chat_created {
             FilterResult::Match
         } else {
             FilterResult::NoMatch
@@ -43,113 +83,111 @@ impl Filter for ChatCreated {
     }
 }
 
-status_filter!(
+status_filter_option!(
     ChatOwnerChanged,
-    "chat_owner_changed",
+    chat_owner_changed,
     "filters.StatusUpdate.CHAT_OWNER_CHANGED"
 );
-status_filter!(
+status_filter_option!(
     ChatOwnerLeft,
-    "chat_owner_left",
+    chat_owner_left,
     "filters.StatusUpdate.CHAT_OWNER_LEFT"
 );
-status_filter!(
+status_filter_option!(
     ChatShared,
-    "chat_shared",
+    chat_shared,
     "filters.StatusUpdate.CHAT_SHARED"
 );
-status_filter!(
+status_filter_option!(
     ChecklistTasksAdded,
-    "checklist_tasks_added",
+    checklist_tasks_added,
     "filters.StatusUpdate.CHECKLIST_TASKS_ADDED"
 );
-status_filter!(
+status_filter_option!(
     ChecklistTasksDone,
-    "checklist_tasks_done",
+    checklist_tasks_done,
     "filters.StatusUpdate.CHECKLIST_TASKS_DONE"
 );
-status_filter!(
+status_filter_option!(
     ConnectedWebsite,
-    "connected_website",
+    connected_website,
     "filters.StatusUpdate.CONNECTED_WEBSITE"
 );
-status_filter!(
+status_filter_option!(
     DirectMessagePriceChanged,
-    "direct_message_price_changed",
+    direct_message_price_changed,
     "filters.StatusUpdate.DIRECT_MESSAGE_PRICE_CHANGED"
 );
-status_filter!(
+status_filter_bool!(
     DeleteChatPhoto,
-    "delete_chat_photo",
+    delete_chat_photo,
     "filters.StatusUpdate.DELETE_CHAT_PHOTO"
 );
-status_filter!(
+status_filter_option!(
     ForumTopicClosed,
-    "forum_topic_closed",
+    forum_topic_closed,
     "filters.StatusUpdate.FORUM_TOPIC_CLOSED"
 );
-status_filter!(
+status_filter_option!(
     ForumTopicCreated,
-    "forum_topic_created",
+    forum_topic_created,
     "filters.StatusUpdate.FORUM_TOPIC_CREATED"
 );
-status_filter!(
+status_filter_option!(
     ForumTopicEdited,
-    "forum_topic_edited",
+    forum_topic_edited,
     "filters.StatusUpdate.FORUM_TOPIC_EDITED"
 );
-status_filter!(
+status_filter_option!(
     ForumTopicReopened,
-    "forum_topic_reopened",
+    forum_topic_reopened,
     "filters.StatusUpdate.FORUM_TOPIC_REOPENED"
 );
-status_filter!(
+status_filter_option!(
     GeneralForumTopicHidden,
-    "general_forum_topic_hidden",
+    general_forum_topic_hidden,
     "filters.StatusUpdate.GENERAL_FORUM_TOPIC_HIDDEN"
 );
-status_filter!(
+status_filter_option!(
     GeneralForumTopicUnhidden,
-    "general_forum_topic_unhidden",
+    general_forum_topic_unhidden,
     "filters.StatusUpdate.GENERAL_FORUM_TOPIC_UNHIDDEN"
 );
-status_filter!(Gift, "gift", "filters.StatusUpdate.GIFT");
-status_filter!(
+status_filter_option!(Gift, gift, "filters.StatusUpdate.GIFT");
+status_filter_option!(
     GiftUpgradeSent,
-    "gift_upgrade_sent",
+    gift_upgrade_sent,
     "filters.StatusUpdate.GIFT_UPGRADE_SENT"
 );
-status_filter!(
+status_filter_option!(
     GiveawayCreated,
-    "giveaway_created",
+    giveaway_created,
     "filters.StatusUpdate.GIVEAWAY_CREATED"
 );
-status_filter!(
+status_filter_option!(
     GiveawayCompleted,
-    "giveaway_completed",
+    giveaway_completed,
     "filters.StatusUpdate.GIVEAWAY_COMPLETED"
 );
-status_filter!(
+status_filter_option!(
     LeftChatMember,
-    "left_chat_member",
+    left_chat_member,
     "filters.StatusUpdate.LEFT_CHAT_MEMBER"
 );
-status_filter!(
+status_filter_option!(
     MessageAutoDeleteTimerChanged,
-    "message_auto_delete_timer_changed",
+    message_auto_delete_timer_changed,
     "filters.StatusUpdate.MESSAGE_AUTO_DELETE_TIMER_CHANGED"
 );
 
 pub struct Migrate;
 impl Filter for Migrate {
     fn check_update(&self, update: &Update) -> FilterResult {
-        let __v = to_value(update);
-        let msg = match effective_message_val(&__v) {
+        let msg = match update.effective_message() {
             Some(m) => m,
             None => return FilterResult::NoMatch,
         };
-        let has = |key: &str| msg.get(key).map(|v| !v.is_null()).unwrap_or(false);
-        if has("migrate_from_chat_id") || has("migrate_to_chat_id") {
+        if msg.migrate_from_chat_id.is_some() || msg.migrate_to_chat_id.is_some() {
             FilterResult::Match
         } else {
             FilterResult::NoMatch
@@ -163,15 +201,10 @@ impl Filter for Migrate {
 pub struct NewChatMembers;
 impl Filter for NewChatMembers {
     fn check_update(&self, update: &Update) -> FilterResult {
-        let __v = to_value(update);
-        let msg = match effective_message_val(&__v) {
-            Some(m) => m,
-            None => return FilterResult::NoMatch,
-        };
-        if msg
-            .get("new_chat_members")
-            .and_then(|v| v.as_array())
-            .map(|a| !a.is_empty())
+        if update
+            .effective_message()
+            .and_then(|m| m.new_chat_members.as_deref())
+            .map(|members| !members.is_empty())
             .unwrap_or(false)
         {
             FilterResult::Match
@@ -187,15 +220,10 @@ impl Filter for NewChatMembers {
 pub struct NewChatPhoto;
 impl Filter for NewChatPhoto {
     fn check_update(&self, update: &Update) -> FilterResult {
-        let __v = to_value(update);
-        let msg = match effective_message_val(&__v) {
-            Some(m) => m,
-            None => return FilterResult::NoMatch,
-        };
-        if msg
-            .get("new_chat_photo")
-            .and_then(|v| v.as_array())
-            .map(|a| !a.is_empty())
+        if update
+            .effective_message()
+            .and_then(|m| m.new_chat_photo.as_deref())
+            .map(|photos| !photos.is_empty())
             .unwrap_or(false)
         {
             FilterResult::Match
@@ -208,101 +236,100 @@ impl Filter for NewChatPhoto {
     }
 }
 
-status_filter!(
+status_filter_option!(
     NewChatTitle,
-    "new_chat_title",
+    new_chat_title,
     "filters.StatusUpdate.NEW_CHAT_TITLE"
 );
-status_filter!(
+status_filter_option!(
     PaidMessagePriceChanged,
-    "paid_message_price_changed",
+    paid_message_price_changed,
     "filters.StatusUpdate.PAID_MESSAGE_PRICE_CHANGED"
 );
-status_filter!(
+status_filter_option!(
     PinnedMessage,
-    "pinned_message",
+    pinned_message,
     "filters.StatusUpdate.PINNED_MESSAGE"
 );
-status_filter!(
+status_filter_option!(
     ProximityAlertTriggered,
-    "proximity_alert_triggered",
+    proximity_alert_triggered,
     "filters.StatusUpdate.PROXIMITY_ALERT_TRIGGERED"
 );
-status_filter!(
+status_filter_option!(
     RefundedPayment,
-    "refunded_payment",
+    refunded_payment,
     "filters.StatusUpdate.REFUNDED_PAYMENT"
 );
-status_filter!(
+status_filter_option!(
     SuggestedPostApprovalFailed,
-    "suggested_post_approval_failed",
+    suggested_post_approval_failed,
     "filters.StatusUpdate.SUGGESTED_POST_APPROVAL_FAILED"
 );
-status_filter!(
+status_filter_option!(
     SuggestedPostApproved,
-    "suggested_post_approved",
+    suggested_post_approved,
     "filters.StatusUpdate.SUGGESTED_POST_APPROVED"
 );
-status_filter!(
+status_filter_option!(
     SuggestedPostDeclined,
-    "suggested_post_declined",
+    suggested_post_declined,
     "filters.StatusUpdate.SUGGESTED_POST_DECLINED"
 );
-status_filter!(
+status_filter_option!(
     SuggestedPostPaid,
-    "suggested_post_paid",
+    suggested_post_paid,
     "filters.StatusUpdate.SUGGESTED_POST_PAID"
 );
-status_filter!(
+status_filter_option!(
     SuggestedPostRefunded,
-    "suggested_post_refunded",
+    suggested_post_refunded,
     "filters.StatusUpdate.SUGGESTED_POST_REFUNDED"
 );
-status_filter!(
+status_filter_option!(
     UniqueGift,
-    "unique_gift",
+    unique_gift,
     "filters.StatusUpdate.UNIQUE_GIFT"
 );
-status_filter!(
+status_filter_option!(
     UsersShared,
-    "users_shared",
+    users_shared,
     "filters.StatusUpdate.USERS_SHARED"
 );
-status_filter!(
+status_filter_option!(
     VideoChatEnded,
-    "video_chat_ended",
+    video_chat_ended,
     "filters.StatusUpdate.VIDEO_CHAT_ENDED"
 );
-status_filter!(
+status_filter_option!(
     VideoChatScheduled,
-    "video_chat_scheduled",
+    video_chat_scheduled,
     "filters.StatusUpdate.VIDEO_CHAT_SCHEDULED"
 );
-status_filter!(
+status_filter_option!(
     VideoChatStarted,
-    "video_chat_started",
+    video_chat_started,
     "filters.StatusUpdate.VIDEO_CHAT_STARTED"
 );
-status_filter!(
+status_filter_option!(
     VideoChatParticipantsInvited,
-    "video_chat_participants_invited",
+    video_chat_participants_invited,
     "filters.StatusUpdate.VIDEO_CHAT_PARTICIPANTS_INVITED"
 );
-status_filter!(
+status_filter_option!(
     WebAppData,
-    "web_app_data",
+    web_app_data,
     "filters.StatusUpdate.WEB_APP_DATA"
 );
-status_filter!(
+status_filter_option!(
     WriteAccessAllowed,
-    "write_access_allowed",
+    write_access_allowed,
     "filters.StatusUpdate.WRITE_ACCESS_ALLOWED"
 );
 
 pub struct StatusUpdateAll;
 impl Filter for StatusUpdateAll {
     fn check_update(&self, update: &Update) -> FilterResult {
-        let __v = to_value(update);
         if ChatBackgroundSet.check_update(update).is_match()
             || ChatCreated.check_update(update).is_match()
             || ChatOwnerChanged.check_update(update).is_match()

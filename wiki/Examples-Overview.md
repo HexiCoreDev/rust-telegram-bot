@@ -5,7 +5,7 @@ The repository includes 20 example bots demonstrating every major feature. All e
 ## Running Any Example
 
 ```sh
-TELEGRAM_BOT_TOKEN="your-token" cargo run -p telegram-bot --example <example_name>
+TELEGRAM_BOT_TOKEN="your-token" cargo run -p rust-tg-bot --example <example_name>
 ```
 
 For examples requiring additional environment variables or feature flags, the specific requirements are noted below.
@@ -46,7 +46,7 @@ For examples requiring additional environment variables or feature flags, the sp
 **The "Hello World" of Telegram bots.** Responds to `/start` and `/help` commands and echoes back any text message.
 
 ```sh
-TELEGRAM_BOT_TOKEN="..." cargo run -p telegram-bot --example echo_bot
+TELEGRAM_BOT_TOKEN="..." cargo run -p rust-tg-bot --example echo_bot
 ```
 
 **What you learn:**
@@ -55,7 +55,7 @@ TELEGRAM_BOT_TOKEN="..." cargo run -p telegram-bot --example echo_bot
 - `MessageHandler::new(TEXT() & !COMMAND(), fn)` for filtering text messages
 - `context.reply_text(&update, text)` convenience method
 - `update.effective_user()` for typed access to the sender
-- `telegram_bot::run(async { ... })` entry point
+- `rust_tg_bot::run(async { ... })` entry point
 
 ---
 
@@ -64,7 +64,7 @@ TELEGRAM_BOT_TOKEN="..." cargo run -p telegram-bot --example echo_bot
 **Interactive inline buttons.** Sends a message with buttons; handles button presses.
 
 ```sh
-TELEGRAM_BOT_TOKEN="..." cargo run -p telegram-bot --example inline_keyboard
+TELEGRAM_BOT_TOKEN="..." cargo run -p rust-tg-bot --example inline_keyboard
 ```
 
 **What you learn:**
@@ -81,7 +81,7 @@ TELEGRAM_BOT_TOKEN="..." cargo run -p telegram-bot --example inline_keyboard
 **Extended keyboard example.** Demonstrates more complex keyboard layouts and interaction patterns.
 
 ```sh
-TELEGRAM_BOT_TOKEN="..." cargo run -p telegram-bot --example inline_keyboard2
+TELEGRAM_BOT_TOKEN="..." cargo run -p rust-tg-bot --example inline_keyboard2
 ```
 
 ---
@@ -93,7 +93,7 @@ TELEGRAM_BOT_TOKEN="..." cargo run -p telegram-bot --example inline_keyboard2
 **Prerequisite:** Enable inline mode with `@BotFather` by sending `/setinline`.
 
 ```sh
-TELEGRAM_BOT_TOKEN="..." cargo run -p telegram-bot --example inline_bot
+TELEGRAM_BOT_TOKEN="..." cargo run -p rust-tg-bot --example inline_bot
 ```
 
 **What you learn:**
@@ -110,7 +110,7 @@ TELEGRAM_BOT_TOKEN="..." cargo run -p telegram-bot --example inline_bot
 **Scheduled tasks.** Implements `/set <seconds>` to schedule a delayed message and `/unset` to cancel it.
 
 ```sh
-TELEGRAM_BOT_TOKEN="..." cargo run -p telegram-bot --example timer_bot
+TELEGRAM_BOT_TOKEN="..." cargo run -p rust-tg-bot --example timer_bot
 ```
 
 **What you learn:**
@@ -127,7 +127,7 @@ TELEGRAM_BOT_TOKEN="..." cargo run -p telegram-bot --example timer_bot
 **Multi-step conversations.** Asks the user for name, age, location, and bio in sequence.
 
 ```sh
-TELEGRAM_BOT_TOKEN="..." cargo run -p telegram-bot --example conversation_bot
+TELEGRAM_BOT_TOKEN="..." cargo run -p rust-tg-bot --example conversation_bot
 ```
 
 **What you learn:**
@@ -144,7 +144,7 @@ TELEGRAM_BOT_TOKEN="..." cargo run -p telegram-bot --example conversation_bot
 **Alternative conversation pattern.** A variation on the conversation bot with different state management.
 
 ```sh
-TELEGRAM_BOT_TOKEN="..." cargo run -p telegram-bot --example conversation_bot2
+TELEGRAM_BOT_TOKEN="..." cargo run -p rust-tg-bot --example conversation_bot2
 ```
 
 ---
@@ -154,7 +154,7 @@ TELEGRAM_BOT_TOKEN="..." cargo run -p telegram-bot --example conversation_bot2
 **Persistent data collection.** Acts as "Doctor Botter" collecting facts about users. Data survives restarts via JSON file persistence.
 
 ```sh
-TELEGRAM_BOT_TOKEN="..." cargo run -p telegram-bot --example persistent_conversation_bot
+TELEGRAM_BOT_TOKEN="..." cargo run -p rust-tg-bot --example persistent_conversation_bot
 ```
 
 **What you learn:**
@@ -172,7 +172,7 @@ TELEGRAM_BOT_TOKEN="..." cargo run -p telegram-bot --example persistent_conversa
 **Nested state machines.** Demonstrates how one conversation can delegate to a child conversation and receive state back.
 
 ```sh
-TELEGRAM_BOT_TOKEN="..." cargo run -p telegram-bot --example nested_conversation_bot
+TELEGRAM_BOT_TOKEN="..." cargo run -p rust-tg-bot --example nested_conversation_bot
 ```
 
 **What you learn:**
@@ -188,7 +188,7 @@ TELEGRAM_BOT_TOKEN="..." cargo run -p telegram-bot --example nested_conversation
 **Error handling.** Registers a custom error handler that logs errors and sends diagnostics to a developer chat.
 
 ```sh
-TELEGRAM_BOT_TOKEN="..." DEVELOPER_CHAT_ID="..." cargo run -p telegram-bot --example error_handler_bot
+TELEGRAM_BOT_TOKEN="..." DEVELOPER_CHAT_ID="..." cargo run -p rust-tg-bot --example error_handler_bot
 ```
 
 **What you learn:**
@@ -204,7 +204,7 @@ TELEGRAM_BOT_TOKEN="..." DEVELOPER_CHAT_ID="..." cargo run -p telegram-bot --exa
 **Custom context types.** Shows how to configure custom data types for the application context.
 
 ```sh
-TELEGRAM_BOT_TOKEN="..." cargo run -p telegram-bot --example context_types_bot
+TELEGRAM_BOT_TOKEN="..." cargo run -p rust-tg-bot --example context_types_bot
 ```
 
 ---
@@ -214,7 +214,7 @@ TELEGRAM_BOT_TOKEN="..." cargo run -p telegram-bot --example context_types_bot
 **Deep links.** Handles `/start <payload>` where the payload is a deep link parameter.
 
 ```sh
-TELEGRAM_BOT_TOKEN="..." cargo run -p telegram-bot --example deep_linking
+TELEGRAM_BOT_TOKEN="..." cargo run -p rust-tg-bot --example deep_linking
 ```
 
 **What you learn:**
@@ -230,7 +230,7 @@ TELEGRAM_BOT_TOKEN="..." cargo run -p telegram-bot --example deep_linking
 **Prerequisite:** Get a payment provider token from `@BotFather`.
 
 ```sh
-TELEGRAM_BOT_TOKEN="..." PAYMENT_PROVIDER_TOKEN="..." cargo run -p telegram-bot --example payment_bot
+TELEGRAM_BOT_TOKEN="..." PAYMENT_PROVIDER_TOKEN="..." cargo run -p rust-tg-bot --example payment_bot
 ```
 
 **What you learn:**
@@ -248,7 +248,7 @@ TELEGRAM_BOT_TOKEN="..." PAYMENT_PROVIDER_TOKEN="..." cargo run -p telegram-bot 
 **Polls.** Creates polls and handles poll answers.
 
 ```sh
-TELEGRAM_BOT_TOKEN="..." cargo run -p telegram-bot --example poll_bot
+TELEGRAM_BOT_TOKEN="..." cargo run -p rust-tg-bot --example poll_bot
 ```
 
 **What you learn:**
@@ -261,7 +261,7 @@ TELEGRAM_BOT_TOKEN="..." cargo run -p telegram-bot --example poll_bot
 **Telegram Passport.** Handles encrypted identity data from Telegram Passport.
 
 ```sh
-TELEGRAM_BOT_TOKEN="..." cargo run -p telegram-bot --example passport_bot
+TELEGRAM_BOT_TOKEN="..." cargo run -p rust-tg-bot --example passport_bot
 ```
 
 ---
@@ -271,7 +271,7 @@ TELEGRAM_BOT_TOKEN="..." cargo run -p telegram-bot --example passport_bot
 **Member tracking.** Monitors join/leave events in groups.
 
 ```sh
-TELEGRAM_BOT_TOKEN="..." cargo run -p telegram-bot --example chat_member_bot
+TELEGRAM_BOT_TOKEN="..." cargo run -p rust-tg-bot --example chat_member_bot
 ```
 
 **What you learn:**
@@ -288,7 +288,7 @@ TELEGRAM_BOT_TOKEN="..." cargo run -p telegram-bot --example chat_member_bot
 
 ```sh
 TELEGRAM_BOT_TOKEN="..." WEBHOOK_URL="https://..." ADMIN_CHAT_ID="..." PORT="8000" \
-  cargo run -p telegram-bot --example custom_webhook_bot --features webhooks
+  cargo run -p rust-tg-bot --example custom_webhook_bot --features webhooks
 ```
 
 **What you learn:**
@@ -306,7 +306,7 @@ TELEGRAM_BOT_TOKEN="..." WEBHOOK_URL="https://..." ADMIN_CHAT_ID="..." PORT="800
 **Web Apps.** Integrates with Telegram Web Apps (Mini Apps).
 
 ```sh
-TELEGRAM_BOT_TOKEN="..." cargo run -p telegram-bot --example webapp_bot
+TELEGRAM_BOT_TOKEN="..." cargo run -p rust-tg-bot --example webapp_bot
 ```
 
 ---
@@ -316,11 +316,11 @@ TELEGRAM_BOT_TOKEN="..." cargo run -p telegram-bot --example webapp_bot
 **Raw API access.** Bypasses the handler framework and makes direct Bot API calls.
 
 ```sh
-TELEGRAM_BOT_TOKEN="..." cargo run -p telegram-bot --example raw_api_bot
+TELEGRAM_BOT_TOKEN="..." cargo run -p rust-tg-bot --example raw_api_bot
 ```
 
 **What you learn:**
-- Using `telegram_bot::raw::bot::Bot` directly
+- Using `rust_tg_bot::raw::bot::Bot` directly
 - Making arbitrary API calls without the Application framework
 
 ---
@@ -330,7 +330,7 @@ TELEGRAM_BOT_TOKEN="..." cargo run -p telegram-bot --example raw_api_bot
 **Complex callback data.** Uses the arbitrary callback data cache to store rich data behind inline keyboard buttons (bypassing the 64-byte callback_data limit).
 
 ```sh
-TELEGRAM_BOT_TOKEN="..." cargo run -p telegram-bot --example arbitrary_callback_data_bot
+TELEGRAM_BOT_TOKEN="..." cargo run -p rust-tg-bot --example arbitrary_callback_data_bot
 ```
 
 **What you learn:**

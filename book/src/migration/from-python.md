@@ -1,10 +1,10 @@
 # From python-telegram-bot
 
-This guide helps developers migrating from [python-telegram-bot](https://python-telegram-bot.org/) to rust-telegram-bot. The architecture is deliberately similar, so most concepts map directly. The key differences are Rust's type system, ownership model, and async runtime.
+This guide helps developers migrating from [python-telegram-bot](https://python-telegram-bot.org/) to rust-tg-bot. The architecture is deliberately similar, so most concepts map directly. The key differences are Rust's type system, ownership model, and async runtime.
 
 ## Concept Mapping
 
-| python-telegram-bot | rust-telegram-bot | Notes |
+| python-telegram-bot | rust-tg-bot | Notes |
 |---|---|---|
 | `Application.builder().token(...).build()` | `ApplicationBuilder::new().token(...).build()` | Typestate pattern in Rust |
 | `update: Update` | `update: Arc<Update>` | `Arc` for cheap cloning across tasks |
@@ -20,7 +20,7 @@ This guide helps developers migrating from [python-telegram-bot](https://python-
 | `application.run_polling()` | `app.run_polling().await` | Explicit `.await` |
 | `application.run_webhook(...)` | `app.run_webhook(config).await` | `WebhookConfig` struct |
 | `PicklePersistence` | `JsonFilePersistence` | JSON instead of pickle |
-| `from telegram.ext import *` | `use telegram_bot::ext::prelude::{specific, items};` | No wildcards |
+| `from telegram.ext import *` | `use rust_tg_bot::ext::prelude::{specific, items};` | No wildcards |
 
 ## Side-by-Side Comparison
 
@@ -59,7 +59,7 @@ if __name__ == "__main__":
 ### Rust Echo Bot
 
 ```rust
-use telegram_bot::ext::prelude::{
+use rust_tg_bot::ext::prelude::{
     ApplicationBuilder, Arc, CommandHandler, Context, HandlerResult,
     MessageHandler, Update, COMMAND, TEXT,
 };
@@ -95,8 +95,8 @@ async fn main() {
 
     let app = ApplicationBuilder::new().token(token).build();
 
-    app.add_typed_handler(CommandHandler::new("start", start), 0).await;
-    app.add_typed_handler(
+    app.add_handler(CommandHandler::new("start", start), 0).await;
+    app.add_handler(
         MessageHandler::new(TEXT() & !COMMAND(), echo), 0,
     ).await;
 
@@ -128,7 +128,7 @@ from telegram.ext import *
 
 ```rust
 // Rust -- import exactly what you need
-use telegram_bot::ext::prelude::{
+use rust_tg_bot::ext::prelude::{
     ApplicationBuilder, Arc, CommandHandler, Context, HandlerResult,
     MessageHandler, Update, COMMAND, TEXT,
 };
@@ -187,7 +187,7 @@ The `?` operator propagates errors. If a Telegram API call fails, the error flow
 
 ### 6. Handler Groups
 
-Python uses `add_handler(handler, group=0)`. Rust uses `add_typed_handler(handler, group)`:
+Python uses `add_handler(handler, group=0)`. Rust uses `add_handler(handler, group)`:
 
 ```python
 # Python
@@ -196,7 +196,7 @@ app.add_handler(CommandHandler("start", start), group=0)
 
 ```rust
 // Rust
-app.add_typed_handler(CommandHandler::new("start", start), 0).await;
+app.add_handler(CommandHandler::new("start", start), 0).await;
 ```
 
 ### 7. Filter Syntax
@@ -229,7 +229,7 @@ app = ApplicationBuilder().token("TOKEN").persistence(persistence).build()
 
 ```rust
 // Rust
-use telegram_bot::ext::persistence::json_file::JsonFilePersistence;
+use rust_tg_bot::ext::persistence::json_file::JsonFilePersistence;
 
 let persistence = JsonFilePersistence::new("bot_data", true, false);
 let app = ApplicationBuilder::new()
@@ -275,7 +275,7 @@ type ConvStore = Arc<RwLock<HashMap<i64, ConvState>>>;
 
 let cs = Arc::clone(&conv_store);
 let cs_check = Arc::clone(&conv_store);
-app.add_typed_handler(
+app.add_handler(
     FnHandler::new(
         move |u| is_in_state(u, &cs_check, ConvState::Choosing),
         move |update, ctx| {
@@ -326,7 +326,7 @@ app.add_handler(CallbackQueryHandler(button))
 
 ```rust
 // Rust
-app.add_typed_handler(FnHandler::on_callback_query(button), 0).await;
+app.add_handler(FnHandler::on_callback_query(button), 0).await;
 ```
 
 ### 12. Inline Queries
@@ -338,7 +338,7 @@ app.add_handler(InlineQueryHandler(inline_handler))
 
 ```rust
 // Rust
-app.add_typed_handler(FnHandler::on_inline_query(inline_handler), 0).await;
+app.add_handler(FnHandler::on_inline_query(inline_handler), 0).await;
 ```
 
 ## Common Patterns

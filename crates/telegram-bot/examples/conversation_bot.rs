@@ -15,14 +15,14 @@
 //! # Usage
 //!
 //! ```sh
-//! TELEGRAM_BOT_TOKEN="your-token-here" cargo run -p telegram-bot --example conversation_bot
+//! TELEGRAM_BOT_TOKEN="your-token-here" cargo run -p rust-tg-bot --example conversation_bot
 //! ```
 //!
 //! Then in Telegram:
 //! - `/start` -- begins the conversation
 //! - `/cancel` -- cancels at any point
 
-use telegram_bot::ext::prelude::{
+use rust_tg_bot::ext::prelude::{
     Application, ApplicationBuilder, Arc, Context, FnHandler, HandlerError, HandlerResult, HashMap,
     MessageEntityType, RwLock, Update,
 };
@@ -290,7 +290,7 @@ async fn main() {
     // Entry point: /start
     {
         let cs = Arc::clone(&conv_store);
-        app.add_typed_handler(
+        app.add_handler(
             FnHandler::new(
                 |u| check_command(u, "start"),
                 move |update, ctx| {
@@ -306,7 +306,7 @@ async fn main() {
     // Fallback: /cancel
     {
         let cs = Arc::clone(&conv_store);
-        app.add_typed_handler(
+        app.add_handler(
             FnHandler::new(
                 |u| check_command(u, "cancel"),
                 move |update, ctx| {
@@ -324,7 +324,7 @@ async fn main() {
         let cs = Arc::clone(&conv_store);
         let ud = Arc::clone(&user_data);
         let cs_check = Arc::clone(&conv_store);
-        app.add_typed_handler(
+        app.add_handler(
             FnHandler::new(
                 move |u| is_text_in_state(u, &cs_check, ConvState::AskName),
                 move |update, ctx| {
@@ -343,7 +343,7 @@ async fn main() {
         let cs = Arc::clone(&conv_store);
         let ud = Arc::clone(&user_data);
         let cs_check = Arc::clone(&conv_store);
-        app.add_typed_handler(
+        app.add_handler(
             FnHandler::new(
                 move |u| is_text_in_state(u, &cs_check, ConvState::AskAge),
                 move |update, ctx| {
@@ -362,7 +362,7 @@ async fn main() {
         let cs = Arc::clone(&conv_store);
         let ud = Arc::clone(&user_data);
         let cs_check = Arc::clone(&conv_store);
-        app.add_typed_handler(
+        app.add_handler(
             FnHandler::new(
                 move |u| is_text_in_state(u, &cs_check, ConvState::AskLocation),
                 move |update, ctx| {
@@ -381,7 +381,7 @@ async fn main() {
         let cs = Arc::clone(&conv_store);
         let ud = Arc::clone(&user_data);
         let cs_check = Arc::clone(&conv_store);
-        app.add_typed_handler(
+        app.add_handler(
             FnHandler::new(
                 move |u| is_text_in_state(u, &cs_check, ConvState::AskBio),
                 move |update, ctx| {

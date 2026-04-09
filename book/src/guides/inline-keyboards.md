@@ -7,7 +7,7 @@ Inline keyboards are buttons that appear directly below a message. They can trig
 Use the typed constructors -- never raw JSON:
 
 ```rust
-use telegram_bot::ext::prelude::{InlineKeyboardButton, InlineKeyboardMarkup};
+use rust_tg_bot::ext::prelude::{InlineKeyboardButton, InlineKeyboardMarkup};
 
 fn build_menu() -> InlineKeyboardMarkup {
     InlineKeyboardMarkup::new(vec![
@@ -63,7 +63,7 @@ async fn start(update: Arc<Update>, context: Context) -> HandlerResult {
 When a user presses an inline keyboard button, Telegram sends a callback query. Handle it with `FnHandler::on_callback_query`:
 
 ```rust
-use telegram_bot::ext::prelude::FnHandler;
+use rust_tg_bot::ext::prelude::FnHandler;
 
 async fn button_callback(update: Arc<Update>, context: Context) -> HandlerResult {
     let cq = update.callback_query()
@@ -89,7 +89,7 @@ async fn button_callback(update: Arc<Update>, context: Context) -> HandlerResult
 }
 
 // Register the callback handler
-app.add_typed_handler(FnHandler::on_callback_query(button_callback), 0).await;
+app.add_handler(FnHandler::on_callback_query(button_callback), 0).await;
 ```
 
 ### Always Answer Callback Queries
@@ -144,7 +144,7 @@ context.bot()
 ## Complete Example
 
 ```rust
-use telegram_bot::ext::prelude::{
+use rust_tg_bot::ext::prelude::{
     ApplicationBuilder, Arc, CommandHandler, Context, FnHandler,
     HandlerResult, InlineKeyboardButton, InlineKeyboardMarkup, Update,
 };
@@ -196,8 +196,8 @@ async fn main() {
     let token = std::env::var("TELEGRAM_BOT_TOKEN").unwrap();
     let app = ApplicationBuilder::new().token(token).build();
 
-    app.add_typed_handler(CommandHandler::new("start", start), 0).await;
-    app.add_typed_handler(FnHandler::on_callback_query(button_callback), 0).await;
+    app.add_handler(CommandHandler::new("start", start), 0).await;
+    app.add_handler(FnHandler::on_callback_query(button_callback), 0).await;
 
     app.run_polling().await.unwrap();
 }

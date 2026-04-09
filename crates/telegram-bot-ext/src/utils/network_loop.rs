@@ -9,7 +9,7 @@ use std::time::Duration;
 use tokio::sync::watch;
 use tracing::{debug, error};
 
-use telegram_bot_raw::error::TelegramError;
+use rust_tg_bot_raw::error::TelegramError;
 
 // ---------------------------------------------------------------------------
 // Configuration

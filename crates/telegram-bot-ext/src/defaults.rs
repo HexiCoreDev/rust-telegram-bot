@@ -12,7 +12,7 @@
 //! Use the builder pattern via [`Defaults::builder()`]:
 //!
 //! ```
-//! # use telegram_bot_ext::defaults::Defaults;
+//! # use rust_tg_bot_ext::defaults::Defaults;
 //! let defaults = Defaults::builder()
 //!     .parse_mode("HTML")
 //!     .disable_notification(true)
@@ -25,7 +25,7 @@ use std::collections::HashMap;
 
 use serde_json::Value;
 
-use telegram_bot_raw::types::link_preview_options::LinkPreviewOptions;
+use rust_tg_bot_raw::types::link_preview_options::LinkPreviewOptions;
 
 /// Convenience struct to gather all parameters with a (user defined) default value.
 ///
@@ -109,7 +109,7 @@ impl Defaults {
     /// # Example
     ///
     /// ```
-    /// # use telegram_bot_ext::defaults::Defaults;
+    /// # use rust_tg_bot_ext::defaults::Defaults;
     /// let defaults = Defaults::builder()
     ///     .parse_mode("HTML")
     ///     .protect_content(true)
@@ -241,7 +241,7 @@ impl std::hash::Hash for Defaults {
 /// # Example
 ///
 /// ```
-/// # use telegram_bot_ext::defaults::Defaults;
+/// # use rust_tg_bot_ext::defaults::Defaults;
 /// let defaults = Defaults::builder()
 ///     .parse_mode("HTML")
 ///     .disable_notification(true)

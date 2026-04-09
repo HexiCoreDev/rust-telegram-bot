@@ -1,8 +1,12 @@
-# rust-telegram-bot
+<p align="center">
+  <img src="favicon.png" alt="rust-tg-bot" width="150">
+</p>
+
+# rust-tg-bot
 
 A complete, production-ready Telegram Bot API framework for Rust. Inspired by the architecture of [python-telegram-bot](https://python-telegram-bot.org/), this library brings the same developer-friendly patterns to the Rust ecosystem while delivering the performance, safety, and concurrency guarantees that Rust provides.
 
-## Why rust-telegram-bot?
+## Why rust-tg-bot?
 
 - **Familiar architecture.** If you have used python-telegram-bot, you will feel right at home. The same concepts -- `Application`, `Handler`, `Filter`, `Context` -- are present, adapted to Rust idioms.
 - **Type safety.** Every Telegram API type is a strongly typed Rust struct. No more guessing whether a field is a string or an integer.
@@ -16,11 +20,11 @@ The framework is split into three crates:
 
 | Crate | Purpose |
 |---|---|
-| `telegram-bot-raw` | Low-level Bot API types, HTTP methods, request builders |
-| `telegram-bot-ext` | High-level `Application`, handlers, filters, context, persistence |
-| `telegram-bot` | Facade crate that re-exports both for convenience |
+| `rust-tg-bot-raw` | Low-level Bot API types, HTTP methods, request builders |
+| `rust-tg-bot-ext` | High-level `Application`, handlers, filters, context, persistence |
+| `rust-tg-bot` | Facade crate that re-exports both for convenience |
 
-You will almost always depend only on `telegram-bot` in your `Cargo.toml`.
+You will almost always depend only on `rust-tg-bot` in your `Cargo.toml`.
 
 ## What You Will Learn
 
@@ -37,7 +41,7 @@ This documentation takes you from zero to a production deployment:
 Here is the smallest possible echo bot:
 
 ```rust
-use telegram_bot::ext::prelude::{
+use rust_tg_bot::ext::prelude::{
     ApplicationBuilder, Arc, CommandHandler, Context, HandlerResult,
     MessageHandler, Update, COMMAND, TEXT,
 };
@@ -60,7 +64,7 @@ async fn main() {
 
     let app = ApplicationBuilder::new().token(token).build();
 
-    app.add_typed_handler(
+    app.add_handler(
         MessageHandler::new(TEXT() & !COMMAND(), echo), 0,
     ).await;
 

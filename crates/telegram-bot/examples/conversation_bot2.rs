@@ -12,14 +12,14 @@
 //! # Usage
 //!
 //! ```sh
-//! TELEGRAM_BOT_TOKEN="your-token-here" cargo run -p telegram-bot --example conversation_bot2
+//! TELEGRAM_BOT_TOKEN="your-token-here" cargo run -p rust-tg-bot --example conversation_bot2
 //! ```
 //!
 //! Then in Telegram:
 //! - `/start` -- begins the conversation
 //! - Reply "Age", "Favourite colour", "Number of siblings", "Something else...", or "Done"
 
-use telegram_bot::ext::prelude::{
+use rust_tg_bot::ext::prelude::{
     ApplicationBuilder, Arc, Context, FnHandler, HandlerError, HandlerResult, HashMap,
     KeyboardButton, MessageEntityType, ReplyKeyboardMarkup, ReplyKeyboardRemove, RwLock, Update,
 };
@@ -347,7 +347,7 @@ async fn main() {
     // Entry point: /start
     {
         let cs = Arc::clone(&conv_store);
-        app.add_typed_handler(
+        app.add_handler(
             FnHandler::new(
                 |u| check_command(u, "start"),
                 move |update, ctx| {
@@ -366,7 +366,7 @@ async fn main() {
         let uf = Arc::clone(&user_facts);
         let cs_check = Arc::clone(&conv_store);
         let cat = category.to_string();
-        app.add_typed_handler(
+        app.add_handler(
             FnHandler::new(
                 move |u| is_text_matching_in_state(u, &cs_check, ConvState::Choosing, &cat),
                 move |update, ctx| {
@@ -384,7 +384,7 @@ async fn main() {
     {
         let cs = Arc::clone(&conv_store);
         let cs_check = Arc::clone(&conv_store);
-        app.add_typed_handler(
+        app.add_handler(
             FnHandler::new(
                 move |u| {
                     is_text_matching_in_state(
@@ -410,7 +410,7 @@ async fn main() {
         let cs = Arc::clone(&conv_store);
         let uf = Arc::clone(&user_facts);
         let cs_check = Arc::clone(&conv_store);
-        app.add_typed_handler(
+        app.add_handler(
             FnHandler::new(
                 move |u| {
                     is_text_in_state(u, &cs_check, ConvState::TypingChoice)
@@ -432,7 +432,7 @@ async fn main() {
         let cs = Arc::clone(&conv_store);
         let uf = Arc::clone(&user_facts);
         let cs_check = Arc::clone(&conv_store);
-        app.add_typed_handler(
+        app.add_handler(
             FnHandler::new(
                 move |u| {
                     is_text_in_state(u, &cs_check, ConvState::TypingReply)
@@ -454,7 +454,7 @@ async fn main() {
         let cs = Arc::clone(&conv_store);
         let uf = Arc::clone(&user_facts);
         let cs_check = Arc::clone(&conv_store);
-        app.add_typed_handler(
+        app.add_handler(
             FnHandler::new(
                 move |u| {
                     let text = extract_text(u).unwrap_or("");

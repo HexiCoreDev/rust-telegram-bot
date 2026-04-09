@@ -5,13 +5,13 @@
 //! (field ordering may differ), but verify all critical fields match.
 
 use serde_json::json;
-use telegram_bot_raw::types::callback_query::CallbackQuery;
-use telegram_bot_raw::types::chat::Chat;
-use telegram_bot_raw::types::chat_full_info::ChatFullInfo;
-use telegram_bot_raw::types::inline::inline_query::InlineQuery;
-use telegram_bot_raw::types::message::Message;
-use telegram_bot_raw::types::update::Update;
-use telegram_bot_raw::types::user::User;
+use rust_tg_bot_raw::types::callback_query::CallbackQuery;
+use rust_tg_bot_raw::types::chat::Chat;
+use rust_tg_bot_raw::types::chat_full_info::ChatFullInfo;
+use rust_tg_bot_raw::types::inline::inline_query::InlineQuery;
+use rust_tg_bot_raw::types::message::Message;
+use rust_tg_bot_raw::types::update::Update;
+use rust_tg_bot_raw::types::user::User;
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -398,7 +398,7 @@ fn roundtrip_message_forward_origin() {
         assert_eq!(msg.message_id, 300);
         let origin = msg.forward_origin.as_ref().unwrap();
         match origin {
-            telegram_bot_raw::types::message_origin::MessageOrigin::User(data) => {
+            rust_tg_bot_raw::types::message_origin::MessageOrigin::User(data) => {
                 assert_eq!(data.date, 1699999000);
                 assert_eq!(data.sender_user.id, 999888777);
                 assert_eq!(data.sender_user.first_name, "Alice");

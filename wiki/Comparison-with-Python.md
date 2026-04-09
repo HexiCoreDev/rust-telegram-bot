@@ -1,6 +1,6 @@
 # Comparison with python-telegram-bot
 
-This page provides a detailed side-by-side comparison for developers migrating from [python-telegram-bot](https://github.com/python-telegram-bot/python-telegram-bot) (PTB) to `rust-telegram-bot`. The Rust framework deliberately mirrors PTB's architecture, so the transition is straightforward.
+This page provides a detailed side-by-side comparison for developers migrating from [python-telegram-bot](https://github.com/python-telegram-bot/python-telegram-bot) (PTB) to `rust-tg-bot`. The Rust framework deliberately mirrors PTB's architecture, so the transition is straightforward.
 
 ---
 
@@ -44,7 +44,7 @@ app.run_polling()
 **Rust:**
 
 ```rust
-use telegram_bot::ext::prelude::*;
+use rust_tg_bot::ext::prelude::*;
 
 async fn start(update: Update, context: Context) -> HandlerResult {
     context.reply_text(&update, "Hello!").await?;
@@ -52,9 +52,9 @@ async fn start(update: Update, context: Context) -> HandlerResult {
 }
 
 fn main() {
-    telegram_bot::run(async {
+    rust_tg_bot::run(async {
         let app = ApplicationBuilder::new().token("TOKEN").build();
-        app.add_typed_handler(CommandHandler::new("start", start), 0).await;
+        app.add_handler(CommandHandler::new("start", start), 0).await;
         app.run_polling().await.unwrap();
     });
 }
@@ -63,7 +63,7 @@ fn main() {
 **Key differences:**
 - Rust uses `context.reply_text(&update, text)` instead of `update.message.reply_text(text)`.
 - Handlers return `HandlerResult` (a `Result` type) instead of `None`.
-- `add_typed_handler` takes a group number as the second argument.
+- `add_handler` takes a group number as the second argument.
 - No `async def` -- Rust uses `async fn`.
 
 ---
@@ -92,7 +92,7 @@ async fn echo(update: Update, context: Context) -> HandlerResult {
     Ok(())
 }
 
-app.add_typed_handler(MessageHandler::new(TEXT() & !COMMAND(), echo), 0).await;
+app.add_handler(MessageHandler::new(TEXT() & !COMMAND(), echo), 0).await;
 ```
 
 **Key differences:**
@@ -174,7 +174,7 @@ async fn button(update: Update, context: Context) -> HandlerResult {
     Ok(())
 }
 
-app.add_typed_handler(FnHandler::on_callback_query(button), 0).await;
+app.add_handler(FnHandler::on_callback_query(button), 0).await;
 ```
 
 **Key differences:**
@@ -289,7 +289,7 @@ app = Application.builder().token("TOKEN").persistence(persistence).build()
 **Rust:**
 
 ```rust
-use telegram_bot::ext::persistence::json_file::JsonFilePersistence;
+use rust_tg_bot::ext::persistence::json_file::JsonFilePersistence;
 
 let persistence = JsonFilePersistence::new("bot_data", true, false);
 let app = ApplicationBuilder::new()
@@ -314,7 +314,7 @@ let app = ApplicationBuilder::new()
 | `update.effective_user.id` | `update.effective_user().map(\|u\| u.id)` | Returns Option |
 | `context.bot.send_message(...)` | `context.bot().send_message(...).send().await?` | Builder + send |
 | `filters.TEXT & ~filters.COMMAND` | `TEXT() & !COMMAND()` | Same operators, different syntax |
-| `handler_group` param in `add_handler` | Second arg to `add_typed_handler` | `0` is default group |
+| `handler_group` param in `add_handler` | Second arg to `add_handler` | `0` is default group |
 | `context.args[0]` | `context.args.as_ref().and_then(\|a\| a.first())` | Safe access |
 | `context.bot_data["k"]` | `context.bot_data().await.get_str("k")` | Async lock + typed accessor |
 | `context.job_queue` | `context.job_queue.as_ref()` | Optional, configured at build time |
@@ -345,11 +345,11 @@ The Rust version uses approximately 3-4x less memory and processes updates 10-10
 - [ ] Replace `update.message.reply_text()` with `context.reply_text(&update, text).await?`
 - [ ] Replace `filters.TEXT` with `TEXT()`, `filters.COMMAND` with `COMMAND()`
 - [ ] Replace `~` with `!`, `&` stays `&`, `|` stays `|`
-- [ ] Replace `add_handler(h)` with `add_typed_handler(h, group).await`
+- [ ] Replace `add_handler(h)` with `add_handler(h, group).await`
 - [ ] Replace `CallbackQueryHandler` with `FnHandler::on_callback_query`
 - [ ] Replace `InlineQueryHandler` with `FnHandler::on_inline_query`
 - [ ] Replace `context.args[0]` with `context.args.as_ref().and_then(|a| a.first())`
 - [ ] Replace `context.bot_data["k"]` with `context.bot_data().await.get_str("k")`
 - [ ] Replace `PicklePersistence` with `JsonFilePersistence` or `SqlitePersistence`
-- [ ] Wrap main in `telegram_bot::run(async { ... })`
+- [ ] Wrap main in `rust_tg_bot::run(async { ... })`
 - [ ] Add `?` after every `.await` that can fail

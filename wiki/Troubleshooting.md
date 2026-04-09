@@ -1,6 +1,6 @@
 # Troubleshooting
 
-Common issues and their solutions when developing with `rust-telegram-bot`.
+Common issues and their solutions when developing with `rust-tg-bot`.
 
 ---
 
@@ -10,11 +10,11 @@ Common issues and their solutions when developing with `rust-telegram-bot`.
 
 **Cause:** The deeply nested async state machines produced by the Bot API call chain require more stack space than the default 2MB per thread.
 
-**Solution:** Use `telegram_bot::run(async { ... })` instead of `#[tokio::main]`. This creates a runtime with 8MB thread stacks:
+**Solution:** Use `rust_tg_bot::run(async { ... })` instead of `#[tokio::main]`. This creates a runtime with 8MB thread stacks:
 
 ```rust
 fn main() {
-    telegram_bot::run(async {
+    rust_tg_bot::run(async {
         // your bot code here
     });
 }
@@ -44,7 +44,7 @@ fn main() {
 **Solution:** Verify your handler matches this exact signature:
 
 ```rust
-use telegram_bot::ext::prelude::*;
+use rust_tg_bot::ext::prelude::*;
 
 async fn my_handler(update: Update, context: Context) -> HandlerResult {
     // ...
@@ -64,7 +64,7 @@ If your handler needs extra state, capture it via closure:
 let shared_state = Arc::new(RwLock::new(HashMap::new()));
 let state = Arc::clone(&shared_state);
 
-app.add_typed_handler(
+app.add_handler(
     FnHandler::new(
         |u| u.message.is_some(),
         move |update, ctx| {
@@ -80,7 +80,7 @@ app.add_typed_handler(
 
 ### Slow compilation
 
-**Cause:** First build compiles all dependencies from source. The `telegram-bot-raw` crate has many type definitions.
+**Cause:** First build compiles all dependencies from source. The `rust-tg-bot-raw` crate has many type definitions.
 
 **Solutions:**
 
@@ -142,7 +142,7 @@ curl "https://api.telegram.org/bot<TOKEN>/deleteWebhook"
 4. **Handler not matching.** Add a catch-all handler to verify updates are being received:
 
 ```rust
-app.add_typed_handler(
+app.add_handler(
     FnHandler::on_any(|update, _ctx| async move {
         println!("Received update: {update:?}");
         Ok(())

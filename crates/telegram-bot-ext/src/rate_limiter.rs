@@ -12,7 +12,7 @@ use std::time::Duration;
 use tokio::sync::{Mutex, Notify, Semaphore};
 use tracing::info;
 
-use telegram_bot_raw::error::TelegramError;
+use rust_tg_bot_raw::error::TelegramError;
 
 // ---------------------------------------------------------------------------
 // BaseRateLimiter trait

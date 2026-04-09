@@ -9,7 +9,7 @@ Filters determine which updates reach a handler. They are composable, type-safe 
 Matches any message that contains text:
 
 ```rust
-use telegram_bot::ext::prelude::TEXT;
+use rust_tg_bot::ext::prelude::TEXT;
 
 MessageHandler::new(TEXT(), my_handler)
 ```
@@ -19,7 +19,7 @@ MessageHandler::new(TEXT(), my_handler)
 Matches messages that start with a bot command (`/something`):
 
 ```rust
-use telegram_bot::ext::prelude::COMMAND;
+use rust_tg_bot::ext::prelude::COMMAND;
 
 MessageHandler::new(COMMAND(), my_handler)
 ```
@@ -47,7 +47,7 @@ The operators:
 All filters are wrapped in the `F` type, which provides the operator overloads:
 
 ```rust
-use telegram_bot::ext::prelude::F;
+use rust_tg_bot::ext::prelude::F;
 ```
 
 The `TEXT()` and `COMMAND()` functions return `F` values directly, so you can combine them immediately.
@@ -89,10 +89,10 @@ The framework includes filters for many update properties:
 ## Using Filters with MessageHandler
 
 ```rust
-use telegram_bot::ext::prelude::{MessageHandler, TEXT, COMMAND};
+use rust_tg_bot::ext::prelude::{MessageHandler, TEXT, COMMAND};
 
 // Echo non-command text
-app.add_typed_handler(
+app.add_handler(
     MessageHandler::new(TEXT() & !COMMAND(), echo), 0,
 ).await;
 ```
@@ -102,10 +102,10 @@ app.add_typed_handler(
 When built-in filters are not enough, `FnHandler` lets you write arbitrary predicates:
 
 ```rust
-use telegram_bot::ext::prelude::FnHandler;
+use rust_tg_bot::ext::prelude::FnHandler;
 
 // Match updates that have a callback query with specific data
-app.add_typed_handler(
+app.add_handler(
     FnHandler::new(
         |u| {
             u.callback_query()
@@ -152,7 +152,7 @@ Then use it with `FnHandler`:
 
 ```rust
 let cs_check = Arc::clone(&conv_store);
-app.add_typed_handler(
+app.add_handler(
     FnHandler::new(
         move |u| is_text_in_state(u, &cs_check, ConvState::AskName),
         move |update, ctx| {

@@ -20,14 +20,14 @@ Add the appropriate feature to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-telegram-bot = { version = "0.1", features = ["persistence-json"] }
+rust-tg-bot = { version = "0.1", features = ["persistence-json"] }
 ```
 
 Or for SQLite:
 
 ```toml
 [dependencies]
-telegram-bot = { version = "0.1", features = ["persistence-sqlite"] }
+rust-tg-bot = { version = "0.1", features = ["persistence-sqlite"] }
 ```
 
 ## JsonFilePersistence
@@ -35,8 +35,8 @@ telegram-bot = { version = "0.1", features = ["persistence-sqlite"] }
 The most common choice for getting started. Stores all data in one or more JSON files on disk.
 
 ```rust
-use telegram_bot::ext::persistence::json_file::JsonFilePersistence;
-use telegram_bot::ext::prelude::{
+use rust_tg_bot::ext::persistence::json_file::JsonFilePersistence;
+use rust_tg_bot::ext::prelude::{
     Application, ApplicationBuilder, Arc, CommandHandler, Context,
     HandlerResult, Update,
 };
@@ -58,7 +58,7 @@ async fn main() {
         .persistence(Box::new(persistence))
         .build();
 
-    app.add_typed_handler(CommandHandler::new("start", start), 0).await;
+    app.add_handler(CommandHandler::new("start", start), 0).await;
 
     app.run_polling().await.unwrap();
 }
@@ -75,8 +75,8 @@ The three arguments to `JsonFilePersistence::new`:
 For production bots that need reliability under concurrent load:
 
 ```rust
-use telegram_bot::ext::persistence::sqlite::SqlitePersistence;
-use telegram_bot::ext::prelude::{Application, ApplicationBuilder, Arc};
+use rust_tg_bot::ext::persistence::sqlite::SqlitePersistence;
+use rust_tg_bot::ext::prelude::{Application, ApplicationBuilder, Arc};
 
 #[tokio::main]
 async fn main() {
@@ -114,7 +114,7 @@ Once persistence is configured, `Context` gives you access to three data scopes.
 Scoped to the user who triggered the update. Each user gets their own `HashMap<String, JsonValue>`.
 
 ```rust
-use telegram_bot::ext::prelude::{
+use rust_tg_bot::ext::prelude::{
     Arc, Context, HandlerResult, JsonValue, Update,
 };
 
@@ -229,7 +229,7 @@ Both guards implement `Deref` (and `DerefMut` for the write guard) to `HashMap<S
 If the built-in backends do not fit your needs, implement `BasePersistence` yourself. The trait requires `Send + Sync` because it is stored behind an `Arc` and accessed from multiple async tasks. It uses native `async fn` in traits (stabilised in Rust 1.75) -- no `async_trait` macro needed.
 
 ```rust
-use telegram_bot::ext::persistence::base::{
+use rust_tg_bot::ext::persistence::base::{
     BasePersistence, PersistenceInput, PersistenceResult,
 };
 use std::collections::HashMap;
@@ -327,8 +327,8 @@ Key trait methods:
 This example collects facts about the user and persists them across restarts:
 
 ```rust
-use telegram_bot::ext::persistence::json_file::JsonFilePersistence;
-use telegram_bot::ext::prelude::{
+use rust_tg_bot::ext::persistence::json_file::JsonFilePersistence;
+use rust_tg_bot::ext::prelude::{
     Application, ApplicationBuilder, Arc, CommandHandler, Context,
     HandlerResult, JsonValue, MessageHandler, Update, COMMAND, TEXT,
 };
@@ -400,8 +400,8 @@ async fn main() {
         .persistence(Box::new(persistence))
         .build();
 
-    app.add_typed_handler(CommandHandler::new("start", start), 0).await;
-    app.add_typed_handler(
+    app.add_handler(CommandHandler::new("start", start), 0).await;
+    app.add_handler(
         MessageHandler::new(TEXT() & !COMMAND(), remember), 0,
     ).await;
 

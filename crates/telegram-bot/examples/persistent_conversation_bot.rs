@@ -16,7 +16,7 @@
 //! # Usage
 //!
 //! ```sh
-//! TELEGRAM_BOT_TOKEN="your-token-here" cargo run -p telegram-bot --example persistent_conversation_bot
+//! TELEGRAM_BOT_TOKEN="your-token-here" cargo run -p rust-tg-bot --example persistent_conversation_bot
 //! ```
 //!
 //! Then in Telegram:
@@ -26,8 +26,8 @@
 //! - Type "Done" to finish
 //! - `/show_data` -- displays all stored facts
 
-use telegram_bot::ext::persistence::json_file::JsonFilePersistence;
-use telegram_bot::ext::prelude::{
+use rust_tg_bot::ext::persistence::json_file::JsonFilePersistence;
+use rust_tg_bot::ext::prelude::{
     Application, ApplicationBuilder, Arc, Context, FnHandler, HandlerError, HandlerResult, HashMap,
     JsonValue, KeyboardButton, MessageEntityType, ReplyKeyboardMarkup, ReplyKeyboardRemove, RwLock,
     Update,
@@ -377,7 +377,7 @@ async fn main() {
     // /start
     {
         let cs = Arc::clone(&conv_store);
-        app.add_typed_handler(
+        app.add_handler(
             FnHandler::new(
                 |u| check_command(u, "start"),
                 move |update, ctx| {
@@ -391,7 +391,7 @@ async fn main() {
     }
 
     // /show_data (works outside conversation too)
-    app.add_typed_handler(
+    app.add_handler(
         FnHandler::new(|u| check_command(u, "show_data"), show_data),
         0,
     )
@@ -401,7 +401,7 @@ async fn main() {
     {
         let cs = Arc::clone(&conv_store);
         let cs_check = Arc::clone(&conv_store);
-        app.add_typed_handler(
+        app.add_handler(
             FnHandler::new(
                 move |u| {
                     if !is_in_state(u, &cs_check, ConvState::Choosing) {
@@ -427,7 +427,7 @@ async fn main() {
     {
         let cs = Arc::clone(&conv_store);
         let cs_check = Arc::clone(&conv_store);
-        app.add_typed_handler(
+        app.add_handler(
             FnHandler::new(
                 move |u| {
                     if !is_in_state(u, &cs_check, ConvState::Choosing) {
@@ -453,7 +453,7 @@ async fn main() {
     {
         let cs = Arc::clone(&conv_store);
         let cs_check = Arc::clone(&conv_store);
-        app.add_typed_handler(
+        app.add_handler(
             FnHandler::new(
                 move |u| {
                     if !is_in_state(u, &cs_check, ConvState::Choosing) {
@@ -479,7 +479,7 @@ async fn main() {
     {
         let cs = Arc::clone(&conv_store);
         let cs_check = Arc::clone(&conv_store);
-        app.add_typed_handler(
+        app.add_handler(
             FnHandler::new(
                 move |u| {
                     if !is_in_state(u, &cs_check, ConvState::TypingChoice) {
@@ -505,7 +505,7 @@ async fn main() {
     {
         let cs = Arc::clone(&conv_store);
         let cs_check = Arc::clone(&conv_store);
-        app.add_typed_handler(
+        app.add_handler(
             FnHandler::new(
                 move |u| {
                     if !is_in_state(u, &cs_check, ConvState::TypingReply) {

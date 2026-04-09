@@ -12,7 +12,7 @@
 //!   compatible).
 //! - **C2 -- Filter integration**: An optional `filter_fn` runs *before*
 //!   command matching. The default filter accepts message-like updates via
-//!   [`Update::message`](telegram_bot_raw::types::update::Update::message).
+//!   [`Update::message`](rust_tg_bot_raw::types::update::Update::message).
 
 use std::collections::HashSet;
 use std::future::Future;
@@ -20,8 +20,8 @@ use std::pin::Pin;
 use std::sync::Arc;
 
 use regex::Regex;
-use telegram_bot_raw::constants::MessageEntityType;
-use telegram_bot_raw::types::update::Update;
+use rust_tg_bot_raw::constants::MessageEntityType;
+use rust_tg_bot_raw::types::update::Update;
 
 use super::base::{ContextCallback, Handler, HandlerCallback, HandlerResult, MatchResult};
 use crate::context::CallbackContext;
@@ -55,7 +55,7 @@ pub type UpdateFilter = Arc<dyn Fn(&Update) -> bool + Send + Sync>;
 /// # Ergonomic constructor
 ///
 /// ```rust,ignore
-/// use telegram_bot_ext::prelude::*;
+/// use rust_tg_bot_ext::prelude::*;
 ///
 /// async fn start(update: Update, context: Context) -> HandlerResult {
 ///     context.reply_text(&update, "Hello!").await?;
@@ -68,8 +68,8 @@ pub type UpdateFilter = Arc<dyn Fn(&Update) -> bool + Send + Sync>;
 /// # Full-control constructor
 ///
 /// ```rust,ignore
-/// use telegram_bot_ext::handlers::command::CommandHandler;
-/// use telegram_bot_ext::handlers::base::*;
+/// use rust_tg_bot_ext::handlers::command::CommandHandler;
+/// use rust_tg_bot_ext::handlers::base::*;
 /// use std::sync::Arc;
 ///
 /// let handler = CommandHandler::with_options(
@@ -123,7 +123,7 @@ impl CommandHandler {
     /// # Example
     ///
     /// ```rust,ignore
-    /// use telegram_bot_ext::prelude::*;
+    /// use rust_tg_bot_ext::prelude::*;
     ///
     /// async fn start(update: Update, context: Context) -> HandlerResult {
     ///     context.reply_text(&update, "Hello!").await?;
@@ -521,7 +521,7 @@ mod tests {
         use crate::context::CallbackContext;
         use crate::ext_bot::test_support::mock_request;
         use std::collections::HashMap;
-        use telegram_bot_raw::bot::Bot;
+        use rust_tg_bot_raw::bot::Bot;
 
         let bot = Arc::new(crate::ext_bot::ExtBot::from_bot(Bot::new(
             "test",
@@ -546,7 +546,7 @@ mod tests {
         use crate::context::CallbackContext;
         use crate::ext_bot::test_support::mock_request;
         use std::collections::HashMap;
-        use telegram_bot_raw::bot::Bot;
+        use rust_tg_bot_raw::bot::Bot;
 
         let bot = Arc::new(crate::ext_bot::ExtBot::from_bot(Bot::new(
             "test",

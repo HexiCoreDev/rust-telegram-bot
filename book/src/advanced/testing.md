@@ -11,7 +11,7 @@ Filters are pure functions of `&Update -> FilterResult`. Test them without a run
 mod tests {
     use super::*;
     use serde_json::json;
-    use telegram_bot::ext::prelude::{Filter, FilterResult, Update};
+    use rust_tg_bot::ext::prelude::{Filter, FilterResult, Update};
 
     fn make_update(json_val: serde_json::Value) -> Update {
         serde_json::from_value(json_val).unwrap()
@@ -60,7 +60,7 @@ The same approach works for built-in filters:
 ```rust
 #[cfg(test)]
 mod tests {
-    use telegram_bot::ext::prelude::{TEXT, COMMAND};
+    use rust_tg_bot::ext::prelude::{TEXT, COMMAND};
 
     #[test]
     fn text_filter_matches_text_messages() {
@@ -164,8 +164,8 @@ Use `SqlitePersistence::in_memory()` to test persistence logic without touching 
 ```rust
 #[cfg(test)]
 mod tests {
-    use telegram_bot::ext::persistence::sqlite::SqlitePersistence;
-    use telegram_bot::ext::persistence::base::BasePersistence;
+    use rust_tg_bot::ext::persistence::sqlite::SqlitePersistence;
+    use rust_tg_bot::ext::persistence::base::BasePersistence;
     use std::collections::HashMap;
 
     #[tokio::test]
@@ -196,8 +196,8 @@ For `JsonFilePersistence`, use a temporary directory:
 ```rust
 #[cfg(test)]
 mod tests {
-    use telegram_bot::ext::persistence::json_file::JsonFilePersistence;
-    use telegram_bot::ext::persistence::base::BasePersistence;
+    use rust_tg_bot::ext::persistence::json_file::JsonFilePersistence;
+    use rust_tg_bot::ext::persistence::base::BasePersistence;
 
     #[tokio::test]
     async fn json_file_round_trip() {
@@ -288,7 +288,7 @@ async fn integration_test_setup() {
     let token = "fake-token-for-testing";
     let app = ApplicationBuilder::new().token(token).build();
 
-    app.add_typed_handler(
+    app.add_handler(
         MessageHandler::new(TEXT() & !COMMAND(), echo), 0,
     ).await;
 

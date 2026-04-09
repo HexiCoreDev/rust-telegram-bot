@@ -12,17 +12,17 @@ use axum::http::StatusCode;
 use axum::response::IntoResponse;
 use axum::routing::{get, post};
 use axum::Router;
-use telegram_bot::raw::types::inline::inline_keyboard_button::InlineKeyboardButton;
-use telegram_bot::raw::types::inline::inline_keyboard_markup::InlineKeyboardMarkup;
+use rust_tg_bot::raw::types::inline::inline_keyboard_button::InlineKeyboardButton;
+use rust_tg_bot::raw::types::inline::inline_keyboard_markup::InlineKeyboardMarkup;
 use tokio::net::TcpListener;
 use tokio::sync::mpsc;
 
-use telegram_bot::ext::prelude::{
+use rust_tg_bot::ext::prelude::{
     ApplicationBuilder, CommandHandler, Context, FnHandler, HandlerResult,
     MessageHandler, Update, COMMAND, TEXT,
 };
-use telegram_bot::raw::bot::ChatId;
-use telegram_bot::raw::types::update::Update as RawUpdate;
+use rust_tg_bot::raw::bot::ChatId;
+use rust_tg_bot::raw::types::update::Update as RawUpdate;
 
 // -- Handlers ----------------------------------------------------------------
 
@@ -120,10 +120,10 @@ async fn main() {
 
     let app = ApplicationBuilder::new().token(&token).build();
 
-    app.add_typed_handler(CommandHandler::new("start", start), 0).await;
-    app.add_typed_handler(CommandHandler::new("help", help_cmd), 0).await;
-    app.add_typed_handler(FnHandler::on_callback_query(button_callback), 0).await;
-    app.add_typed_handler(MessageHandler::new(TEXT() & !COMMAND(), echo), 0).await;
+    app.add_handler(CommandHandler::new("start", start), 0).await;
+    app.add_handler(CommandHandler::new("help", help_cmd), 0).await;
+    app.add_handler(FnHandler::on_callback_query(button_callback), 0).await;
+    app.add_handler(MessageHandler::new(TEXT() & !COMMAND(), echo), 0).await;
 
     app.initialize().await.expect("init failed");
     app.start().await.expect("start failed");

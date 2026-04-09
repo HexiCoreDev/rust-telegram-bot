@@ -15,7 +15,7 @@ use std::future::Future;
 use std::pin::Pin;
 use std::sync::Arc;
 
-use telegram_bot_raw::types::update::Update;
+use rust_tg_bot_raw::types::update::Update;
 
 use super::base::{ContextCallback, Handler, HandlerCallback, HandlerResult, MatchResult};
 use crate::context::CallbackContext;
@@ -40,7 +40,7 @@ pub type FilterFn = Arc<dyn Fn(&Update) -> bool + Send + Sync>;
 /// # Ergonomic constructor
 ///
 /// ```rust,ignore
-/// use telegram_bot_ext::prelude::*;
+/// use rust_tg_bot_ext::prelude::*;
 ///
 /// async fn echo(update: Update, context: Context) -> HandlerResult {
 ///     let text = update.effective_message().and_then(|m| m.text.as_deref()).unwrap_or("");
@@ -54,10 +54,10 @@ pub type FilterFn = Arc<dyn Fn(&Update) -> bool + Send + Sync>;
 /// # Full-control constructor
 ///
 /// ```rust,ignore
-/// use telegram_bot_ext::handlers::message::MessageHandler;
-/// use telegram_bot_ext::handlers::base::*;
-/// use telegram_bot_ext::filters::base::F;
-/// use telegram_bot_ext::filters::base::All;
+/// use rust_tg_bot_ext::handlers::message::MessageHandler;
+/// use rust_tg_bot_ext::handlers::base::*;
+/// use rust_tg_bot_ext::filters::base::F;
+/// use rust_tg_bot_ext::filters::base::All;
 /// use std::sync::Arc;
 ///
 /// let handler = MessageHandler::with_options(
@@ -84,7 +84,7 @@ impl MessageHandler {
     /// # Example
     ///
     /// ```rust,ignore
-    /// use telegram_bot_ext::prelude::*;
+    /// use rust_tg_bot_ext::prelude::*;
     ///
     /// async fn echo(update: Update, context: Context) -> HandlerResult {
     ///     let text = update.effective_message().and_then(|m| m.text.as_deref()).unwrap_or("");

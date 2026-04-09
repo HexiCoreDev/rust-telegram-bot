@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="assets/logo.png" alt="rust-telegram-bot" width="200">
+  <img src="assets/logo.png" alt="rust-tg-bot" width="200">
 </p>
 
-<h1 align="center">rust-telegram-bot</h1>
+<h1 align="center">rust-tg-bot</h1>
 
 <p align="center"><strong>We built you a bot you can't refuse -- now in Rust.</strong></p>
 
@@ -54,11 +54,11 @@ rust-telegram-bot/
     telegram-bot/         # Facade crate -- re-exports both for convenience
 ```
 
-**`telegram-bot-raw`** contains every type and method from Bot API 9.6: `Message`, `Update`, `User`, `Chat`, inline types, payments, passport, games, stickers, and all API methods on the `Bot` struct. It depends only on `serde`, `reqwest`, and `tokio`.
+**`rust-tg-bot-raw`** contains every type and method from Bot API 9.6: `Message`, `Update`, `User`, `Chat`, inline types, payments, passport, games, stickers, and all API methods on the `Bot` struct. It depends only on `serde`, `reqwest`, and `tokio`.
 
-**`telegram-bot-ext`** provides the application framework: `ApplicationBuilder`, typed handler system, composable filters, `ConversationHandler`, `JobQueue`, persistence backends (JSON file, SQLite), rate limiting, webhook support, and callback data caching.
+**`rust-tg-bot-ext`** provides the application framework: `ApplicationBuilder`, typed handler system, composable filters, `ConversationHandler`, `JobQueue`, persistence backends (JSON file, SQLite), rate limiting, webhook support, and callback data caching.
 
-**`telegram-bot`** is the facade crate you add to `Cargo.toml`. It re-exports everything from both crates under `telegram_bot::raw` and `telegram_bot::ext`.
+**`rust-tg-bot`** is the facade crate you add to `Cargo.toml`. It re-exports everything from both crates under `rust_tg_bot::raw` and `rust_tg_bot::ext`.
 
 ## Quick Start
 
@@ -70,14 +70,14 @@ Open Telegram, message `@BotFather`, send `/newbot`, and follow the prompts. Cop
 
 ```toml
 [dependencies]
-telegram-bot = { git = "https://github.com/HexiCoreDev/rust-telegram-bot" }
+rust-tg-bot = { git = "https://github.com/HexiCoreDev/rust-telegram-bot" }
 tracing-subscriber = "0.3"
 ```
 
 ### 3. Write your bot
 
 ```rust,no_run
-use telegram_bot::ext::prelude::{
+use rust_tg_bot::ext::prelude::{
     ApplicationBuilder, Arc, CommandHandler, Context, HandlerResult,
     MessageHandler, Update, COMMAND, TEXT,
 };
@@ -113,8 +113,8 @@ async fn main() {
 
     let app = ApplicationBuilder::new().token(token).build();
 
-    app.add_typed_handler(CommandHandler::new("start", start), 0).await;
-    app.add_typed_handler(
+    app.add_handler(CommandHandler::new("start", start), 0).await;
+    app.add_handler(
         MessageHandler::new(TEXT() & !COMMAND(), echo),
         0,
     ).await;
@@ -140,13 +140,13 @@ TELEGRAM_BOT_TOKEN="123456:ABC-DEF" cargo run
 Filters use Rust's bitwise operators for composition -- the same mental model as python-telegram-bot, but enforced at compile time:
 
 ```rust,ignore
-use telegram_bot::ext::prelude::{MessageHandler, TEXT, COMMAND};
+use rust_tg_bot::ext::prelude::{MessageHandler, TEXT, COMMAND};
 
 // Text messages that are NOT commands
 let text_only = TEXT() & !COMMAND();
 
 // Use it with a handler
-app.add_typed_handler(
+app.add_handler(
     MessageHandler::new(text_only, my_callback),
     0,
 ).await;
@@ -156,31 +156,31 @@ Over 50 built-in filters are available: `TEXT`, `COMMAND`, `PHOTO`, `VIDEO`, `AU
 
 ### Typed Handler Registration
 
-Handlers use strongly-typed constructors and are registered via `add_typed_handler`:
+Handlers use strongly-typed constructors and are registered via `add_handler`:
 
 ```rust,ignore
-use telegram_bot::ext::prelude::{
+use rust_tg_bot::ext::prelude::{
     ApplicationBuilder, Arc, CommandHandler, Context, FnHandler,
     HandlerResult, MessageHandler, Update, COMMAND, TEXT,
 };
 
 // Command handler -- matches /start
-app.add_typed_handler(CommandHandler::new("start", start), 0).await;
+app.add_handler(CommandHandler::new("start", start), 0).await;
 
 // Message handler -- matches text that is not a command
-app.add_typed_handler(MessageHandler::new(TEXT() & !COMMAND(), echo), 0).await;
+app.add_handler(MessageHandler::new(TEXT() & !COMMAND(), echo), 0).await;
 
 // Callback query handler -- matches inline keyboard button presses
-app.add_typed_handler(FnHandler::on_callback_query(button), 0).await;
+app.add_handler(FnHandler::on_callback_query(button), 0).await;
 
 // Generic function handler with custom predicate
-app.add_typed_handler(
+app.add_handler(
     FnHandler::new(|u| u.callback_query.is_some(), my_handler),
     0,
 ).await;
 
 // Catch-all handler (e.g., for logging)
-app.add_typed_handler(FnHandler::on_any(track_users), -1).await;
+app.add_handler(FnHandler::on_any(track_users), -1).await;
 ```
 
 ### Builder-based Bot API
@@ -188,7 +188,7 @@ app.add_typed_handler(FnHandler::on_any(track_users), -1).await;
 Every Bot API method returns a builder with optional parameters as chainable setters. Builders implement `IntoFuture`, so you can `.await` directly:
 
 ```rust,ignore
-use telegram_bot::ext::prelude::{Context, ParseMode};
+use rust_tg_bot::ext::prelude::{Context, ParseMode};
 
 // Simple -- .await directly
 context.bot().send_message(chat_id, "Hello!").await?;
@@ -201,7 +201,7 @@ context
     .await?;
 
 // Inline keyboard using typed constructors
-use telegram_bot::ext::prelude::{InlineKeyboardButton, InlineKeyboardMarkup};
+use rust_tg_bot::ext::prelude::{InlineKeyboardButton, InlineKeyboardMarkup};
 
 let keyboard = InlineKeyboardMarkup::new(vec![
     vec![InlineKeyboardButton::callback("Option 1", "1")],
@@ -227,7 +227,7 @@ context
 No more magic strings. All enums are strongly typed:
 
 ```rust,ignore
-use telegram_bot::ext::prelude::{
+use rust_tg_bot::ext::prelude::{
     ChatType, Context, MessageEntityType, ParseMode,
 };
 
@@ -248,20 +248,20 @@ if chat.chat_type != ChatType::Private { /* ... */ }
 Handlers are organized into numbered groups. Within a group, the first matching handler wins. Across groups, processing continues unless a handler returns `HandlerResult::Stop`:
 
 ```rust,ignore
-use telegram_bot::ext::prelude::{
+use rust_tg_bot::ext::prelude::{
     Arc, CommandHandler, Context, FnHandler, HandlerResult,
     MessageHandler, Update, COMMAND, TEXT,
 };
 
 // Group -1: always runs first (e.g., user tracking)
-app.add_typed_handler(FnHandler::on_any(track_users), -1).await;
+app.add_handler(FnHandler::on_any(track_users), -1).await;
 
 // Group 0: command handlers
-app.add_typed_handler(CommandHandler::new("start", start), 0).await;
-app.add_typed_handler(CommandHandler::new("help", help), 0).await;
+app.add_handler(CommandHandler::new("start", start), 0).await;
+app.add_handler(CommandHandler::new("help", help), 0).await;
 
 // Group 1: message handlers
-app.add_typed_handler(
+app.add_handler(
     MessageHandler::new(TEXT() & !COMMAND(), echo),
     1,
 ).await;
@@ -272,7 +272,7 @@ app.add_typed_handler(
 The `Context` provides typed read and write guards for bot-wide, per-user, and per-chat data:
 
 ```rust,ignore
-use telegram_bot::ext::prelude::{Arc, Context, HandlerResult, Update};
+use rust_tg_bot::ext::prelude::{Arc, Context, HandlerResult, Update};
 
 async fn handle(update: Arc<Update>, context: Context) -> HandlerResult {
     // Read bot-wide data
@@ -295,7 +295,7 @@ async fn handle(update: Arc<Update>, context: Context) -> HandlerResult {
 Multi-step conversations with automatic state tracking, timeouts, nested conversations, and persistence:
 
 ```rust,ignore
-use telegram_bot::ext::handlers::conversation::ConversationHandler;
+use rust_tg_bot::ext::handlers::conversation::ConversationHandler;
 use std::time::Duration;
 
 #[derive(Clone, Hash, Eq, PartialEq)]
@@ -326,7 +326,7 @@ Features ported from python-telegram-bot:
 Schedule one-shot, repeating, daily, and monthly jobs using tokio timers and a builder pattern:
 
 ```rust,ignore
-use telegram_bot::ext::job_queue::{JobQueue, JobCallbackFn, JobContext};
+use rust_tg_bot::ext::job_queue::{JobQueue, JobCallbackFn, JobContext};
 use std::sync::Arc;
 use std::time::Duration;
 
@@ -369,8 +369,8 @@ Swap between backends without changing application code:
 **JSON file** (human-readable, great for development):
 
 ```rust,ignore
-use telegram_bot::ext::persistence::json_file::JsonFilePersistence;
-use telegram_bot::ext::prelude::ApplicationBuilder;
+use rust_tg_bot::ext::persistence::json_file::JsonFilePersistence;
+use rust_tg_bot::ext::prelude::ApplicationBuilder;
 
 let persistence = JsonFilePersistence::new("bot_data", true, false);
 let app = ApplicationBuilder::new()
@@ -382,8 +382,8 @@ let app = ApplicationBuilder::new()
 **SQLite** (production-ready, WAL mode, atomic writes):
 
 ```rust,ignore
-use telegram_bot::ext::persistence::sqlite::SqlitePersistence;
-use telegram_bot::ext::prelude::ApplicationBuilder;
+use rust_tg_bot::ext::persistence::sqlite::SqlitePersistence;
+use rust_tg_bot::ext::prelude::ApplicationBuilder;
 
 let persistence = SqlitePersistence::open("bot.db").unwrap();
 let app = ApplicationBuilder::new()
@@ -395,7 +395,7 @@ let app = ApplicationBuilder::new()
 **Custom backend** -- implement the `BasePersistence` trait:
 
 ```rust,ignore
-use telegram_bot::ext::persistence::base::BasePersistence;
+use rust_tg_bot::ext::persistence::base::BasePersistence;
 use std::collections::HashMap;
 
 #[derive(Debug)]
@@ -413,13 +413,13 @@ impl BasePersistence for RedisPersistence {
 ```toml
 [dependencies]
 # Default: polling support only
-telegram-bot = { git = "https://github.com/HexiCoreDev/rust-telegram-bot" }
+rust-tg-bot = { git = "https://github.com/HexiCoreDev/rust-telegram-bot" }
 
 # Everything
-telegram-bot = { git = "https://github.com/HexiCoreDev/rust-telegram-bot", features = ["full"] }
+rust-tg-bot = { git = "https://github.com/HexiCoreDev/rust-telegram-bot", features = ["full"] }
 
 # Pick what you need
-telegram-bot = { git = "https://github.com/HexiCoreDev/rust-telegram-bot", features = [
+rust-tg-bot = { git = "https://github.com/HexiCoreDev/rust-telegram-bot", features = [
     "webhooks",           # axum-based webhook server
     "job-queue",          # Scheduled job execution
     "persistence-json",   # JSON file persistence
@@ -430,7 +430,7 @@ telegram-bot = { git = "https://github.com/HexiCoreDev/rust-telegram-bot", featu
 
 ## Comparison
 
-| Feature | rust-telegram-bot | python-telegram-bot | teloxide |
+| Feature | rust-tg-bot | python-telegram-bot | teloxide |
 |---|:---:|:---:|:---:|
 | Bot API version | **9.6** | 9.5 | 9.2 |
 | Language | Rust | Python | Rust |
@@ -466,7 +466,7 @@ The `crates/telegram-bot/examples/` directory contains complete, runnable exampl
 Run any example:
 
 ```sh
-TELEGRAM_BOT_TOKEN="your-token" cargo run -p telegram-bot --example echo_bot
+TELEGRAM_BOT_TOKEN="your-token" cargo run -p rust-tg-bot --example echo_bot
 ```
 
 ## Project Status

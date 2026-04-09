@@ -7,7 +7,7 @@ A conversation is a multi-step interaction where the bot asks questions and the 
 In Rust, conversation state is managed with a shared `HashMap` protected by an async `RwLock`:
 
 ```rust
-use telegram_bot::ext::prelude::{Arc, HashMap, RwLock};
+use rust_tg_bot::ext::prelude::{Arc, HashMap, RwLock};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum ConvState {
@@ -27,7 +27,7 @@ The key is the chat ID (or user ID), and the value is the current conversation s
 This bot collects a user profile through four steps: name, age, location, and bio.
 
 ```rust
-use telegram_bot::ext::prelude::{
+use rust_tg_bot::ext::prelude::{
     Application, ApplicationBuilder, Arc, Context, FnHandler,
     HandlerError, HandlerResult, HashMap, MessageEntityType, RwLock, Update,
 };
@@ -152,7 +152,7 @@ async fn main() {
     // /start entry point
     {
         let cs = Arc::clone(&conv_store);
-        app.add_typed_handler(
+        app.add_handler(
             FnHandler::new(
                 |u| check_command(u, "start"),
                 move |update, ctx| {
@@ -166,7 +166,7 @@ async fn main() {
     // /cancel fallback
     {
         let cs = Arc::clone(&conv_store);
-        app.add_typed_handler(
+        app.add_handler(
             FnHandler::new(
                 |u| check_command(u, "cancel"),
                 move |update, ctx| {
@@ -182,7 +182,7 @@ async fn main() {
         let cs = Arc::clone(&conv_store);
         let ud = Arc::clone(&user_data);
         let cs_check = Arc::clone(&conv_store);
-        app.add_typed_handler(
+        app.add_handler(
             FnHandler::new(
                 move |u| is_text_in_state(u, &cs_check, ConvState::AskName),
                 move |update, ctx| {
@@ -212,7 +212,7 @@ Every `Arc::clone()` is cheap (it increments an atomic counter). Always clone be
 
 ```rust
 let cs = Arc::clone(&conv_store);
-app.add_typed_handler(
+app.add_handler(
     FnHandler::new(
         |u| check_command(u, "start"),
         move |update, ctx| {

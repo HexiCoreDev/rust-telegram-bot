@@ -16,18 +16,18 @@
 //! # Usage
 //!
 //! ```sh
-//! TELEGRAM_BOT_TOKEN="your-token-here" cargo run -p telegram-bot --example webapp_bot
+//! TELEGRAM_BOT_TOKEN="your-token-here" cargo run -p rust-tg-bot --example webapp_bot
 //! ```
 //!
 //! Then in Telegram:
 //! - `/start` -- shows a keyboard button that opens the color picker Web App
 //! - Select a color in the Web App; the bot will display the chosen color
 
-use telegram_bot::ext::prelude::{
+use rust_tg_bot::ext::prelude::{
     json, Application, ApplicationBuilder, Arc, CommandHandler, Context, FnHandler, HandlerError,
     HandlerResult, KeyboardButton, ReplyKeyboardMarkup, ReplyKeyboardRemove, Update,
 };
-use telegram_bot::types::web_app_info::WebAppInfo;
+use rust_tg_bot::types::web_app_info::WebAppInfo;
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -145,11 +145,11 @@ async fn main() {
     let app: Arc<Application> = ApplicationBuilder::new().token(token).build();
 
     // /start
-    app.add_typed_handler(CommandHandler::new("start", start), 0)
+    app.add_handler(CommandHandler::new("start", start), 0)
         .await;
 
     // Handle Web App data (messages with web_app_data present).
-    app.add_typed_handler(
+    app.add_handler(
         FnHandler::new(
             |u| {
                 u.effective_message()

@@ -10,7 +10,7 @@ use std::future::Future;
 use std::pin::Pin;
 use std::sync::Arc;
 
-use telegram_bot_raw::types::update::Update;
+use rust_tg_bot_raw::types::update::Update;
 
 use super::base::{Handler, HandlerCallback, HandlerResult, MatchResult};
 
@@ -26,8 +26,8 @@ pub type PredicateFn = Arc<dyn Fn(&Update) -> bool + Send + Sync>;
 /// # Example
 ///
 /// ```rust,ignore
-/// use telegram_bot_ext::handlers::type_handler::TypeHandler;
-/// use telegram_bot_ext::handlers::base::*;
+/// use rust_tg_bot_ext::handlers::type_handler::TypeHandler;
+/// use rust_tg_bot_ext::handlers::base::*;
 /// use std::sync::Arc;
 ///
 /// // Handle any update that has a poll.

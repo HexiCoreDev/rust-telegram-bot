@@ -14,9 +14,9 @@
 //! ```sh
 //! TELEGRAM_BOT_TOKEN="your-token-here" \
 //! DEVELOPER_CHAT_ID="your-chat-id" \
-//! cargo run -p telegram-bot --example error_handler_bot
+//! cargo run -p rust-tg-bot --example error_handler_bot
 //! ```
-use telegram_bot::ext::prelude::{
+use rust_tg_bot::ext::prelude::{
     ApplicationBuilder, Arc, CallbackContext, CommandHandler, Context, HandlerError, HandlerResult,
     Update,
 };
@@ -133,9 +133,9 @@ async fn main() {
     let app = ApplicationBuilder::new().token(token).build();
 
     // Register command handlers.
-    app.add_typed_handler(CommandHandler::new("start", start), 0)
+    app.add_handler(CommandHandler::new("start", start), 0)
         .await;
-    app.add_typed_handler(CommandHandler::new("bad_command", bad_command), 0)
+    app.add_handler(CommandHandler::new("bad_command", bad_command), 0)
         .await;
 
     // Register the error handler.

@@ -14,7 +14,7 @@
 //! ```sh
 //! TELEGRAM_BOT_TOKEN="your-token-here" \
 //! PAYMENT_PROVIDER_TOKEN="your-provider-token" \
-//! cargo run -p telegram-bot --example payment_bot
+//! cargo run -p rust-tg-bot --example payment_bot
 //! ```
 //!
 //! Then in Telegram:
@@ -22,12 +22,12 @@
 //! - `/shipping` -- sends an invoice with shipping required
 //! - `/noshipping` -- sends an invoice without shipping
 
-use telegram_bot::ext::prelude::{
+use rust_tg_bot::ext::prelude::{
     Application, ApplicationBuilder, Arc, CommandHandler, Context, FnHandler, HandlerError,
     HandlerResult, MessageEntityType, Update,
 };
-use telegram_bot::raw::types::payment::labeled_price::LabeledPrice;
-use telegram_bot::raw::types::payment::shipping_option::ShippingOption;
+use rust_tg_bot::raw::types::payment::labeled_price::LabeledPrice;
+use rust_tg_bot::raw::types::payment::shipping_option::ShippingOption;
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -243,13 +243,13 @@ async fn main() {
     let app: Arc<Application> = ApplicationBuilder::new().token(token).build();
 
     // /start
-    app.add_typed_handler(CommandHandler::new("start", start_callback), 0)
+    app.add_handler(CommandHandler::new("start", start_callback), 0)
         .await;
 
     // /shipping
     {
         let pt = provider_token.clone();
-        app.add_typed_handler(
+        app.add_handler(
             FnHandler::new(
                 |u| {
                     u.effective_message()
@@ -283,7 +283,7 @@ async fn main() {
     // /noshipping
     {
         let pt = provider_token.clone();
-        app.add_typed_handler(
+        app.add_handler(
             FnHandler::new(
                 |u| {
                     u.effective_message()
@@ -315,15 +315,15 @@ async fn main() {
     }
 
     // Shipping query handler
-    app.add_typed_handler(FnHandler::on_shipping_query(shipping_callback), 0)
+    app.add_handler(FnHandler::on_shipping_query(shipping_callback), 0)
         .await;
 
     // Pre-checkout query handler
-    app.add_typed_handler(FnHandler::on_pre_checkout_query(precheckout_callback), 0)
+    app.add_handler(FnHandler::on_pre_checkout_query(precheckout_callback), 0)
         .await;
 
     // Successful payment handler
-    app.add_typed_handler(
+    app.add_handler(
         FnHandler::new(
             |u| {
                 u.effective_message()

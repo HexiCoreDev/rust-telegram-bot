@@ -75,7 +75,7 @@ pub const DEFAULT_MEDIA_WRITE_TIMEOUT: Duration = Duration::from_secs(20);
 /// Builder for [`ReqwestRequest`].
 ///
 /// ```rust,no_run
-/// # use telegram_bot_raw::request::reqwest_impl::ReqwestRequest;
+/// # use rust_tg_bot_raw::request::reqwest_impl::ReqwestRequest;
 /// # use std::time::Duration;
 /// let req = ReqwestRequest::builder()
 ///     .connection_pool_size(128)

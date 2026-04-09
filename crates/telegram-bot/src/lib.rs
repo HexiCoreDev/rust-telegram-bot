@@ -1,13 +1,13 @@
 #![doc = include_str!("../../../README.md")]
 
 // Re-export everything from both crates for convenience
-pub use telegram_bot_raw as raw;
-pub use telegram_bot_raw::bot::Bot;
-pub use telegram_bot_raw::error;
-pub use telegram_bot_raw::types;
+pub use rust_tg_bot_raw as raw;
+pub use rust_tg_bot_raw::bot::Bot;
+pub use rust_tg_bot_raw::error;
+pub use rust_tg_bot_raw::types;
 
-pub use telegram_bot_ext as ext;
-pub use telegram_bot_ext::prelude;
+pub use rust_tg_bot_ext as ext;
+pub use rust_tg_bot_ext::prelude;
 
 /// Runtime configuration for [`run`].
 pub struct RuntimeConfig {
@@ -48,7 +48,7 @@ impl RuntimeConfig {
 ///
 /// ```rust,ignore
 /// fn main() {
-///     telegram_bot::run(async {
+///     rust_tg_bot::run(async {
 ///         let app = ApplicationBuilder::new().token(token).build();
 ///         app.run_polling().await.unwrap();
 ///     });
@@ -59,7 +59,7 @@ impl RuntimeConfig {
 ///
 /// ```rust,ignore
 /// fn main() {
-///     telegram_bot::run_configured(
+///     rust_tg_bot::run_configured(
 ///         RuntimeConfig::default().workers(4),
 ///         async { /* ... */ },
 ///     );

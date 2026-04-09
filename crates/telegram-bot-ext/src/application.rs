@@ -24,7 +24,7 @@ use serde_json::Value;
 use tokio::sync::{mpsc, Notify, RwLock};
 use tracing::{debug, error, info, warn};
 
-use telegram_bot_raw::types::update::Update;
+use rust_tg_bot_raw::types::update::Update;
 
 use crate::context::CallbackContext;
 use crate::context_types::{ContextTypes, DefaultData};
@@ -83,8 +83,8 @@ pub enum HandlerError {
     Other(Box<dyn std::error::Error + Send + Sync>),
 }
 
-impl From<telegram_bot_raw::error::TelegramError> for HandlerError {
-    fn from(e: telegram_bot_raw::error::TelegramError) -> Self {
+impl From<rust_tg_bot_raw::error::TelegramError> for HandlerError {
+    fn from(e: rust_tg_bot_raw::error::TelegramError) -> Self {
         HandlerError::Other(Box::new(e))
     }
 }
@@ -105,7 +105,7 @@ pub enum ApplicationError {
     StillRunning,
 
     #[error("{0}")]
-    Bot(#[from] telegram_bot_raw::error::TelegramError),
+    Bot(#[from] rust_tg_bot_raw::error::TelegramError),
 
     #[error("{0}")]
     UpdateProcessor(#[from] crate::update_processor::UpdateProcessorError),
@@ -817,7 +817,7 @@ impl Application {
     ///
     /// Handlers are dispatched in group order (ascending).  Within a group,
     /// the first matching handler wins.
-    pub async fn add_handler(&self, handler: Handler, group: i32) {
+    pub async fn add_raw_handler(&self, handler: Handler, group: i32) {
         self.handlers
             .write()
             .await
@@ -826,7 +826,7 @@ impl Application {
             .push(handler);
     }
     /// Register multiple handlers at once into the given dispatch group.
-    pub async fn add_handlers(&self, new_handlers: Vec<Handler>, group: i32) {
+    pub async fn add_raw_handlers(&self, new_handlers: Vec<Handler>, group: i32) {
         self.handlers
             .write()
             .await
@@ -864,16 +864,16 @@ impl Application {
     /// # Example
     ///
     /// ```rust,ignore
-    /// use telegram_bot_ext::prelude::*;
+    /// use rust_tg_bot_ext::prelude::*;
     ///
     /// async fn start(update: Update, context: Context) -> HandlerResult {
     ///     context.reply_text(&update, "Hello!").await?;
     ///     Ok(())
     /// }
     ///
-    /// app.add_typed_handler(CommandHandler::new("start", start), 0).await;
+    /// app.add_handler(CommandHandler::new("start", start), 0).await;
     /// ```
-    pub async fn add_typed_handler(
+    pub async fn add_handler(
         &self,
         handler: impl crate::handlers::base::Handler + 'static,
         group: i32,
@@ -932,7 +932,7 @@ impl Application {
             block: handler.block(),
         };
 
-        self.add_handler(legacy, group).await;
+        self.add_raw_handler(legacy, group).await;
     }
 
     // -- Core dispatch --
@@ -1163,7 +1163,7 @@ async fn futures_join_all(handles: Vec<tokio::task::JoinHandle<()>>) {
 mod tests {
     use super::*;
     use crate::ext_bot::test_support::mock_request;
-    use telegram_bot_raw::bot::Bot;
+    use rust_tg_bot_raw::bot::Bot;
 
     fn make_app() -> Arc<Application> {
         let bot = Bot::new("test_token", mock_request());
@@ -1207,7 +1207,7 @@ mod tests {
         app.initialize().await.unwrap();
         let called = Arc::new(std::sync::atomic::AtomicBool::new(false));
         let c2 = called.clone();
-        app.add_handler(
+        app.add_raw_handler(
             Handler {
                 check_update: Arc::new(|u| u.message().is_some()),
                 callback: Arc::new(move |_, _| {
@@ -1232,7 +1232,7 @@ mod tests {
         app.initialize().await.unwrap();
         let order = Arc::new(RwLock::new(Vec::new()));
         let o1 = order.clone();
-        app.add_handler(
+        app.add_raw_handler(
             Handler {
                 check_update: Arc::new(|_| true),
                 callback: Arc::new(move |_, _| {
@@ -1248,7 +1248,7 @@ mod tests {
         )
         .await;
         let o0 = order.clone();
-        app.add_handler(
+        app.add_raw_handler(
             Handler {
                 check_update: Arc::new(|_| true),
                 callback: Arc::new(move |_, _| {
@@ -1272,7 +1272,7 @@ mod tests {
         let app = make_app();
         app.initialize().await.unwrap();
         let reached = Arc::new(std::sync::atomic::AtomicBool::new(false));
-        app.add_handler(
+        app.add_raw_handler(
             Handler {
                 check_update: Arc::new(|_| true),
                 callback: Arc::new(|_, _| {
@@ -1284,7 +1284,7 @@ mod tests {
         )
         .await;
         let r = reached.clone();
-        app.add_handler(
+        app.add_raw_handler(
             Handler {
                 check_update: Arc::new(|_| true),
                 callback: Arc::new(move |_, _| {
@@ -1312,7 +1312,7 @@ mod tests {
         let first = Arc::new(std::sync::atomic::AtomicBool::new(false));
         let second = Arc::new(std::sync::atomic::AtomicBool::new(false));
         let f = first.clone();
-        app.add_handler(
+        app.add_raw_handler(
             Handler {
                 check_update: Arc::new(|_| true),
                 callback: Arc::new(move |_, _| {
@@ -1328,7 +1328,7 @@ mod tests {
         )
         .await;
         let s = second.clone();
-        app.add_handler(
+        app.add_raw_handler(
             Handler {
                 check_update: Arc::new(|_| true),
                 callback: Arc::new(move |_, _| {
@@ -1354,7 +1354,7 @@ mod tests {
     async fn error_handler_called_on_failure() {
         let app = make_app();
         app.initialize().await.unwrap();
-        app.add_handler(
+        app.add_raw_handler(
             Handler {
                 check_update: Arc::new(|_| true),
                 callback: Arc::new(|_, _| {
@@ -1391,7 +1391,7 @@ mod tests {
     async fn error_handler_can_signal_stop() {
         let app = make_app();
         app.initialize().await.unwrap();
-        app.add_handler(
+        app.add_raw_handler(
             Handler {
                 check_update: Arc::new(|_| true),
                 callback: Arc::new(|_, _| {
@@ -1410,7 +1410,7 @@ mod tests {
         let eh: ErrorHandlerCallback = Arc::new(|_, _| Box::pin(async { true }));
         let reached = Arc::new(std::sync::atomic::AtomicBool::new(false));
         let r = reached.clone();
-        app.add_handler(
+        app.add_raw_handler(
             Handler {
                 check_update: Arc::new(|_| true),
                 callback: Arc::new(move |_, _| {

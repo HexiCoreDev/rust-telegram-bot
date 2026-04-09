@@ -10,7 +10,7 @@
 
 use std::collections::{HashMap, HashSet};
 
-use crate::filters::base::{effective_message_val, to_value, Filter, FilterResult, Update};
+use crate::filters::base::{Filter, FilterResult, Update};
 
 // ---------------------------------------------------------------------------
 // TEXT
@@ -21,10 +21,9 @@ pub struct TextAny;
 
 impl Filter for TextAny {
     fn check_update(&self, update: &Update) -> FilterResult {
-        let __v = to_value(update);
-        if effective_message_val(&__v)
-            .and_then(|m| m.get("text"))
-            .and_then(|v| v.as_str())
+        if update
+            .effective_message()
+            .and_then(|m| m.text.as_ref())
             .is_some()
         {
             FilterResult::Match
@@ -67,11 +66,7 @@ impl TextFilter {
 
 impl Filter for TextFilter {
     fn check_update(&self, update: &Update) -> FilterResult {
-        let __v = to_value(update);
-        let text = match effective_message_val(&__v)
-            .and_then(|m| m.get("text"))
-            .and_then(|v| v.as_str())
-        {
+        let text = match update.effective_message().and_then(|m| m.text.as_deref()) {
             Some(t) => t,
             None => return FilterResult::NoMatch,
         };
@@ -99,10 +94,9 @@ pub struct CaptionAny;
 
 impl Filter for CaptionAny {
     fn check_update(&self, update: &Update) -> FilterResult {
-        let __v = to_value(update);
-        if effective_message_val(&__v)
-            .and_then(|m| m.get("caption"))
-            .and_then(|v| v.as_str())
+        if update
+            .effective_message()
+            .and_then(|m| m.caption.as_ref())
             .is_some()
         {
             FilterResult::Match
@@ -143,11 +137,7 @@ impl CaptionFilter {
 
 impl Filter for CaptionFilter {
     fn check_update(&self, update: &Update) -> FilterResult {
-        let __v = to_value(update);
-        let caption = match effective_message_val(&__v)
-            .and_then(|m| m.get("caption"))
-            .and_then(|v| v.as_str())
-        {
+        let caption = match update.effective_message().and_then(|m| m.caption.as_deref()) {
             Some(c) => c,
             None => return FilterResult::NoMatch,
         };
@@ -201,11 +191,7 @@ impl CaptionRegexFilter {
 
 impl Filter for CaptionRegexFilter {
     fn check_update(&self, update: &Update) -> FilterResult {
-        let __v = to_value(update);
-        let caption = match effective_message_val(&__v)
-            .and_then(|m| m.get("caption"))
-            .and_then(|v| v.as_str())
-        {
+        let caption = match update.effective_message().and_then(|m| m.caption.as_deref()) {
             Some(c) => c,
             None => return FilterResult::NoMatch,
         };
@@ -250,11 +236,10 @@ impl LanguageFilter {
 
 impl Filter for LanguageFilter {
     fn check_update(&self, update: &Update) -> FilterResult {
-        let __v = to_value(update);
-        let code = match effective_message_val(&__v)
-            .and_then(|m| m.get("from"))
-            .and_then(|u| u.get("language_code"))
-            .and_then(|v| v.as_str())
+        let code = match update
+            .effective_message()
+            .and_then(|m| m.from_user.as_ref())
+            .and_then(|u| u.language_code.as_deref())
         {
             Some(c) => c,
             None => return FilterResult::NoMatch,
@@ -308,20 +293,17 @@ impl SuccessfulPaymentFilter {
 
 impl Filter for SuccessfulPaymentFilter {
     fn check_update(&self, update: &Update) -> FilterResult {
-        let __v = to_value(update);
-        let payment = match effective_message_val(&__v).and_then(|m| m.get("successful_payment")) {
-            Some(p) if !p.is_null() => p,
-            _ => return FilterResult::NoMatch,
+        let payment = match update
+            .effective_message()
+            .and_then(|m| m.successful_payment.as_ref())
+        {
+            Some(p) => p,
+            None => return FilterResult::NoMatch,
         };
         match &self.payloads {
             None => FilterResult::Match,
             Some(set) => {
-                if payment
-                    .get("invoice_payload")
-                    .and_then(|v| v.as_str())
-                    .map(|p| set.contains(p))
-                    .unwrap_or(false)
-                {
+                if set.contains(payment.invoice_payload.as_str()) {
                     FilterResult::Match
                 } else {
                     FilterResult::NoMatch
@@ -463,18 +445,13 @@ fn emoji_label(emoji: &str) -> &'static str {
 
 impl Filter for DiceFilter {
     fn check_update(&self, update: &Update) -> FilterResult {
-        let __v = to_value(update);
-        let dice = match effective_message_val(&__v).and_then(|m| m.get("dice")) {
-            Some(d) if !d.is_null() => d,
-            _ => return FilterResult::NoMatch,
+        let dice = match update.effective_message().and_then(|m| m.dice.as_ref()) {
+            Some(d) => d,
+            None => return FilterResult::NoMatch,
         };
 
         let emoji_match = match self.emoji {
-            Some(expected) => dice
-                .get("emoji")
-                .and_then(|v| v.as_str())
-                .map(|e| e == expected)
-                .unwrap_or(false),
+            Some(expected) => dice.emoji.as_str() == expected,
             None => true,
         };
 
@@ -484,12 +461,7 @@ impl Filter for DiceFilter {
 
         match &self.values {
             Some(vals) => {
-                if dice
-                    .get("value")
-                    .and_then(|v| v.as_i64())
-                    .map(|v| vals.contains(&v))
-                    .unwrap_or(false)
-                {
+                if vals.contains(&dice.value) {
                     FilterResult::Match
                 } else {
                     FilterResult::NoMatch
@@ -570,29 +542,24 @@ impl MentionFilter {
 
 impl Filter for MentionFilter {
     fn check_update(&self, update: &Update) -> FilterResult {
-        let __v = to_value(update);
-        let msg = match effective_message_val(&__v) {
+        let msg = match update.effective_message() {
             Some(m) => m,
             None => return FilterResult::NoMatch,
         };
-        let entities = match msg.get("entities").and_then(|v| v.as_array()) {
+        let entities = match msg.entities.as_ref() {
             Some(arr) => arr,
             None => return FilterResult::NoMatch,
         };
-        let text = msg.get("text").and_then(|v| v.as_str()).unwrap_or("");
+        let text = msg.text.as_deref().unwrap_or("");
 
         for entity in entities {
-            let etype = entity.get("type").and_then(|v| v.as_str()).unwrap_or("");
-
             // Check by user object (text_mention)
-            if etype == "text_mention" {
-                if let Some(user) = entity.get("user") {
-                    if let Some(uid) = user.get("id").and_then(|v| v.as_i64()) {
-                        if self.ids.contains(&uid) {
-                            return FilterResult::Match;
-                        }
+            if entity.entity_type == "text_mention" {
+                if let Some(user) = entity.user.as_ref() {
+                    if self.ids.contains(&user.id) {
+                        return FilterResult::Match;
                     }
-                    if let Some(uname) = user.get("username").and_then(|v| v.as_str()) {
+                    if let Some(uname) = user.username.as_deref() {
                         if self.usernames.contains(uname) {
                             return FilterResult::Match;
                         }
@@ -601,9 +568,9 @@ impl Filter for MentionFilter {
             }
 
             // Check by @mention text
-            if etype == "mention" {
-                let offset = entity.get("offset").and_then(|v| v.as_u64()).unwrap_or(0) as usize;
-                let length = entity.get("length").and_then(|v| v.as_u64()).unwrap_or(0) as usize;
+            if entity.entity_type == "mention" {
+                let offset = entity.offset as usize;
+                let length = entity.length as usize;
                 if offset + length <= text.len() {
                     let mention_text = &text[offset..offset + length];
                     let stripped = mention_text.strip_prefix('@').unwrap_or(mention_text);

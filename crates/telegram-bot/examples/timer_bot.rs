@@ -12,7 +12,7 @@
 //! # Usage
 //!
 //! ```sh
-//! TELEGRAM_BOT_TOKEN="your-token-here" cargo run -p telegram-bot --example timer_bot
+//! TELEGRAM_BOT_TOKEN="your-token-here" cargo run -p rust-tg-bot --example timer_bot
 //! ```
 //!
 //! Then in Telegram:
@@ -21,8 +21,8 @@
 //! - `/unset` -- cancels any active timer for your chat
 
 use std::time::Duration;
-use telegram_bot::ext::job_queue::{JobCallbackFn, JobContext, JobQueue};
-use telegram_bot::ext::prelude::{
+use rust_tg_bot::ext::job_queue::{JobCallbackFn, JobContext, JobQueue};
+use rust_tg_bot::ext::prelude::{
     Application, ApplicationBuilder, Arc, Context, FnHandler, HandlerError, HandlerResult,
     MessageEntityType, RwLock, Update,
 };
@@ -250,7 +250,7 @@ async fn main() {
     let timer_store: TimerStore = Arc::new(RwLock::new(std::collections::HashMap::new()));
 
     // /start handler
-    app.add_typed_handler(
+    app.add_handler(
         FnHandler::new(|u| check_command(u, "start"), start_command),
         0,
     )
@@ -259,7 +259,7 @@ async fn main() {
     // /set handler
     {
         let store = Arc::clone(&timer_store);
-        app.add_typed_handler(
+        app.add_handler(
             FnHandler::new(
                 |u| check_command(u, "set"),
                 move |update, ctx| {
@@ -275,7 +275,7 @@ async fn main() {
     // /unset handler
     {
         let store = Arc::clone(&timer_store);
-        app.add_typed_handler(
+        app.add_handler(
             FnHandler::new(
                 |u| check_command(u, "unset"),
                 move |update, ctx| {

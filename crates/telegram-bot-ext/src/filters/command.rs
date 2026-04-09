@@ -4,7 +4,7 @@
 //! - [`CommandFilter`] -- configurable: `only_start` controls whether the
 //!   command must be at offset 0 or can appear anywhere in the text.
 
-use crate::filters::base::{effective_message_val, to_value, Filter, FilterResult, Update};
+use crate::filters::base::{Filter, FilterResult, Update};
 
 // ---------------------------------------------------------------------------
 // CommandFilter
@@ -39,26 +39,22 @@ impl CommandFilter {
 
 impl Filter for CommandFilter {
     fn check_update(&self, update: &Update) -> FilterResult {
-        let v = to_value(update);
-        let msg = match effective_message_val(&v) {
+        let msg = match update.effective_message() {
             Some(m) => m,
             None => return FilterResult::NoMatch,
         };
-        let entities = match msg.get("entities").and_then(|v| v.as_array()) {
-            Some(arr) => arr,
-            None => return FilterResult::NoMatch,
+        let entities = match msg.entities.as_deref() {
+            Some(e) if !e.is_empty() => e,
+            _ => return FilterResult::NoMatch,
         };
 
         let matched = if self.only_start {
             // Only the first entity matters; it must be a bot_command at offset 0.
-            entities.first().is_some_and(|e| {
-                e.get("type").and_then(|v| v.as_str()) == Some("bot_command")
-                    && e.get("offset").and_then(|v| v.as_u64()) == Some(0)
-            })
-        } else {
             entities
-                .iter()
-                .any(|e| e.get("type").and_then(|v| v.as_str()) == Some("bot_command"))
+                .first()
+                .is_some_and(|e| e.entity_type == "bot_command" && e.offset == 0)
+        } else {
+            entities.iter().any(|e| e.entity_type == "bot_command")
         };
 
         if matched {

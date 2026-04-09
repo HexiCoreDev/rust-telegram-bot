@@ -19,7 +19,7 @@
 //! WEBHOOK_URL="https://your.domain" \
 //! ADMIN_CHAT_ID="123456" \
 //! PORT="8000" \
-//! cargo run -p telegram-bot --example custom_webhook_bot --features webhooks
+//! cargo run -p rust-tg-bot --example custom_webhook_bot --features webhooks
 //! ```
 use axum::extract::{Query, State};
 use axum::http::StatusCode;
@@ -30,12 +30,12 @@ use serde::Deserialize;
 use tokio::net::TcpListener;
 use tokio::sync::mpsc;
 
-use telegram_bot::ext::prelude::{
+use rust_tg_bot::ext::prelude::{
     Application, ApplicationBuilder, Arc, ChatId, CommandHandler, Context, HandlerResult,
     ParseMode, Update,
 };
-use telegram_bot::raw::types::chat_member::ChatMember;
-use telegram_bot::raw::types::update::Update as RawUpdate;
+use rust_tg_bot::raw::types::chat_member::ChatMember;
+use rust_tg_bot::raw::types::update::Update as RawUpdate;
 
 // ---------------------------------------------------------------------------
 // Configuration constants
@@ -232,7 +232,7 @@ async fn handle_submit_payload(
 // ---------------------------------------------------------------------------
 
 /// Extract the `User` reference from any `ChatMember` variant.
-fn extract_user_from_member(member: &ChatMember) -> &telegram_bot::raw::types::user::User {
+fn extract_user_from_member(member: &ChatMember) -> &rust_tg_bot::raw::types::user::User {
     match member {
         ChatMember::Owner(m) => &m.user,
         ChatMember::Administrator(m) => &m.user,
@@ -282,7 +282,7 @@ async fn main() {
     WEBHOOK_BASE_URL.set(webhook_url.clone()).ok();
 
     // -- Register handlers --------------------------------------------------
-    app.add_typed_handler(CommandHandler::new("start", start), 0)
+    app.add_handler(CommandHandler::new("start", start), 0)
         .await;
 
     // -- Initialize and start the Application (without the built-in updater) -

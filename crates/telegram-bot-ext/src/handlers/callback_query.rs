@@ -11,7 +11,7 @@ use std::pin::Pin;
 use std::sync::Arc;
 
 use regex::Regex;
-use telegram_bot_raw::types::update::Update;
+use rust_tg_bot_raw::types::update::Update;
 
 use super::base::{Handler, HandlerCallback, HandlerResult, MatchResult};
 use crate::context::CallbackContext;
@@ -47,8 +47,8 @@ pub enum CallbackPattern {
 /// # Example
 ///
 /// ```rust,ignore
-/// use telegram_bot_ext::handlers::callback_query::{CallbackQueryHandler, CallbackPattern};
-/// use telegram_bot_ext::handlers::base::*;
+/// use rust_tg_bot_ext::handlers::callback_query::{CallbackQueryHandler, CallbackPattern};
+/// use rust_tg_bot_ext::handlers::base::*;
 /// use regex::Regex;
 /// use std::sync::Arc;
 ///
@@ -312,7 +312,7 @@ mod tests {
     fn collect_context_positional() {
         use crate::context::CallbackContext;
         use crate::ext_bot::test_support::mock_request;
-        use telegram_bot_raw::bot::Bot;
+        use rust_tg_bot_raw::bot::Bot;
 
         let bot = Arc::new(crate::ext_bot::ExtBot::from_bot(Bot::new(
             "test",
@@ -337,7 +337,7 @@ mod tests {
     fn collect_context_named() {
         use crate::context::CallbackContext;
         use crate::ext_bot::test_support::mock_request;
-        use telegram_bot_raw::bot::Bot;
+        use rust_tg_bot_raw::bot::Bot;
 
         let bot = Arc::new(crate::ext_bot::ExtBot::from_bot(Bot::new(
             "test",

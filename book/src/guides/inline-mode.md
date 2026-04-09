@@ -15,13 +15,13 @@ Before your bot can receive inline queries, you must enable inline mode through 
 Register an inline query handler with `FnHandler::on_inline_query`:
 
 ```rust
-use telegram_bot::ext::prelude::{
+use rust_tg_bot::ext::prelude::{
     ApplicationBuilder, Arc, CommandHandler, Context, FnHandler,
     HandlerResult, Update,
 };
-use telegram_bot::raw::types::inline::inline_query_result_article::InlineQueryResultArticle;
-use telegram_bot::raw::types::inline::input_message_content::InputMessageContent;
-use telegram_bot::raw::types::inline::input_text_message_content::InputTextMessageContent;
+use rust_tg_bot::raw::types::inline::inline_query_result_article::InlineQueryResultArticle;
+use rust_tg_bot::raw::types::inline::input_message_content::InputMessageContent;
+use rust_tg_bot::raw::types::inline::input_text_message_content::InputTextMessageContent;
 
 async fn inline_query_handler(update: Arc<Update>, context: Context) -> HandlerResult {
     let iq = match update.inline_query() {
@@ -58,7 +58,7 @@ async fn main() {
     let token = std::env::var("TELEGRAM_BOT_TOKEN").unwrap();
     let app = ApplicationBuilder::new().token(token).build();
 
-    app.add_typed_handler(FnHandler::on_inline_query(inline_query_handler), 0)
+    app.add_handler(FnHandler::on_inline_query(inline_query_handler), 0)
         .await;
 
     app.run_polling().await.unwrap();
@@ -72,9 +72,9 @@ async fn main() {
 The most common result type. It shows a title and optional description, and sends a message when the user taps it.
 
 ```rust
-use telegram_bot::raw::types::inline::inline_query_result_article::InlineQueryResultArticle;
-use telegram_bot::raw::types::inline::input_message_content::InputMessageContent;
-use telegram_bot::raw::types::inline::input_text_message_content::InputTextMessageContent;
+use rust_tg_bot::raw::types::inline::inline_query_result_article::InlineQueryResultArticle;
+use rust_tg_bot::raw::types::inline::input_message_content::InputMessageContent;
+use rust_tg_bot::raw::types::inline::input_text_message_content::InputTextMessageContent;
 
 let content = InputTextMessageContent::new("Hello, world!");
 let article = InlineQueryResultArticle::new(
@@ -188,9 +188,9 @@ async fn main() {
     let token = std::env::var("TELEGRAM_BOT_TOKEN").unwrap();
     let app = ApplicationBuilder::new().token(token).build();
 
-    app.add_typed_handler(CommandHandler::new("start", start), 0).await;
-    app.add_typed_handler(CommandHandler::new("help", help_command), 0).await;
-    app.add_typed_handler(FnHandler::on_inline_query(inline_query_handler), 0).await;
+    app.add_handler(CommandHandler::new("start", start), 0).await;
+    app.add_handler(CommandHandler::new("help", help_command), 0).await;
+    app.add_handler(FnHandler::on_inline_query(inline_query_handler), 0).await;
 
     println!("Inline bot is running. Press Ctrl+C to stop.");
     println!("Remember to enable inline mode with @BotFather!");

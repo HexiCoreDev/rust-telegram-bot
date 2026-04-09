@@ -1,13 +1,13 @@
 # Deployment
 
-This chapter covers everything you need to deploy a rust-telegram-bot application to production: release builds, containerisation, systemd service management, and operational concerns.
+This chapter covers everything you need to deploy a rust-tg-bot application to production: release builds, containerisation, systemd service management, and operational concerns.
 
 ## Release Builds
 
 Always deploy release builds. Debug builds are significantly larger and slower.
 
 ```sh
-cargo build --release -p telegram-bot --example my_bot
+cargo build --release -p rust-tg-bot --example my_bot
 ```
 
 The binary lands in `target/release/examples/my_bot`.
@@ -33,7 +33,7 @@ Only enable the features you use. Each feature pulls in additional dependencies:
 
 ```toml
 [dependencies]
-telegram-bot = { version = "0.1", features = ["persistence-sqlite", "webhooks"] }
+rust-tg-bot = { version = "0.1", features = ["persistence-sqlite", "webhooks"] }
 ```
 
 Available features:
@@ -59,7 +59,7 @@ FROM rust:1.83-slim AS builder
 WORKDIR /app
 COPY . .
 
-RUN cargo build --release -p telegram-bot --example my_bot \
+RUN cargo build --release -p rust-tg-bot --example my_bot \
     --features "persistence-sqlite,webhooks"
 
 # Runtime stage
@@ -119,7 +119,7 @@ For bare-metal or VM deployments, run the bot as a systemd service.
 
 ### Service File
 
-Create `/etc/systemd/system/telegram-bot.service`:
+Create `/etc/systemd/system/rust-tg-bot.service`:
 
 ```ini
 [Unit]
@@ -131,25 +131,25 @@ Wants=network-online.target
 Type=exec
 User=bot
 Group=bot
-WorkingDirectory=/opt/telegram-bot
-ExecStart=/opt/telegram-bot/my_bot
+WorkingDirectory=/opt/rust-tg-bot
+ExecStart=/opt/rust-tg-bot/my_bot
 Restart=always
 RestartSec=5
 
 # Environment
-EnvironmentFile=/opt/telegram-bot/.env
+EnvironmentFile=/opt/rust-tg-bot/.env
 
 # Security hardening
 NoNewPrivileges=true
 ProtectSystem=strict
 ProtectHome=true
-ReadWritePaths=/opt/telegram-bot/data
+ReadWritePaths=/opt/rust-tg-bot/data
 PrivateTmp=true
 
 # Logging
 StandardOutput=journal
 StandardError=journal
-SyslogIdentifier=telegram-bot
+SyslogIdentifier=rust-tg-bot
 
 [Install]
 WantedBy=multi-user.target
@@ -157,7 +157,7 @@ WantedBy=multi-user.target
 
 ### Environment File
 
-Create `/opt/telegram-bot/.env`:
+Create `/opt/rust-tg-bot/.env`:
 
 ```sh
 TELEGRAM_BOT_TOKEN=your-token-here
@@ -170,19 +170,19 @@ RUST_LOG=info
 
 ```sh
 # Enable on boot
-sudo systemctl enable telegram-bot
+sudo systemctl enable rust-tg-bot
 
 # Start
-sudo systemctl start telegram-bot
+sudo systemctl start rust-tg-bot
 
 # Check status
-sudo systemctl status telegram-bot
+sudo systemctl status rust-tg-bot
 
 # View logs
-sudo journalctl -u telegram-bot -f
+sudo journalctl -u rust-tg-bot -f
 
 # Restart after deploy
-sudo systemctl restart telegram-bot
+sudo systemctl restart rust-tg-bot
 ```
 
 ## Webhook vs Polling in Production
@@ -256,7 +256,7 @@ Set the log level via the `RUST_LOG` environment variable:
 
 ```sh
 RUST_LOG=info                    # Application info and above
-RUST_LOG=telegram_bot=debug      # Debug logs from the framework
+RUST_LOG=rust_tg_bot=debug      # Debug logs from the framework
 RUST_LOG=my_bot=trace,info       # Trace for your code, info for everything else
 ```
 

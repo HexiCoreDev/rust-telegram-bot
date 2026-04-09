@@ -198,13 +198,13 @@ Only enable the features you actually use. Each feature pulls in additional depe
 
 ```toml
 # Only JSON persistence
-telegram-bot = { git = "...", features = ["persistence-json"] }
+rust-tg-bot = { git = "...", features = ["persistence-json"] }
 
 # Only webhooks
-telegram-bot = { git = "...", features = ["webhooks"] }
+rust-tg-bot = { git = "...", features = ["webhooks"] }
 
 # Everything (larger binary, slower compilation)
-telegram-bot = { git = "...", features = ["persistence-json", "persistence-sqlite", "webhooks"] }
+rust-tg-bot = { git = "...", features = ["persistence-json", "persistence-sqlite", "webhooks"] }
 ```
 
 ### Use cargo-chef for Docker caching

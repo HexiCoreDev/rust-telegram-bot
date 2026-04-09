@@ -9,17 +9,17 @@ Before you begin, make sure you have:
 
 ## Adding the Dependency
 
-Add `telegram-bot` to your project:
+Add `rust-tg-bot` to your project:
 
 ```sh
-cargo add telegram-bot
+cargo add rust-tg-bot
 ```
 
 Or add it manually to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-telegram-bot = "1.0.0-beta.2"
+rust-tg-bot = "1.0.0-beta.2"
 tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
 ```
 
@@ -43,14 +43,14 @@ Enable features in `Cargo.toml`:
 
 ```toml
 [dependencies]
-telegram-bot = { version = "1.0.0-beta.2", features = ["job-queue", "persistence-json"] }
+rust-tg-bot = { version = "1.0.0-beta.2", features = ["job-queue", "persistence-json"] }
 ```
 
 Or enable everything:
 
 ```toml
 [dependencies]
-telegram-bot = { version = "1.0.0-beta.2", features = ["full"] }
+rust-tg-bot = { version = "1.0.0-beta.2", features = ["full"] }
 ```
 
 ## Verifying the Installation
@@ -58,16 +58,16 @@ telegram-bot = { version = "1.0.0-beta.2", features = ["full"] }
 Create a minimal project to confirm everything works:
 
 ```sh
-cargo new my-telegram-bot
-cd my-telegram-bot
-cargo add telegram-bot
+cargo new my-rust-tg-bot
+cd my-rust-tg-bot
+cargo add rust-tg-bot
 cargo add tokio --features rt-multi-thread,macros
 ```
 
 Replace `src/main.rs` with:
 
 ```rust
-use telegram_bot::ext::prelude::{ApplicationBuilder, Arc, CommandHandler, Context, HandlerResult, Update};
+use rust_tg_bot::ext::prelude::{ApplicationBuilder, Arc, CommandHandler, Context, HandlerResult, Update};
 
 async fn start(update: Arc<Update>, context: Context) -> HandlerResult {
     context.reply_text(&update, "Hello from Rust!").await?;
@@ -80,7 +80,7 @@ async fn main() {
         .expect("TELEGRAM_BOT_TOKEN must be set");
 
     let app = ApplicationBuilder::new().token(token).build();
-    app.add_typed_handler(CommandHandler::new("start", start), 0).await;
+    app.add_handler(CommandHandler::new("start", start), 0).await;
 
     println!("Bot is running. Press Ctrl+C to stop.");
     app.run_polling().await.unwrap();

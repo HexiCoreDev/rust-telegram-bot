@@ -17,9 +17,9 @@
 //! # Usage
 //!
 //! ```sh
-//! TELEGRAM_BOT_TOKEN="your-token-here" cargo run -p telegram-bot --example passport_bot
+//! TELEGRAM_BOT_TOKEN="your-token-here" cargo run -p rust-tg-bot --example passport_bot
 //! ```
-use telegram_bot::ext::prelude::{
+use rust_tg_bot::ext::prelude::{
     Application, ApplicationBuilder, Arc, Context, FnHandler, HandlerResult, Update,
 };
 
@@ -209,7 +209,7 @@ async fn main() {
     let app: Arc<Application> = ApplicationBuilder::new().token(token).build();
 
     // Handle messages containing passport data.
-    app.add_typed_handler(
+    app.add_handler(
         FnHandler::new(
             |u| {
                 u.effective_message()

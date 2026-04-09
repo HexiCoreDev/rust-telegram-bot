@@ -1,6 +1,6 @@
 //! Document filters -- the `filters.Document` namespace.
 
-use crate::filters::base::{effective_message_val, to_value, Filter, FilterResult, Update};
+use crate::filters::base::{Filter, FilterResult, Update};
 
 // ---------------------------------------------------------------------------
 // Document.ALL
@@ -11,11 +11,10 @@ pub struct DocumentAll;
 
 impl Filter for DocumentAll {
     fn check_update(&self, update: &Update) -> FilterResult {
-        let __v = to_value(update);
-        if effective_message_val(&__v)
-            .and_then(|m| m.get("document"))
-            .map(|v| !v.is_null())
-            .unwrap_or(false)
+        if update
+            .effective_message()
+            .and_then(|m| m.document.as_ref())
+            .is_some()
         {
             FilterResult::Match
         } else {
@@ -50,14 +49,14 @@ impl DocumentCategory {
 
 impl Filter for DocumentCategory {
     fn check_update(&self, update: &Update) -> FilterResult {
-        let __v = to_value(update);
-        if effective_message_val(&__v)
-            .and_then(|m| m.get("document"))
-            .and_then(|d| d.get("mime_type"))
-            .and_then(|v| v.as_str())
+        let matched = update
+            .effective_message()
+            .and_then(|m| m.document.as_ref())
+            .and_then(|d| d.mime_type.as_deref())
             .map(|mime| mime.starts_with(&self.category))
-            .unwrap_or(false)
-        {
+            .unwrap_or(false);
+
+        if matched {
             FilterResult::Match
         } else {
             FilterResult::NoMatch
@@ -110,12 +109,14 @@ impl DocumentFileExtension {
 
 impl Filter for DocumentFileExtension {
     fn check_update(&self, update: &Update) -> FilterResult {
-        let __v = to_value(update);
-        let doc = match effective_message_val(&__v).and_then(|m| m.get("document")) {
-            Some(d) if !d.is_null() => d,
-            _ => return FilterResult::NoMatch,
+        let doc = match update
+            .effective_message()
+            .and_then(|m| m.document.as_ref())
+        {
+            Some(d) => d,
+            None => return FilterResult::NoMatch,
         };
-        let file_name = match doc.get("file_name").and_then(|v| v.as_str()) {
+        let file_name = match doc.file_name.as_deref() {
             Some(n) => n,
             None => return FilterResult::NoMatch,
         };
@@ -166,14 +167,14 @@ impl DocumentMimeType {
 
 impl Filter for DocumentMimeType {
     fn check_update(&self, update: &Update) -> FilterResult {
-        let __v = to_value(update);
-        if effective_message_val(&__v)
-            .and_then(|m| m.get("document"))
-            .and_then(|d| d.get("mime_type"))
-            .and_then(|v| v.as_str())
+        let matched = update
+            .effective_message()
+            .and_then(|m| m.document.as_ref())
+            .and_then(|d| d.mime_type.as_deref())
             .map(|mime| mime == self.mimetype)
-            .unwrap_or(false)
-        {
+            .unwrap_or(false);
+
+        if matched {
             FilterResult::Match
         } else {
             FilterResult::NoMatch

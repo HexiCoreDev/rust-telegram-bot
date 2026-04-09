@@ -15,11 +15,11 @@ Set it as an environment variable: `PAYMENT_PROVIDER_TOKEN`.
 Use `bot.send_invoice()` to create a payment message in the chat:
 
 ```rust
-use telegram_bot::ext::prelude::{
+use rust_tg_bot::ext::prelude::{
     Application, ApplicationBuilder, Arc, CommandHandler, Context,
     FnHandler, HandlerError, HandlerResult, Update,
 };
-use telegram_bot::raw::types::payment::labeled_price::LabeledPrice;
+use rust_tg_bot::raw::types::payment::labeled_price::LabeledPrice;
 
 async fn start_callback(update: Arc<Update>, context: Context) -> HandlerResult {
     let chat_id = update.effective_chat().map(|c| c.id).unwrap();
@@ -123,7 +123,7 @@ async fn start_without_shipping(
 When `is_flexible` is `true`, Telegram sends a `ShippingQuery` after the user enters their address. Register a handler with `FnHandler::on_shipping_query`:
 
 ```rust
-use telegram_bot::raw::types::payment::shipping_option::ShippingOption;
+use rust_tg_bot::raw::types::payment::shipping_option::ShippingOption;
 
 async fn shipping_callback(update: Arc<Update>, context: Context) -> HandlerResult {
     let query = update
@@ -171,7 +171,7 @@ async fn shipping_callback(update: Arc<Update>, context: Context) -> HandlerResu
 Register the handler:
 
 ```rust
-app.add_typed_handler(FnHandler::on_shipping_query(shipping_callback), 0).await;
+app.add_handler(FnHandler::on_shipping_query(shipping_callback), 0).await;
 ```
 
 ## Pre-Checkout Confirmation
@@ -208,7 +208,7 @@ async fn precheckout_callback(update: Arc<Update>, context: Context) -> HandlerR
 Register the handler:
 
 ```rust
-app.add_typed_handler(FnHandler::on_pre_checkout_query(precheckout_callback), 0).await;
+app.add_handler(FnHandler::on_pre_checkout_query(precheckout_callback), 0).await;
 ```
 
 ## Handling Successful Payments
@@ -233,7 +233,7 @@ async fn successful_payment_callback(
 }
 
 // Register with a predicate that checks for successful_payment
-app.add_typed_handler(
+app.add_handler(
     FnHandler::new(
         |u| {
             u.effective_message()
@@ -253,7 +253,7 @@ app.add_typed_handler(
 Represents a single price component. The amount is in the smallest currency unit.
 
 ```rust
-use telegram_bot::raw::types::payment::labeled_price::LabeledPrice;
+use rust_tg_bot::raw::types::payment::labeled_price::LabeledPrice;
 
 let item = LabeledPrice::new("Widget", 1500);      // $15.00
 let shipping = LabeledPrice::new("Shipping", 500);  // $5.00
@@ -268,7 +268,7 @@ Negative amounts create discount lines. The final total must be positive.
 Groups one or more `LabeledPrice` items under a named shipping method:
 
 ```rust
-use telegram_bot::raw::types::payment::shipping_option::ShippingOption;
+use rust_tg_bot::raw::types::payment::shipping_option::ShippingOption;
 
 let standard = ShippingOption::new(
     "standard",
@@ -325,12 +325,12 @@ With Stars, the `provider_token` is not required -- Telegram handles the payment
 ## Complete Example
 
 ```rust
-use telegram_bot::ext::prelude::{
+use rust_tg_bot::ext::prelude::{
     Application, ApplicationBuilder, Arc, CommandHandler, Context,
     FnHandler, HandlerError, HandlerResult, MessageEntityType, Update,
 };
-use telegram_bot::raw::types::payment::labeled_price::LabeledPrice;
-use telegram_bot::raw::types::payment::shipping_option::ShippingOption;
+use rust_tg_bot::raw::types::payment::labeled_price::LabeledPrice;
+use rust_tg_bot::raw::types::payment::shipping_option::ShippingOption;
 
 fn check_command(update: &Update, expected: &str) -> bool {
     let msg = match update.effective_message() {
@@ -368,12 +368,12 @@ async fn main() {
 
     let app: Arc<Application> = ApplicationBuilder::new().token(token).build();
 
-    app.add_typed_handler(CommandHandler::new("start", start_callback), 0).await;
+    app.add_handler(CommandHandler::new("start", start_callback), 0).await;
 
     // /shipping command
     {
         let pt = provider_token.clone();
-        app.add_typed_handler(
+        app.add_handler(
             FnHandler::new(
                 |u| check_command(u, "shipping"),
                 move |update, ctx| {
@@ -388,7 +388,7 @@ async fn main() {
     // /noshipping command
     {
         let pt = provider_token.clone();
-        app.add_typed_handler(
+        app.add_handler(
             FnHandler::new(
                 |u| check_command(u, "noshipping"),
                 move |update, ctx| {
@@ -400,9 +400,9 @@ async fn main() {
         ).await;
     }
 
-    app.add_typed_handler(FnHandler::on_shipping_query(shipping_callback), 0).await;
-    app.add_typed_handler(FnHandler::on_pre_checkout_query(precheckout_callback), 0).await;
-    app.add_typed_handler(
+    app.add_handler(FnHandler::on_shipping_query(shipping_callback), 0).await;
+    app.add_handler(FnHandler::on_pre_checkout_query(precheckout_callback), 0).await;
+    app.add_handler(
         FnHandler::new(
             |u| {
                 u.effective_message()

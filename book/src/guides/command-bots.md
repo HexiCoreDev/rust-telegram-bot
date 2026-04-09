@@ -7,7 +7,7 @@ Commands are the primary way users interact with Telegram bots. This guide cover
 Use `CommandHandler` for straightforward command matching:
 
 ```rust
-use telegram_bot::ext::prelude::{
+use rust_tg_bot::ext::prelude::{
     ApplicationBuilder, Arc, CommandHandler, Context, HandlerResult, Update,
 };
 
@@ -31,8 +31,8 @@ async fn main() {
     let token = std::env::var("TELEGRAM_BOT_TOKEN").unwrap();
     let app = ApplicationBuilder::new().token(token).build();
 
-    app.add_typed_handler(CommandHandler::new("start", start), 0).await;
-    app.add_typed_handler(CommandHandler::new("help", help), 0).await;
+    app.add_handler(CommandHandler::new("start", start), 0).await;
+    app.add_handler(CommandHandler::new("help", help), 0).await;
 
     app.run_polling().await.unwrap();
 }
@@ -100,7 +100,7 @@ fn create_deep_linked_url(bot_username: &str, payload: &str, group: bool) -> Str
 Register deep-link handlers **before** the plain `/start` handler. The first matching handler wins within its group:
 
 ```rust
-use telegram_bot::ext::prelude::{FnHandler, MessageEntityType};
+use rust_tg_bot::ext::prelude::{FnHandler, MessageEntityType};
 
 fn is_start_with_payload(update: &Update, payload: &str) -> bool {
     let msg = match update.effective_message() {
@@ -122,7 +122,7 @@ fn is_start_with_payload(update: &Update, payload: &str) -> bool {
 }
 
 // Register deep link handlers first
-app.add_typed_handler(
+app.add_handler(
     FnHandler::new(
         |u| is_start_with_payload(u, "referral-code"),
         handle_referral,
@@ -130,7 +130,7 @@ app.add_typed_handler(
 ).await;
 
 // Then the plain /start handler
-app.add_typed_handler(
+app.add_handler(
     FnHandler::new(
         |u| { /* matches bare /start only */ },
         start,
@@ -141,7 +141,7 @@ app.add_typed_handler(
 ### Sending Deep Links with Inline Keyboards
 
 ```rust
-use telegram_bot::ext::prelude::{InlineKeyboardButton, InlineKeyboardMarkup};
+use rust_tg_bot::ext::prelude::{InlineKeyboardButton, InlineKeyboardMarkup};
 
 let bot_username = context.bot().bot_data()
     .and_then(|d| d.username.clone())

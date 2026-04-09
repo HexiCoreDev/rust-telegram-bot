@@ -1,7 +1,7 @@
 //! Application framework for Telegram bots.
 //!
-//! `telegram-bot-ext` provides the high-level handler/filter/persistence layer
-//! on top of [`telegram_bot_raw`].  It is modeled after Python's
+//! `rust-tg-bot-ext` provides the high-level handler/filter/persistence layer
+//! on top of [`rust_tg_bot_raw`].  It is modeled after Python's
 //! `python-telegram-bot` extension package and offers:
 //!
 //! - **Handlers**: [`CommandHandler`](handlers::command::CommandHandler),
@@ -16,7 +16,7 @@
 //! # Quick start
 //!
 //! ```rust,ignore
-//! use telegram_bot_ext::prelude::*;
+//! use rust_tg_bot_ext::prelude::*;
 //!
 //! async fn start(update: Update, context: Context) -> HandlerResult {
 //!     context.reply_text(&update, "Hello!").await?;
@@ -24,7 +24,7 @@
 //! }
 //!
 //! let app = ApplicationBuilder::new("BOT_TOKEN").build().await;
-//! app.add_typed_handler(CommandHandler::new("start", start), 0).await;
+//! app.add_handler(CommandHandler::new("start", start), 0).await;
 //! app.run_polling().await?;
 //! ```
 
@@ -44,7 +44,7 @@ pub mod context;
 pub mod context_types;
 /// User-configurable defaults for outgoing API calls.
 pub mod defaults;
-/// Extended bot wrapping the raw [`Bot`](telegram_bot_raw::bot::Bot) with
+/// Extended bot wrapping the raw [`Bot`](rust_tg_bot_raw::bot::Bot) with
 /// defaults, callback-data cache, and rate-limiter support.
 pub mod ext_bot;
 /// Composable filters for routing updates to handlers.

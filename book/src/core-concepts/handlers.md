@@ -18,7 +18,7 @@ The framework provides several built-in handler types:
 The simplest and most common handler. Matches messages that start with a specific command:
 
 ```rust
-use telegram_bot::ext::prelude::{CommandHandler, Arc, Context, HandlerResult, Update};
+use rust_tg_bot::ext::prelude::{CommandHandler, Arc, Context, HandlerResult, Update};
 
 async fn start(update: Arc<Update>, context: Context) -> HandlerResult {
     context.reply_text(&update, "Welcome!").await?;
@@ -26,7 +26,7 @@ async fn start(update: Arc<Update>, context: Context) -> HandlerResult {
 }
 
 // Register it:
-app.add_typed_handler(CommandHandler::new("start", start), 0).await;
+app.add_handler(CommandHandler::new("start", start), 0).await;
 ```
 
 `CommandHandler::new("start", start)` matches `/start` (with or without `@botusername` suffix).
@@ -36,7 +36,7 @@ app.add_typed_handler(CommandHandler::new("start", start), 0).await;
 Matches messages that pass a filter:
 
 ```rust
-use telegram_bot::ext::prelude::{MessageHandler, TEXT, COMMAND};
+use rust_tg_bot::ext::prelude::{MessageHandler, TEXT, COMMAND};
 
 async fn echo(update: Arc<Update>, context: Context) -> HandlerResult {
     let text = update.effective_message()
@@ -47,7 +47,7 @@ async fn echo(update: Arc<Update>, context: Context) -> HandlerResult {
 }
 
 // Match text messages that are NOT commands:
-app.add_typed_handler(
+app.add_handler(
     MessageHandler::new(TEXT() & !COMMAND(), echo), 0,
 ).await;
 ```
@@ -59,25 +59,25 @@ See [Filters](filters.md) for all available filters and how to combine them.
 The most flexible handler. You provide a predicate function that inspects the raw `Update` and decides whether to handle it:
 
 ```rust
-use telegram_bot::ext::prelude::FnHandler;
+use rust_tg_bot::ext::prelude::FnHandler;
 
 // Match callback queries
-app.add_typed_handler(
+app.add_handler(
     FnHandler::on_callback_query(button_callback), 0,
 ).await;
 
 // Match inline queries
-app.add_typed_handler(
+app.add_handler(
     FnHandler::on_inline_query(inline_handler), 0,
 ).await;
 
 // Match shipping queries
-app.add_typed_handler(
+app.add_handler(
     FnHandler::on_shipping_query(shipping_handler), 0,
 ).await;
 
 // Match pre-checkout queries
-app.add_typed_handler(
+app.add_handler(
     FnHandler::on_pre_checkout_query(precheckout_handler), 0,
 ).await;
 ```
@@ -87,7 +87,7 @@ app.add_typed_handler(
 For full control, pass a predicate closure:
 
 ```rust
-app.add_typed_handler(
+app.add_handler(
     FnHandler::new(
         |u| {
             // Return true if this handler should fire
@@ -105,12 +105,12 @@ The predicate receives a `&Update` and returns `bool`. The handler function rece
 
 ## Handler Groups
 
-The second argument to `add_typed_handler` is the **group number**:
+The second argument to `add_handler` is the **group number**:
 
 ```rust
-app.add_typed_handler(handler_a, 0).await;  // Group 0
-app.add_typed_handler(handler_b, 0).await;  // Group 0
-app.add_typed_handler(handler_c, 1).await;  // Group 1
+app.add_handler(handler_a, 0).await;  // Group 0
+app.add_handler(handler_b, 0).await;  // Group 0
+app.add_handler(handler_c, 1).await;  // Group 1
 ```
 
 Dispatch rules:
@@ -124,12 +124,12 @@ This means groups let you build layered processing. For example, you might log e
 
 ```rust
 // Logging handler -- fires for ALL updates
-app.add_typed_handler(
+app.add_handler(
     FnHandler::new(|_| true, log_update), -1,
 ).await;
 
 // Command handler -- fires only for /start
-app.add_typed_handler(
+app.add_handler(
     CommandHandler::new("start", start), 0,
 ).await;
 ```
@@ -151,7 +151,7 @@ To pass additional state, use closures that capture shared data:
 let shared_state = Arc::new(RwLock::new(HashMap::new()));
 
 let state = Arc::clone(&shared_state);
-app.add_typed_handler(
+app.add_handler(
     FnHandler::new(
         |u| check_command(u, "save"),
         move |update, ctx| {

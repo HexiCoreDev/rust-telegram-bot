@@ -3,7 +3,9 @@
 use std::collections::HashSet;
 use std::sync::RwLock;
 
-use crate::filters::base::{effective_message_val, to_value, Filter, FilterResult, Update};
+use rust_tg_bot_raw::types::message_origin::MessageOrigin;
+
+use crate::filters::base::{Filter, FilterResult, Update};
 
 pub struct ForwardedFromFilter {
     chat_ids: RwLock<HashSet<i64>>,
@@ -75,29 +77,30 @@ impl ForwardedFromFilter {
     }
 }
 
-fn origin_id_username(origin: &serde_json::Value) -> (Option<i64>, Option<&str>) {
-    let origin_type = origin.get("type").and_then(|v| v.as_str()).unwrap_or("");
-    let entity = match origin_type {
-        "user" => origin.get("sender_user"),
-        "chat" => origin.get("sender_chat"),
-        "channel" => origin.get("chat"),
-        _ => None,
-    };
-    match entity {
-        Some(e) => (
-            e.get("id").and_then(|v| v.as_i64()),
-            e.get("username").and_then(|v| v.as_str()),
+/// Extract (id, username) from a typed [`MessageOrigin`].
+fn origin_id_username(origin: &MessageOrigin) -> (Option<i64>, Option<&str>) {
+    match origin {
+        MessageOrigin::User(data) => (
+            Some(data.sender_user.id),
+            data.sender_user.username.as_deref(),
         ),
-        None => (None, None),
+        MessageOrigin::Chat(data) => (
+            Some(data.sender_chat.id),
+            data.sender_chat.username.as_deref(),
+        ),
+        MessageOrigin::Channel(data) => (Some(data.chat.id), data.chat.username.as_deref()),
+        MessageOrigin::HiddenUser(_) => (None, None),
     }
 }
 
 impl Filter for ForwardedFromFilter {
     fn check_update(&self, update: &Update) -> FilterResult {
-        let __v = to_value(update);
-        let origin = match effective_message_val(&__v).and_then(|m| m.get("forward_origin")) {
-            Some(o) if !o.is_null() => o,
-            _ => return FilterResult::NoMatch,
+        let origin = match update
+            .effective_message()
+            .and_then(|m| m.forward_origin.as_ref())
+        {
+            Some(o) => o,
+            None => return FilterResult::NoMatch,
         };
         let (id, username) = origin_id_username(origin);
 
