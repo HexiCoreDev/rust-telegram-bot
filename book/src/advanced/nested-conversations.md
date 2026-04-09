@@ -289,7 +289,6 @@ async fn handle_text_input(
         .bot()
         .send_message(chat_id, "Got it! Please select a feature to update.")
         .reply_markup(feature_keyboard())
-        .send()
         .await
         .map_err(|e| HandlerError::Other(Box::new(e)))?;
 
@@ -381,7 +380,6 @@ async fn stop_command(
     context
         .bot()
         .send_message(chat_id, "Okay, bye.")
-        .send()
         .await
         .map_err(|e| HandlerError::Other(Box::new(e)))?;
 

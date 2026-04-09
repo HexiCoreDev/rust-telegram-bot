@@ -25,7 +25,6 @@ let chat_id = update.effective_chat().map(|c| c.id).unwrap();
 
 context.bot()
     .send_message(chat_id, "Hello, world!")
-    .send()
     .await?;
 ```
 
@@ -39,7 +38,6 @@ use rust_tg_bot::ext::prelude::ParseMode;
 context.bot()
     .send_message(chat_id, "<b>Bold</b> and <i>italic</i>")
     .parse_mode(ParseMode::Html)
-    .send()
     .await?;
 ```
 
@@ -65,7 +63,6 @@ let keyboard = InlineKeyboardMarkup::new(vec![
 context.bot()
     .send_message(chat_id, "Do you agree?")
     .reply_markup(serde_json::to_value(keyboard).unwrap())
-    .send()
     .await?;
 ```
 
@@ -76,7 +73,6 @@ context.bot()
     .edit_message_text("Updated text")
     .chat_id(chat_id)
     .message_id(message_id)
-    .send()
     .await?;
 ```
 
@@ -89,7 +85,6 @@ let cq = update.callback_query().unwrap();
 
 context.bot()
     .answer_callback_query(&cq.id)
-    .send()
     .await?;
 ```
 
@@ -100,7 +95,6 @@ context.bot()
     .answer_callback_query(&cq.id)
     .text("Selection recorded!")
     .show_alert(true)
-    .send()
     .await?;
 ```
 
@@ -123,13 +117,11 @@ The bot exposes builder methods for every Telegram Bot API method. Here are some
 context.bot()
     .send_photo(chat_id, "https://example.com/photo.jpg")
     .caption("A nice photo")
-    .send()
     .await?;
 
 // Send an invoice
 context.bot()
     .send_invoice(chat_id, title, description, payload, currency, prices)
-    .send()
     .await?;
 
 // Get chat member info
@@ -140,13 +132,11 @@ let member = context.bot()
 // Set webhook
 context.bot()
     .set_webhook("https://example.com/webhook")
-    .send()
     .await?;
 
 // Answer inline query
 context.bot()
     .answer_inline_query(&query_id, results)
-    .send()
     .await?;
 ```
 
@@ -170,8 +160,7 @@ context.bot()
     .method_name(required_args)     // Start the builder
     .optional_param(value)          // Chain optional parameters
     .another_optional(value)        // Chain more
-    .send()                         // Execute the request
-    .await?;                        // Await the future
+    .await?;                        // Await the future (IntoFuture)
 ```
 
 This pattern gives you IDE autocompletion for every parameter and catches typos at compile time.

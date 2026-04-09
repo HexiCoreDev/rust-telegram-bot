@@ -31,7 +31,6 @@ async fn start_callback(update: Arc<Update>, context: Context) -> HandlerResult 
             "Use /shipping to receive an invoice with shipping, \
              or /noshipping for an invoice without shipping.",
         )
-        .send()
         .await
         .map_err(|e| HandlerError::Other(Box::new(e)))?;
 
@@ -74,7 +73,6 @@ async fn start_with_shipping(
         .need_email(true)
         .need_shipping_address(true)
         .is_flexible(true)
-        .send()
         .await
         .map_err(|e| HandlerError::Other(Box::new(e)))?;
 
@@ -110,7 +108,6 @@ async fn start_without_shipping(
             prices,
         )
         .provider_token(&provider_token)
-        .send()
         .await
         .map_err(|e| HandlerError::Other(Box::new(e)))?;
 
@@ -136,7 +133,6 @@ async fn shipping_callback(update: Arc<Update>, context: Context) -> HandlerResu
             .bot()
             .answer_shipping_query(&query.id, false)
             .error_message("Something went wrong...")
-            .send()
             .await
             .map_err(|e| HandlerError::Other(Box::new(e)))?;
         return Ok(());
@@ -160,7 +156,6 @@ async fn shipping_callback(update: Arc<Update>, context: Context) -> HandlerResu
         .bot()
         .answer_shipping_query(&query.id, true)
         .shipping_options(options)
-        .send()
         .await
         .map_err(|e| HandlerError::Other(Box::new(e)))?;
 
@@ -189,14 +184,12 @@ async fn precheckout_callback(update: Arc<Update>, context: Context) -> HandlerR
             .bot()
             .answer_pre_checkout_query(&query.id, false)
             .error_message("Something went wrong...")
-            .send()
             .await
             .map_err(|e| HandlerError::Other(Box::new(e)))?;
     } else {
         context
             .bot()
             .answer_pre_checkout_query(&query.id, true)
-            .send()
             .await
             .map_err(|e| HandlerError::Other(Box::new(e)))?;
     }
@@ -225,7 +218,6 @@ async fn successful_payment_callback(
     context
         .bot()
         .send_message(chat_id, "Thank you for your payment.")
-        .send()
         .await
         .map_err(|e| HandlerError::Other(Box::new(e)))?;
 
@@ -312,7 +304,6 @@ async fn send_stars_invoice(
             "XTR",    // Telegram Stars currency code
             prices,
         )
-        .send()
         .await
         .map_err(|e| HandlerError::Other(Box::new(e)))?;
 
