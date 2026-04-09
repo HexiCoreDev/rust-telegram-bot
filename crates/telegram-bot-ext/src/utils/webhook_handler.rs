@@ -8,6 +8,13 @@
 //! `tokio::sync::mpsc` channel using non-blocking `try_send` with
 //! backpressure (503 when the channel is full).
 //!
+//! # TLS support
+//!
+//! When the `webhooks-tls` feature is enabled you can pass a [`TlsConfig`]
+//! to [`WebhookServer`].  The server will then accept connections through
+//! `tokio-rustls` instead of plain TCP.  Without the feature flag the TLS
+//! code is compiled out entirely (zero cost).
+//!
 //! # Optimizations over a naive implementation
 //!
 //! - **Zero-copy deserialization**: reads `axum::body::Bytes` directly and
@@ -115,6 +122,85 @@ struct WebhookState {
 }
 
 // ---------------------------------------------------------------------------
+// TLS configuration (feature-gated)
+// ---------------------------------------------------------------------------
+
+/// TLS configuration for the webhook server.
+///
+/// Wraps a `tokio_rustls::TlsAcceptor` loaded from PEM certificate and key
+/// files.  Only available with the `webhooks-tls` feature.
+#[cfg(feature = "webhooks-tls")]
+#[derive(Clone)]
+pub struct TlsConfig {
+    acceptor: tokio_rustls::TlsAcceptor,
+}
+
+#[cfg(feature = "webhooks-tls")]
+impl std::fmt::Debug for TlsConfig {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("TlsConfig")
+            .field("acceptor", &"TlsAcceptor { .. }")
+            .finish()
+    }
+}
+
+#[cfg(feature = "webhooks-tls")]
+impl TlsConfig {
+    /// Load TLS configuration from PEM-encoded certificate and private key
+    /// files.
+    ///
+    /// The certificate file may contain the full chain (leaf first).  The key
+    /// file must contain exactly one PKCS#8, SEC1 (EC), or PKCS#1 (RSA)
+    /// private key.
+    pub async fn from_pem_files(
+        cert_path: &str,
+        key_path: &str,
+    ) -> Result<Self, std::io::Error> {
+        use rustls_pemfile::{certs, private_key};
+        use std::io::{self, BufReader};
+        use tokio_rustls::rustls::ServerConfig;
+
+        let cert_data = tokio::fs::read(cert_path).await.map_err(|e| {
+            io::Error::new(e.kind(), format!("failed to read cert file '{cert_path}': {e}"))
+        })?;
+        let key_data = tokio::fs::read(key_path).await.map_err(|e| {
+            io::Error::new(e.kind(), format!("failed to read key file '{key_path}': {e}"))
+        })?;
+
+        // Parse certificates.
+        let certs: Vec<_> = certs(&mut BufReader::new(cert_data.as_slice()))
+            .collect::<Result<Vec<_>, _>>()
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, format!("invalid cert PEM: {e}")))?;
+
+        if certs.is_empty() {
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidData,
+                format!("no certificates found in '{cert_path}'"),
+            ));
+        }
+
+        // Parse private key -- take the first key found.
+        let key = private_key(&mut BufReader::new(key_data.as_slice()))
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, format!("invalid key PEM: {e}")))?
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    format!("no private key found in '{key_path}'"),
+                )
+            })?;
+
+        let server_config = ServerConfig::builder()
+            .with_no_client_auth()
+            .with_single_cert(certs, key)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, format!("TLS config error: {e}")))?;
+
+        Ok(Self {
+            acceptor: tokio_rustls::TlsAcceptor::from(Arc::new(server_config)),
+        })
+    }
+}
+
+// ---------------------------------------------------------------------------
 // WebhookHandler (composable handler for custom axum routers)
 // ---------------------------------------------------------------------------
 
@@ -194,6 +280,10 @@ pub struct WebhookServer {
     shutdown_notify: Arc<Notify>,
     /// Whether the server is currently running.
     running: std::sync::atomic::AtomicBool,
+    /// Optional TLS acceptor. Present only when the `webhooks-tls` feature is
+    /// enabled and a [`TlsConfig`] was provided at construction time.
+    #[cfg(feature = "webhooks-tls")]
+    tls: Option<TlsConfig>,
 }
 
 impl WebhookServer {
@@ -205,12 +295,14 @@ impl WebhookServer {
     /// - `update_tx`: channel sender for forwarding parsed updates.
     /// - `secret_token`: if `Some`, every request must carry a matching
     ///   `X-Telegram-Bot-Api-Secret-Token` header.
+    /// - `tls`: optional TLS configuration (only with `webhooks-tls` feature).
     pub fn new(
         listen: impl Into<String>,
         port: u16,
         url_path: &str,
         update_tx: mpsc::Sender<Update>,
         secret_token: Option<String>,
+        #[cfg(feature = "webhooks-tls")] tls: Option<TlsConfig>,
     ) -> Self {
         let handler = WebhookHandler::new(update_tx, secret_token);
         let router = handler.into_router(url_path);
@@ -221,6 +313,8 @@ impl WebhookServer {
             router,
             shutdown_notify: Arc::new(Notify::new()),
             running: std::sync::atomic::AtomicBool::new(false),
+            #[cfg(feature = "webhooks-tls")]
+            tls,
         }
     }
 
@@ -234,6 +328,10 @@ impl WebhookServer {
     ///
     /// The server runs until [`shutdown`](Self::shutdown) is called. In-flight
     /// requests are drained before the server exits (graceful shutdown).
+    ///
+    /// When TLS is configured (via the `webhooks-tls` feature and a
+    /// [`TlsConfig`]), the server accepts HTTPS connections. Otherwise it
+    /// serves plain HTTP.
     pub async fn serve_forever(&self, ready: Option<Arc<Notify>>) -> Result<(), std::io::Error> {
         let addr: SocketAddr = format!("{}:{}", self.listen, self.port)
             .parse()
@@ -241,17 +339,25 @@ impl WebhookServer {
 
         let listener = TcpListener::bind(addr).await?;
 
-        // Use axum's ListenerExt::tap_io to set TCP_NODELAY on every accepted
-        // connection. This disables Nagle's algorithm so small webhook
-        // responses are sent immediately instead of being delayed.
+        self.running
+            .store(true, std::sync::atomic::Ordering::Relaxed);
+
+        // Dispatch to TLS or plain-text serving.
+        #[cfg(feature = "webhooks-tls")]
+        if let Some(ref tls) = self.tls {
+            info!("Webhook server (HTTPS) started on {addr}");
+            if let Some(n) = ready {
+                n.notify_one();
+            }
+            return self.serve_tls(listener, tls.clone(), addr).await;
+        }
+
+        // Plain HTTP path (existing behavior).
         let listener = listener.tap_io(|tcp_stream| {
             if let Err(e) = tcp_stream.set_nodelay(true) {
                 warn!("Failed to set TCP_NODELAY: {e}");
             }
         });
-
-        self.running
-            .store(true, std::sync::atomic::Ordering::Relaxed);
 
         info!("Webhook server started on {addr}");
 
@@ -269,6 +375,129 @@ impl WebhookServer {
         self.running
             .store(false, std::sync::atomic::Ordering::Relaxed);
         info!("Webhook server stopped");
+        Ok(())
+    }
+
+    /// Serve over TLS using `tokio-rustls`.
+    ///
+    /// Manually accepts TCP connections, performs the TLS handshake, wraps each
+    /// connection with `hyper_util::rt::TokioIo`, and serves HTTP/1.1 through
+    /// `hyper_util::server::conn::auto::Builder`. Each axum tower `Service` is
+    /// adapted via `hyper_util::service::TowerToHyperService` for hyper
+    /// compatibility.
+    ///
+    /// Graceful shutdown is handled via `tokio_util::sync::CancellationToken`:
+    /// in-flight connections are allowed to finish while no new connections are
+    /// accepted.
+    #[cfg(feature = "webhooks-tls")]
+    async fn serve_tls(
+        &self,
+        listener: TcpListener,
+        tls: TlsConfig,
+        addr: SocketAddr,
+    ) -> Result<(), std::io::Error> {
+        use hyper_util::service::TowerToHyperService;
+
+        let shutdown_notify = self.shutdown_notify.clone();
+        let router = self.router.clone();
+
+        // `into_make_service()` yields a tower `MakeService` that produces a
+        // fresh `Service` per connection. Convert it into a tower `Service`
+        // whose `call` returns a ready-to-use per-connection service.
+        let mut make_svc = tower::MakeService::into_service(router.into_make_service());
+
+        let graceful = tokio_util::sync::CancellationToken::new();
+        let graceful_for_shutdown = graceful.clone();
+
+        // Spawn a task that waits for the shutdown signal.
+        tokio::spawn(async move {
+            shutdown_notify.notified().await;
+            graceful_for_shutdown.cancel();
+        });
+
+        let mut connection_handles = tokio::task::JoinSet::new();
+
+        loop {
+            tokio::select! {
+                _ = graceful.cancelled() => {
+                    debug!("TLS server shutting down, waiting for in-flight connections");
+                    break;
+                }
+                accepted = listener.accept() => {
+                    let (tcp_stream, remote_addr) = match accepted {
+                        Ok(conn) => conn,
+                        Err(e) => {
+                            error!("Failed to accept TCP connection: {e}");
+                            continue;
+                        }
+                    };
+
+                    // Set TCP_NODELAY.
+                    if let Err(e) = tcp_stream.set_nodelay(true) {
+                        warn!("Failed to set TCP_NODELAY: {e}");
+                    }
+
+                    // Obtain a per-connection tower Service from the make service.
+                    // The error type is `Infallible` so the match-on-error is
+                    // exhaustive without a wildcard.
+                    let tower_svc = match tower::Service::call(&mut make_svc, remote_addr).await {
+                        Ok(svc) => svc,
+                        Err(e) => match e {},
+                    };
+
+                    // Wrap the tower service so hyper-util can use it.
+                    let hyper_svc = TowerToHyperService::new(tower_svc);
+
+                    let acceptor = tls.acceptor.clone();
+                    let token = graceful.clone();
+
+                    connection_handles.spawn(async move {
+                        // Perform TLS handshake.
+                        let tls_stream = match acceptor.accept(tcp_stream).await {
+                            Ok(s) => s,
+                            Err(e) => {
+                                debug!("TLS handshake failed from {remote_addr}: {e}");
+                                return;
+                            }
+                        };
+
+                        // Wrap the TLS stream for hyper-util.
+                        let io = hyper_util::rt::TokioIo::new(tls_stream);
+
+                        let conn = hyper_util::server::conn::auto::Builder::new(
+                            hyper_util::rt::TokioExecutor::new(),
+                        )
+                        .serve_connection(io, hyper_svc);
+
+                        // Pin the connection future for graceful shutdown.
+                        let mut conn = std::pin::pin!(conn);
+
+                        tokio::select! {
+                            result = conn.as_mut() => {
+                                if let Err(e) = result {
+                                    debug!("Connection error from {remote_addr}: {e}");
+                                }
+                            }
+                            _ = token.cancelled() => {
+                                // Graceful shutdown: signal the connection and
+                                // wait for it to drain.
+                                conn.as_mut().graceful_shutdown();
+                                if let Err(e) = conn.await {
+                                    debug!("Connection error during shutdown from {remote_addr}: {e}");
+                                }
+                            }
+                        }
+                    });
+                }
+            }
+        }
+
+        // Wait for all in-flight connections to complete.
+        while connection_handles.join_next().await.is_some() {}
+
+        self.running
+            .store(false, std::sync::atomic::Ordering::Relaxed);
+        info!("Webhook server (HTTPS) stopped on {addr}");
         Ok(())
     }
 
@@ -374,7 +603,15 @@ impl WebhookApp {
         update_tx: mpsc::Sender<Update>,
         secret_token: Option<String>,
     ) -> WebhookServer {
-        WebhookServer::new(listen, port, url_path, update_tx, secret_token)
+        WebhookServer::new(
+            listen,
+            port,
+            url_path,
+            update_tx,
+            secret_token,
+            #[cfg(feature = "webhooks-tls")]
+            None,
+        )
     }
 }
 

@@ -7,3 +7,6 @@ pub mod sqlite;
 
 #[cfg(feature = "persistence-redis")]
 pub mod redis;
+
+#[cfg(feature = "persistence-postgres")]
+pub mod postgres;

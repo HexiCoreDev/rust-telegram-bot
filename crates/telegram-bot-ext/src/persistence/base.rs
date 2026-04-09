@@ -56,6 +56,10 @@ pub enum PersistenceError {
     #[cfg(feature = "persistence-redis")]
     #[error("Redis error: {0}")]
     Redis(#[from] redis::RedisError),
+
+    #[cfg(feature = "persistence-postgres")]
+    #[error("PostgreSQL error: {0}")]
+    Postgres(#[from] sqlx::Error),
 }
 
 pub type PersistenceResult<T> = Result<T, PersistenceError>;

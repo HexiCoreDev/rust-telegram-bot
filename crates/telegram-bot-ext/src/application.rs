@@ -109,6 +109,9 @@ pub enum ApplicationError {
 
     #[error("{0}")]
     UpdateProcessor(#[from] crate::update_processor::UpdateProcessorError),
+
+    #[error("webhook error: {0}")]
+    Webhook(String),
 }
 
 // ---------------------------------------------------------------------------
@@ -754,6 +757,30 @@ impl Application {
             None
         };
 
+        // Build TLS configuration if paths are provided.
+        #[cfg(feature = "webhooks-tls")]
+        let tls_config = if config.has_tls() {
+            let cert_path = config.cert_path.as_deref().expect("cert_path checked by has_tls");
+            let key_path = config.key_path.as_deref().expect("key_path checked by has_tls");
+            match crate::utils::webhook_handler::TlsConfig::from_pem_files(cert_path, key_path).await {
+                Ok(tls) => Some(tls),
+                Err(e) => {
+                    return Err(ApplicationError::Webhook(format!("TLS configuration failed: {e}")));
+                }
+            }
+        } else {
+            None
+        };
+
+        // Warn at runtime if TLS paths were set but the feature is not enabled.
+        #[cfg(not(feature = "webhooks-tls"))]
+        if config.has_tls() {
+            warn!(
+                "TLS cert_path/key_path are set but the webhooks-tls feature is not enabled. \
+                 The server will start without TLS. Enable the webhooks-tls feature to use HTTPS."
+            );
+        }
+
         // Tell Telegram to send updates to our webhook URL
         if let Some(ref url) = config.webhook_url {
             let mut builder = self.bot.set_webhook(url);
@@ -765,6 +792,13 @@ impl Application {
             }
             if let Some(ref allowed) = config.allowed_updates {
                 builder = builder.allowed_updates(allowed.clone());
+            }
+            // When TLS is configured with a self-signed certificate, send it
+            // to Telegram so it can verify our server.
+            #[cfg(feature = "webhooks-tls")]
+            if let Some(ref cert) = config.cert_path {
+                use rust_tg_bot_raw::types::files::input_file::InputFile;
+                builder = builder.certificate(InputFile::path(cert));
             }
             if let Err(e) = builder.await {
                 error!("Failed to set webhook: {e}");
@@ -779,6 +813,8 @@ impl Application {
             &config.url_path,
             self.update_tx.clone(),
             config.secret_token.clone(),
+            #[cfg(feature = "webhooks-tls")]
+            tls_config,
         ));
         let ready = Arc::new(Notify::new());
         let rc = ready.clone();

@@ -87,6 +87,18 @@ pub struct WebhookConfig {
     pub drop_pending_updates: bool,
     pub allowed_updates: Option<Vec<String>>,
     pub max_connections: u32,
+    /// Path to a PEM-encoded TLS certificate file.
+    ///
+    /// When both `cert_path` and `key_path` are set the webhook server will
+    /// serve over HTTPS using `tokio-rustls`. Requires the `webhooks-tls`
+    /// feature.
+    pub cert_path: Option<String>,
+    /// Path to a PEM-encoded TLS private key file.
+    ///
+    /// When both `cert_path` and `key_path` are set the webhook server will
+    /// serve over HTTPS using `tokio-rustls`. Requires the `webhooks-tls`
+    /// feature.
+    pub key_path: Option<String>,
 }
 
 #[cfg(feature = "webhooks")]
@@ -102,6 +114,8 @@ impl Default for WebhookConfig {
             drop_pending_updates: false,
             allowed_updates: None,
             max_connections: 40,
+            cert_path: None,
+            key_path: None,
         }
     }
 }
@@ -109,7 +123,7 @@ impl Default for WebhookConfig {
 #[cfg(feature = "webhooks")]
 impl WebhookConfig {
     /// Create a new webhook config with the given URL.
-    /// Defaults: listen 127.0.0.1:80, no secret token.
+    /// Defaults: listen 127.0.0.1:80, no secret token, no TLS.
     pub fn new(url: impl Into<String>) -> Self {
         let url = url.into();
         Self {
@@ -141,6 +155,32 @@ impl WebhookConfig {
 
     /// Set max webhook connections (default: 40).
     pub fn max_connections(mut self, n: u32) -> Self { self.max_connections = n; self }
+
+    /// Configure TLS with certificate and private key PEM files.
+    ///
+    /// When set, the webhook server will serve over HTTPS. The certificate
+    /// file may contain the full chain. Requires the `webhooks-tls` feature
+    /// to be enabled at compile time.
+    ///
+    /// # Example
+    ///
+    /// ```rust,ignore
+    /// let config = WebhookConfig::new("https://mybot.example.com/telegram")
+    ///     .port(8443)
+    ///     .url_path("/telegram")
+    ///     .secret_token("my-secret")
+    ///     .tls("/path/to/cert.pem", "/path/to/key.pem");
+    /// ```
+    pub fn tls(mut self, cert: impl Into<String>, key: impl Into<String>) -> Self {
+        self.cert_path = Some(cert.into());
+        self.key_path = Some(key.into());
+        self
+    }
+
+    /// Returns `true` when both `cert_path` and `key_path` are configured.
+    pub fn has_tls(&self) -> bool {
+        self.cert_path.is_some() && self.key_path.is_some()
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -377,12 +417,39 @@ impl Updater {
             }
         });
 
+        // Build the TLS configuration if paths are provided.
+        #[cfg(feature = "webhooks-tls")]
+        let tls_config = if config.has_tls() {
+            let cert_path = config.cert_path.as_deref().expect("cert_path checked by has_tls");
+            let key_path = config.key_path.as_deref().expect("key_path checked by has_tls");
+            match crate::utils::webhook_handler::TlsConfig::from_pem_files(cert_path, key_path).await {
+                Ok(tls) => Some(tls),
+                Err(e) => {
+                    self.running.store(false, std::sync::atomic::Ordering::Relaxed);
+                    return Err(UpdaterError::Bootstrap(format!("TLS configuration failed: {e}")));
+                }
+            }
+        } else {
+            None
+        };
+
+        // Warn at runtime if TLS paths were set but the feature is not enabled.
+        #[cfg(not(feature = "webhooks-tls"))]
+        if config.has_tls() {
+            warn!(
+                "TLS cert_path/key_path are set but the `webhooks-tls` feature is not enabled. \
+                 The server will start without TLS. Enable the `webhooks-tls` feature to use HTTPS."
+            );
+        }
+
         let server = Arc::new(WebhookServer::new(
             &config.listen,
             config.port,
             &config.url_path,
             typed_tx,
             config.secret_token,
+            #[cfg(feature = "webhooks-tls")]
+            tls_config,
         ));
 
         let ready = Arc::new(Notify::new());

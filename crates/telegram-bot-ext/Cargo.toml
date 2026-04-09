@@ -31,18 +31,28 @@ reqwest.workspace = true
 axum = { workspace = true, optional = true }
 rusqlite = { workspace = true, optional = true }
 redis = { workspace = true, optional = true }
+sqlx = { workspace = true, optional = true }
+
+# Optional TLS dependencies (for webhooks-tls feature)
+tokio-rustls = { version = "0.26", optional = true, default-features = false, features = ["aws_lc_rs", "tls12"] }
+rustls-pemfile = { version = "2", optional = true }
+hyper-util = { version = "0.1", optional = true, features = ["tokio", "server-auto", "http1"] }
+tower = { version = "0.5", optional = true }
+tokio-util = { version = "0.7", optional = true }
 
 [dev-dependencies]
 proptest = "1"
 
 [features]
 default = ["polling"]
-full = ["polling", "webhooks", "job-queue", "persistence", "persistence-json", "persistence-sqlite", "persistence-redis", "rate-limiter"]
+full = ["polling", "webhooks", "webhooks-tls", "job-queue", "persistence", "persistence-json", "persistence-sqlite", "persistence-redis", "persistence-postgres", "rate-limiter"]
 polling = []
 webhooks = ["axum"]
+webhooks-tls = ["webhooks", "tokio-rustls", "rustls-pemfile", "hyper-util", "tower", "tokio-util"]
 job-queue = []
 persistence = []
 persistence-json = ["persistence"]
 persistence-sqlite = ["persistence", "rusqlite"]
 persistence-redis = ["persistence", "redis"]
+persistence-postgres = ["persistence", "sqlx"]
 rate-limiter = []
