@@ -77,7 +77,7 @@ RSS = Resident Set Size (actual RAM used).
 
 - **PTB** uses the most memory (57 MB idle, 60 MB under load) — Python's GC and interpreter overhead.
 - **teloxide** is lean at 15/17 MB with a 6.6 MB binary. Its focused dispatcher design avoids framework overhead.
-- **RTB** matches teloxide exactly (15/17 MB) while providing the full PTB-equivalent framework: 22 handler types, 44+ composable filters, ConversationHandler, persistence, job queue, 168 builders, 90+ type constructors. RTB's binary is **smaller** than teloxide at 6.2 MB.
+- **RTB** matches teloxide exactly (15/17 MB) while providing the full PTB-equivalent framework: 22 handler types, 44+ composable filters, ConversationHandler, persistence, job queue, 171 builders, 90+ type constructors. RTB's binary is **smaller** than teloxide at 6.2 MB.
 
 ### Why RTB matches teloxide despite the larger feature set
 
@@ -88,4 +88,4 @@ RSS = Resident Set Size (actual RAM used).
 
 ### Value proposition
 
-RTB matches teloxide on memory (15/17 MB) and beats it on binary size (6.2 vs 6.6 MB) while providing: ConversationHandler state machine, JSON/SQLite persistence, tokio-native job queue, 44+ composable filters with `&`/`|`/`!` operators, 168 directly-awaitable builders, 90+ type constructors, and a developer experience that mirrors python-telegram-bot. That is 3.5x less memory than PTB with no runtime required.
+RTB matches teloxide on memory (15/17 MB) and beats it on binary size (6.2 vs 6.6 MB) while providing: ConversationHandler state machine, JSON/SQLite persistence, tokio-native job queue, 44+ composable filters with `&`/`|`/`!` operators, 171 directly-awaitable builders, 90+ type constructors, and a developer experience that mirrors python-telegram-bot. That is 3.5x less memory than PTB with no runtime required.

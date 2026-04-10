@@ -520,7 +520,7 @@ TELEGRAM_BOT_TOKEN="your-token" WEBHOOK_URL="https://your.domain" \
 
 What is implemented:
 
-- All Bot API 9.6 types and methods (281 types, 168 method builders)
+- All Bot API 9.6 types and methods (281 types, 171 method builders)
 - `ApplicationBuilder` with typestate pattern
 - Typed handler system (`CommandHandler`, `MessageHandler`, `FnHandler`, and more)
 - 50+ composable filters with `&`, `|`, `^`, `!` operators
