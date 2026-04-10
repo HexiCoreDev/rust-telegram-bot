@@ -18,15 +18,21 @@ To include the underlying crates:
 cargo doc --open --workspace --all-features
 ```
 
+## Online Documentation
+
+- **Guide**: [rust-tg-bot-docs.vercel.app](https://rust-tg-bot-docs.vercel.app/) -- mdBook with tutorials, guides, and architecture docs
+- **API reference**: [docs.rs/rust-tg-bot](https://docs.rs/rust-tg-bot) -- auto-generated from source (available after crates.io publish)
+
 ## Crate Structure
 
-The framework is split into three crates:
+The framework is split into four crates:
 
 | Crate | Purpose | You Use Directly? |
 |---|---|---|
-| `rust-tg-bot` | Facade crate -- re-exports both of the below | Yes |
+| `rust-tg-bot` | Facade crate -- re-exports all of the below | Yes |
 | `rust-tg-bot-raw` | Low-level Bot API types, HTTP methods, request builders | Rarely |
 | `rust-tg-bot-ext` | High-level Application, handlers, filters, context, persistence | Rarely |
+| `rust-tg-bot-macros` | Proc macros (`#[derive(BotCommands)]`) | Rarely |
 
 You almost always depend only on `rust-tg-bot` in your `Cargo.toml`. It re-exports everything you need through two module paths:
 

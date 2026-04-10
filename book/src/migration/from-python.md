@@ -357,7 +357,6 @@ await context.bot.send_message(
 context.bot()
     .send_message(chat_id, &text)
     .parse_mode(ParseMode::Html)
-    .send()
     .await?;
 ```
 
@@ -374,7 +373,6 @@ context.bot()
     .edit_message_text("Updated text")
     .chat_id(chat_id)
     .message_id(message_id)
-    .send()
     .await?;
 ```
 
@@ -391,7 +389,6 @@ context.bot()
     .answer_callback_query(&cq.id)
     .text("Done!")
     .show_alert(true)
-    .send()
     .await?;
 ```
 

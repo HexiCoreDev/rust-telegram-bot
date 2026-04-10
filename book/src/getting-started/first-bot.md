@@ -144,7 +144,6 @@ For more control, use the bot directly:
 ```rust
 context.bot().send_message(chat_id, "Hello!")
     .parse_mode(ParseMode::Html)
-    .send()
     .await?;
 ```
 
