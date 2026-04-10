@@ -1762,7 +1762,7 @@ dependencies = [
 
 [[package]]
 name = "rust-tg-bot"
-version = "1.0.0-beta.5"
+version = "1.0.0-rc.1"
 dependencies = [
  "axum",
  "rust-tg-bot-ext",
@@ -1777,7 +1777,7 @@ dependencies = [
 
 [[package]]
 name = "rust-tg-bot-ext"
-version = "1.0.0-beta.5"
+version = "1.0.0-rc.1"
 dependencies = [
  "async-trait",
  "axum",
@@ -1803,7 +1803,7 @@ dependencies = [
 
 [[package]]
 name = "rust-tg-bot-macros"
-version = "1.0.0-beta.5"
+version = "1.0.0-rc.1"
 dependencies = [
  "heck",
  "proc-macro2",
@@ -1813,7 +1813,7 @@ dependencies = [
 
 [[package]]
 name = "rust-tg-bot-raw"
-version = "1.0.0-beta.5"
+version = "1.0.0-rc.1"
 dependencies = [
  "async-trait",
  "bytes",

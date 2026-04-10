@@ -26,5 +26,5 @@ What actually happened. Include error messages, logs, or stack traces if availab
 
 - **Rust version**: (output of `rustc --version`)
 - **OS**: (e.g. Ubuntu 24.04, macOS 15)
-- **Crate version**: (e.g. 1.0.0-beta.5)
+- **Crate version**: (e.g. 1.0.0-rc.1)
 - **Feature flags**: (e.g. `full`, `webhooks`)

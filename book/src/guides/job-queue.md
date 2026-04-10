@@ -8,7 +8,7 @@ Enable the `job-queue` feature:
 
 ```toml
 [dependencies]
-rust-tg-bot = { version = "1.0.0-beta.5", features = ["job-queue"] }
+rust-tg-bot = { version = "1.0.0-rc.1", features = ["job-queue"] }
 ```
 
 Create a `JobQueue` and pass it to the application builder:

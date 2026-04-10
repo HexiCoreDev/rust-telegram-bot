@@ -15,9 +15,9 @@ readme = "../../README.md"
 exclude = ["target/", ".github/", "docs/", "examples/"]
 
 [dependencies]
-rust-tg-bot-raw = { path = "../telegram-bot-raw", version = "1.0.0-beta.5" }
-rust-tg-bot-ext = { path = "../telegram-bot-ext", version = "1.0.0-beta.5" }
-rust-tg-bot-macros = { path = "../telegram-bot-macros", version = "1.0.0-beta.5", optional = true }
+rust-tg-bot-raw = { path = "../telegram-bot-raw", version = "1.0.0-rc.1" }
+rust-tg-bot-ext = { path = "../telegram-bot-ext", version = "1.0.0-rc.1" }
+rust-tg-bot-macros = { path = "../telegram-bot-macros", version = "1.0.0-rc.1", optional = true }
 tokio = { workspace = true }
 
 [dev-dependencies]

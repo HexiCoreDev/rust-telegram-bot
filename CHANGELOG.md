@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.0-rc.1] - 2026-04-10
+
+### Changed
+- Promoted to Release Candidate — API surface is complete and stabilizing
+- Version scheme now uses purely numeric semver pre-release identifiers (`rc.1`, `rc.2`, etc.)
+- README warning updated from "active development" to "Release Candidate"
+
+### Fixed
+- Removed all redundant `.send()` calls from 11 examples (IntoFuture handles it)
+- `poll_bot.rs` now uses builder pattern instead of `_raw` methods
+- Standardized all 170 builder factory methods to direct API names (no `build_` prefix or `_builder` suffix)
+
 ## [1.0.0-beta.5] - 2026-04-10
 
 ### Added

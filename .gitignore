@@ -48,3 +48,6 @@ book/book/
 
 # Vercel
 .vercel/
+
+# Claude Code
+.claude/

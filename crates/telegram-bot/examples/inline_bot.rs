@@ -93,10 +93,7 @@ async fn inline_query_handler(update: Arc<Update>, context: Context) -> HandlerR
         .expect("article serialization"),
     ];
 
-    context
-        .bot()
-        .answer_inline_query(&iq.id, results)
-        .await?;
+    context.bot().answer_inline_query(&iq.id, results).await?;
 
     Ok(())
 }
