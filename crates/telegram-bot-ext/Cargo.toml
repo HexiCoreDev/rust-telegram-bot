@@ -15,7 +15,7 @@ readme = "../../README.md"
 exclude = ["target/", ".github/", "docs/", "examples/"]
 
 [dependencies]
-rust-tg-bot-raw = { path = "../telegram-bot-raw", version = "1.0.0-beta.4c" }
+rust-tg-bot-raw = { path = "../telegram-bot-raw", version = "1.0.0-beta.5" }
 serde.workspace = true
 serde_json.workspace = true
 tokio.workspace = true

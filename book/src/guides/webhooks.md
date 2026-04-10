@@ -17,7 +17,7 @@ The framework includes a built-in webhook server. Enable it with the `webhooks` 
 
 ```toml
 [dependencies]
-rust-tg-bot = { version = "1.0.0-beta.4c", features = ["webhooks"] }
+rust-tg-bot = { version = "1.0.0-beta.5", features = ["webhooks"] }
 ```
 
 Then use `run_webhook()` instead of `run_polling()`:

@@ -73,7 +73,7 @@ async fn button(update: Arc<Update>, context: Context) -> HandlerResult {
         .unwrap_or("unknown");
     let reply = match data {
         "ping" => "Pong!",
-        "info" => "rust-tg-bot v1.0.0-beta.2 -- webhook mode",
+        "info" => "rust-tg-bot v1.0.0-beta.5 -- webhook mode",
         _ => "Unknown button",
     };
     context.edit_callback_message_text(&update, reply).await?;

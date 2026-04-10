@@ -146,6 +146,55 @@ fn all_bot_api_96_builder_methods_exist() {
 
     // -- Keyboard --
     let _ = bot.save_prepared_keyboard_button(1i64, make_inline_keyboard_button());
+
+    // -- Message builders --
+    let _ = bot.forward_message(1i64, 1i64, 1);
+    let _ = bot.forward_messages(1i64, 1i64, vec![1]);
+    let _ = bot.copy_message(1i64, 1i64, 1);
+    let _ = bot.copy_messages(1i64, 1i64, vec![1]);
+    let _ = bot.send_message_draft(1, 1, "t");
+    let _ = bot.delete_message(1i64, 1);
+    let _ = bot.delete_messages(1i64, vec![1]);
+
+    // -- Chat management builders --
+    let _ = bot.leave_chat(1i64);
+    let _ = bot.get_chat(1i64);
+    let _ = bot.get_chat_administrators(1i64);
+    let _ = bot.get_chat_member_count(1i64);
+    let _ = bot.get_chat_member(1i64, 1);
+    let _ = bot.ban_chat_member(1i64, 1);
+    let _ = bot.unban_chat_member(1i64, 1);
+    let _ = bot.ban_chat_sender_chat(1i64, 1);
+    let _ = bot.unban_chat_sender_chat(1i64, 1);
+    let _ = bot.restrict_chat_member(
+        1i64,
+        1,
+        rust_tg_bot_raw::types::chat_permissions::ChatPermissions::default(),
+    );
+    let _ = bot.promote_chat_member(1i64, 1);
+    let _ = bot.set_chat_administrator_custom_title(1i64, 1, "title");
+    let _ = bot.set_chat_permissions(
+        1i64,
+        rust_tg_bot_raw::types::chat_permissions::ChatPermissions::default(),
+    );
+    let _ = bot.set_chat_photo(1i64, dummy_file());
+    let _ = bot.delete_chat_photo(1i64);
+    let _ = bot.set_chat_title(1i64, "t");
+    let _ = bot.set_chat_description(1i64);
+    let _ = bot.set_chat_sticker_set(1i64, "name");
+    let _ = bot.delete_chat_sticker_set(1i64);
+    let _ = bot.set_chat_member_tag(1i64, 1);
+    let _ = bot.pin_chat_message(1i64, 1);
+    let _ = bot.unpin_chat_message(1i64);
+    let _ = bot.unpin_all_chat_messages(1i64);
+    let _ = bot.export_chat_invite_link(1i64);
+    let _ = bot.create_chat_invite_link(1i64);
+    let _ = bot.edit_chat_invite_link(1i64, "link");
+    let _ = bot.revoke_chat_invite_link(1i64, "link");
+    let _ = bot.create_chat_subscription_invite_link(1i64, 30, 1);
+    let _ = bot.edit_chat_subscription_invite_link(1i64, "link");
+    let _ = bot.approve_chat_join_request(1i64, 1);
+    let _ = bot.decline_chat_join_request(1i64, 1);
 }
 
 /// Verify raw async methods exist on Bot.
@@ -172,52 +221,14 @@ fn all_bot_api_96_raw_methods_exist() {
     check!(bot.log_out());
     check!(bot.close());
 
-    // -- Messages --
-    check!(bot.forward_message(
-        1i64.into(),
-        1i64.into(),
-        1,
-        None,
-        None,
-        None,
-        None,
-        None,
-        None,
-        None
-    ));
-    check!(bot.forward_messages(1i64.into(), 1i64.into(), vec![1], None, None, None, None));
-    check!(bot.copy_message(
-        1i64.into(),
-        1i64.into(),
-        1,
-        None,
-        None,
-        None,
-        None,
-        None,
-        None,
-        None,
-        None,
-        None,
-        None,
-        None,
-        None,
-        None,
-        None
-    ));
-    check!(bot.copy_messages(
-        1i64.into(),
-        1i64.into(),
-        vec![1],
-        None,
-        None,
-        None,
-        None,
-        None
-    ));
-    check!(bot.send_message_draft(1, 1, "t", None, None, None));
-    check!(bot.delete_message(1i64.into(), 1));
-    check!(bot.delete_messages(1i64.into(), vec![1]));
+    // -- Messages (builder API -- only required args) --
+    check!(bot.forward_message(1i64, 1i64, 1));
+    check!(bot.forward_messages(1i64, 1i64, vec![1]));
+    check!(bot.copy_message(1i64, 1i64, 1));
+    check!(bot.copy_messages(1i64, 1i64, vec![1]));
+    check!(bot.send_message_draft(1, 1, "t"));
+    check!(bot.delete_message(1i64, 1));
+    check!(bot.delete_messages(1i64, vec![1]));
 
     // -- Media --
     check!(bot.send_media_group(
@@ -273,68 +284,45 @@ fn all_bot_api_96_raw_methods_exist() {
     check!(bot.edit_message_checklist("bc_id", 1, 1, make_input_checklist(), None));
     check!(bot.stop_poll(1i64.into(), 1, None, None));
 
-    // -- Chat administration --
-    check!(bot.leave_chat(1i64.into()));
-    check!(bot.get_chat(1i64.into()));
-    check!(bot.get_chat_administrators(1i64.into()));
-    check!(bot.get_chat_member_count(1i64.into()));
-    check!(bot.get_chat_member(1i64.into(), 1));
-    check!(bot.ban_chat_member(1i64.into(), 1, None, None));
-    check!(bot.unban_chat_member(1i64.into(), 1, None));
-    check!(bot.ban_chat_sender_chat(1i64.into(), 1));
-    check!(bot.unban_chat_sender_chat(1i64.into(), 1));
+    // -- Chat administration (builder API -- only required args) --
+    check!(bot.leave_chat(1i64));
+    check!(bot.get_chat(1i64));
+    check!(bot.get_chat_administrators(1i64));
+    check!(bot.get_chat_member_count(1i64));
+    check!(bot.get_chat_member(1i64, 1));
+    check!(bot.ban_chat_member(1i64, 1));
+    check!(bot.unban_chat_member(1i64, 1));
+    check!(bot.ban_chat_sender_chat(1i64, 1));
+    check!(bot.unban_chat_sender_chat(1i64, 1));
     check!(bot.restrict_chat_member(
-        1i64.into(),
+        1i64,
         1,
-        rust_tg_bot_raw::types::chat_permissions::ChatPermissions::default(),
-        None,
-        None
+        rust_tg_bot_raw::types::chat_permissions::ChatPermissions::default()
     ));
-    check!(bot.promote_chat_member(
-        1i64.into(),
-        1,
-        None,
-        None,
-        None,
-        None,
-        None,
-        None,
-        None,
-        None,
-        None,
-        None,
-        None,
-        None,
-        None,
-        None,
-        None,
-        None,
-        None
-    ));
-    check!(bot.set_chat_administrator_custom_title(1i64.into(), 1, "title"));
+    check!(bot.promote_chat_member(1i64, 1));
+    check!(bot.set_chat_administrator_custom_title(1i64, 1, "title"));
     check!(bot.set_chat_permissions(
-        1i64.into(),
-        rust_tg_bot_raw::types::chat_permissions::ChatPermissions::default(),
-        None
+        1i64,
+        rust_tg_bot_raw::types::chat_permissions::ChatPermissions::default()
     ));
-    check!(bot.set_chat_photo(1i64.into(), dummy_file()));
-    check!(bot.delete_chat_photo(1i64.into()));
-    check!(bot.set_chat_title(1i64.into(), "t"));
-    check!(bot.set_chat_description(1i64.into(), None));
-    check!(bot.set_chat_sticker_set(1i64.into(), "name"));
-    check!(bot.delete_chat_sticker_set(1i64.into()));
-    check!(bot.set_chat_member_tag(1i64.into(), 1, None));
-    check!(bot.pin_chat_message(1i64.into(), 1, None, None));
-    check!(bot.unpin_chat_message(1i64.into(), None, None));
-    check!(bot.unpin_all_chat_messages(1i64.into()));
-    check!(bot.export_chat_invite_link(1i64.into()));
-    check!(bot.create_chat_invite_link(1i64.into(), None, None, None, None));
-    check!(bot.edit_chat_invite_link(1i64.into(), "link", None, None, None, None));
-    check!(bot.revoke_chat_invite_link(1i64.into(), "link"));
-    check!(bot.create_chat_subscription_invite_link(1i64.into(), 30, 1, None));
-    check!(bot.edit_chat_subscription_invite_link(1i64.into(), "link", None));
-    check!(bot.approve_chat_join_request(1i64.into(), 1));
-    check!(bot.decline_chat_join_request(1i64.into(), 1));
+    check!(bot.set_chat_photo(1i64, dummy_file()));
+    check!(bot.delete_chat_photo(1i64));
+    check!(bot.set_chat_title(1i64, "t"));
+    check!(bot.set_chat_description(1i64));
+    check!(bot.set_chat_sticker_set(1i64, "name"));
+    check!(bot.delete_chat_sticker_set(1i64));
+    check!(bot.set_chat_member_tag(1i64, 1));
+    check!(bot.pin_chat_message(1i64, 1));
+    check!(bot.unpin_chat_message(1i64));
+    check!(bot.unpin_all_chat_messages(1i64));
+    check!(bot.export_chat_invite_link(1i64));
+    check!(bot.create_chat_invite_link(1i64));
+    check!(bot.edit_chat_invite_link(1i64, "link"));
+    check!(bot.revoke_chat_invite_link(1i64, "link"));
+    check!(bot.create_chat_subscription_invite_link(1i64, 30, 1));
+    check!(bot.edit_chat_subscription_invite_link(1i64, "link"));
+    check!(bot.approve_chat_join_request(1i64, 1));
+    check!(bot.decline_chat_join_request(1i64, 1));
 
     // -- Forum topics --
     check!(bot.create_forum_topic(1i64.into(), "name", None, None));

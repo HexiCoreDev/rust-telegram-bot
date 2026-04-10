@@ -19,7 +19,7 @@ Or add it manually to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-rust-tg-bot = "1.0.0-beta.4c"
+rust-tg-bot = "1.0.0-beta.5"
 tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
 ```
 
@@ -43,14 +43,14 @@ Enable features in `Cargo.toml`:
 
 ```toml
 [dependencies]
-rust-tg-bot = { version = "1.0.0-beta.4c", features = ["job-queue", "persistence-json"] }
+rust-tg-bot = { version = "1.0.0-beta.5", features = ["job-queue", "persistence-json"] }
 ```
 
 Or enable everything:
 
 ```toml
 [dependencies]
-rust-tg-bot = { version = "1.0.0-beta.4c", features = ["full"] }
+rust-tg-bot = { version = "1.0.0-beta.5", features = ["full"] }
 ```
 
 ## Verifying the Installation
