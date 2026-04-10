@@ -288,7 +288,6 @@ async fn start_command(update: Arc<Update>, context: Context, store: StateStore)
             chat_id,
             "Hi, I'm Family Bot and I'm here to help you gather information about your family.",
         )
-        .send()
         .await
         .map_err(|e| HandlerError::Other(Box::new(e)))?;
 
@@ -300,7 +299,6 @@ async fn start_command(update: Arc<Update>, context: Context, store: StateStore)
              conversation. To abort, simply type /stop.",
         )
         .reply_markup(top_menu_keyboard())
-        .send()
         .await
         .map_err(|e| HandlerError::Other(Box::new(e)))?;
 
@@ -636,7 +634,6 @@ async fn handle_text_input(
         .bot()
         .send_message(chat_id, "Got it! Please select a feature to update.")
         .reply_markup(feature_keyboard())
-        .send()
         .await
         .map_err(|e| HandlerError::Other(Box::new(e)))?;
 
@@ -657,7 +654,6 @@ async fn stop_command(update: Arc<Update>, context: Context, store: StateStore) 
     context
         .bot()
         .send_message(chat_id, "Okay, bye.")
-        .send()
         .await
         .map_err(|e| HandlerError::Other(Box::new(e)))?;
 

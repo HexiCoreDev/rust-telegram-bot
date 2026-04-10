@@ -45,7 +45,6 @@ async fn start_command(update: Arc<Update>, context: Context) -> HandlerResult {
             "Hi! Use /set <seconds> to set a timer.\n\
              Use /unset to cancel the current timer.",
         )
-        .send()
         .await
         .map_err(|e| HandlerError::Other(Box::new(e)))?;
 
@@ -76,7 +75,6 @@ async fn set_timer(
                         chat_id,
                         "Usage: /set <seconds>\nPlease provide a positive number.",
                     )
-                    .send()
                     .await
                     .map_err(|e| HandlerError::Other(Box::new(e)))?;
                 return Ok(());
@@ -86,7 +84,6 @@ async fn set_timer(
             context
                 .bot()
                 .send_message(chat_id, "Usage: /set <seconds>")
-                .send()
                 .await
                 .map_err(|e| HandlerError::Other(Box::new(e)))?;
             return Ok(());
@@ -103,7 +100,6 @@ async fn set_timer(
                 return Ok(());
             }
             bot.send_message(target_chat_id, "BEEP! Timer is done!")
-                .send()
                 .await
                 .map_err(|e| Box::new(e) as Box<dyn std::error::Error + Send + Sync>)?;
             Ok(())
@@ -143,7 +139,6 @@ async fn set_timer(
     context
         .bot()
         .send_message(chat_id, &format!("Timer set for {seconds} seconds!"))
-        .send()
         .await
         .map_err(|e| HandlerError::Other(Box::new(e)))?;
 
@@ -188,7 +183,6 @@ async fn unset_timer(
     context
         .bot()
         .send_message(chat_id, reply)
-        .send()
         .await
         .map_err(|e| HandlerError::Other(Box::new(e)))?;
 

@@ -75,7 +75,6 @@ async fn start(update: Arc<Update>, context: Context) -> HandlerResult {
         .bot()
         .send_message(chat_id, "Please choose:")
         .reply_markup(build_keyboard(&[]))
-        .send()
         .await
         .map_err(|e| HandlerError::Other(Box::new(e)))?;
 
@@ -93,7 +92,6 @@ async fn help_command(update: Arc<Update>, context: Context) -> HandlerResult {
             "Use /start to test this bot. Use /clear to clear the stored data so that you can \
              see what happens if the button data is not available.",
         )
-        .send()
         .await
         .map_err(|e| HandlerError::Other(Box::new(e)))?;
 
@@ -115,7 +113,6 @@ async fn clear(update: Arc<Update>, context: Context) -> HandlerResult {
     context
         .bot()
         .send_message(chat_id, "All clear!")
-        .send()
         .await
         .map_err(|e| HandlerError::Other(Box::new(e)))?;
 
@@ -135,7 +132,6 @@ async fn list_button(update: Arc<Update>, context: Context) -> HandlerResult {
     context
         .bot()
         .answer_callback_query(&cq.id)
-        .send()
         .await
         .map_err(|e| HandlerError::Other(Box::new(e)))?;
 
@@ -154,7 +150,6 @@ async fn list_button(update: Arc<Update>, context: Context) -> HandlerResult {
                 )
                 .chat_id(msg.chat().id)
                 .message_id(msg.message_id())
-                .send()
                 .await
                 .map_err(|e| HandlerError::Other(Box::new(e)))?;
         }
@@ -183,7 +178,6 @@ async fn list_button(update: Arc<Update>, context: Context) -> HandlerResult {
             .chat_id(msg.chat().id)
             .message_id(msg.message_id())
             .reply_markup(build_keyboard(&number_list))
-            .send()
             .await
             .map_err(|e| HandlerError::Other(Box::new(e)))?;
     }

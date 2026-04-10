@@ -71,7 +71,6 @@ async fn start(update: Arc<Update>, context: Context) -> HandlerResult {
         .bot()
         .send_message(chat_id, "This button was clicked 0 times.")
         .reply_markup(build_click_keyboard())
-        .send()
         .await
         .map_err(|e| HandlerError::Other(Box::new(e)))?;
 
@@ -88,7 +87,6 @@ async fn count_click(update: Arc<Update>, context: Context) -> HandlerResult {
     context
         .bot()
         .answer_callback_query(&cq.id)
-        .send()
         .await
         .map_err(|e| HandlerError::Other(Box::new(e)))?;
 
@@ -122,7 +120,6 @@ async fn count_click(update: Arc<Update>, context: Context) -> HandlerResult {
         .chat_id(chat_id)
         .message_id(msg_id)
         .reply_markup(build_click_keyboard())
-        .send()
         .await
         .map_err(|e| HandlerError::Other(Box::new(e)))?;
 
@@ -150,7 +147,6 @@ async fn print_users(update: Arc<Update>, context: Context) -> HandlerResult {
     context
         .bot()
         .send_message(chat_id, &text)
-        .send()
         .await
         .map_err(|e| HandlerError::Other(Box::new(e)))?;
 

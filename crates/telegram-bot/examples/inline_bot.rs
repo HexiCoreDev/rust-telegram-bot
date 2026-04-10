@@ -96,7 +96,6 @@ async fn inline_query_handler(update: Arc<Update>, context: Context) -> HandlerR
     context
         .bot()
         .answer_inline_query(&iq.id, results)
-        .send()
         .await?;
 
     Ok(())

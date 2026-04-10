@@ -70,7 +70,6 @@ async fn start(update: Arc<Update>, context: Context) -> HandlerResult {
             "Please press the button below to choose a color via the WebApp.",
         )
         .reply_markup(keyboard)
-        .send()
         .await
         .map_err(|e| HandlerError::Other(Box::new(e)))?;
 
@@ -122,7 +121,6 @@ async fn web_app_data(update: Arc<Update>, context: Context) -> HandlerResult {
         .bot()
         .send_message(chat_id, &text)
         .reply_markup(remove_keyboard)
-        .send()
         .await
         .map_err(|e| HandlerError::Other(Box::new(e)))?;
 

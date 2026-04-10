@@ -175,7 +175,6 @@ async fn start_command(
              Why don't you tell me something about yourself?",
         )
         .reply_markup(reply_keyboard())
-        .send()
         .await
         .map_err(|e| HandlerError::Other(Box::new(e)))?;
 
@@ -214,7 +213,6 @@ async fn regular_choice(
                 text.to_lowercase()
             ),
         )
-        .send()
         .await
         .map_err(|e| HandlerError::Other(Box::new(e)))?;
 
@@ -240,7 +238,6 @@ async fn custom_choice(
             chat_id,
             "Alright, please send me the category first, for example \"Most impressive skill\"",
         )
-        .send()
         .await
         .map_err(|e| HandlerError::Other(Box::new(e)))?;
 
@@ -283,7 +280,6 @@ async fn received_information(
             ),
         )
         .reply_markup(reply_keyboard())
-        .send()
         .await
         .map_err(|e| HandlerError::Other(Box::new(e)))?;
 
@@ -321,7 +317,6 @@ async fn done(
             &format!("I learned these facts about you:{facts_summary}Until next time!"),
         )
         .reply_markup(remove_keyboard)
-        .send()
         .await
         .map_err(|e| HandlerError::Other(Box::new(e)))?;
 

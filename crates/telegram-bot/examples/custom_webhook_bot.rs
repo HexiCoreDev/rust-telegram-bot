@@ -119,7 +119,6 @@ async fn start(update: Arc<Update>, context: Context) -> HandlerResult {
         .bot()
         .send_message(chat_id, &text)
         .parse_mode(ParseMode::Html)
-        .send()
         .await?;
 
     Ok(())
@@ -209,7 +208,6 @@ async fn handle_submit_payload(
     if let Err(e) = bot
         .send_message(state.admin_chat_id, &text)
         .parse_mode(ParseMode::Html)
-        .send()
         .await
     {
         tracing::error!("Failed to forward payload to admin chat: {e}");
@@ -297,7 +295,6 @@ async fn main() {
     let full_webhook_url = format!("{webhook_url}{TELEGRAM_WEBHOOK_PATH}");
     app.bot()
         .set_webhook(&full_webhook_url)
-        .send()
         .await
         .expect("Failed to set webhook");
 

@@ -192,7 +192,6 @@ async fn start(update: Arc<Update>, context: Context, conv_store: ConvStore) -> 
         .bot()
         .send_message(chat_id, &reply_text)
         .reply_markup(build_reply_keyboard())
-        .send()
         .await
         .map_err(|e| HandlerError::Other(Box::new(e)))?;
 
@@ -231,7 +230,6 @@ async fn regular_choice(
     context
         .bot()
         .send_message(chat_id, &reply_text)
-        .send()
         .await
         .map_err(|e| HandlerError::Other(Box::new(e)))?;
 
@@ -256,7 +254,6 @@ async fn custom_choice(
             chat_id,
             "Alright, please send me the category first, for example \"Most impressive skill\"",
         )
-        .send()
         .await
         .map_err(|e| HandlerError::Other(Box::new(e)))?;
 
@@ -300,7 +297,6 @@ async fn received_information(
         .bot()
         .send_message(chat_id, &reply)
         .reply_markup(build_reply_keyboard())
-        .send()
         .await
         .map_err(|e| HandlerError::Other(Box::new(e)))?;
 
@@ -326,7 +322,6 @@ async fn done(update: Arc<Update>, context: Context, conv_store: ConvStore) -> H
         .bot()
         .send_message(chat_id, &reply)
         .reply_markup(remove_keyboard)
-        .send()
         .await
         .map_err(|e| HandlerError::Other(Box::new(e)))?;
 
@@ -346,7 +341,6 @@ async fn show_data(update: Arc<Update>, context: Context) -> HandlerResult {
     context
         .bot()
         .send_message(chat_id, &reply)
-        .send()
         .await
         .map_err(|e| HandlerError::Other(Box::new(e)))?;
 
