@@ -11,7 +11,7 @@ impl Bot {
     /// Answers a callback query. Internal raw method used by builder APIs.
     ///
     /// Calls the Telegram `answerCallbackQuery` API method.
-    pub(crate) async fn answer_callback_query_raw(
+    pub async fn answer_callback_query_raw(
         &self,
         callback_query_id: &str,
         text: Option<&str>,
@@ -33,7 +33,7 @@ impl Bot {
     /// Answers an inline query. Internal raw method used by builder APIs.
     ///
     /// Calls the Telegram `answerInlineQuery` API method.
-    pub(crate) async fn answer_inline_query_raw(
+    pub async fn answer_inline_query_raw(
         &self,
         inline_query_id: &str,
         results: Vec<serde_json::Value>,
@@ -59,7 +59,7 @@ impl Bot {
     /// Use this method to store a message that can be sent by a user of a Mini App.
     ///
     /// Calls the Telegram `savePreparedInlineMessage` API method.
-    pub async fn save_prepared_inline_message(
+    pub async fn save_prepared_inline_message_raw(
         &self,
         user_id: i64,
         result: serde_json::Value,
@@ -82,7 +82,7 @@ impl Bot {
     /// Use this method to set the result of an interaction with a Web App.
     ///
     /// Calls the Telegram `answerWebAppQuery` API method.
-    pub async fn answer_web_app_query(
+    pub async fn answer_web_app_query_raw(
         &self,
         web_app_query_id: &str,
         result: serde_json::Value,

@@ -11,7 +11,7 @@ impl Bot {
     /// Sends a photo. Internal raw method used by builder APIs.
     ///
     /// Calls the Telegram `sendPhoto` API method.
-    pub(crate) async fn send_photo_raw(
+    pub async fn send_photo_raw(
         &self,
         chat_id: ChatId,
         photo: files::input_file::InputFile,
@@ -72,7 +72,7 @@ impl Bot {
     /// Sends an audio file. Internal raw method used by builder APIs.
     ///
     /// Calls the Telegram `sendAudio` API method.
-    pub(crate) async fn send_audio_raw(
+    pub async fn send_audio_raw(
         &self,
         chat_id: ChatId,
         audio: files::input_file::InputFile,
@@ -133,7 +133,7 @@ impl Bot {
     /// Sends a general file. Internal raw method used by builder APIs.
     ///
     /// Calls the Telegram `sendDocument` API method.
-    pub(crate) async fn send_document_raw(
+    pub async fn send_document_raw(
         &self,
         chat_id: ChatId,
         document: files::input_file::InputFile,
@@ -194,7 +194,7 @@ impl Bot {
     /// Sends a video file. Internal raw method used by builder APIs.
     ///
     /// Calls the Telegram `sendVideo` API method.
-    pub(crate) async fn send_video_raw(
+    pub async fn send_video_raw(
         &self,
         chat_id: ChatId,
         video: files::input_file::InputFile,
@@ -269,7 +269,7 @@ impl Bot {
     /// Sends an animation (GIF or H.264/MPEG-4 AVC video without sound). Internal raw method.
     ///
     /// Calls the Telegram `sendAnimation` API method.
-    pub(crate) async fn send_animation_raw(
+    pub async fn send_animation_raw(
         &self,
         chat_id: ChatId,
         animation: files::input_file::InputFile,
@@ -338,7 +338,7 @@ impl Bot {
     /// Sends a voice message. Internal raw method used by builder APIs.
     ///
     /// Calls the Telegram `sendVoice` API method.
-    pub(crate) async fn send_voice_raw(
+    pub async fn send_voice_raw(
         &self,
         chat_id: ChatId,
         voice: files::input_file::InputFile,
@@ -393,7 +393,7 @@ impl Bot {
     /// Sends a video note (rounded square video). Internal raw method used by builder APIs.
     ///
     /// Calls the Telegram `sendVideoNote` API method.
-    pub(crate) async fn send_video_note_raw(
+    pub async fn send_video_note_raw(
         &self,
         chat_id: ChatId,
         video_note: files::input_file::InputFile,
@@ -446,7 +446,7 @@ impl Bot {
     /// Use this method to send a group of photos, videos, documents or audios as an album.
     ///
     /// Calls the Telegram `sendMediaGroup` API method.
-    pub async fn send_media_group(
+    pub async fn send_media_group_raw(
         &self,
         chat_id: ChatId,
         media: Vec<serde_json::Value>,
@@ -491,7 +491,7 @@ impl Bot {
     /// Use this method to send paid media.
     ///
     /// Calls the Telegram `sendPaidMedia` API method.
-    pub async fn send_paid_media(
+    pub async fn send_paid_media_raw(
         &self,
         chat_id: ChatId,
         star_count: i64,

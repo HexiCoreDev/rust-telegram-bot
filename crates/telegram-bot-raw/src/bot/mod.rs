@@ -449,7 +449,7 @@ impl Bot {
     }
 
     /// Downloads a file from the Telegram servers given its `file_path`.
-    pub async fn download_file(&self, file_path: &str) -> Result<Vec<u8>> {
+    pub async fn download_file_raw(&self, file_path: &str) -> Result<Vec<u8>> {
         let url = format!("{}/{file_path}", self.base_file_url);
         let bytes = self
             .request
@@ -461,7 +461,7 @@ impl Bot {
     /// Initializes the bot by calling `get_me()` and caching the result.
     pub async fn initialize(&mut self) -> Result<()> {
         self.request.initialize().await?;
-        let me = self.get_me().await?;
+        let me = self.get_me_raw().await?;
         let _ = self.cached_bot_data.set(me);
         Ok(())
     }
@@ -497,7 +497,7 @@ impl Bot {
     // ======================================================================
 
     /// Calls the Telegram `getUpdates` long-polling endpoint.
-    pub async fn get_updates(
+    pub async fn get_updates_raw(
         &self,
         offset: Option<i64>,
         limit: Option<i32>,
@@ -528,7 +528,7 @@ impl Bot {
     /// Sets a webhook for receiving updates. Internal raw method.
     ///
     /// Calls the Telegram `setWebhook` API method.
-    pub(crate) async fn set_webhook_raw(
+    pub async fn set_webhook_raw(
         &self,
         url: &str,
         certificate: Option<files::input_file::InputFile>,
@@ -554,10 +554,7 @@ impl Bot {
     /// Removes the webhook integration. Internal raw method.
     ///
     /// Calls the Telegram `deleteWebhook` API method.
-    pub(crate) async fn delete_webhook_raw(
-        &self,
-        drop_pending_updates: Option<bool>,
-    ) -> Result<bool> {
+    pub async fn delete_webhook_raw(&self, drop_pending_updates: Option<bool>) -> Result<bool> {
         let mut params = Vec::new();
         push_opt(&mut params, "drop_pending_updates", &drop_pending_updates)?;
         self.do_post("deleteWebhook", params).await
@@ -566,7 +563,7 @@ impl Bot {
     /// Use this method to get current webhook status.
     ///
     /// Calls the Telegram `getWebhookInfo` API method.
-    pub async fn get_webhook_info(&self) -> Result<webhook_info::WebhookInfo> {
+    pub async fn get_webhook_info_raw(&self) -> Result<webhook_info::WebhookInfo> {
         self.do_post("getWebhookInfo", Vec::new()).await
     }
 
@@ -575,21 +572,21 @@ impl Bot {
     // ======================================================================
 
     /// Calls the `getMe` endpoint, returning the bot's own [`User`](user::User) object.
-    pub async fn get_me(&self) -> Result<user::User> {
+    pub async fn get_me_raw(&self) -> Result<user::User> {
         self.do_post("getMe", Vec::new()).await
     }
 
     /// Use this method to log out from the cloud Bot API server.
     ///
     /// Calls the Telegram `logOut` API method.
-    pub async fn log_out(&self) -> Result<bool> {
+    pub async fn log_out_raw(&self) -> Result<bool> {
         self.do_post("logOut", Vec::new()).await
     }
 
     /// Use this method to close the bot instance before moving it from one local server to another.
     ///
     /// Calls the Telegram `close` API method.
-    pub async fn close(&self) -> Result<bool> {
+    pub async fn close_raw(&self) -> Result<bool> {
         self.do_post("close", Vec::new()).await
     }
 }

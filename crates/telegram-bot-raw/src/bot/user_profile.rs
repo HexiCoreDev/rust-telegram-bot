@@ -11,7 +11,7 @@ impl Bot {
     /// Use this method to get a list of profile pictures for a user.
     ///
     /// Calls the Telegram `getUserProfilePhotos` API method.
-    pub async fn get_user_profile_photos(
+    pub async fn get_user_profile_photos_raw(
         &self,
         user_id: i64,
         offset: Option<i64>,
@@ -29,7 +29,7 @@ impl Bot {
     /// Use this method to get a list of profile audios for a user.
     ///
     /// Calls the Telegram `getUserProfileAudios` API method.
-    pub async fn get_user_profile_audios(
+    pub async fn get_user_profile_audios_raw(
         &self,
         user_id: i64,
         offset: Option<i64>,
@@ -47,7 +47,7 @@ impl Bot {
     /// Use this method to change the emoji status for a given user.
     ///
     /// Calls the Telegram `setUserEmojiStatus` API method.
-    pub async fn set_user_emoji_status(
+    pub async fn set_user_emoji_status_raw(
         &self,
         user_id: i64,
         emoji_status_custom_emoji_id: Option<&str>,
@@ -73,7 +73,7 @@ impl Bot {
     /// Use this method to set the bot's profile photo.
     ///
     /// Calls the Telegram `setMyProfilePhoto` API method.
-    pub async fn set_my_profile_photo(&self, photo: serde_json::Value) -> Result<bool> {
+    pub async fn set_my_profile_photo_raw(&self, photo: serde_json::Value) -> Result<bool> {
         let params = vec![RequestParameter::new("photo", photo)];
         self.do_post("setMyProfilePhoto", params).await
     }
@@ -81,7 +81,7 @@ impl Bot {
     /// Use this method to remove the bot's profile photo.
     ///
     /// Calls the Telegram `removeMyProfilePhoto` API method.
-    pub async fn remove_my_profile_photo(&self) -> Result<bool> {
+    pub async fn remove_my_profile_photo_raw(&self) -> Result<bool> {
         self.do_post("removeMyProfilePhoto", Vec::new()).await
     }
 
@@ -93,7 +93,7 @@ impl Bot {
     /// Internal raw method used by builder APIs.
     ///
     /// Calls the Telegram `getFile` API method.
-    pub(crate) async fn get_file_raw(&self, file_id: &str) -> Result<files::file::File> {
+    pub async fn get_file_raw(&self, file_id: &str) -> Result<files::file::File> {
         let params = vec![RequestParameter::new(
             "file_id",
             serde_json::Value::String(file_id.to_owned()),

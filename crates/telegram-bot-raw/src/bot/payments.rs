@@ -11,7 +11,7 @@ impl Bot {
     /// Sends an invoice. Internal raw method used by builder APIs.
     ///
     /// Calls the Telegram `sendInvoice` API method.
-    pub(crate) async fn send_invoice_raw(
+    pub async fn send_invoice_raw(
         &self,
         chat_id: ChatId,
         title: &str,
@@ -103,7 +103,7 @@ impl Bot {
     /// Use this method to create a link for an invoice.
     ///
     /// Calls the Telegram `createInvoiceLink` API method.
-    pub async fn create_invoice_link(
+    pub async fn create_invoice_link_raw(
         &self,
         title: &str,
         description: &str,
@@ -173,7 +173,7 @@ impl Bot {
     /// Answers a shipping query. Internal raw method.
     ///
     /// Calls the Telegram `answerShippingQuery` API method.
-    pub(crate) async fn answer_shipping_query_raw(
+    pub async fn answer_shipping_query_raw(
         &self,
         shipping_query_id: &str,
         ok: bool,
@@ -195,7 +195,7 @@ impl Bot {
     /// Answers a pre-checkout query. Internal raw method.
     ///
     /// Calls the Telegram `answerPreCheckoutQuery` API method.
-    pub(crate) async fn answer_pre_checkout_query_raw(
+    pub async fn answer_pre_checkout_query_raw(
         &self,
         pre_checkout_query_id: &str,
         ok: bool,
@@ -215,7 +215,7 @@ impl Bot {
     /// Use this method to refund a successful payment in Telegram Stars.
     ///
     /// Calls the Telegram `refundStarPayment` API method.
-    pub async fn refund_star_payment(
+    pub async fn refund_star_payment_raw(
         &self,
         user_id: i64,
         telegram_payment_charge_id: &str,
@@ -233,7 +233,7 @@ impl Bot {
     /// Use this method to get the bot's Telegram Star transactions.
     ///
     /// Calls the Telegram `getStarTransactions` API method.
-    pub async fn get_star_transactions(
+    pub async fn get_star_transactions_raw(
         &self,
         offset: Option<i64>,
         limit: Option<i64>,
@@ -247,7 +247,7 @@ impl Bot {
     /// Use this method to allow or disallow the user to create Telegram Star subscriptions.
     ///
     /// Calls the Telegram `editUserStarSubscription` API method.
-    pub async fn edit_user_star_subscription(
+    pub async fn edit_user_star_subscription_raw(
         &self,
         user_id: i64,
         telegram_payment_charge_id: &str,
@@ -267,7 +267,7 @@ impl Bot {
     /// Use this method to get the bot's current Telegram Star balance.
     ///
     /// Calls the Telegram `getMyStarBalance` API method.
-    pub async fn get_my_star_balance(&self) -> Result<payment::stars::star_amount::StarAmount> {
+    pub async fn get_my_star_balance_raw(&self) -> Result<payment::stars::star_amount::StarAmount> {
         self.do_post("getMyStarBalance", Vec::new()).await
     }
 }

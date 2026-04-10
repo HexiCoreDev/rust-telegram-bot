@@ -11,7 +11,7 @@ impl Bot {
     /// Sends a point on the map. Internal raw method used by builder APIs.
     ///
     /// Calls the Telegram `sendLocation` API method.
-    pub(crate) async fn send_location_raw(
+    pub async fn send_location_raw(
         &self,
         chat_id: ChatId,
         latitude: f64,
@@ -72,7 +72,7 @@ impl Bot {
     /// Sends information about a venue. Internal raw method used by builder APIs.
     ///
     /// Calls the Telegram `sendVenue` API method.
-    pub(crate) async fn send_venue_raw(
+    pub async fn send_venue_raw(
         &self,
         chat_id: ChatId,
         latitude: f64,
@@ -133,7 +133,7 @@ impl Bot {
     /// Sends phone contacts. Internal raw method used by builder APIs.
     ///
     /// Calls the Telegram `sendContact` API method.
-    pub(crate) async fn send_contact_raw(
+    pub async fn send_contact_raw(
         &self,
         chat_id: ChatId,
         phone_number: &str,
@@ -192,7 +192,7 @@ impl Bot {
     /// Sends a native poll. Internal raw method used by builder APIs.
     ///
     /// Calls the Telegram `sendPoll` API method.
-    pub(crate) async fn send_poll_raw(
+    pub async fn send_poll_raw(
         &self,
         chat_id: ChatId,
         question: &str,
@@ -273,7 +273,7 @@ impl Bot {
     /// Sends an animated emoji that will display a random value. Internal raw method.
     ///
     /// Calls the Telegram `sendDice` API method.
-    pub(crate) async fn send_dice_raw(
+    pub async fn send_dice_raw(
         &self,
         chat_id: ChatId,
         emoji: Option<&str>,
@@ -321,7 +321,7 @@ impl Bot {
     /// Tells the user that something is happening on the bot's side. Internal raw method.
     ///
     /// Calls the Telegram `sendChatAction` API method.
-    pub(crate) async fn send_chat_action_raw(
+    pub async fn send_chat_action_raw(
         &self,
         chat_id: ChatId,
         action: &str,
@@ -344,7 +344,7 @@ impl Bot {
     /// Use this method to send a checklist message on behalf of a business account.
     ///
     /// Calls the Telegram `sendChecklist` API method.
-    pub async fn send_checklist(
+    pub async fn send_checklist_raw(
         &self,
         business_connection_id: &str,
         chat_id: i64,

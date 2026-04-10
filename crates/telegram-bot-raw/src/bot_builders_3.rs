@@ -5,7 +5,7 @@
 //! payment, and gift-related Telegram Bot API endpoints.
 //!
 //! ```ignore
-//! bot.get_business_account_gifts_builder("conn-id")
+//! bot.get_business_account_gifts("conn-id")
 //!     .exclude_unsaved(true)
 //!     .limit(10)
 //!     .await?;
@@ -1282,7 +1282,7 @@ impl Bot {
     // -- Business account management -----------------------------------------
 
     /// Build a `getBusinessConnection` request.
-    pub fn get_business_connection_builder(
+    pub fn get_business_connection(
         &self,
         business_connection_id: impl Into<String>,
     ) -> GetBusinessConnectionBuilder<'_> {
@@ -1293,7 +1293,7 @@ impl Bot {
     }
 
     /// Build a `getBusinessAccountGifts` request.
-    pub fn get_business_account_gifts_builder(
+    pub fn get_business_account_gifts(
         &self,
         business_connection_id: impl Into<String>,
     ) -> GetBusinessAccountGiftsBuilder<'_> {
@@ -1314,7 +1314,7 @@ impl Bot {
     }
 
     /// Build a `getBusinessAccountStarBalance` request.
-    pub fn get_business_account_star_balance_builder(
+    pub fn get_business_account_star_balance(
         &self,
         business_connection_id: impl Into<String>,
     ) -> GetBusinessAccountStarBalanceBuilder<'_> {
@@ -1325,7 +1325,7 @@ impl Bot {
     }
 
     /// Build a `readBusinessMessage` request.
-    pub fn read_business_message_builder(
+    pub fn read_business_message(
         &self,
         business_connection_id: impl Into<String>,
         chat_id: i64,
@@ -1340,7 +1340,7 @@ impl Bot {
     }
 
     /// Build a `deleteBusinessMessages` request.
-    pub fn delete_business_messages_builder(
+    pub fn delete_business_messages(
         &self,
         business_connection_id: impl Into<String>,
         message_ids: Vec<i64>,
@@ -1353,7 +1353,7 @@ impl Bot {
     }
 
     /// Build a `setBusinessAccountName` request.
-    pub fn set_business_account_name_builder(
+    pub fn set_business_account_name(
         &self,
         business_connection_id: impl Into<String>,
         first_name: impl Into<String>,
@@ -1367,7 +1367,7 @@ impl Bot {
     }
 
     /// Build a `setBusinessAccountUsername` request.
-    pub fn set_business_account_username_builder(
+    pub fn set_business_account_username(
         &self,
         business_connection_id: impl Into<String>,
     ) -> SetBusinessAccountUsernameBuilder<'_> {
@@ -1379,7 +1379,7 @@ impl Bot {
     }
 
     /// Build a `setBusinessAccountBio` request.
-    pub fn set_business_account_bio_builder(
+    pub fn set_business_account_bio(
         &self,
         business_connection_id: impl Into<String>,
     ) -> SetBusinessAccountBioBuilder<'_> {
@@ -1391,7 +1391,7 @@ impl Bot {
     }
 
     /// Build a `setBusinessAccountGiftSettings` request.
-    pub fn set_business_account_gift_settings_builder(
+    pub fn set_business_account_gift_settings(
         &self,
         business_connection_id: impl Into<String>,
         show_gift_button: bool,
@@ -1406,7 +1406,7 @@ impl Bot {
     }
 
     /// Build a `setBusinessAccountProfilePhoto` request.
-    pub fn set_business_account_profile_photo_builder(
+    pub fn set_business_account_profile_photo(
         &self,
         business_connection_id: impl Into<String>,
         photo: serde_json::Value,
@@ -1420,7 +1420,7 @@ impl Bot {
     }
 
     /// Build a `removeBusinessAccountProfilePhoto` request.
-    pub fn remove_business_account_profile_photo_builder(
+    pub fn remove_business_account_profile_photo(
         &self,
         business_connection_id: impl Into<String>,
     ) -> RemoveBusinessAccountProfilePhotoBuilder<'_> {
@@ -1432,7 +1432,7 @@ impl Bot {
     }
 
     /// Build a `convertGiftToStars` request.
-    pub fn convert_gift_to_stars_builder(
+    pub fn convert_gift_to_stars(
         &self,
         business_connection_id: impl Into<String>,
         owned_gift_id: impl Into<String>,
@@ -1445,7 +1445,7 @@ impl Bot {
     }
 
     /// Build an `upgradeGift` request.
-    pub fn upgrade_gift_builder(
+    pub fn upgrade_gift(
         &self,
         business_connection_id: impl Into<String>,
         owned_gift_id: impl Into<String>,
@@ -1460,7 +1460,7 @@ impl Bot {
     }
 
     /// Build a `transferGift` request.
-    pub fn transfer_gift_builder(
+    pub fn transfer_gift(
         &self,
         business_connection_id: impl Into<String>,
         owned_gift_id: impl Into<String>,
@@ -1476,7 +1476,7 @@ impl Bot {
     }
 
     /// Build a `transferBusinessAccountStars` request.
-    pub fn transfer_business_account_stars_builder(
+    pub fn transfer_business_account_stars(
         &self,
         business_connection_id: impl Into<String>,
         star_count: i64,
@@ -1491,7 +1491,7 @@ impl Bot {
     // -- Payments ------------------------------------------------------------
 
     /// Build a `createInvoiceLink` request.
-    pub fn create_invoice_link_builder(
+    pub fn create_invoice_link(
         &self,
         title: impl Into<String>,
         description: impl Into<String>,
@@ -1527,7 +1527,7 @@ impl Bot {
     }
 
     /// Build an `editUserStarSubscription` request.
-    pub fn edit_user_star_subscription_builder(
+    pub fn edit_user_star_subscription(
         &self,
         user_id: i64,
         telegram_payment_charge_id: impl Into<String>,
@@ -1542,12 +1542,12 @@ impl Bot {
     }
 
     /// Build a `getMyStarBalance` request.
-    pub fn get_my_star_balance_builder(&self) -> GetMyStarBalanceBuilder<'_> {
+    pub fn get_my_star_balance(&self) -> GetMyStarBalanceBuilder<'_> {
         GetMyStarBalanceBuilder { bot: self }
     }
 
     /// Build a `getStarTransactions` request.
-    pub fn get_star_transactions_builder(&self) -> GetStarTransactionsBuilder<'_> {
+    pub fn get_star_transactions(&self) -> GetStarTransactionsBuilder<'_> {
         GetStarTransactionsBuilder {
             bot: self,
             offset: None,
@@ -1556,7 +1556,7 @@ impl Bot {
     }
 
     /// Build a `refundStarPayment` request.
-    pub fn refund_star_payment_builder(
+    pub fn refund_star_payment(
         &self,
         user_id: i64,
         telegram_payment_charge_id: impl Into<String>,
@@ -1571,12 +1571,12 @@ impl Bot {
     // -- Gifts ---------------------------------------------------------------
 
     /// Build a `getAvailableGifts` request.
-    pub fn get_available_gifts_builder(&self) -> GetAvailableGiftsBuilder<'_> {
+    pub fn get_available_gifts(&self) -> GetAvailableGiftsBuilder<'_> {
         GetAvailableGiftsBuilder { bot: self }
     }
 
     /// Build a `sendGift` request.
-    pub fn send_gift_builder(&self, gift_id: impl Into<String>) -> SendGiftBuilder<'_> {
+    pub fn send_gift(&self, gift_id: impl Into<String>) -> SendGiftBuilder<'_> {
         SendGiftBuilder {
             bot: self,
             gift_id: gift_id.into(),
@@ -1590,7 +1590,7 @@ impl Bot {
     }
 
     /// Build a `giftPremiumSubscription` request.
-    pub fn gift_premium_subscription_builder(
+    pub fn gift_premium_subscription(
         &self,
         user_id: i64,
         month_count: i64,
@@ -1608,7 +1608,7 @@ impl Bot {
     }
 
     /// Build a `getUserGifts` request.
-    pub fn get_user_gifts_builder(&self, user_id: i64) -> GetUserGiftsBuilder<'_> {
+    pub fn get_user_gifts(&self, user_id: i64) -> GetUserGiftsBuilder<'_> {
         GetUserGiftsBuilder {
             bot: self,
             user_id,
@@ -1624,7 +1624,7 @@ impl Bot {
     }
 
     /// Build a `getChatGifts` request.
-    pub fn get_chat_gifts_builder(&self, chat_id: impl Into<ChatId>) -> GetChatGiftsBuilder<'_> {
+    pub fn get_chat_gifts(&self, chat_id: impl Into<ChatId>) -> GetChatGiftsBuilder<'_> {
         GetChatGiftsBuilder {
             bot: self,
             chat_id: chat_id.into(),

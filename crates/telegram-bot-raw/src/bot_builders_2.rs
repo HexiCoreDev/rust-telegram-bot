@@ -20,26 +20,6 @@ use serde::Serialize;
 // Private helpers (duplicated from bot_builders.rs since those are private)
 // ---------------------------------------------------------------------------
 
-fn push_opt<T: Serialize>(
-    params: &mut Vec<RequestParameter>,
-    name: &'static str,
-    val: &Option<T>,
-) -> std::result::Result<(), serde_json::Error> {
-    if let Some(v) = val {
-        params.push(RequestParameter::new(name, serde_json::to_value(v)?));
-    }
-    Ok(())
-}
-
-fn push_opt_str(params: &mut Vec<RequestParameter>, name: &'static str, val: &Option<String>) {
-    if let Some(v) = val {
-        params.push(RequestParameter::new(
-            name,
-            serde_json::Value::String(v.clone()),
-        ));
-    }
-}
-
 fn push_opt_file(
     params: &mut Vec<RequestParameter>,
     name: &'static str,
@@ -880,134 +860,6 @@ impl_into_future!(UnhideGeneralForumTopicBuilder, bool);
 // =========================================================================
 
 // =========================================================================
-// SendStickerBuilder
-// =========================================================================
-
-/// Builder for the [`sendSticker`] API method.
-pub struct SendStickerBuilder<'a> {
-    bot: &'a Bot,
-    chat_id: ChatId,
-    sticker: files::input_file::InputFile,
-    emoji: Option<String>,
-    disable_notification: Option<bool>,
-    protect_content: Option<bool>,
-    reply_parameters: Option<reply::ReplyParameters>,
-    reply_markup: Option<serde_json::Value>,
-    message_thread_id: Option<i64>,
-    business_connection_id: Option<String>,
-    message_effect_id: Option<String>,
-    allow_paid_broadcast: Option<bool>,
-    direct_messages_topic_id: Option<i64>,
-    suggested_post_parameters: Option<suggested_post::SuggestedPostParameters>,
-}
-
-// Additional imports needed for sticker builder
-use crate::types::{message, reply, suggested_post};
-
-impl<'a> SendStickerBuilder<'a> {
-    /// Sets the `emoji` parameter.
-    pub fn emoji(mut self, val: impl Into<String>) -> Self {
-        self.emoji = Some(val.into());
-        self
-    }
-    /// Sets the `disable_notification` parameter.
-    pub fn disable_notification(mut self, val: bool) -> Self {
-        self.disable_notification = Some(val);
-        self
-    }
-    /// Sets the `protect_content` parameter.
-    pub fn protect_content(mut self, val: bool) -> Self {
-        self.protect_content = Some(val);
-        self
-    }
-    /// Sets the `reply_parameters` parameter.
-    pub fn reply_parameters(mut self, val: reply::ReplyParameters) -> Self {
-        self.reply_parameters = Some(val);
-        self
-    }
-    /// Sets the `reply_markup` parameter.
-    pub fn reply_markup(mut self, val: serde_json::Value) -> Self {
-        self.reply_markup = Some(val);
-        self
-    }
-    /// Sets the `message_thread_id` parameter.
-    pub fn message_thread_id(mut self, val: i64) -> Self {
-        self.message_thread_id = Some(val);
-        self
-    }
-    /// Sets the `business_connection_id` parameter.
-    pub fn business_connection_id(mut self, val: impl Into<String>) -> Self {
-        self.business_connection_id = Some(val.into());
-        self
-    }
-    /// Sets the `message_effect_id` parameter.
-    pub fn message_effect_id(mut self, val: impl Into<String>) -> Self {
-        self.message_effect_id = Some(val.into());
-        self
-    }
-    /// Sets the `allow_paid_broadcast` parameter.
-    pub fn allow_paid_broadcast(mut self, val: bool) -> Self {
-        self.allow_paid_broadcast = Some(val);
-        self
-    }
-    /// Sets the `direct_messages_topic_id` parameter.
-    pub fn direct_messages_topic_id(mut self, val: i64) -> Self {
-        self.direct_messages_topic_id = Some(val);
-        self
-    }
-    /// Sets the `suggested_post_parameters` parameter.
-    pub fn suggested_post_parameters(
-        mut self,
-        val: suggested_post::SuggestedPostParameters,
-    ) -> Self {
-        self.suggested_post_parameters = Some(val);
-        self
-    }
-
-    /// Sends the request to the Telegram Bot API.
-    pub async fn send(self) -> Result<message::Message> {
-        let mut params = vec![
-            RequestParameter::new("chat_id", serde_json::to_value(&self.chat_id)?),
-            input_file_param("sticker", self.sticker),
-        ];
-        push_opt_str(&mut params, "emoji", &self.emoji);
-        push_opt(
-            &mut params,
-            "disable_notification",
-            &self.disable_notification,
-        )?;
-        push_opt(&mut params, "protect_content", &self.protect_content)?;
-        push_opt(&mut params, "reply_parameters", &self.reply_parameters)?;
-        push_opt(&mut params, "reply_markup", &self.reply_markup)?;
-        push_opt(&mut params, "message_thread_id", &self.message_thread_id)?;
-        push_opt_str(
-            &mut params,
-            "business_connection_id",
-            &self.business_connection_id,
-        );
-        push_opt_str(&mut params, "message_effect_id", &self.message_effect_id);
-        push_opt(
-            &mut params,
-            "allow_paid_broadcast",
-            &self.allow_paid_broadcast,
-        )?;
-        push_opt(
-            &mut params,
-            "direct_messages_topic_id",
-            &self.direct_messages_topic_id,
-        )?;
-        push_opt(
-            &mut params,
-            "suggested_post_parameters",
-            &self.suggested_post_parameters,
-        )?;
-        self.bot.do_api_request("sendSticker", params).await
-    }
-}
-
-impl_into_future!(SendStickerBuilder, message::Message);
-
-// =========================================================================
 // GetStickerSetBuilder
 // =========================================================================
 
@@ -1457,7 +1309,7 @@ impl Bot {
     // =====================================================================
 
     /// Build a `setChatMenuButton` request.
-    pub fn build_set_chat_menu_button(&self) -> SetChatMenuButtonBuilder<'_> {
+    pub fn set_chat_menu_button(&self) -> SetChatMenuButtonBuilder<'_> {
         SetChatMenuButtonBuilder {
             bot: self,
             chat_id: None,
@@ -1466,7 +1318,7 @@ impl Bot {
     }
 
     /// Build a `getChatMenuButton` request.
-    pub fn build_get_chat_menu_button(&self) -> GetChatMenuButtonBuilder<'_> {
+    pub fn get_chat_menu_button(&self) -> GetChatMenuButtonBuilder<'_> {
         GetChatMenuButtonBuilder {
             bot: self,
             chat_id: None,
@@ -1474,7 +1326,7 @@ impl Bot {
     }
 
     /// Build a `setMyCommands` request.
-    pub fn build_set_my_commands(
+    pub fn set_my_commands(
         &self,
         commands: Vec<bot_command::BotCommand>,
     ) -> SetMyCommandsBuilder<'_> {
@@ -1487,7 +1339,7 @@ impl Bot {
     }
 
     /// Build a `getMyCommands` request.
-    pub fn build_get_my_commands(&self) -> GetMyCommandsBuilder<'_> {
+    pub fn get_my_commands(&self) -> GetMyCommandsBuilder<'_> {
         GetMyCommandsBuilder {
             bot: self,
             scope: None,
@@ -1496,7 +1348,7 @@ impl Bot {
     }
 
     /// Build a `deleteMyCommands` request.
-    pub fn build_delete_my_commands(&self) -> DeleteMyCommandsBuilder<'_> {
+    pub fn delete_my_commands(&self) -> DeleteMyCommandsBuilder<'_> {
         DeleteMyCommandsBuilder {
             bot: self,
             scope: None,
@@ -1505,7 +1357,7 @@ impl Bot {
     }
 
     /// Build a `setMyDefaultAdministratorRights` request.
-    pub fn build_set_my_default_administrator_rights(
+    pub fn set_my_default_administrator_rights(
         &self,
     ) -> SetMyDefaultAdministratorRightsBuilder<'_> {
         SetMyDefaultAdministratorRightsBuilder {
@@ -1516,7 +1368,7 @@ impl Bot {
     }
 
     /// Build a `getMyDefaultAdministratorRights` request.
-    pub fn build_get_my_default_administrator_rights(
+    pub fn get_my_default_administrator_rights(
         &self,
     ) -> GetMyDefaultAdministratorRightsBuilder<'_> {
         GetMyDefaultAdministratorRightsBuilder {
@@ -1526,7 +1378,7 @@ impl Bot {
     }
 
     /// Build a `setMyDescription` request.
-    pub fn build_set_my_description(&self) -> SetMyDescriptionBuilder<'_> {
+    pub fn set_my_description(&self) -> SetMyDescriptionBuilder<'_> {
         SetMyDescriptionBuilder {
             bot: self,
             description: None,
@@ -1535,7 +1387,7 @@ impl Bot {
     }
 
     /// Build a `getMyDescription` request.
-    pub fn build_get_my_description(&self) -> GetMyDescriptionBuilder<'_> {
+    pub fn get_my_description(&self) -> GetMyDescriptionBuilder<'_> {
         GetMyDescriptionBuilder {
             bot: self,
             language_code: None,
@@ -1543,7 +1395,7 @@ impl Bot {
     }
 
     /// Build a `setMyShortDescription` request.
-    pub fn build_set_my_short_description(&self) -> SetMyShortDescriptionBuilder<'_> {
+    pub fn set_my_short_description(&self) -> SetMyShortDescriptionBuilder<'_> {
         SetMyShortDescriptionBuilder {
             bot: self,
             short_description: None,
@@ -1552,7 +1404,7 @@ impl Bot {
     }
 
     /// Build a `getMyShortDescription` request.
-    pub fn build_get_my_short_description(&self) -> GetMyShortDescriptionBuilder<'_> {
+    pub fn get_my_short_description(&self) -> GetMyShortDescriptionBuilder<'_> {
         GetMyShortDescriptionBuilder {
             bot: self,
             language_code: None,
@@ -1560,7 +1412,7 @@ impl Bot {
     }
 
     /// Build a `setMyName` request.
-    pub fn build_set_my_name(&self) -> SetMyNameBuilder<'_> {
+    pub fn set_my_name(&self) -> SetMyNameBuilder<'_> {
         SetMyNameBuilder {
             bot: self,
             name: None,
@@ -1569,7 +1421,7 @@ impl Bot {
     }
 
     /// Build a `getMyName` request.
-    pub fn build_get_my_name(&self) -> GetMyNameBuilder<'_> {
+    pub fn get_my_name(&self) -> GetMyNameBuilder<'_> {
         GetMyNameBuilder {
             bot: self,
             language_code: None,
@@ -1581,7 +1433,7 @@ impl Bot {
     // =====================================================================
 
     /// Build a `createForumTopic` request.
-    pub fn build_create_forum_topic(
+    pub fn create_forum_topic(
         &self,
         chat_id: impl Into<ChatId>,
         name: impl Into<String>,
@@ -1596,7 +1448,7 @@ impl Bot {
     }
 
     /// Build an `editForumTopic` request.
-    pub fn build_edit_forum_topic(
+    pub fn edit_forum_topic(
         &self,
         chat_id: impl Into<ChatId>,
         message_thread_id: i64,
@@ -1611,7 +1463,7 @@ impl Bot {
     }
 
     /// Build a `closeForumTopic` request.
-    pub fn build_close_forum_topic(
+    pub fn close_forum_topic(
         &self,
         chat_id: impl Into<ChatId>,
         message_thread_id: i64,
@@ -1624,7 +1476,7 @@ impl Bot {
     }
 
     /// Build a `reopenForumTopic` request.
-    pub fn build_reopen_forum_topic(
+    pub fn reopen_forum_topic(
         &self,
         chat_id: impl Into<ChatId>,
         message_thread_id: i64,
@@ -1637,7 +1489,7 @@ impl Bot {
     }
 
     /// Build a `deleteForumTopic` request.
-    pub fn build_delete_forum_topic(
+    pub fn delete_forum_topic(
         &self,
         chat_id: impl Into<ChatId>,
         message_thread_id: i64,
@@ -1650,7 +1502,7 @@ impl Bot {
     }
 
     /// Build an `unpinAllForumTopicMessages` request.
-    pub fn build_unpin_all_forum_topic_messages(
+    pub fn unpin_all_forum_topic_messages(
         &self,
         chat_id: impl Into<ChatId>,
         message_thread_id: i64,
@@ -1663,7 +1515,7 @@ impl Bot {
     }
 
     /// Build an `unpinAllGeneralForumTopicMessages` request.
-    pub fn build_unpin_all_general_forum_topic_messages(
+    pub fn unpin_all_general_forum_topic_messages(
         &self,
         chat_id: impl Into<ChatId>,
     ) -> UnpinAllGeneralForumTopicMessagesBuilder<'_> {
@@ -1674,7 +1526,7 @@ impl Bot {
     }
 
     /// Build an `editGeneralForumTopic` request.
-    pub fn build_edit_general_forum_topic(
+    pub fn edit_general_forum_topic(
         &self,
         chat_id: impl Into<ChatId>,
         name: impl Into<String>,
@@ -1687,7 +1539,7 @@ impl Bot {
     }
 
     /// Build a `closeGeneralForumTopic` request.
-    pub fn build_close_general_forum_topic(
+    pub fn close_general_forum_topic(
         &self,
         chat_id: impl Into<ChatId>,
     ) -> CloseGeneralForumTopicBuilder<'_> {
@@ -1698,7 +1550,7 @@ impl Bot {
     }
 
     /// Build a `reopenGeneralForumTopic` request.
-    pub fn build_reopen_general_forum_topic(
+    pub fn reopen_general_forum_topic(
         &self,
         chat_id: impl Into<ChatId>,
     ) -> ReopenGeneralForumTopicBuilder<'_> {
@@ -1709,7 +1561,7 @@ impl Bot {
     }
 
     /// Build a `hideGeneralForumTopic` request.
-    pub fn build_hide_general_forum_topic(
+    pub fn hide_general_forum_topic(
         &self,
         chat_id: impl Into<ChatId>,
     ) -> HideGeneralForumTopicBuilder<'_> {
@@ -1720,7 +1572,7 @@ impl Bot {
     }
 
     /// Build an `unhideGeneralForumTopic` request.
-    pub fn build_unhide_general_forum_topic(
+    pub fn unhide_general_forum_topic(
         &self,
         chat_id: impl Into<ChatId>,
     ) -> UnhideGeneralForumTopicBuilder<'_> {
@@ -1734,32 +1586,8 @@ impl Bot {
     // Sticker builders
     // =====================================================================
 
-    /// Build a `sendSticker` request.
-    pub fn build_send_sticker(
-        &self,
-        chat_id: impl Into<ChatId>,
-        sticker: files::input_file::InputFile,
-    ) -> SendStickerBuilder<'_> {
-        SendStickerBuilder {
-            bot: self,
-            chat_id: chat_id.into(),
-            sticker,
-            emoji: None,
-            disable_notification: None,
-            protect_content: None,
-            reply_parameters: None,
-            reply_markup: None,
-            message_thread_id: None,
-            business_connection_id: None,
-            message_effect_id: None,
-            allow_paid_broadcast: None,
-            direct_messages_topic_id: None,
-            suggested_post_parameters: None,
-        }
-    }
-
     /// Build a `getStickerSet` request.
-    pub fn build_get_sticker_set(&self, name: impl Into<String>) -> GetStickerSetBuilder<'_> {
+    pub fn get_sticker_set(&self, name: impl Into<String>) -> GetStickerSetBuilder<'_> {
         GetStickerSetBuilder {
             bot: self,
             name: name.into(),
@@ -1767,7 +1595,7 @@ impl Bot {
     }
 
     /// Build a `getCustomEmojiStickers` request.
-    pub fn build_get_custom_emoji_stickers(
+    pub fn get_custom_emoji_stickers(
         &self,
         custom_emoji_ids: Vec<String>,
     ) -> GetCustomEmojiStickersBuilder<'_> {
@@ -1778,7 +1606,7 @@ impl Bot {
     }
 
     /// Build an `uploadStickerFile` request.
-    pub fn build_upload_sticker_file(
+    pub fn upload_sticker_file(
         &self,
         user_id: i64,
         sticker: files::input_file::InputFile,
@@ -1793,7 +1621,7 @@ impl Bot {
     }
 
     /// Build a `createNewStickerSet` request.
-    pub fn build_create_new_sticker_set(
+    pub fn create_new_sticker_set(
         &self,
         user_id: i64,
         name: impl Into<String>,
@@ -1812,7 +1640,7 @@ impl Bot {
     }
 
     /// Build an `addStickerToSet` request.
-    pub fn build_add_sticker_to_set(
+    pub fn add_sticker_to_set(
         &self,
         user_id: i64,
         name: impl Into<String>,
@@ -1827,7 +1655,7 @@ impl Bot {
     }
 
     /// Build a `setStickerPositionInSet` request.
-    pub fn build_set_sticker_position_in_set(
+    pub fn set_sticker_position_in_set(
         &self,
         sticker: impl Into<String>,
         position: i64,
@@ -1840,7 +1668,7 @@ impl Bot {
     }
 
     /// Build a `deleteStickerFromSet` request.
-    pub fn build_delete_sticker_from_set(
+    pub fn delete_sticker_from_set(
         &self,
         sticker: impl Into<String>,
     ) -> DeleteStickerFromSetBuilder<'_> {
@@ -1851,7 +1679,7 @@ impl Bot {
     }
 
     /// Build a `replaceStickerInSet` request.
-    pub fn build_replace_sticker_in_set(
+    pub fn replace_sticker_in_set(
         &self,
         user_id: i64,
         name: impl Into<String>,
@@ -1868,7 +1696,7 @@ impl Bot {
     }
 
     /// Build a `setStickerEmojiList` request.
-    pub fn build_set_sticker_emoji_list(
+    pub fn set_sticker_emoji_list(
         &self,
         sticker: impl Into<String>,
         emoji_list: Vec<String>,
@@ -1881,7 +1709,7 @@ impl Bot {
     }
 
     /// Build a `setStickerKeywords` request.
-    pub fn build_set_sticker_keywords(
+    pub fn set_sticker_keywords(
         &self,
         sticker: impl Into<String>,
     ) -> SetStickerKeywordsBuilder<'_> {
@@ -1893,7 +1721,7 @@ impl Bot {
     }
 
     /// Build a `setStickerMaskPosition` request.
-    pub fn build_set_sticker_mask_position(
+    pub fn set_sticker_mask_position(
         &self,
         sticker: impl Into<String>,
     ) -> SetStickerMaskPositionBuilder<'_> {
@@ -1905,7 +1733,7 @@ impl Bot {
     }
 
     /// Build a `setStickerSetThumbnail` request.
-    pub fn build_set_sticker_set_thumbnail(
+    pub fn set_sticker_set_thumbnail(
         &self,
         name: impl Into<String>,
         user_id: i64,
@@ -1921,7 +1749,7 @@ impl Bot {
     }
 
     /// Build a `setStickerSetTitle` request.
-    pub fn build_set_sticker_set_title(
+    pub fn set_sticker_set_title(
         &self,
         name: impl Into<String>,
         title: impl Into<String>,
@@ -1934,7 +1762,7 @@ impl Bot {
     }
 
     /// Build a `setCustomEmojiStickerSetThumbnail` request.
-    pub fn build_set_custom_emoji_sticker_set_thumbnail(
+    pub fn set_custom_emoji_sticker_set_thumbnail(
         &self,
         name: impl Into<String>,
     ) -> SetCustomEmojiStickerSetThumbnailBuilder<'_> {
@@ -1946,7 +1774,7 @@ impl Bot {
     }
 
     /// Build a `deleteStickerSet` request.
-    pub fn build_delete_sticker_set(&self, name: impl Into<String>) -> DeleteStickerSetBuilder<'_> {
+    pub fn delete_sticker_set(&self, name: impl Into<String>) -> DeleteStickerSetBuilder<'_> {
         DeleteStickerSetBuilder {
             bot: self,
             name: name.into(),
@@ -1954,7 +1782,7 @@ impl Bot {
     }
 
     /// Build a `getForumTopicIconStickers` request.
-    pub fn build_get_forum_topic_icon_stickers(&self) -> GetForumTopicIconStickersBuilder<'_> {
+    pub fn get_forum_topic_icon_stickers(&self) -> GetForumTopicIconStickersBuilder<'_> {
         GetForumTopicIconStickersBuilder { bot: self }
     }
 }

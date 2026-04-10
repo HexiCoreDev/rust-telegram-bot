@@ -213,13 +213,13 @@ fn all_bot_api_96_raw_methods_exist() {
     }
 
     // -- Getting updates --
-    check!(bot.get_updates(None, None, None, None));
-    check!(bot.get_webhook_info());
+    check!(bot.get_updates_raw(None, None, None, None));
+    check!(bot.get_webhook_info_raw());
 
     // -- Core --
-    check!(bot.get_me());
-    check!(bot.log_out());
-    check!(bot.close());
+    check!(bot.get_me_raw());
+    check!(bot.log_out_raw());
+    check!(bot.close_raw());
 
     // -- Messages (builder API -- only required args) --
     check!(bot.forward_message(1i64, 1i64, 1));
@@ -231,7 +231,7 @@ fn all_bot_api_96_raw_methods_exist() {
     check!(bot.delete_messages(1i64, vec![1]));
 
     // -- Media --
-    check!(bot.send_media_group(
+    check!(bot.send_media_group_raw(
         1i64.into(),
         vec![],
         None,
@@ -244,7 +244,7 @@ fn all_bot_api_96_raw_methods_exist() {
         None,
         None
     ));
-    check!(bot.send_paid_media(
+    check!(bot.send_paid_media_raw(
         1i64.into(),
         1,
         vec![],
@@ -265,7 +265,7 @@ fn all_bot_api_96_raw_methods_exist() {
     ));
 
     // -- Other content --
-    check!(bot.send_checklist(
+    check!(bot.send_checklist_raw(
         "bc_id",
         1,
         make_input_checklist(),
@@ -277,12 +277,12 @@ fn all_bot_api_96_raw_methods_exist() {
     ));
 
     // -- Editing --
-    check!(bot.edit_message_live_location(
+    check!(bot.edit_message_live_location_raw(
         1.0, 1.0, None, None, None, None, None, None, None, None, None
     ));
-    check!(bot.stop_message_live_location(None, None, None, None, None));
-    check!(bot.edit_message_checklist("bc_id", 1, 1, make_input_checklist(), None));
-    check!(bot.stop_poll(1i64.into(), 1, None, None));
+    check!(bot.stop_message_live_location_raw(None, None, None, None, None));
+    check!(bot.edit_message_checklist_raw("bc_id", 1, 1, make_input_checklist(), None));
+    check!(bot.stop_poll_raw(1i64.into(), 1, None, None));
 
     // -- Chat administration (builder API -- only required args) --
     check!(bot.leave_chat(1i64));
@@ -325,65 +325,65 @@ fn all_bot_api_96_raw_methods_exist() {
     check!(bot.decline_chat_join_request(1i64, 1));
 
     // -- Forum topics --
-    check!(bot.create_forum_topic(1i64.into(), "name", None, None));
-    check!(bot.edit_forum_topic(1i64.into(), 1, None, None));
-    check!(bot.close_forum_topic(1i64.into(), 1));
-    check!(bot.reopen_forum_topic(1i64.into(), 1));
-    check!(bot.delete_forum_topic(1i64.into(), 1));
-    check!(bot.unpin_all_forum_topic_messages(1i64.into(), 1));
-    check!(bot.unpin_all_general_forum_topic_messages(1i64.into()));
-    check!(bot.edit_general_forum_topic(1i64.into(), "name"));
-    check!(bot.close_general_forum_topic(1i64.into()));
-    check!(bot.reopen_general_forum_topic(1i64.into()));
-    check!(bot.hide_general_forum_topic(1i64.into()));
-    check!(bot.unhide_general_forum_topic(1i64.into()));
+    check!(bot.create_forum_topic_raw(1i64.into(), "name", None, None));
+    check!(bot.edit_forum_topic_raw(1i64.into(), 1, None, None));
+    check!(bot.close_forum_topic_raw(1i64.into(), 1));
+    check!(bot.reopen_forum_topic_raw(1i64.into(), 1));
+    check!(bot.delete_forum_topic_raw(1i64.into(), 1));
+    check!(bot.unpin_all_forum_topic_messages_raw(1i64.into(), 1));
+    check!(bot.unpin_all_general_forum_topic_messages_raw(1i64.into()));
+    check!(bot.edit_general_forum_topic_raw(1i64.into(), "name"));
+    check!(bot.close_general_forum_topic_raw(1i64.into()));
+    check!(bot.reopen_general_forum_topic_raw(1i64.into()));
+    check!(bot.hide_general_forum_topic_raw(1i64.into()));
+    check!(bot.unhide_general_forum_topic_raw(1i64.into()));
 
     // -- Bot settings --
-    check!(bot.set_chat_menu_button(None, None));
-    check!(bot.get_chat_menu_button(None));
-    check!(bot.set_my_commands(vec![], None, None));
-    check!(bot.get_my_commands(None, None));
-    check!(bot.delete_my_commands(None, None));
-    check!(bot.set_my_default_administrator_rights(None, None));
-    check!(bot.get_my_default_administrator_rights(None));
-    check!(bot.set_my_description(None, None));
-    check!(bot.get_my_description(None));
-    check!(bot.set_my_short_description(None, None));
-    check!(bot.get_my_short_description(None));
-    check!(bot.set_my_name(None, None));
-    check!(bot.get_my_name(None));
+    check!(bot.set_chat_menu_button_raw(None, None));
+    check!(bot.get_chat_menu_button_raw(None));
+    check!(bot.set_my_commands_raw(vec![], None, None));
+    check!(bot.get_my_commands_raw(None, None));
+    check!(bot.delete_my_commands_raw(None, None));
+    check!(bot.set_my_default_administrator_rights_raw(None, None));
+    check!(bot.get_my_default_administrator_rights_raw(None));
+    check!(bot.set_my_description_raw(None, None));
+    check!(bot.get_my_description_raw(None));
+    check!(bot.set_my_short_description_raw(None, None));
+    check!(bot.get_my_short_description_raw(None));
+    check!(bot.set_my_name_raw(None, None));
+    check!(bot.get_my_name_raw(None));
 
     // -- User profile --
-    check!(bot.get_user_profile_photos(1, None, None));
-    check!(bot.get_user_profile_audios(1, None, None));
-    check!(bot.set_user_emoji_status(1, None, None));
-    check!(bot.set_my_profile_photo(json!({})));
-    check!(bot.remove_my_profile_photo());
+    check!(bot.get_user_profile_photos_raw(1, None, None));
+    check!(bot.get_user_profile_audios_raw(1, None, None));
+    check!(bot.set_user_emoji_status_raw(1, None, None));
+    check!(bot.set_my_profile_photo_raw(json!({})));
+    check!(bot.remove_my_profile_photo_raw());
 
     // -- Stickers --
-    check!(bot.get_sticker_set("name"));
-    check!(bot.get_custom_emoji_stickers(vec![]));
-    check!(bot.upload_sticker_file(1, dummy_file(), "static"));
-    check!(bot.create_new_sticker_set(1, "name", "title", vec![], None, None));
-    check!(bot.add_sticker_to_set(1, "name", json!({})));
-    check!(bot.set_sticker_position_in_set("sticker", 0));
-    check!(bot.delete_sticker_from_set("sticker"));
-    check!(bot.replace_sticker_in_set(1, "name", "old", json!({})));
-    check!(bot.set_sticker_emoji_list("sticker", vec![]));
-    check!(bot.set_sticker_keywords("sticker", None));
-    check!(bot.set_sticker_mask_position("sticker", None));
-    check!(bot.set_sticker_set_thumbnail("name", 1, "static", None));
-    check!(bot.set_sticker_set_title("name", "title"));
-    check!(bot.set_custom_emoji_sticker_set_thumbnail("name", None));
-    check!(bot.delete_sticker_set("name"));
-    check!(bot.get_forum_topic_icon_stickers());
+    check!(bot.get_sticker_set_raw("name"));
+    check!(bot.get_custom_emoji_stickers_raw(vec![]));
+    check!(bot.upload_sticker_file_raw(1, dummy_file(), "static"));
+    check!(bot.create_new_sticker_set_raw(1, "name", "title", vec![], None, None));
+    check!(bot.add_sticker_to_set_raw(1, "name", json!({})));
+    check!(bot.set_sticker_position_in_set_raw("sticker", 0));
+    check!(bot.delete_sticker_from_set_raw("sticker"));
+    check!(bot.replace_sticker_in_set_raw(1, "name", "old", json!({})));
+    check!(bot.set_sticker_emoji_list_raw("sticker", vec![]));
+    check!(bot.set_sticker_keywords_raw("sticker", None));
+    check!(bot.set_sticker_mask_position_raw("sticker", None));
+    check!(bot.set_sticker_set_thumbnail_raw("name", 1, "static", None));
+    check!(bot.set_sticker_set_title_raw("name", "title"));
+    check!(bot.set_custom_emoji_sticker_set_thumbnail_raw("name", None));
+    check!(bot.delete_sticker_set_raw("name"));
+    check!(bot.get_forum_topic_icon_stickers_raw());
 
     // -- Inline mode --
-    check!(bot.answer_web_app_query("waq_id", json!({})));
-    check!(bot.save_prepared_inline_message(1, json!({}), None, None, None, None));
+    check!(bot.answer_web_app_query_raw("waq_id", json!({})));
+    check!(bot.save_prepared_inline_message_raw(1, json!({}), None, None, None, None));
 
     // -- Payments --
-    check!(bot.create_invoice_link(
+    check!(bot.create_invoice_link_raw(
         "t",
         "d",
         "p",
@@ -407,48 +407,48 @@ fn all_bot_api_96_raw_methods_exist() {
         None,
         None
     ));
-    check!(bot.refund_star_payment(1, "charge_id"));
-    check!(bot.get_star_transactions(None, None));
-    check!(bot.edit_user_star_subscription(1, "tid", false));
-    check!(bot.get_my_star_balance());
+    check!(bot.refund_star_payment_raw(1, "charge_id"));
+    check!(bot.get_star_transactions_raw(None, None));
+    check!(bot.edit_user_star_subscription_raw(1, "tid", false));
+    check!(bot.get_my_star_balance_raw());
 
     // -- Games --
-    check!(bot.send_game(1, "game", None, None, None, None, None, None, None, None));
-    check!(bot.set_game_score(1, 100, None, None, None, None, None));
-    check!(bot.get_game_high_scores(1, None, None, None));
+    check!(bot.send_game_raw(1, "game", None, None, None, None, None, None, None, None));
+    check!(bot.set_game_score_raw(1, 100, None, None, None, None, None));
+    check!(bot.get_game_high_scores_raw(1, None, None, None));
 
     // -- Reactions --
-    check!(bot.set_message_reaction(1i64.into(), 1, None, None));
-    check!(bot.get_user_chat_boosts(1i64.into(), 1));
+    check!(bot.set_message_reaction_raw(1i64.into(), 1, None, None));
+    check!(bot.get_user_chat_boosts_raw(1i64.into(), 1));
 
     // -- Passport --
-    check!(bot.set_passport_data_errors(1, vec![]));
+    check!(bot.set_passport_data_errors_raw(1, vec![]));
 
     // -- Business --
-    check!(bot.get_business_connection("bc_id"));
-    check!(bot.get_business_account_gifts(
+    check!(bot.get_business_connection_raw("bc_id"));
+    check!(bot.get_business_account_gifts_raw(
         "bc_id", None, None, None, None, None, None, None, None, None, None
     ));
-    check!(bot.get_business_account_star_balance("bc_id"));
-    check!(bot.read_business_message("bc_id", 1, 1));
-    check!(bot.delete_business_messages("bc_id", vec![1]));
-    check!(bot.set_business_account_name("bc_id", "first", None));
-    check!(bot.set_business_account_username("bc_id", None));
-    check!(bot.set_business_account_bio("bc_id", None));
-    check!(bot.set_business_account_gift_settings("bc_id", false, make_accepted_gift_types()));
-    check!(bot.set_business_account_profile_photo("bc_id", json!({}), None));
-    check!(bot.remove_business_account_profile_photo("bc_id", None));
-    check!(bot.convert_gift_to_stars("bc_id", "ogi"));
-    check!(bot.upgrade_gift("bc_id", "ogi", None, None));
-    check!(bot.transfer_gift("bc_id", "ogi", 1, None));
-    check!(bot.transfer_business_account_stars("bc_id", 100));
+    check!(bot.get_business_account_star_balance_raw("bc_id"));
+    check!(bot.read_business_message_raw("bc_id", 1, 1));
+    check!(bot.delete_business_messages_raw("bc_id", vec![1]));
+    check!(bot.set_business_account_name_raw("bc_id", "first", None));
+    check!(bot.set_business_account_username_raw("bc_id", None));
+    check!(bot.set_business_account_bio_raw("bc_id", None));
+    check!(bot.set_business_account_gift_settings_raw("bc_id", false, make_accepted_gift_types()));
+    check!(bot.set_business_account_profile_photo_raw("bc_id", json!({}), None));
+    check!(bot.remove_business_account_profile_photo_raw("bc_id", None));
+    check!(bot.convert_gift_to_stars_raw("bc_id", "ogi"));
+    check!(bot.upgrade_gift_raw("bc_id", "ogi", None, None));
+    check!(bot.transfer_gift_raw("bc_id", "ogi", 1, None));
+    check!(bot.transfer_business_account_stars_raw("bc_id", 100));
 
     // -- Gifts --
-    check!(bot.get_available_gifts());
-    check!(bot.send_gift("gift_id", None, None, None, None, None, None));
-    check!(bot.gift_premium_subscription(1, 3, 100, None, None, None));
-    check!(bot.get_user_gifts(1, None, None, None, None, None, None, None, None));
-    check!(bot.get_chat_gifts(
+    check!(bot.get_available_gifts_raw());
+    check!(bot.send_gift_raw("gift_id", None, None, None, None, None, None));
+    check!(bot.gift_premium_subscription_raw(1, 3, 100, None, None, None));
+    check!(bot.get_user_gifts_raw(1, None, None, None, None, None, None, None, None));
+    check!(bot.get_chat_gifts_raw(
         1i64.into(),
         None,
         None,
@@ -463,13 +463,13 @@ fn all_bot_api_96_raw_methods_exist() {
     ));
 
     // -- Verification --
-    check!(bot.verify_chat(1i64.into(), None));
-    check!(bot.verify_user(1, None));
-    check!(bot.remove_chat_verification(1i64.into()));
-    check!(bot.remove_user_verification(1));
+    check!(bot.verify_chat_raw(1i64.into(), None));
+    check!(bot.verify_user_raw(1, None));
+    check!(bot.remove_chat_verification_raw(1i64.into()));
+    check!(bot.remove_user_verification_raw(1));
 
     // -- Stories --
-    check!(bot.post_story(
+    check!(bot.post_story_raw(
         "bc_id",
         json!({}),
         86400,
@@ -480,13 +480,13 @@ fn all_bot_api_96_raw_methods_exist() {
         None,
         None
     ));
-    check!(bot.edit_story("bc_id", 1, json!({}), None, None, None, None));
-    check!(bot.delete_story("bc_id", 1));
-    check!(bot.repost_story("bc_id", 1, 1, 86400, None, None));
+    check!(bot.edit_story_raw("bc_id", 1, json!({}), None, None, None, None));
+    check!(bot.delete_story_raw("bc_id", 1));
+    check!(bot.repost_story_raw("bc_id", 1, 1, 86400, None, None));
 
     // -- Suggested posts --
-    check!(bot.approve_suggested_post(1, 1, None));
-    check!(bot.decline_suggested_post(1, 1, None));
+    check!(bot.approve_suggested_post_raw(1, 1, None));
+    check!(bot.decline_suggested_post_raw(1, 1, None));
 }
 
 // ===========================================================================

@@ -688,7 +688,7 @@ impl Application {
             if drop_pending_updates {
                 if let Ok(updates) = bot
                     .inner()
-                    .get_updates(Some(-1), Some(1), Some(0), None)
+                    .get_updates_raw(Some(-1), Some(1), Some(0), None)
                     .await
                 {
                     if let Some(last) = updates.last() {
@@ -699,7 +699,7 @@ impl Application {
             let timeout_secs = timeout.as_secs().max(1) as i32;
             loop {
                 tokio::select! {
-                    result = bot.inner().get_updates(offset, Some(100), Some(timeout_secs), allowed.clone()) => {
+                    result = bot.inner().get_updates_raw(offset, Some(100), Some(timeout_secs), allowed.clone()) => {
                         match result {
                             Ok(updates) => {
                                 for update in updates {

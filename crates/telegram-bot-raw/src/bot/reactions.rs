@@ -11,7 +11,7 @@ impl Bot {
     /// Use this method to change the chosen reactions on a message.
     ///
     /// Calls the Telegram `setMessageReaction` API method.
-    pub async fn set_message_reaction(
+    pub async fn set_message_reaction_raw(
         &self,
         chat_id: ChatId,
         message_id: i64,
@@ -30,7 +30,7 @@ impl Bot {
     /// Use this method to get the list of boosts added to a chat by a user.
     ///
     /// Calls the Telegram `getUserChatBoosts` API method.
-    pub async fn get_user_chat_boosts(
+    pub async fn get_user_chat_boosts_raw(
         &self,
         chat_id: ChatId,
         user_id: i64,

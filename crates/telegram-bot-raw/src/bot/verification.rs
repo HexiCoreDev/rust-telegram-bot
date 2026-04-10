@@ -10,7 +10,7 @@ impl Bot {
     /// Use this method to verify a chat on behalf of the organization that the bot represents.
     ///
     /// Calls the Telegram `verifyChat` API method.
-    pub async fn verify_chat(
+    pub async fn verify_chat_raw(
         &self,
         chat_id: ChatId,
         custom_description: Option<&str>,
@@ -26,7 +26,7 @@ impl Bot {
     /// Use this method to verify a user on behalf of the organization that the bot represents.
     ///
     /// Calls the Telegram `verifyUser` API method.
-    pub async fn verify_user(
+    pub async fn verify_user_raw(
         &self,
         user_id: i64,
         custom_description: Option<&str>,
@@ -42,7 +42,7 @@ impl Bot {
     /// Use this method to remove verification from a chat.
     ///
     /// Calls the Telegram `removeChatVerification` API method.
-    pub async fn remove_chat_verification(&self, chat_id: ChatId) -> Result<bool> {
+    pub async fn remove_chat_verification_raw(&self, chat_id: ChatId) -> Result<bool> {
         let params = vec![RequestParameter::new(
             "chat_id",
             serde_json::to_value(&chat_id)?,
@@ -53,7 +53,7 @@ impl Bot {
     /// Use this method to remove verification from a user.
     ///
     /// Calls the Telegram `removeUserVerification` API method.
-    pub async fn remove_user_verification(&self, user_id: i64) -> Result<bool> {
+    pub async fn remove_user_verification_raw(&self, user_id: i64) -> Result<bool> {
         let params = vec![RequestParameter::new(
             "user_id",
             serde_json::to_value(user_id)?,

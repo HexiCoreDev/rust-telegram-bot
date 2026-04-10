@@ -56,7 +56,7 @@ async fn main() {
     let mut offset: Option<i64> = None;
 
     loop {
-        let updates = match bot.get_updates(offset, Some(100), Some(30), None).await {
+        let updates = match bot.get_updates_raw(offset, Some(100), Some(30), None).await {
             Ok(u) => u,
             Err(e) => {
                 eprintln!("Error fetching updates: {e}");

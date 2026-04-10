@@ -11,7 +11,7 @@ impl Bot {
     /// Use this method to post a story on behalf of a managed business account.
     ///
     /// Calls the Telegram `postStory` API method.
-    pub async fn post_story(
+    pub async fn post_story_raw(
         &self,
         business_connection_id: &str,
         content: serde_json::Value,
@@ -43,7 +43,7 @@ impl Bot {
     /// Use this method to edit a story posted on behalf of a managed business account.
     ///
     /// Calls the Telegram `editStory` API method.
-    pub async fn edit_story(
+    pub async fn edit_story_raw(
         &self,
         business_connection_id: &str,
         story_id: i64,
@@ -71,7 +71,11 @@ impl Bot {
     /// Use this method to delete a story posted on behalf of a managed business account.
     ///
     /// Calls the Telegram `deleteStory` API method.
-    pub async fn delete_story(&self, business_connection_id: &str, story_id: i64) -> Result<bool> {
+    pub async fn delete_story_raw(
+        &self,
+        business_connection_id: &str,
+        story_id: i64,
+    ) -> Result<bool> {
         let params = vec![
             RequestParameter::new(
                 "business_connection_id",
@@ -85,7 +89,7 @@ impl Bot {
     /// Use this method to repost a story on behalf of a managed business account.
     ///
     /// Calls the Telegram `repostStory` API method.
-    pub async fn repost_story(
+    pub async fn repost_story_raw(
         &self,
         business_connection_id: &str,
         from_chat_id: i64,

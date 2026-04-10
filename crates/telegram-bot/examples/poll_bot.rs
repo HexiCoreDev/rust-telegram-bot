@@ -186,7 +186,7 @@ async fn receive_poll_answer(update: Arc<Update>, context: Context) -> HandlerRe
     if new_count >= TOTAL_VOTER_COUNT {
         let _ = context
             .bot()
-            .stop_poll(chat_id.into(), message_id, None, None)
+            .stop_poll_raw(chat_id.into(), message_id, None, None)
             .await;
     }
 
@@ -219,7 +219,7 @@ async fn receive_quiz_answer(update: Arc<Update>, context: Context) -> HandlerRe
 
         let _ = context
             .bot()
-            .stop_poll(chat_id.into(), message_id, None, None)
+            .stop_poll_raw(chat_id.into(), message_id, None, None)
             .await;
     }
 

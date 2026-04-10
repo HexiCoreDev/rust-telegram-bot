@@ -10,7 +10,7 @@ impl Bot {
     /// Use this method to inform a user that some of the Telegram Passport elements contain errors.
     ///
     /// Calls the Telegram `setPassportDataErrors` API method.
-    pub async fn set_passport_data_errors(
+    pub async fn set_passport_data_errors_raw(
         &self,
         user_id: i64,
         errors: Vec<serde_json::Value>,

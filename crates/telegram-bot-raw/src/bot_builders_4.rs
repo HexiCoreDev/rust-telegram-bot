@@ -106,7 +106,7 @@ impl<'a> EditMessageLiveLocationBuilder<'a> {
     /// Sends the request to the Telegram Bot API.
     pub async fn send(self) -> Result<MessageOrBool> {
         self.bot
-            .edit_message_live_location(
+            .edit_message_live_location_raw(
                 self.latitude,
                 self.longitude,
                 self.chat_id,
@@ -169,7 +169,7 @@ impl<'a> StopMessageLiveLocationBuilder<'a> {
     /// Sends the request to the Telegram Bot API.
     pub async fn send(self) -> Result<MessageOrBool> {
         self.bot
-            .stop_message_live_location(
+            .stop_message_live_location_raw(
                 self.chat_id,
                 self.message_id,
                 self.inline_message_id.as_deref(),
@@ -206,7 +206,7 @@ impl<'a> EditMessageChecklistBuilder<'a> {
     /// Sends the request to the Telegram Bot API.
     pub async fn send(self) -> Result<message::Message> {
         self.bot
-            .edit_message_checklist(
+            .edit_message_checklist_raw(
                 &self.business_connection_id,
                 self.chat_id,
                 self.message_id,
@@ -247,7 +247,7 @@ impl<'a> StopPollBuilder<'a> {
     /// Sends the request to the Telegram Bot API.
     pub async fn send(self) -> Result<poll::Poll> {
         self.bot
-            .stop_poll(
+            .stop_poll_raw(
                 self.chat_id,
                 self.message_id,
                 self.reply_markup,
@@ -327,7 +327,7 @@ impl<'a> SendGameBuilder<'a> {
     /// Sends the request to the Telegram Bot API.
     pub async fn send(self) -> Result<message::Message> {
         self.bot
-            .send_game(
+            .send_game_raw(
                 self.chat_id,
                 &self.game_short_name,
                 self.disable_notification,
@@ -391,7 +391,7 @@ impl<'a> SetGameScoreBuilder<'a> {
     /// Sends the request to the Telegram Bot API.
     pub async fn send(self) -> Result<MessageOrBool> {
         self.bot
-            .set_game_score(
+            .set_game_score_raw(
                 self.user_id,
                 self.score,
                 self.force,
@@ -439,7 +439,7 @@ impl<'a> GetGameHighScoresBuilder<'a> {
     /// Sends the request to the Telegram Bot API.
     pub async fn send(self) -> Result<Vec<games::game_high_score::GameHighScore>> {
         self.bot
-            .get_game_high_scores(
+            .get_game_high_scores_raw(
                 self.user_id,
                 self.chat_id,
                 self.message_id,
@@ -498,7 +498,7 @@ impl<'a> SavePreparedInlineMessageBuilder<'a> {
     /// Sends the request to the Telegram Bot API.
     pub async fn send(self) -> Result<serde_json::Value> {
         self.bot
-            .save_prepared_inline_message(
+            .save_prepared_inline_message_raw(
                 self.user_id,
                 self.result,
                 self.allow_user_chats,
@@ -527,7 +527,7 @@ impl<'a> AnswerWebAppQueryBuilder<'a> {
     /// Sends the request to the Telegram Bot API.
     pub async fn send(self) -> Result<sent_web_app_message::SentWebAppMessage> {
         self.bot
-            .answer_web_app_query(&self.web_app_query_id, self.result)
+            .answer_web_app_query_raw(&self.web_app_query_id, self.result)
             .await
     }
 }
@@ -614,7 +614,7 @@ impl<'a> SendMediaGroupBuilder<'a> {
     /// Sends the request to the Telegram Bot API.
     pub async fn send(self) -> Result<Vec<message::Message>> {
         self.bot
-            .send_media_group(
+            .send_media_group_raw(
                 self.chat_id,
                 self.media,
                 self.disable_notification,
@@ -737,7 +737,7 @@ impl<'a> SendPaidMediaBuilder<'a> {
     /// Sends the request to the Telegram Bot API.
     pub async fn send(self) -> Result<message::Message> {
         self.bot
-            .send_paid_media(
+            .send_paid_media_raw(
                 self.chat_id,
                 self.star_count,
                 self.media,
@@ -780,7 +780,7 @@ pub struct GetMeBuilder<'a> {
 impl<'a> GetMeBuilder<'a> {
     /// Sends the request to the Telegram Bot API.
     pub async fn send(self) -> Result<user::User> {
-        self.bot.get_me().await
+        self.bot.get_me_raw().await
     }
 }
 
@@ -800,7 +800,7 @@ pub struct LogOutBuilder<'a> {
 impl<'a> LogOutBuilder<'a> {
     /// Sends the request to the Telegram Bot API.
     pub async fn send(self) -> Result<bool> {
-        self.bot.log_out().await
+        self.bot.log_out_raw().await
     }
 }
 
@@ -820,7 +820,7 @@ pub struct CloseBuilder<'a> {
 impl<'a> CloseBuilder<'a> {
     /// Sends the request to the Telegram Bot API.
     pub async fn send(self) -> Result<bool> {
-        self.bot.close().await
+        self.bot.close_raw().await
     }
 }
 
@@ -864,7 +864,7 @@ impl<'a> GetUpdatesBuilder<'a> {
     /// Sends the request to the Telegram Bot API.
     pub async fn send(self) -> Result<Vec<update::Update>> {
         self.bot
-            .get_updates(self.offset, self.limit, self.timeout, self.allowed_updates)
+            .get_updates_raw(self.offset, self.limit, self.timeout, self.allowed_updates)
             .await
     }
 }
@@ -885,7 +885,7 @@ pub struct GetWebhookInfoBuilder<'a> {
 impl<'a> GetWebhookInfoBuilder<'a> {
     /// Sends the request to the Telegram Bot API.
     pub async fn send(self) -> Result<webhook_info::WebhookInfo> {
-        self.bot.get_webhook_info().await
+        self.bot.get_webhook_info_raw().await
     }
 }
 
@@ -904,7 +904,7 @@ pub struct DownloadFileBuilder<'a> {
 impl<'a> DownloadFileBuilder<'a> {
     /// Sends the request to the Telegram Bot API.
     pub async fn send(self) -> Result<Vec<u8>> {
-        self.bot.download_file(&self.file_path).await
+        self.bot.download_file_raw(&self.file_path).await
     }
 }
 
@@ -961,7 +961,7 @@ impl<'a> SendChecklistBuilder<'a> {
     /// Sends the request to the Telegram Bot API.
     pub async fn send(self) -> Result<message::Message> {
         self.bot
-            .send_checklist(
+            .send_checklist_raw(
                 &self.business_connection_id,
                 self.chat_id,
                 self.checklist,
@@ -996,7 +996,7 @@ impl<'a> SetPassportDataErrorsBuilder<'a> {
     /// Sends the request to the Telegram Bot API.
     pub async fn send(self) -> Result<bool> {
         self.bot
-            .set_passport_data_errors(self.user_id, self.errors)
+            .set_passport_data_errors_raw(self.user_id, self.errors)
             .await
     }
 }
@@ -1035,7 +1035,7 @@ impl<'a> SetMessageReactionBuilder<'a> {
     /// Sends the request to the Telegram Bot API.
     pub async fn send(self) -> Result<bool> {
         self.bot
-            .set_message_reaction(self.chat_id, self.message_id, self.reaction, self.is_big)
+            .set_message_reaction_raw(self.chat_id, self.message_id, self.reaction, self.is_big)
             .await
     }
 }
@@ -1057,7 +1057,7 @@ impl<'a> GetUserChatBoostsBuilder<'a> {
     /// Sends the request to the Telegram Bot API.
     pub async fn send(self) -> Result<chat_boost::UserChatBoosts> {
         self.bot
-            .get_user_chat_boosts(self.chat_id, self.user_id)
+            .get_user_chat_boosts_raw(self.chat_id, self.user_id)
             .await
     }
 }
@@ -1121,7 +1121,7 @@ impl<'a> PostStoryBuilder<'a> {
     /// Sends the request to the Telegram Bot API.
     pub async fn send(self) -> Result<story::Story> {
         self.bot
-            .post_story(
+            .post_story_raw(
                 &self.business_connection_id,
                 self.content,
                 self.active_period,
@@ -1179,7 +1179,7 @@ impl<'a> EditStoryBuilder<'a> {
     /// Sends the request to the Telegram Bot API.
     pub async fn send(self) -> Result<story::Story> {
         self.bot
-            .edit_story(
+            .edit_story_raw(
                 &self.business_connection_id,
                 self.story_id,
                 self.content,
@@ -1209,7 +1209,7 @@ impl<'a> DeleteStoryBuilder<'a> {
     /// Sends the request to the Telegram Bot API.
     pub async fn send(self) -> Result<bool> {
         self.bot
-            .delete_story(&self.business_connection_id, self.story_id)
+            .delete_story_raw(&self.business_connection_id, self.story_id)
             .await
     }
 }
@@ -1246,7 +1246,7 @@ impl<'a> RepostStoryBuilder<'a> {
     /// Sends the request to the Telegram Bot API.
     pub async fn send(self) -> Result<story::Story> {
         self.bot
-            .repost_story(
+            .repost_story_raw(
                 &self.business_connection_id,
                 self.from_chat_id,
                 self.from_story_id,
@@ -1286,7 +1286,7 @@ impl<'a> ApproveSuggestedPostBuilder<'a> {
     /// Sends the request to the Telegram Bot API.
     pub async fn send(self) -> Result<bool> {
         self.bot
-            .approve_suggested_post(self.chat_id, self.message_id, self.send_date)
+            .approve_suggested_post_raw(self.chat_id, self.message_id, self.send_date)
             .await
     }
 }
@@ -1315,7 +1315,7 @@ impl<'a> DeclineSuggestedPostBuilder<'a> {
     /// Sends the request to the Telegram Bot API.
     pub async fn send(self) -> Result<bool> {
         self.bot
-            .decline_suggested_post(self.chat_id, self.message_id, self.comment.as_deref())
+            .decline_suggested_post_raw(self.chat_id, self.message_id, self.comment.as_deref())
             .await
     }
 }
@@ -1353,7 +1353,7 @@ impl<'a> GetUserProfilePhotosBuilder<'a> {
     /// Sends the request to the Telegram Bot API.
     pub async fn send(self) -> Result<user_profile_photos::UserProfilePhotos> {
         self.bot
-            .get_user_profile_photos(self.user_id, self.offset, self.limit)
+            .get_user_profile_photos_raw(self.user_id, self.offset, self.limit)
             .await
     }
 }
@@ -1390,7 +1390,7 @@ impl<'a> GetUserProfileAudiosBuilder<'a> {
     /// Sends the request to the Telegram Bot API.
     pub async fn send(self) -> Result<user_profile_audios::UserProfileAudios> {
         self.bot
-            .get_user_profile_audios(self.user_id, self.offset, self.limit)
+            .get_user_profile_audios_raw(self.user_id, self.offset, self.limit)
             .await
     }
 }
@@ -1427,7 +1427,7 @@ impl<'a> SetUserEmojiStatusBuilder<'a> {
     /// Sends the request to the Telegram Bot API.
     pub async fn send(self) -> Result<bool> {
         self.bot
-            .set_user_emoji_status(
+            .set_user_emoji_status_raw(
                 self.user_id,
                 self.emoji_status_custom_emoji_id.as_deref(),
                 self.emoji_status_expiration_date,
@@ -1451,7 +1451,7 @@ pub struct SetMyProfilePhotoBuilder<'a> {
 impl<'a> SetMyProfilePhotoBuilder<'a> {
     /// Sends the request to the Telegram Bot API.
     pub async fn send(self) -> Result<bool> {
-        self.bot.set_my_profile_photo(self.photo).await
+        self.bot.set_my_profile_photo_raw(self.photo).await
     }
 }
 
@@ -1471,7 +1471,7 @@ pub struct RemoveMyProfilePhotoBuilder<'a> {
 impl<'a> RemoveMyProfilePhotoBuilder<'a> {
     /// Sends the request to the Telegram Bot API.
     pub async fn send(self) -> Result<bool> {
-        self.bot.remove_my_profile_photo().await
+        self.bot.remove_my_profile_photo_raw().await
     }
 }
 
@@ -1502,7 +1502,7 @@ impl<'a> VerifyChatBuilder<'a> {
     /// Sends the request to the Telegram Bot API.
     pub async fn send(self) -> Result<bool> {
         self.bot
-            .verify_chat(self.chat_id, self.custom_description.as_deref())
+            .verify_chat_raw(self.chat_id, self.custom_description.as_deref())
             .await
     }
 }
@@ -1530,7 +1530,7 @@ impl<'a> VerifyUserBuilder<'a> {
     /// Sends the request to the Telegram Bot API.
     pub async fn send(self) -> Result<bool> {
         self.bot
-            .verify_user(self.user_id, self.custom_description.as_deref())
+            .verify_user_raw(self.user_id, self.custom_description.as_deref())
             .await
     }
 }
@@ -1550,7 +1550,7 @@ pub struct RemoveChatVerificationBuilder<'a> {
 impl<'a> RemoveChatVerificationBuilder<'a> {
     /// Sends the request to the Telegram Bot API.
     pub async fn send(self) -> Result<bool> {
-        self.bot.remove_chat_verification(self.chat_id).await
+        self.bot.remove_chat_verification_raw(self.chat_id).await
     }
 }
 
@@ -1569,7 +1569,7 @@ pub struct RemoveUserVerificationBuilder<'a> {
 impl<'a> RemoveUserVerificationBuilder<'a> {
     /// Sends the request to the Telegram Bot API.
     pub async fn send(self) -> Result<bool> {
-        self.bot.remove_user_verification(self.user_id).await
+        self.bot.remove_user_verification_raw(self.user_id).await
     }
 }
 
@@ -1583,7 +1583,7 @@ impl Bot {
     // -- Editing methods --------------------------------------------------
 
     /// Build an `editMessageLiveLocation` request.
-    pub fn edit_message_live_location_builder(
+    pub fn edit_message_live_location(
         &self,
         latitude: f64,
         longitude: f64,
@@ -1605,7 +1605,7 @@ impl Bot {
     }
 
     /// Build a `stopMessageLiveLocation` request.
-    pub fn stop_message_live_location_builder(&self) -> StopMessageLiveLocationBuilder<'_> {
+    pub fn stop_message_live_location(&self) -> StopMessageLiveLocationBuilder<'_> {
         StopMessageLiveLocationBuilder {
             bot: self,
             chat_id: None,
@@ -1617,7 +1617,7 @@ impl Bot {
     }
 
     /// Build an `editMessageChecklist` request.
-    pub fn edit_message_checklist_builder(
+    pub fn edit_message_checklist(
         &self,
         business_connection_id: impl Into<String>,
         chat_id: i64,
@@ -1635,11 +1635,7 @@ impl Bot {
     }
 
     /// Build a `stopPoll` request.
-    pub fn stop_poll_builder(
-        &self,
-        chat_id: impl Into<ChatId>,
-        message_id: i64,
-    ) -> StopPollBuilder<'_> {
+    pub fn stop_poll(&self, chat_id: impl Into<ChatId>, message_id: i64) -> StopPollBuilder<'_> {
         StopPollBuilder {
             bot: self,
             chat_id: chat_id.into(),
@@ -1652,7 +1648,7 @@ impl Bot {
     // -- Games methods ----------------------------------------------------
 
     /// Build a `sendGame` request.
-    pub fn send_game_builder(
+    pub fn send_game(
         &self,
         chat_id: i64,
         game_short_name: impl Into<String>,
@@ -1673,7 +1669,7 @@ impl Bot {
     }
 
     /// Build a `setGameScore` request.
-    pub fn set_game_score_builder(&self, user_id: i64, score: i64) -> SetGameScoreBuilder<'_> {
+    pub fn set_game_score(&self, user_id: i64, score: i64) -> SetGameScoreBuilder<'_> {
         SetGameScoreBuilder {
             bot: self,
             user_id,
@@ -1687,7 +1683,7 @@ impl Bot {
     }
 
     /// Build a `getGameHighScores` request.
-    pub fn get_game_high_scores_builder(&self, user_id: i64) -> GetGameHighScoresBuilder<'_> {
+    pub fn get_game_high_scores(&self, user_id: i64) -> GetGameHighScoresBuilder<'_> {
         GetGameHighScoresBuilder {
             bot: self,
             user_id,
@@ -1700,7 +1696,7 @@ impl Bot {
     // -- Inline methods ---------------------------------------------------
 
     /// Build a `savePreparedInlineMessage` request.
-    pub fn save_prepared_inline_message_builder(
+    pub fn save_prepared_inline_message(
         &self,
         user_id: i64,
         result: serde_json::Value,
@@ -1717,7 +1713,7 @@ impl Bot {
     }
 
     /// Build an `answerWebAppQuery` request.
-    pub fn answer_web_app_query_builder(
+    pub fn answer_web_app_query(
         &self,
         web_app_query_id: impl Into<String>,
         result: serde_json::Value,
@@ -1732,7 +1728,7 @@ impl Bot {
     // -- Media group / paid media -----------------------------------------
 
     /// Build a `sendMediaGroup` request.
-    pub fn send_media_group_builder(
+    pub fn send_media_group(
         &self,
         chat_id: impl Into<ChatId>,
         media: Vec<serde_json::Value>,
@@ -1754,7 +1750,7 @@ impl Bot {
     }
 
     /// Build a `sendPaidMedia` request.
-    pub fn send_paid_media_builder(
+    pub fn send_paid_media(
         &self,
         chat_id: impl Into<ChatId>,
         star_count: i64,
@@ -1785,22 +1781,22 @@ impl Bot {
     // -- Core Bot methods -------------------------------------------------
 
     /// Build a `getMe` request.
-    pub fn get_me_builder(&self) -> GetMeBuilder<'_> {
+    pub fn get_me(&self) -> GetMeBuilder<'_> {
         GetMeBuilder { bot: self }
     }
 
     /// Build a `logOut` request.
-    pub fn log_out_builder(&self) -> LogOutBuilder<'_> {
+    pub fn log_out(&self) -> LogOutBuilder<'_> {
         LogOutBuilder { bot: self }
     }
 
     /// Build a `close` request.
-    pub fn close_builder(&self) -> CloseBuilder<'_> {
+    pub fn close(&self) -> CloseBuilder<'_> {
         CloseBuilder { bot: self }
     }
 
     /// Build a `getUpdates` request.
-    pub fn get_updates_builder(&self) -> GetUpdatesBuilder<'_> {
+    pub fn get_updates(&self) -> GetUpdatesBuilder<'_> {
         GetUpdatesBuilder {
             bot: self,
             offset: None,
@@ -1811,12 +1807,12 @@ impl Bot {
     }
 
     /// Build a `getWebhookInfo` request.
-    pub fn get_webhook_info_builder(&self) -> GetWebhookInfoBuilder<'_> {
+    pub fn get_webhook_info(&self) -> GetWebhookInfoBuilder<'_> {
         GetWebhookInfoBuilder { bot: self }
     }
 
     /// Build a `downloadFile` request.
-    pub fn download_file_builder(&self, file_path: impl Into<String>) -> DownloadFileBuilder<'_> {
+    pub fn download_file(&self, file_path: impl Into<String>) -> DownloadFileBuilder<'_> {
         DownloadFileBuilder {
             bot: self,
             file_path: file_path.into(),
@@ -1826,7 +1822,7 @@ impl Bot {
     // -- Other content (send_checklist) -----------------------------------
 
     /// Build a `sendChecklist` request.
-    pub fn send_checklist_builder(
+    pub fn send_checklist(
         &self,
         business_connection_id: impl Into<String>,
         chat_id: i64,
@@ -1848,7 +1844,7 @@ impl Bot {
     // -- Passport ---------------------------------------------------------
 
     /// Build a `setPassportDataErrors` request.
-    pub fn set_passport_data_errors_builder(
+    pub fn set_passport_data_errors(
         &self,
         user_id: i64,
         errors: Vec<serde_json::Value>,
@@ -1863,7 +1859,7 @@ impl Bot {
     // -- Reactions ---------------------------------------------------------
 
     /// Build a `setMessageReaction` request.
-    pub fn set_message_reaction_builder(
+    pub fn set_message_reaction(
         &self,
         chat_id: impl Into<ChatId>,
         message_id: i64,
@@ -1878,7 +1874,7 @@ impl Bot {
     }
 
     /// Build a `getUserChatBoosts` request.
-    pub fn get_user_chat_boosts_builder(
+    pub fn get_user_chat_boosts(
         &self,
         chat_id: impl Into<ChatId>,
         user_id: i64,
@@ -1893,7 +1889,7 @@ impl Bot {
     // -- Stories ----------------------------------------------------------
 
     /// Build a `postStory` request.
-    pub fn post_story_builder(
+    pub fn post_story(
         &self,
         business_connection_id: impl Into<String>,
         content: serde_json::Value,
@@ -1914,7 +1910,7 @@ impl Bot {
     }
 
     /// Build an `editStory` request.
-    pub fn edit_story_builder(
+    pub fn edit_story(
         &self,
         business_connection_id: impl Into<String>,
         story_id: i64,
@@ -1933,7 +1929,7 @@ impl Bot {
     }
 
     /// Build a `deleteStory` request.
-    pub fn delete_story_builder(
+    pub fn delete_story(
         &self,
         business_connection_id: impl Into<String>,
         story_id: i64,
@@ -1946,7 +1942,7 @@ impl Bot {
     }
 
     /// Build a `repostStory` request.
-    pub fn repost_story_builder(
+    pub fn repost_story(
         &self,
         business_connection_id: impl Into<String>,
         from_chat_id: i64,
@@ -1967,7 +1963,7 @@ impl Bot {
     // -- Suggested posts --------------------------------------------------
 
     /// Build an `approveSuggestedPost` request.
-    pub fn approve_suggested_post_builder(
+    pub fn approve_suggested_post(
         &self,
         chat_id: i64,
         message_id: i64,
@@ -1981,7 +1977,7 @@ impl Bot {
     }
 
     /// Build a `declineSuggestedPost` request.
-    pub fn decline_suggested_post_builder(
+    pub fn decline_suggested_post(
         &self,
         chat_id: i64,
         message_id: i64,
@@ -1997,7 +1993,7 @@ impl Bot {
     // -- User profile -----------------------------------------------------
 
     /// Build a `getUserProfilePhotos` request.
-    pub fn get_user_profile_photos_builder(&self, user_id: i64) -> GetUserProfilePhotosBuilder<'_> {
+    pub fn get_user_profile_photos(&self, user_id: i64) -> GetUserProfilePhotosBuilder<'_> {
         GetUserProfilePhotosBuilder {
             bot: self,
             user_id,
@@ -2007,7 +2003,7 @@ impl Bot {
     }
 
     /// Build a `getUserProfileAudios` request.
-    pub fn get_user_profile_audios_builder(&self, user_id: i64) -> GetUserProfileAudiosBuilder<'_> {
+    pub fn get_user_profile_audios(&self, user_id: i64) -> GetUserProfileAudiosBuilder<'_> {
         GetUserProfileAudiosBuilder {
             bot: self,
             user_id,
@@ -2017,7 +2013,7 @@ impl Bot {
     }
 
     /// Build a `setUserEmojiStatus` request.
-    pub fn set_user_emoji_status_builder(&self, user_id: i64) -> SetUserEmojiStatusBuilder<'_> {
+    pub fn set_user_emoji_status(&self, user_id: i64) -> SetUserEmojiStatusBuilder<'_> {
         SetUserEmojiStatusBuilder {
             bot: self,
             user_id,
@@ -2027,22 +2023,19 @@ impl Bot {
     }
 
     /// Build a `setMyProfilePhoto` request.
-    pub fn set_my_profile_photo_builder(
-        &self,
-        photo: serde_json::Value,
-    ) -> SetMyProfilePhotoBuilder<'_> {
+    pub fn set_my_profile_photo(&self, photo: serde_json::Value) -> SetMyProfilePhotoBuilder<'_> {
         SetMyProfilePhotoBuilder { bot: self, photo }
     }
 
     /// Build a `removeMyProfilePhoto` request.
-    pub fn remove_my_profile_photo_builder(&self) -> RemoveMyProfilePhotoBuilder<'_> {
+    pub fn remove_my_profile_photo(&self) -> RemoveMyProfilePhotoBuilder<'_> {
         RemoveMyProfilePhotoBuilder { bot: self }
     }
 
     // -- Verification -----------------------------------------------------
 
     /// Build a `verifyChat` request.
-    pub fn verify_chat_builder(&self, chat_id: impl Into<ChatId>) -> VerifyChatBuilder<'_> {
+    pub fn verify_chat(&self, chat_id: impl Into<ChatId>) -> VerifyChatBuilder<'_> {
         VerifyChatBuilder {
             bot: self,
             chat_id: chat_id.into(),
@@ -2051,7 +2044,7 @@ impl Bot {
     }
 
     /// Build a `verifyUser` request.
-    pub fn verify_user_builder(&self, user_id: i64) -> VerifyUserBuilder<'_> {
+    pub fn verify_user(&self, user_id: i64) -> VerifyUserBuilder<'_> {
         VerifyUserBuilder {
             bot: self,
             user_id,
@@ -2060,7 +2053,7 @@ impl Bot {
     }
 
     /// Build a `removeChatVerification` request.
-    pub fn remove_chat_verification_builder(
+    pub fn remove_chat_verification(
         &self,
         chat_id: impl Into<ChatId>,
     ) -> RemoveChatVerificationBuilder<'_> {
@@ -2071,10 +2064,7 @@ impl Bot {
     }
 
     /// Build a `removeUserVerification` request.
-    pub fn remove_user_verification_builder(
-        &self,
-        user_id: i64,
-    ) -> RemoveUserVerificationBuilder<'_> {
+    pub fn remove_user_verification(&self, user_id: i64) -> RemoveUserVerificationBuilder<'_> {
         RemoveUserVerificationBuilder { bot: self, user_id }
     }
 }

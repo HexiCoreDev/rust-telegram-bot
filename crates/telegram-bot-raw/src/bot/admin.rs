@@ -14,7 +14,7 @@ impl Bot {
     /// Use this method to change the bot's menu button in a private chat, or the default menu button.
     ///
     /// Calls the Telegram `setChatMenuButton` API method.
-    pub async fn set_chat_menu_button(
+    pub async fn set_chat_menu_button_raw(
         &self,
         chat_id: Option<i64>,
         menu_button: Option<menu_button::MenuButton>,
@@ -28,7 +28,7 @@ impl Bot {
     /// Use this method to get the current value of the bot's menu button in a private chat.
     ///
     /// Calls the Telegram `getChatMenuButton` API method.
-    pub async fn get_chat_menu_button(
+    pub async fn get_chat_menu_button_raw(
         &self,
         chat_id: Option<i64>,
     ) -> Result<menu_button::MenuButton> {
@@ -40,7 +40,7 @@ impl Bot {
     /// Use this method to change the list of the bot's commands.
     ///
     /// Calls the Telegram `setMyCommands` API method.
-    pub async fn set_my_commands(
+    pub async fn set_my_commands_raw(
         &self,
         commands: Vec<bot_command::BotCommand>,
         scope: Option<bot_command_scope::BotCommandScope>,
@@ -58,7 +58,7 @@ impl Bot {
     /// Use this method to get the current list of the bot's commands.
     ///
     /// Calls the Telegram `getMyCommands` API method.
-    pub async fn get_my_commands(
+    pub async fn get_my_commands_raw(
         &self,
         scope: Option<bot_command_scope::BotCommandScope>,
         language_code: Option<&str>,
@@ -72,7 +72,7 @@ impl Bot {
     /// Use this method to delete the list of the bot's commands for a given scope and language.
     ///
     /// Calls the Telegram `deleteMyCommands` API method.
-    pub async fn delete_my_commands(
+    pub async fn delete_my_commands_raw(
         &self,
         scope: Option<bot_command_scope::BotCommandScope>,
         language_code: Option<&str>,
@@ -86,7 +86,7 @@ impl Bot {
     /// Use this method to change the default administrator rights requested by the bot.
     ///
     /// Calls the Telegram `setMyDefaultAdministratorRights` API method.
-    pub async fn set_my_default_administrator_rights(
+    pub async fn set_my_default_administrator_rights_raw(
         &self,
         rights: Option<chat_administrator_rights::ChatAdministratorRights>,
         for_channels: Option<bool>,
@@ -101,7 +101,7 @@ impl Bot {
     /// Use this method to get the current default administrator rights of the bot.
     ///
     /// Calls the Telegram `getMyDefaultAdministratorRights` API method.
-    pub async fn get_my_default_administrator_rights(
+    pub async fn get_my_default_administrator_rights_raw(
         &self,
         for_channels: Option<bool>,
     ) -> Result<chat_administrator_rights::ChatAdministratorRights> {
@@ -118,7 +118,7 @@ impl Bot {
     /// Use this method to change the bot's description.
     ///
     /// Calls the Telegram `setMyDescription` API method.
-    pub async fn set_my_description(
+    pub async fn set_my_description_raw(
         &self,
         description: Option<&str>,
         language_code: Option<&str>,
@@ -132,7 +132,7 @@ impl Bot {
     /// Use this method to get the current bot description.
     ///
     /// Calls the Telegram `getMyDescription` API method.
-    pub async fn get_my_description(
+    pub async fn get_my_description_raw(
         &self,
         language_code: Option<&str>,
     ) -> Result<bot_description::BotDescription> {
@@ -144,7 +144,7 @@ impl Bot {
     /// Use this method to change the bot's short description.
     ///
     /// Calls the Telegram `setMyShortDescription` API method.
-    pub async fn set_my_short_description(
+    pub async fn set_my_short_description_raw(
         &self,
         short_description: Option<&str>,
         language_code: Option<&str>,
@@ -158,7 +158,7 @@ impl Bot {
     /// Use this method to get the current bot short description.
     ///
     /// Calls the Telegram `getMyShortDescription` API method.
-    pub async fn get_my_short_description(
+    pub async fn get_my_short_description_raw(
         &self,
         language_code: Option<&str>,
     ) -> Result<bot_description::BotShortDescription> {
@@ -170,7 +170,7 @@ impl Bot {
     /// Use this method to change the bot's name.
     ///
     /// Calls the Telegram `setMyName` API method.
-    pub async fn set_my_name(
+    pub async fn set_my_name_raw(
         &self,
         name: Option<&str>,
         language_code: Option<&str>,
@@ -184,7 +184,7 @@ impl Bot {
     /// Use this method to get the current bot name.
     ///
     /// Calls the Telegram `getMyName` API method.
-    pub async fn get_my_name(&self, language_code: Option<&str>) -> Result<bot_name::BotName> {
+    pub async fn get_my_name_raw(&self, language_code: Option<&str>) -> Result<bot_name::BotName> {
         let mut params = Vec::new();
         push_opt_str(&mut params, "language_code", language_code);
         self.do_post("getMyName", params).await

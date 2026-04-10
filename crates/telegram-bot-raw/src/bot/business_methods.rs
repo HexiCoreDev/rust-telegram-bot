@@ -11,7 +11,7 @@ impl Bot {
     /// Use this method to get information about the connection of the bot with a business account.
     ///
     /// Calls the Telegram `getBusinessConnection` API method.
-    pub async fn get_business_connection(
+    pub async fn get_business_connection_raw(
         &self,
         business_connection_id: &str,
     ) -> Result<business::BusinessConnection> {
@@ -25,7 +25,7 @@ impl Bot {
     /// Use this method to get the gifts received by a business account.
     ///
     /// Calls the Telegram `getBusinessAccountGifts` API method.
-    pub async fn get_business_account_gifts(
+    pub async fn get_business_account_gifts_raw(
         &self,
         business_connection_id: &str,
         exclude_unsaved: Option<bool>,
@@ -71,7 +71,7 @@ impl Bot {
     /// Use this method to get the current star balance of a business account.
     ///
     /// Calls the Telegram `getBusinessAccountStarBalance` API method.
-    pub async fn get_business_account_star_balance(
+    pub async fn get_business_account_star_balance_raw(
         &self,
         business_connection_id: &str,
     ) -> Result<payment::stars::star_amount::StarAmount> {
@@ -85,7 +85,7 @@ impl Bot {
     /// Use this method to mark a message as read on behalf of a business account.
     ///
     /// Calls the Telegram `readBusinessMessage` API method.
-    pub async fn read_business_message(
+    pub async fn read_business_message_raw(
         &self,
         business_connection_id: &str,
         chat_id: i64,
@@ -105,7 +105,7 @@ impl Bot {
     /// Use this method to delete messages on behalf of a business account.
     ///
     /// Calls the Telegram `deleteBusinessMessages` API method.
-    pub async fn delete_business_messages(
+    pub async fn delete_business_messages_raw(
         &self,
         business_connection_id: &str,
         message_ids: Vec<i64>,
@@ -123,7 +123,7 @@ impl Bot {
     /// Use this method to set the name of a business account.
     ///
     /// Calls the Telegram `setBusinessAccountName` API method.
-    pub async fn set_business_account_name(
+    pub async fn set_business_account_name_raw(
         &self,
         business_connection_id: &str,
         first_name: &str,
@@ -146,7 +146,7 @@ impl Bot {
     /// Use this method to set the username of a business account.
     ///
     /// Calls the Telegram `setBusinessAccountUsername` API method.
-    pub async fn set_business_account_username(
+    pub async fn set_business_account_username_raw(
         &self,
         business_connection_id: &str,
         username: Option<&str>,
@@ -162,7 +162,7 @@ impl Bot {
     /// Use this method to set the bio of a business account.
     ///
     /// Calls the Telegram `setBusinessAccountBio` API method.
-    pub async fn set_business_account_bio(
+    pub async fn set_business_account_bio_raw(
         &self,
         business_connection_id: &str,
         bio: Option<&str>,
@@ -178,7 +178,7 @@ impl Bot {
     /// Use this method to set the gift settings of a business account.
     ///
     /// Calls the Telegram `setBusinessAccountGiftSettings` API method.
-    pub async fn set_business_account_gift_settings(
+    pub async fn set_business_account_gift_settings_raw(
         &self,
         business_connection_id: &str,
         show_gift_button: bool,
@@ -201,7 +201,7 @@ impl Bot {
     /// Use this method to set the profile photo of a business account.
     ///
     /// Calls the Telegram `setBusinessAccountProfilePhoto` API method.
-    pub async fn set_business_account_profile_photo(
+    pub async fn set_business_account_profile_photo_raw(
         &self,
         business_connection_id: &str,
         photo: serde_json::Value,
@@ -221,7 +221,7 @@ impl Bot {
     /// Use this method to remove the profile photo of a business account.
     ///
     /// Calls the Telegram `removeBusinessAccountProfilePhoto` API method.
-    pub async fn remove_business_account_profile_photo(
+    pub async fn remove_business_account_profile_photo_raw(
         &self,
         business_connection_id: &str,
         is_public: Option<bool>,
@@ -238,7 +238,7 @@ impl Bot {
     /// Use this method to convert a regular gift owned by a business account to Telegram Stars.
     ///
     /// Calls the Telegram `convertGiftToStars` API method.
-    pub async fn convert_gift_to_stars(
+    pub async fn convert_gift_to_stars_raw(
         &self,
         business_connection_id: &str,
         owned_gift_id: &str,
@@ -259,7 +259,7 @@ impl Bot {
     /// Use this method to upgrade a regular gift to a unique gift.
     ///
     /// Calls the Telegram `upgradeGift` API method.
-    pub async fn upgrade_gift(
+    pub async fn upgrade_gift_raw(
         &self,
         business_connection_id: &str,
         owned_gift_id: &str,
@@ -284,7 +284,7 @@ impl Bot {
     /// Use this method to transfer a unique gift to another user or channel chat.
     ///
     /// Calls the Telegram `transferGift` API method.
-    pub async fn transfer_gift(
+    pub async fn transfer_gift_raw(
         &self,
         business_connection_id: &str,
         owned_gift_id: &str,
@@ -312,7 +312,7 @@ impl Bot {
     /// Use this method to transfer Telegram Stars from a business account to the bot's balance.
     ///
     /// Calls the Telegram `transferBusinessAccountStars` API method.
-    pub async fn transfer_business_account_stars(
+    pub async fn transfer_business_account_stars_raw(
         &self,
         business_connection_id: &str,
         star_count: i64,
