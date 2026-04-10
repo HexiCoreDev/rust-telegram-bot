@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.0-beta.5] - 2026-04-10
+
+### Added
+- 142 new builder structs for all remaining Bot API methods (total: 171 builders)
+  - messages: ForwardMessageBuilder, CopyMessageBuilder, DeleteMessageBuilder, etc.
+  - chat: BanChatMemberBuilder, PromoteChatMemberBuilder, CreateChatInviteLinkBuilder, etc.
+  - admin: SetMyCommandsBuilder, SetMyDescriptionBuilder, SetChatMenuButtonBuilder, etc.
+  - forum: CreateForumTopicBuilder, CloseForumTopicBuilder, EditForumTopicBuilder, etc.
+  - stickers: CreateNewStickerSetBuilder, AddStickerToSetBuilder, UploadStickerFileBuilder, etc.
+  - business: SetBusinessAccountNameBuilder, TransferBusinessAccountStarsBuilder, etc.
+  - payments: CreateInvoiceLinkBuilder, RefundStarPaymentBuilder, GetStarTransactionsBuilder, etc.
+  - gifts: SendGiftBuilder, GiftPremiumSubscriptionBuilder, etc.
+  - editing, games, inline, media, stories, reactions, passport, verification, user profile
+- Every Bot API method now has a builder with IntoFuture (direct `.await`)
+
 ## [1.0.0-beta.4c] - 2026-04-10
 
 ### Fixed

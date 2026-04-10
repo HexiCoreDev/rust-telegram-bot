@@ -8,7 +8,7 @@
 
 <p align="center">
 
-[![Version: 1.0.0-beta.4c](https://img.shields.io/badge/version-1.0.0--beta.4c-blueviolet)](https://github.com/HexiCoreDev/rust-telegram-bot/releases)
+[![Version: 1.0.0-beta.5](https://img.shields.io/badge/version-1.0.0--beta.5-blueviolet)](https://github.com/HexiCoreDev/rust-telegram-bot/releases)
 [![Bot API 9.6](https://img.shields.io/badge/Bot%20API-9.6-blue?logo=telegram)](https://core.telegram.org/bots/api-changelog)
 [![Rust: 1.75+](https://img.shields.io/badge/Rust-1.75%2B-orange?logo=rust)](https://www.rust-lang.org)
 [![License: LGPL-3.0](https://img.shields.io/badge/License-LGPL--3.0-green.svg)](https://www.gnu.org/licenses/lgpl-3.0.html)
@@ -26,7 +26,7 @@
 
 ---
 
-> **WARNING: This project is in active development (v1.0.0-beta.4c). The API is undergoing constant changes as we work toward full feature parity with python-telegram-bot and Rust-native performance optimizations. Use at your own risk -- breaking changes will occur between releases until v1.0.0 stable.**
+> **WARNING: This project is in active development (v1.0.0-beta.5). The API is undergoing constant changes as we work toward full feature parity with python-telegram-bot and Rust-native performance optimizations. Use at your own risk -- breaking changes will occur between releases until v1.0.0 stable.**
 
 ---
 
@@ -483,7 +483,7 @@ rust-tg-bot = { git = "https://github.com/HexiCoreDev/rust-telegram-bot", featur
 | Minimum version | Rust 1.75 | Python 3.10 | Rust 1.68 |
 | Builder pattern | IntoFuture (directly awaitable) | Keyword args | Method chains |
 | Typed constants | `ParseMode::Html` | `ParseMode.HTML` | String-based |
-| Maturity | **v1.0.0-beta.4c** (new) | Mature (10+ years) | Mature (3+ years) |
+| Maturity | **v1.0.0-beta.5** (new) | Mature (10+ years) | Mature (3+ years) |
 
 ## Examples
 
@@ -516,7 +516,7 @@ TELEGRAM_BOT_TOKEN="your-token" WEBHOOK_URL="https://your.domain" \
 
 ## Project Status
 
-**Current: v1.0.0-beta.4c -- API complete, stabilizing**
+**Current: v1.0.0-beta.5 -- API complete, stabilizing**
 
 What is implemented:
 
