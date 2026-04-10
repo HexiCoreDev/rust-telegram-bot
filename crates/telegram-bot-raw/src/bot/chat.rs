@@ -8,10 +8,10 @@ impl Bot {
     // Chat management
     // ======================================================================
 
-    /// Use this method to leave a group, supergroup or channel.
+    /// Internal raw method to leave a group, supergroup or channel.
     ///
     /// Calls the Telegram `leaveChat` API method.
-    pub async fn leave_chat(&self, chat_id: ChatId) -> Result<bool> {
+    pub(crate) async fn leave_chat_raw(&self, chat_id: ChatId) -> Result<bool> {
         let params = vec![RequestParameter::new(
             "chat_id",
             serde_json::to_value(&chat_id)?,
@@ -19,10 +19,13 @@ impl Bot {
         self.do_post("leaveChat", params).await
     }
 
-    /// Use this method to get up-to-date information about the chat.
+    /// Internal raw method to get up-to-date information about the chat.
     ///
     /// Calls the Telegram `getChat` API method.
-    pub async fn get_chat(&self, chat_id: ChatId) -> Result<chat_full_info::ChatFullInfo> {
+    pub(crate) async fn get_chat_raw(
+        &self,
+        chat_id: ChatId,
+    ) -> Result<chat_full_info::ChatFullInfo> {
         let params = vec![RequestParameter::new(
             "chat_id",
             serde_json::to_value(&chat_id)?,
@@ -30,10 +33,10 @@ impl Bot {
         self.do_post("getChat", params).await
     }
 
-    /// Use this method to get a list of administrators in a chat.
+    /// Internal raw method to get a list of administrators in a chat.
     ///
     /// Calls the Telegram `getChatAdministrators` API method.
-    pub async fn get_chat_administrators(
+    pub(crate) async fn get_chat_administrators_raw(
         &self,
         chat_id: ChatId,
     ) -> Result<Vec<chat_member::ChatMember>> {
@@ -44,10 +47,10 @@ impl Bot {
         self.do_post("getChatAdministrators", params).await
     }
 
-    /// Use this method to get the number of members in a chat.
+    /// Internal raw method to get the number of members in a chat.
     ///
     /// Calls the Telegram `getChatMemberCount` API method.
-    pub async fn get_chat_member_count(&self, chat_id: ChatId) -> Result<i64> {
+    pub(crate) async fn get_chat_member_count_raw(&self, chat_id: ChatId) -> Result<i64> {
         let params = vec![RequestParameter::new(
             "chat_id",
             serde_json::to_value(&chat_id)?,
@@ -55,10 +58,10 @@ impl Bot {
         self.do_post("getChatMemberCount", params).await
     }
 
-    /// Use this method to get information about a member of a chat.
+    /// Internal raw method to get information about a member of a chat.
     ///
     /// Calls the Telegram `getChatMember` API method.
-    pub async fn get_chat_member(
+    pub(crate) async fn get_chat_member_raw(
         &self,
         chat_id: ChatId,
         user_id: i64,
@@ -70,10 +73,10 @@ impl Bot {
         self.do_post("getChatMember", params).await
     }
 
-    /// Use this method to ban a user in a group, supergroup or channel.
+    /// Internal raw method to ban a user in a group, supergroup or channel.
     ///
     /// Calls the Telegram `banChatMember` API method.
-    pub async fn ban_chat_member(
+    pub(crate) async fn ban_chat_member_raw(
         &self,
         chat_id: ChatId,
         user_id: i64,
@@ -89,10 +92,10 @@ impl Bot {
         self.do_post("banChatMember", params).await
     }
 
-    /// Use this method to unban a previously banned user in a supergroup or channel.
+    /// Internal raw method to unban a previously banned user in a supergroup or channel.
     ///
     /// Calls the Telegram `unbanChatMember` API method.
-    pub async fn unban_chat_member(
+    pub(crate) async fn unban_chat_member_raw(
         &self,
         chat_id: ChatId,
         user_id: i64,
@@ -106,10 +109,14 @@ impl Bot {
         self.do_post("unbanChatMember", params).await
     }
 
-    /// Use this method to ban a channel chat in a supergroup or channel.
+    /// Internal raw method to ban a channel chat in a supergroup or channel.
     ///
     /// Calls the Telegram `banChatSenderChat` API method.
-    pub async fn ban_chat_sender_chat(&self, chat_id: ChatId, sender_chat_id: i64) -> Result<bool> {
+    pub(crate) async fn ban_chat_sender_chat_raw(
+        &self,
+        chat_id: ChatId,
+        sender_chat_id: i64,
+    ) -> Result<bool> {
         let params = vec![
             RequestParameter::new("chat_id", serde_json::to_value(&chat_id)?),
             RequestParameter::new("sender_chat_id", serde_json::to_value(sender_chat_id)?),
@@ -117,10 +124,10 @@ impl Bot {
         self.do_post("banChatSenderChat", params).await
     }
 
-    /// Use this method to unban a previously banned channel chat.
+    /// Internal raw method to unban a previously banned channel chat.
     ///
     /// Calls the Telegram `unbanChatSenderChat` API method.
-    pub async fn unban_chat_sender_chat(
+    pub(crate) async fn unban_chat_sender_chat_raw(
         &self,
         chat_id: ChatId,
         sender_chat_id: i64,
@@ -132,10 +139,10 @@ impl Bot {
         self.do_post("unbanChatSenderChat", params).await
     }
 
-    /// Use this method to restrict a user in a supergroup.
+    /// Internal raw method to restrict a user in a supergroup.
     ///
     /// Calls the Telegram `restrictChatMember` API method.
-    pub async fn restrict_chat_member(
+    pub(crate) async fn restrict_chat_member_raw(
         &self,
         chat_id: ChatId,
         user_id: i64,
@@ -157,10 +164,10 @@ impl Bot {
         self.do_post("restrictChatMember", params).await
     }
 
-    /// Use this method to promote or demote a user in a supergroup or channel.
+    /// Internal raw method to promote or demote a user in a supergroup or channel.
     ///
     /// Calls the Telegram `promoteChatMember` API method.
-    pub async fn promote_chat_member(
+    pub(crate) async fn promote_chat_member_raw(
         &self,
         chat_id: ChatId,
         user_id: i64,
@@ -214,10 +221,10 @@ impl Bot {
         self.do_post("promoteChatMember", params).await
     }
 
-    /// Use this method to set a custom title for an administrator in a supergroup.
+    /// Internal raw method to set a custom title for an administrator in a supergroup.
     ///
     /// Calls the Telegram `setChatAdministratorCustomTitle` API method.
-    pub async fn set_chat_administrator_custom_title(
+    pub(crate) async fn set_chat_administrator_custom_title_raw(
         &self,
         chat_id: ChatId,
         user_id: i64,
@@ -235,10 +242,10 @@ impl Bot {
             .await
     }
 
-    /// Use this method to set default chat permissions for all members.
+    /// Internal raw method to set default chat permissions for all members.
     ///
     /// Calls the Telegram `setChatPermissions` API method.
-    pub async fn set_chat_permissions(
+    pub(crate) async fn set_chat_permissions_raw(
         &self,
         chat_id: ChatId,
         permissions: chat_permissions::ChatPermissions,
@@ -256,10 +263,10 @@ impl Bot {
         self.do_post("setChatPermissions", params).await
     }
 
-    /// Use this method to set a new profile photo for the chat.
+    /// Internal raw method to set a new profile photo for the chat.
     ///
     /// Calls the Telegram `setChatPhoto` API method.
-    pub async fn set_chat_photo(
+    pub(crate) async fn set_chat_photo_raw(
         &self,
         chat_id: ChatId,
         photo: files::input_file::InputFile,
@@ -271,10 +278,10 @@ impl Bot {
         self.do_post("setChatPhoto", params).await
     }
 
-    /// Use this method to delete a chat photo.
+    /// Internal raw method to delete a chat photo.
     ///
     /// Calls the Telegram `deleteChatPhoto` API method.
-    pub async fn delete_chat_photo(&self, chat_id: ChatId) -> Result<bool> {
+    pub(crate) async fn delete_chat_photo_raw(&self, chat_id: ChatId) -> Result<bool> {
         let params = vec![RequestParameter::new(
             "chat_id",
             serde_json::to_value(&chat_id)?,
@@ -282,10 +289,10 @@ impl Bot {
         self.do_post("deleteChatPhoto", params).await
     }
 
-    /// Use this method to change the title of a chat.
+    /// Internal raw method to change the title of a chat.
     ///
     /// Calls the Telegram `setChatTitle` API method.
-    pub async fn set_chat_title(&self, chat_id: ChatId, title: &str) -> Result<bool> {
+    pub(crate) async fn set_chat_title_raw(&self, chat_id: ChatId, title: &str) -> Result<bool> {
         let params = vec![
             RequestParameter::new("chat_id", serde_json::to_value(&chat_id)?),
             RequestParameter::new("title", serde_json::Value::String(title.to_owned())),
@@ -293,10 +300,10 @@ impl Bot {
         self.do_post("setChatTitle", params).await
     }
 
-    /// Use this method to change the description of a group, supergroup or channel.
+    /// Internal raw method to change the description of a group, supergroup or channel.
     ///
     /// Calls the Telegram `setChatDescription` API method.
-    pub async fn set_chat_description(
+    pub(crate) async fn set_chat_description_raw(
         &self,
         chat_id: ChatId,
         description: Option<&str>,
@@ -309,10 +316,10 @@ impl Bot {
         self.do_post("setChatDescription", params).await
     }
 
-    /// Use this method to set a new group sticker set for a supergroup.
+    /// Internal raw method to set a new group sticker set for a supergroup.
     ///
     /// Calls the Telegram `setChatStickerSet` API method.
-    pub async fn set_chat_sticker_set(
+    pub(crate) async fn set_chat_sticker_set_raw(
         &self,
         chat_id: ChatId,
         sticker_set_name: &str,
@@ -327,10 +334,10 @@ impl Bot {
         self.do_post("setChatStickerSet", params).await
     }
 
-    /// Use this method to delete a group sticker set from a supergroup.
+    /// Internal raw method to delete a group sticker set from a supergroup.
     ///
     /// Calls the Telegram `deleteChatStickerSet` API method.
-    pub async fn delete_chat_sticker_set(&self, chat_id: ChatId) -> Result<bool> {
+    pub(crate) async fn delete_chat_sticker_set_raw(&self, chat_id: ChatId) -> Result<bool> {
         let params = vec![RequestParameter::new(
             "chat_id",
             serde_json::to_value(&chat_id)?,
@@ -338,10 +345,10 @@ impl Bot {
         self.do_post("deleteChatStickerSet", params).await
     }
 
-    /// Use this method to set a tag for a member of a chat.
+    /// Internal raw method to set a tag for a member of a chat.
     ///
     /// Calls the Telegram `setChatMemberTag` API method.
-    pub async fn set_chat_member_tag(
+    pub(crate) async fn set_chat_member_tag_raw(
         &self,
         chat_id: ChatId,
         user_id: i64,
@@ -359,10 +366,10 @@ impl Bot {
     // Chat pinning
     // ======================================================================
 
-    /// Use this method to add a message to the list of pinned messages in a chat.
+    /// Internal raw method to add a message to the list of pinned messages in a chat.
     ///
     /// Calls the Telegram `pinChatMessage` API method.
-    pub async fn pin_chat_message(
+    pub(crate) async fn pin_chat_message_raw(
         &self,
         chat_id: ChatId,
         message_id: i64,
@@ -382,10 +389,10 @@ impl Bot {
         self.do_post("pinChatMessage", params).await
     }
 
-    /// Use this method to remove a message from the list of pinned messages in a chat.
+    /// Internal raw method to remove a message from the list of pinned messages in a chat.
     ///
     /// Calls the Telegram `unpinChatMessage` API method.
-    pub async fn unpin_chat_message(
+    pub(crate) async fn unpin_chat_message_raw(
         &self,
         chat_id: ChatId,
         message_id: Option<i64>,
@@ -404,10 +411,10 @@ impl Bot {
         self.do_post("unpinChatMessage", params).await
     }
 
-    /// Use this method to clear the list of pinned messages in a chat.
+    /// Internal raw method to clear the list of pinned messages in a chat.
     ///
     /// Calls the Telegram `unpinAllChatMessages` API method.
-    pub async fn unpin_all_chat_messages(&self, chat_id: ChatId) -> Result<bool> {
+    pub(crate) async fn unpin_all_chat_messages_raw(&self, chat_id: ChatId) -> Result<bool> {
         let params = vec![RequestParameter::new(
             "chat_id",
             serde_json::to_value(&chat_id)?,
@@ -419,10 +426,10 @@ impl Bot {
     // Chat invite links
     // ======================================================================
 
-    /// Use this method to generate a new primary invite link for a chat.
+    /// Internal raw method to generate a new primary invite link for a chat.
     ///
     /// Calls the Telegram `exportChatInviteLink` API method.
-    pub async fn export_chat_invite_link(&self, chat_id: ChatId) -> Result<String> {
+    pub(crate) async fn export_chat_invite_link_raw(&self, chat_id: ChatId) -> Result<String> {
         let params = vec![RequestParameter::new(
             "chat_id",
             serde_json::to_value(&chat_id)?,
@@ -430,10 +437,10 @@ impl Bot {
         self.do_post("exportChatInviteLink", params).await
     }
 
-    /// Use this method to create an additional invite link for a chat.
+    /// Internal raw method to create an additional invite link for a chat.
     ///
     /// Calls the Telegram `createChatInviteLink` API method.
-    pub async fn create_chat_invite_link(
+    pub(crate) async fn create_chat_invite_link_raw(
         &self,
         chat_id: ChatId,
         expire_date: Option<i64>,
@@ -452,10 +459,10 @@ impl Bot {
         self.do_post("createChatInviteLink", params).await
     }
 
-    /// Use this method to edit a non-primary invite link created by the bot.
+    /// Internal raw method to edit a non-primary invite link created by the bot.
     ///
     /// Calls the Telegram `editChatInviteLink` API method.
-    pub async fn edit_chat_invite_link(
+    pub(crate) async fn edit_chat_invite_link_raw(
         &self,
         chat_id: ChatId,
         invite_link: &str,
@@ -478,10 +485,10 @@ impl Bot {
         self.do_post("editChatInviteLink", params).await
     }
 
-    /// Use this method to revoke an invite link created by the bot.
+    /// Internal raw method to revoke an invite link created by the bot.
     ///
     /// Calls the Telegram `revokeChatInviteLink` API method.
-    pub async fn revoke_chat_invite_link(
+    pub(crate) async fn revoke_chat_invite_link_raw(
         &self,
         chat_id: ChatId,
         invite_link: &str,
@@ -496,10 +503,10 @@ impl Bot {
         self.do_post("revokeChatInviteLink", params).await
     }
 
-    /// Use this method to create a subscription invite link for a channel chat.
+    /// Internal raw method to create a subscription invite link for a channel chat.
     ///
     /// Calls the Telegram `createChatSubscriptionInviteLink` API method.
-    pub async fn create_chat_subscription_invite_link(
+    pub(crate) async fn create_chat_subscription_invite_link_raw(
         &self,
         chat_id: ChatId,
         subscription_period: i64,
@@ -522,10 +529,10 @@ impl Bot {
             .await
     }
 
-    /// Use this method to edit a subscription invite link created by the bot.
+    /// Internal raw method to edit a subscription invite link created by the bot.
     ///
     /// Calls the Telegram `editChatSubscriptionInviteLink` API method.
-    pub async fn edit_chat_subscription_invite_link(
+    pub(crate) async fn edit_chat_subscription_invite_link_raw(
         &self,
         chat_id: ChatId,
         invite_link: &str,
@@ -542,10 +549,14 @@ impl Bot {
         self.do_post("editChatSubscriptionInviteLink", params).await
     }
 
-    /// Use this method to approve a chat join request.
+    /// Internal raw method to approve a chat join request.
     ///
     /// Calls the Telegram `approveChatJoinRequest` API method.
-    pub async fn approve_chat_join_request(&self, chat_id: ChatId, user_id: i64) -> Result<bool> {
+    pub(crate) async fn approve_chat_join_request_raw(
+        &self,
+        chat_id: ChatId,
+        user_id: i64,
+    ) -> Result<bool> {
         let params = vec![
             RequestParameter::new("chat_id", serde_json::to_value(&chat_id)?),
             RequestParameter::new("user_id", serde_json::to_value(user_id)?),
@@ -553,10 +564,14 @@ impl Bot {
         self.do_post("approveChatJoinRequest", params).await
     }
 
-    /// Use this method to decline a chat join request.
+    /// Internal raw method to decline a chat join request.
     ///
     /// Calls the Telegram `declineChatJoinRequest` API method.
-    pub async fn decline_chat_join_request(&self, chat_id: ChatId, user_id: i64) -> Result<bool> {
+    pub(crate) async fn decline_chat_join_request_raw(
+        &self,
+        chat_id: ChatId,
+        user_id: i64,
+    ) -> Result<bool> {
         let params = vec![
             RequestParameter::new("chat_id", serde_json::to_value(&chat_id)?),
             RequestParameter::new("user_id", serde_json::to_value(user_id)?),

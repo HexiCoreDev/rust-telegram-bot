@@ -16,6 +16,13 @@ mod macros;
 pub mod bot;
 /// Builder types for constructing a [`Bot`](bot::Bot) with custom configuration.
 pub mod bot_builders;
+/// Builder types for Admin, Forum, and Sticker API methods.
+pub mod bot_builders_2;
+/// Builder types for business, payment, and gift API methods.
+pub mod bot_builders_3;
+/// Builder types for editing, games, inline, media, core, stories, reactions,
+/// passport, suggested posts, user profile, and verification API methods.
+pub mod bot_builders_4;
 /// Typed constants for chat types, parse modes, message entity types, etc.
 pub mod constants;
 /// Error types used throughout the crate.

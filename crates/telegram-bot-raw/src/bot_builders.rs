@@ -21,7 +21,8 @@ use crate::bot::{Bot, ChatId, MessageOrBool};
 use crate::error::Result;
 use crate::request::request_parameter::{InputFileRef, RequestParameter};
 use crate::types::{
-    files, inline, link_preview_options, message, message_entity, prepared_keyboard_button, reply,
+    chat_full_info, chat_invite_link, chat_member, chat_permissions, files, inline,
+    link_preview_options, message, message_entity, message_id, prepared_keyboard_button, reply,
     suggested_post,
 };
 use serde::Serialize;
@@ -3760,3 +3761,2001 @@ impl<'a> SendChatActionBuilder<'a> {
 }
 
 impl_into_future!(SendChatActionBuilder, bool);
+
+// =========================================================================
+// CopyMessageBuilder
+// =========================================================================
+
+/// Builder for the [`copyMessage`] API method.
+#[derive(Serialize)]
+pub struct CopyMessageBuilder<'a> {
+    #[serde(skip)]
+    bot: &'a Bot,
+    chat_id: ChatId,
+    from_chat_id: ChatId,
+    message_id: i64,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    caption: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    parse_mode: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    caption_entities: Option<Vec<message_entity::MessageEntity>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    disable_notification: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    protect_content: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    reply_parameters: Option<reply::ReplyParameters>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    reply_markup: Option<serde_json::Value>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    message_thread_id: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    show_caption_above_media: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    allow_paid_broadcast: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    video_start_timestamp: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    direct_messages_topic_id: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    suggested_post_parameters: Option<suggested_post::SuggestedPostParameters>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    message_effect_id: Option<String>,
+}
+
+impl<'a> CopyMessageBuilder<'a> {
+    /// Sets the `caption` parameter.
+    pub fn caption(mut self, val: impl Into<String>) -> Self {
+        self.caption = Some(val.into());
+        self
+    }
+    /// Sets the `parse_mode` parameter.
+    pub fn parse_mode(mut self, val: impl Into<String>) -> Self {
+        self.parse_mode = Some(val.into());
+        self
+    }
+    /// Sets the `caption_entities` parameter.
+    pub fn caption_entities(mut self, val: Vec<message_entity::MessageEntity>) -> Self {
+        self.caption_entities = Some(val);
+        self
+    }
+    /// Sets the `disable_notification` parameter.
+    pub fn disable_notification(mut self, val: bool) -> Self {
+        self.disable_notification = Some(val);
+        self
+    }
+    /// Sets the `protect_content` parameter.
+    pub fn protect_content(mut self, val: bool) -> Self {
+        self.protect_content = Some(val);
+        self
+    }
+    /// Sets the `reply_parameters` parameter.
+    pub fn reply_parameters(mut self, val: reply::ReplyParameters) -> Self {
+        self.reply_parameters = Some(val);
+        self
+    }
+    /// Sets the `reply_markup` parameter.
+    pub fn reply_markup(mut self, val: serde_json::Value) -> Self {
+        self.reply_markup = Some(val);
+        self
+    }
+    /// Sets the `message_thread_id` parameter.
+    pub fn message_thread_id(mut self, val: i64) -> Self {
+        self.message_thread_id = Some(val);
+        self
+    }
+    /// Sets the `show_caption_above_media` parameter.
+    pub fn show_caption_above_media(mut self, val: bool) -> Self {
+        self.show_caption_above_media = Some(val);
+        self
+    }
+    /// Sets the `allow_paid_broadcast` parameter.
+    pub fn allow_paid_broadcast(mut self, val: bool) -> Self {
+        self.allow_paid_broadcast = Some(val);
+        self
+    }
+    /// Sets the `video_start_timestamp` parameter.
+    pub fn video_start_timestamp(mut self, val: i64) -> Self {
+        self.video_start_timestamp = Some(val);
+        self
+    }
+    /// Sets the `direct_messages_topic_id` parameter.
+    pub fn direct_messages_topic_id(mut self, val: i64) -> Self {
+        self.direct_messages_topic_id = Some(val);
+        self
+    }
+    /// Sets the `suggested_post_parameters` parameter.
+    pub fn suggested_post_parameters(
+        mut self,
+        val: suggested_post::SuggestedPostParameters,
+    ) -> Self {
+        self.suggested_post_parameters = Some(val);
+        self
+    }
+    /// Sets the `message_effect_id` parameter.
+    pub fn message_effect_id(mut self, val: impl Into<String>) -> Self {
+        self.message_effect_id = Some(val.into());
+        self
+    }
+
+    /// Sends the request to the Telegram Bot API.
+    pub async fn send(self) -> Result<message_id::MessageId> {
+        let payload = serde_json::to_vec(&self)?;
+        self.bot.do_post_json("copyMessage", &payload).await
+    }
+}
+
+impl_into_future!(CopyMessageBuilder, message_id::MessageId);
+
+// =========================================================================
+// CopyMessagesBuilder
+// =========================================================================
+
+/// Builder for the [`copyMessages`] API method.
+#[derive(Serialize)]
+pub struct CopyMessagesBuilder<'a> {
+    #[serde(skip)]
+    bot: &'a Bot,
+    chat_id: ChatId,
+    from_chat_id: ChatId,
+    message_ids: Vec<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    disable_notification: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    protect_content: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    message_thread_id: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    remove_caption: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    direct_messages_topic_id: Option<i64>,
+}
+
+impl<'a> CopyMessagesBuilder<'a> {
+    /// Sets the `disable_notification` parameter.
+    pub fn disable_notification(mut self, val: bool) -> Self {
+        self.disable_notification = Some(val);
+        self
+    }
+    /// Sets the `protect_content` parameter.
+    pub fn protect_content(mut self, val: bool) -> Self {
+        self.protect_content = Some(val);
+        self
+    }
+    /// Sets the `message_thread_id` parameter.
+    pub fn message_thread_id(mut self, val: i64) -> Self {
+        self.message_thread_id = Some(val);
+        self
+    }
+    /// Sets the `remove_caption` parameter.
+    pub fn remove_caption(mut self, val: bool) -> Self {
+        self.remove_caption = Some(val);
+        self
+    }
+    /// Sets the `direct_messages_topic_id` parameter.
+    pub fn direct_messages_topic_id(mut self, val: i64) -> Self {
+        self.direct_messages_topic_id = Some(val);
+        self
+    }
+
+    /// Sends the request to the Telegram Bot API.
+    pub async fn send(self) -> Result<Vec<message_id::MessageId>> {
+        let payload = serde_json::to_vec(&self)?;
+        self.bot.do_post_json("copyMessages", &payload).await
+    }
+}
+
+impl_into_future!(CopyMessagesBuilder, Vec<message_id::MessageId>);
+
+// =========================================================================
+// DeleteMessageBuilder
+// =========================================================================
+
+/// Builder for the [`deleteMessage`] API method.
+#[derive(Serialize)]
+pub struct DeleteMessageBuilder<'a> {
+    #[serde(skip)]
+    bot: &'a Bot,
+    chat_id: ChatId,
+    message_id: i64,
+}
+
+impl<'a> DeleteMessageBuilder<'a> {
+    /// Sends the request to the Telegram Bot API.
+    pub async fn send(self) -> Result<bool> {
+        let payload = serde_json::to_vec(&self)?;
+        self.bot.do_post_json("deleteMessage", &payload).await
+    }
+}
+
+impl_into_future!(DeleteMessageBuilder, bool);
+
+// =========================================================================
+// DeleteMessagesBuilder
+// =========================================================================
+
+/// Builder for the [`deleteMessages`] API method.
+#[derive(Serialize)]
+pub struct DeleteMessagesBuilder<'a> {
+    #[serde(skip)]
+    bot: &'a Bot,
+    chat_id: ChatId,
+    message_ids: Vec<i64>,
+}
+
+impl<'a> DeleteMessagesBuilder<'a> {
+    /// Sends the request to the Telegram Bot API.
+    pub async fn send(self) -> Result<bool> {
+        let payload = serde_json::to_vec(&self)?;
+        self.bot.do_post_json("deleteMessages", &payload).await
+    }
+}
+
+impl_into_future!(DeleteMessagesBuilder, bool);
+
+// =========================================================================
+// ForwardMessageBuilder
+// =========================================================================
+
+/// Builder for the [`forwardMessage`] API method.
+#[derive(Serialize)]
+pub struct ForwardMessageBuilder<'a> {
+    #[serde(skip)]
+    bot: &'a Bot,
+    chat_id: ChatId,
+    from_chat_id: ChatId,
+    message_id: i64,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    disable_notification: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    protect_content: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    message_thread_id: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    video_start_timestamp: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    direct_messages_topic_id: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    suggested_post_parameters: Option<suggested_post::SuggestedPostParameters>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    message_effect_id: Option<String>,
+}
+
+impl<'a> ForwardMessageBuilder<'a> {
+    /// Sets the `disable_notification` parameter.
+    pub fn disable_notification(mut self, val: bool) -> Self {
+        self.disable_notification = Some(val);
+        self
+    }
+    /// Sets the `protect_content` parameter.
+    pub fn protect_content(mut self, val: bool) -> Self {
+        self.protect_content = Some(val);
+        self
+    }
+    /// Sets the `message_thread_id` parameter.
+    pub fn message_thread_id(mut self, val: i64) -> Self {
+        self.message_thread_id = Some(val);
+        self
+    }
+    /// Sets the `video_start_timestamp` parameter.
+    pub fn video_start_timestamp(mut self, val: i64) -> Self {
+        self.video_start_timestamp = Some(val);
+        self
+    }
+    /// Sets the `direct_messages_topic_id` parameter.
+    pub fn direct_messages_topic_id(mut self, val: i64) -> Self {
+        self.direct_messages_topic_id = Some(val);
+        self
+    }
+    /// Sets the `suggested_post_parameters` parameter.
+    pub fn suggested_post_parameters(
+        mut self,
+        val: suggested_post::SuggestedPostParameters,
+    ) -> Self {
+        self.suggested_post_parameters = Some(val);
+        self
+    }
+    /// Sets the `message_effect_id` parameter.
+    pub fn message_effect_id(mut self, val: impl Into<String>) -> Self {
+        self.message_effect_id = Some(val.into());
+        self
+    }
+
+    /// Sends the request to the Telegram Bot API.
+    pub async fn send(self) -> Result<message::Message> {
+        let payload = serde_json::to_vec(&self)?;
+        self.bot.do_post_json("forwardMessage", &payload).await
+    }
+}
+
+impl_into_future!(ForwardMessageBuilder, message::Message);
+
+// =========================================================================
+// ForwardMessagesBuilder
+// =========================================================================
+
+/// Builder for the [`forwardMessages`] API method.
+#[derive(Serialize)]
+pub struct ForwardMessagesBuilder<'a> {
+    #[serde(skip)]
+    bot: &'a Bot,
+    chat_id: ChatId,
+    from_chat_id: ChatId,
+    message_ids: Vec<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    disable_notification: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    protect_content: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    message_thread_id: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    direct_messages_topic_id: Option<i64>,
+}
+
+impl<'a> ForwardMessagesBuilder<'a> {
+    /// Sets the `disable_notification` parameter.
+    pub fn disable_notification(mut self, val: bool) -> Self {
+        self.disable_notification = Some(val);
+        self
+    }
+    /// Sets the `protect_content` parameter.
+    pub fn protect_content(mut self, val: bool) -> Self {
+        self.protect_content = Some(val);
+        self
+    }
+    /// Sets the `message_thread_id` parameter.
+    pub fn message_thread_id(mut self, val: i64) -> Self {
+        self.message_thread_id = Some(val);
+        self
+    }
+    /// Sets the `direct_messages_topic_id` parameter.
+    pub fn direct_messages_topic_id(mut self, val: i64) -> Self {
+        self.direct_messages_topic_id = Some(val);
+        self
+    }
+
+    /// Sends the request to the Telegram Bot API.
+    pub async fn send(self) -> Result<Vec<message_id::MessageId>> {
+        let payload = serde_json::to_vec(&self)?;
+        self.bot.do_post_json("forwardMessages", &payload).await
+    }
+}
+
+impl_into_future!(ForwardMessagesBuilder, Vec<message_id::MessageId>);
+
+// =========================================================================
+// SendMessageDraftBuilder
+// =========================================================================
+
+/// Builder for the [`sendMessageDraft`] API method.
+#[derive(Serialize)]
+pub struct SendMessageDraftBuilder<'a> {
+    #[serde(skip)]
+    bot: &'a Bot,
+    chat_id: i64,
+    draft_id: i64,
+    text: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    message_thread_id: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    parse_mode: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    entities: Option<Vec<message_entity::MessageEntity>>,
+}
+
+impl<'a> SendMessageDraftBuilder<'a> {
+    /// Sets the `message_thread_id` parameter.
+    pub fn message_thread_id(mut self, val: i64) -> Self {
+        self.message_thread_id = Some(val);
+        self
+    }
+    /// Sets the `parse_mode` parameter.
+    pub fn parse_mode(mut self, val: impl Into<String>) -> Self {
+        self.parse_mode = Some(val.into());
+        self
+    }
+    /// Sets the `entities` parameter.
+    pub fn entities(mut self, val: Vec<message_entity::MessageEntity>) -> Self {
+        self.entities = Some(val);
+        self
+    }
+
+    /// Sends the request to the Telegram Bot API.
+    pub async fn send(self) -> Result<bool> {
+        let payload = serde_json::to_vec(&self)?;
+        self.bot.do_post_json("sendMessageDraft", &payload).await
+    }
+}
+
+impl_into_future!(SendMessageDraftBuilder, bool);
+
+// =========================================================================
+// LeaveChatBuilder
+// =========================================================================
+
+/// Builder for the [`leaveChat`] API method.
+#[derive(Serialize)]
+pub struct LeaveChatBuilder<'a> {
+    #[serde(skip)]
+    bot: &'a Bot,
+    chat_id: ChatId,
+}
+
+impl<'a> LeaveChatBuilder<'a> {
+    /// Sends the request to the Telegram Bot API.
+    pub async fn send(self) -> Result<bool> {
+        let payload = serde_json::to_vec(&self)?;
+        self.bot.do_post_json("leaveChat", &payload).await
+    }
+}
+
+impl_into_future!(LeaveChatBuilder, bool);
+
+// =========================================================================
+// GetChatBuilder
+// =========================================================================
+
+/// Builder for the [`getChat`] API method.
+#[derive(Serialize)]
+pub struct GetChatBuilder<'a> {
+    #[serde(skip)]
+    bot: &'a Bot,
+    chat_id: ChatId,
+}
+
+impl<'a> GetChatBuilder<'a> {
+    /// Sends the request to the Telegram Bot API.
+    pub async fn send(self) -> Result<chat_full_info::ChatFullInfo> {
+        let payload = serde_json::to_vec(&self)?;
+        self.bot.do_post_json("getChat", &payload).await
+    }
+}
+
+impl_into_future!(GetChatBuilder, chat_full_info::ChatFullInfo);
+
+// =========================================================================
+// GetChatAdministratorsBuilder
+// =========================================================================
+
+/// Builder for the [`getChatAdministrators`] API method.
+#[derive(Serialize)]
+pub struct GetChatAdministratorsBuilder<'a> {
+    #[serde(skip)]
+    bot: &'a Bot,
+    chat_id: ChatId,
+}
+
+impl<'a> GetChatAdministratorsBuilder<'a> {
+    /// Sends the request to the Telegram Bot API.
+    pub async fn send(self) -> Result<Vec<chat_member::ChatMember>> {
+        let payload = serde_json::to_vec(&self)?;
+        self.bot
+            .do_post_json("getChatAdministrators", &payload)
+            .await
+    }
+}
+
+impl_into_future!(GetChatAdministratorsBuilder, Vec<chat_member::ChatMember>);
+
+// =========================================================================
+// GetChatMemberCountBuilder
+// =========================================================================
+
+/// Builder for the [`getChatMemberCount`] API method.
+#[derive(Serialize)]
+pub struct GetChatMemberCountBuilder<'a> {
+    #[serde(skip)]
+    bot: &'a Bot,
+    chat_id: ChatId,
+}
+
+impl<'a> GetChatMemberCountBuilder<'a> {
+    /// Sends the request to the Telegram Bot API.
+    pub async fn send(self) -> Result<i64> {
+        let payload = serde_json::to_vec(&self)?;
+        self.bot.do_post_json("getChatMemberCount", &payload).await
+    }
+}
+
+impl_into_future!(GetChatMemberCountBuilder, i64);
+
+// =========================================================================
+// GetChatMemberBuilder
+// =========================================================================
+
+/// Builder for the [`getChatMember`] API method.
+#[derive(Serialize)]
+pub struct GetChatMemberBuilder<'a> {
+    #[serde(skip)]
+    bot: &'a Bot,
+    chat_id: ChatId,
+    user_id: i64,
+}
+
+impl<'a> GetChatMemberBuilder<'a> {
+    /// Sends the request to the Telegram Bot API.
+    pub async fn send(self) -> Result<chat_member::ChatMember> {
+        let payload = serde_json::to_vec(&self)?;
+        self.bot.do_post_json("getChatMember", &payload).await
+    }
+}
+
+impl_into_future!(GetChatMemberBuilder, chat_member::ChatMember);
+
+// =========================================================================
+// BanChatMemberBuilder
+// =========================================================================
+
+/// Builder for the [`banChatMember`] API method.
+#[derive(Serialize)]
+pub struct BanChatMemberBuilder<'a> {
+    #[serde(skip)]
+    bot: &'a Bot,
+    chat_id: ChatId,
+    user_id: i64,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    until_date: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    revoke_messages: Option<bool>,
+}
+
+impl<'a> BanChatMemberBuilder<'a> {
+    /// Sets the `until_date` parameter.
+    pub fn until_date(mut self, val: i64) -> Self {
+        self.until_date = Some(val);
+        self
+    }
+    /// Sets the `revoke_messages` parameter.
+    pub fn revoke_messages(mut self, val: bool) -> Self {
+        self.revoke_messages = Some(val);
+        self
+    }
+
+    /// Sends the request to the Telegram Bot API.
+    pub async fn send(self) -> Result<bool> {
+        let payload = serde_json::to_vec(&self)?;
+        self.bot.do_post_json("banChatMember", &payload).await
+    }
+}
+
+impl_into_future!(BanChatMemberBuilder, bool);
+
+// =========================================================================
+// UnbanChatMemberBuilder
+// =========================================================================
+
+/// Builder for the [`unbanChatMember`] API method.
+#[derive(Serialize)]
+pub struct UnbanChatMemberBuilder<'a> {
+    #[serde(skip)]
+    bot: &'a Bot,
+    chat_id: ChatId,
+    user_id: i64,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    only_if_banned: Option<bool>,
+}
+
+impl<'a> UnbanChatMemberBuilder<'a> {
+    /// Sets the `only_if_banned` parameter.
+    pub fn only_if_banned(mut self, val: bool) -> Self {
+        self.only_if_banned = Some(val);
+        self
+    }
+
+    /// Sends the request to the Telegram Bot API.
+    pub async fn send(self) -> Result<bool> {
+        let payload = serde_json::to_vec(&self)?;
+        self.bot.do_post_json("unbanChatMember", &payload).await
+    }
+}
+
+impl_into_future!(UnbanChatMemberBuilder, bool);
+
+// =========================================================================
+// BanChatSenderChatBuilder
+// =========================================================================
+
+/// Builder for the [`banChatSenderChat`] API method.
+#[derive(Serialize)]
+pub struct BanChatSenderChatBuilder<'a> {
+    #[serde(skip)]
+    bot: &'a Bot,
+    chat_id: ChatId,
+    sender_chat_id: i64,
+}
+
+impl<'a> BanChatSenderChatBuilder<'a> {
+    /// Sends the request to the Telegram Bot API.
+    pub async fn send(self) -> Result<bool> {
+        let payload = serde_json::to_vec(&self)?;
+        self.bot.do_post_json("banChatSenderChat", &payload).await
+    }
+}
+
+impl_into_future!(BanChatSenderChatBuilder, bool);
+
+// =========================================================================
+// UnbanChatSenderChatBuilder
+// =========================================================================
+
+/// Builder for the [`unbanChatSenderChat`] API method.
+#[derive(Serialize)]
+pub struct UnbanChatSenderChatBuilder<'a> {
+    #[serde(skip)]
+    bot: &'a Bot,
+    chat_id: ChatId,
+    sender_chat_id: i64,
+}
+
+impl<'a> UnbanChatSenderChatBuilder<'a> {
+    /// Sends the request to the Telegram Bot API.
+    pub async fn send(self) -> Result<bool> {
+        let payload = serde_json::to_vec(&self)?;
+        self.bot.do_post_json("unbanChatSenderChat", &payload).await
+    }
+}
+
+impl_into_future!(UnbanChatSenderChatBuilder, bool);
+
+// =========================================================================
+// RestrictChatMemberBuilder
+// =========================================================================
+
+/// Builder for the [`restrictChatMember`] API method.
+#[derive(Serialize)]
+pub struct RestrictChatMemberBuilder<'a> {
+    #[serde(skip)]
+    bot: &'a Bot,
+    chat_id: ChatId,
+    user_id: i64,
+    permissions: chat_permissions::ChatPermissions,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    until_date: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    use_independent_chat_permissions: Option<bool>,
+}
+
+impl<'a> RestrictChatMemberBuilder<'a> {
+    /// Sets the `until_date` parameter.
+    pub fn until_date(mut self, val: i64) -> Self {
+        self.until_date = Some(val);
+        self
+    }
+    /// Sets the `use_independent_chat_permissions` parameter.
+    pub fn use_independent_chat_permissions(mut self, val: bool) -> Self {
+        self.use_independent_chat_permissions = Some(val);
+        self
+    }
+
+    /// Sends the request to the Telegram Bot API.
+    pub async fn send(self) -> Result<bool> {
+        let payload = serde_json::to_vec(&self)?;
+        self.bot.do_post_json("restrictChatMember", &payload).await
+    }
+}
+
+impl_into_future!(RestrictChatMemberBuilder, bool);
+
+// =========================================================================
+// PromoteChatMemberBuilder
+// =========================================================================
+
+/// Builder for the [`promoteChatMember`] API method.
+#[derive(Serialize)]
+pub struct PromoteChatMemberBuilder<'a> {
+    #[serde(skip)]
+    bot: &'a Bot,
+    chat_id: ChatId,
+    user_id: i64,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    is_anonymous: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    can_manage_chat: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    can_post_messages: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    can_edit_messages: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    can_delete_messages: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    can_manage_video_chats: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    can_restrict_members: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    can_promote_members: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    can_change_info: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    can_invite_users: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    can_pin_messages: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    can_manage_topics: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    can_post_stories: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    can_edit_stories: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    can_delete_stories: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    can_manage_direct_messages: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    can_manage_tags: Option<bool>,
+}
+
+impl<'a> PromoteChatMemberBuilder<'a> {
+    /// Sets the `is_anonymous` parameter.
+    pub fn is_anonymous(mut self, val: bool) -> Self {
+        self.is_anonymous = Some(val);
+        self
+    }
+    /// Sets the `can_manage_chat` parameter.
+    pub fn can_manage_chat(mut self, val: bool) -> Self {
+        self.can_manage_chat = Some(val);
+        self
+    }
+    /// Sets the `can_post_messages` parameter.
+    pub fn can_post_messages(mut self, val: bool) -> Self {
+        self.can_post_messages = Some(val);
+        self
+    }
+    /// Sets the `can_edit_messages` parameter.
+    pub fn can_edit_messages(mut self, val: bool) -> Self {
+        self.can_edit_messages = Some(val);
+        self
+    }
+    /// Sets the `can_delete_messages` parameter.
+    pub fn can_delete_messages(mut self, val: bool) -> Self {
+        self.can_delete_messages = Some(val);
+        self
+    }
+    /// Sets the `can_manage_video_chats` parameter.
+    pub fn can_manage_video_chats(mut self, val: bool) -> Self {
+        self.can_manage_video_chats = Some(val);
+        self
+    }
+    /// Sets the `can_restrict_members` parameter.
+    pub fn can_restrict_members(mut self, val: bool) -> Self {
+        self.can_restrict_members = Some(val);
+        self
+    }
+    /// Sets the `can_promote_members` parameter.
+    pub fn can_promote_members(mut self, val: bool) -> Self {
+        self.can_promote_members = Some(val);
+        self
+    }
+    /// Sets the `can_change_info` parameter.
+    pub fn can_change_info(mut self, val: bool) -> Self {
+        self.can_change_info = Some(val);
+        self
+    }
+    /// Sets the `can_invite_users` parameter.
+    pub fn can_invite_users(mut self, val: bool) -> Self {
+        self.can_invite_users = Some(val);
+        self
+    }
+    /// Sets the `can_pin_messages` parameter.
+    pub fn can_pin_messages(mut self, val: bool) -> Self {
+        self.can_pin_messages = Some(val);
+        self
+    }
+    /// Sets the `can_manage_topics` parameter.
+    pub fn can_manage_topics(mut self, val: bool) -> Self {
+        self.can_manage_topics = Some(val);
+        self
+    }
+    /// Sets the `can_post_stories` parameter.
+    pub fn can_post_stories(mut self, val: bool) -> Self {
+        self.can_post_stories = Some(val);
+        self
+    }
+    /// Sets the `can_edit_stories` parameter.
+    pub fn can_edit_stories(mut self, val: bool) -> Self {
+        self.can_edit_stories = Some(val);
+        self
+    }
+    /// Sets the `can_delete_stories` parameter.
+    pub fn can_delete_stories(mut self, val: bool) -> Self {
+        self.can_delete_stories = Some(val);
+        self
+    }
+    /// Sets the `can_manage_direct_messages` parameter.
+    pub fn can_manage_direct_messages(mut self, val: bool) -> Self {
+        self.can_manage_direct_messages = Some(val);
+        self
+    }
+    /// Sets the `can_manage_tags` parameter.
+    pub fn can_manage_tags(mut self, val: bool) -> Self {
+        self.can_manage_tags = Some(val);
+        self
+    }
+
+    /// Sends the request to the Telegram Bot API.
+    pub async fn send(self) -> Result<bool> {
+        let payload = serde_json::to_vec(&self)?;
+        self.bot.do_post_json("promoteChatMember", &payload).await
+    }
+}
+
+impl_into_future!(PromoteChatMemberBuilder, bool);
+
+// =========================================================================
+// SetChatAdministratorCustomTitleBuilder
+// =========================================================================
+
+/// Builder for the [`setChatAdministratorCustomTitle`] API method.
+#[derive(Serialize)]
+pub struct SetChatAdministratorCustomTitleBuilder<'a> {
+    #[serde(skip)]
+    bot: &'a Bot,
+    chat_id: ChatId,
+    user_id: i64,
+    custom_title: String,
+}
+
+impl<'a> SetChatAdministratorCustomTitleBuilder<'a> {
+    /// Sends the request to the Telegram Bot API.
+    pub async fn send(self) -> Result<bool> {
+        let payload = serde_json::to_vec(&self)?;
+        self.bot
+            .do_post_json("setChatAdministratorCustomTitle", &payload)
+            .await
+    }
+}
+
+impl_into_future!(SetChatAdministratorCustomTitleBuilder, bool);
+
+// =========================================================================
+// SetChatPermissionsBuilder
+// =========================================================================
+
+/// Builder for the [`setChatPermissions`] API method.
+#[derive(Serialize)]
+pub struct SetChatPermissionsBuilder<'a> {
+    #[serde(skip)]
+    bot: &'a Bot,
+    chat_id: ChatId,
+    permissions: chat_permissions::ChatPermissions,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    use_independent_chat_permissions: Option<bool>,
+}
+
+impl<'a> SetChatPermissionsBuilder<'a> {
+    /// Sets the `use_independent_chat_permissions` parameter.
+    pub fn use_independent_chat_permissions(mut self, val: bool) -> Self {
+        self.use_independent_chat_permissions = Some(val);
+        self
+    }
+
+    /// Sends the request to the Telegram Bot API.
+    pub async fn send(self) -> Result<bool> {
+        let payload = serde_json::to_vec(&self)?;
+        self.bot.do_post_json("setChatPermissions", &payload).await
+    }
+}
+
+impl_into_future!(SetChatPermissionsBuilder, bool);
+
+// =========================================================================
+// SetChatPhotoBuilder
+// =========================================================================
+
+/// Builder for the [`setChatPhoto`] API method.
+///
+/// This builder uses multipart form data since it uploads a file.
+pub struct SetChatPhotoBuilder<'a> {
+    bot: &'a Bot,
+    chat_id: ChatId,
+    photo: files::input_file::InputFile,
+}
+
+impl<'a> SetChatPhotoBuilder<'a> {
+    /// Sends the request to the Telegram Bot API.
+    pub async fn send(self) -> Result<bool> {
+        let params = vec![
+            RequestParameter::new("chat_id", serde_json::to_value(&self.chat_id)?),
+            input_file_param("photo", self.photo),
+        ];
+        self.bot.do_api_request("setChatPhoto", params).await
+    }
+}
+
+impl_into_future!(SetChatPhotoBuilder, bool);
+
+// =========================================================================
+// DeleteChatPhotoBuilder
+// =========================================================================
+
+/// Builder for the [`deleteChatPhoto`] API method.
+#[derive(Serialize)]
+pub struct DeleteChatPhotoBuilder<'a> {
+    #[serde(skip)]
+    bot: &'a Bot,
+    chat_id: ChatId,
+}
+
+impl<'a> DeleteChatPhotoBuilder<'a> {
+    /// Sends the request to the Telegram Bot API.
+    pub async fn send(self) -> Result<bool> {
+        let payload = serde_json::to_vec(&self)?;
+        self.bot.do_post_json("deleteChatPhoto", &payload).await
+    }
+}
+
+impl_into_future!(DeleteChatPhotoBuilder, bool);
+
+// =========================================================================
+// SetChatTitleBuilder
+// =========================================================================
+
+/// Builder for the [`setChatTitle`] API method.
+#[derive(Serialize)]
+pub struct SetChatTitleBuilder<'a> {
+    #[serde(skip)]
+    bot: &'a Bot,
+    chat_id: ChatId,
+    title: String,
+}
+
+impl<'a> SetChatTitleBuilder<'a> {
+    /// Sends the request to the Telegram Bot API.
+    pub async fn send(self) -> Result<bool> {
+        let payload = serde_json::to_vec(&self)?;
+        self.bot.do_post_json("setChatTitle", &payload).await
+    }
+}
+
+impl_into_future!(SetChatTitleBuilder, bool);
+
+// =========================================================================
+// SetChatDescriptionBuilder
+// =========================================================================
+
+/// Builder for the [`setChatDescription`] API method.
+#[derive(Serialize)]
+pub struct SetChatDescriptionBuilder<'a> {
+    #[serde(skip)]
+    bot: &'a Bot,
+    chat_id: ChatId,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    description: Option<String>,
+}
+
+impl<'a> SetChatDescriptionBuilder<'a> {
+    /// Sets the `description` parameter.
+    pub fn description(mut self, val: impl Into<String>) -> Self {
+        self.description = Some(val.into());
+        self
+    }
+
+    /// Sends the request to the Telegram Bot API.
+    pub async fn send(self) -> Result<bool> {
+        let payload = serde_json::to_vec(&self)?;
+        self.bot.do_post_json("setChatDescription", &payload).await
+    }
+}
+
+impl_into_future!(SetChatDescriptionBuilder, bool);
+
+// =========================================================================
+// SetChatStickerSetBuilder
+// =========================================================================
+
+/// Builder for the [`setChatStickerSet`] API method.
+#[derive(Serialize)]
+pub struct SetChatStickerSetBuilder<'a> {
+    #[serde(skip)]
+    bot: &'a Bot,
+    chat_id: ChatId,
+    sticker_set_name: String,
+}
+
+impl<'a> SetChatStickerSetBuilder<'a> {
+    /// Sends the request to the Telegram Bot API.
+    pub async fn send(self) -> Result<bool> {
+        let payload = serde_json::to_vec(&self)?;
+        self.bot.do_post_json("setChatStickerSet", &payload).await
+    }
+}
+
+impl_into_future!(SetChatStickerSetBuilder, bool);
+
+// =========================================================================
+// DeleteChatStickerSetBuilder
+// =========================================================================
+
+/// Builder for the [`deleteChatStickerSet`] API method.
+#[derive(Serialize)]
+pub struct DeleteChatStickerSetBuilder<'a> {
+    #[serde(skip)]
+    bot: &'a Bot,
+    chat_id: ChatId,
+}
+
+impl<'a> DeleteChatStickerSetBuilder<'a> {
+    /// Sends the request to the Telegram Bot API.
+    pub async fn send(self) -> Result<bool> {
+        let payload = serde_json::to_vec(&self)?;
+        self.bot
+            .do_post_json("deleteChatStickerSet", &payload)
+            .await
+    }
+}
+
+impl_into_future!(DeleteChatStickerSetBuilder, bool);
+
+// =========================================================================
+// SetChatMemberTagBuilder
+// =========================================================================
+
+/// Builder for the [`setChatMemberTag`] API method.
+#[derive(Serialize)]
+pub struct SetChatMemberTagBuilder<'a> {
+    #[serde(skip)]
+    bot: &'a Bot,
+    chat_id: ChatId,
+    user_id: i64,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    tag: Option<String>,
+}
+
+impl<'a> SetChatMemberTagBuilder<'a> {
+    /// Sets the `tag` parameter.
+    pub fn tag(mut self, val: impl Into<String>) -> Self {
+        self.tag = Some(val.into());
+        self
+    }
+
+    /// Sends the request to the Telegram Bot API.
+    pub async fn send(self) -> Result<bool> {
+        let payload = serde_json::to_vec(&self)?;
+        self.bot.do_post_json("setChatMemberTag", &payload).await
+    }
+}
+
+impl_into_future!(SetChatMemberTagBuilder, bool);
+
+// =========================================================================
+// PinChatMessageBuilder
+// =========================================================================
+
+/// Builder for the [`pinChatMessage`] API method.
+#[derive(Serialize)]
+pub struct PinChatMessageBuilder<'a> {
+    #[serde(skip)]
+    bot: &'a Bot,
+    chat_id: ChatId,
+    message_id: i64,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    disable_notification: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    business_connection_id: Option<String>,
+}
+
+impl<'a> PinChatMessageBuilder<'a> {
+    /// Sets the `disable_notification` parameter.
+    pub fn disable_notification(mut self, val: bool) -> Self {
+        self.disable_notification = Some(val);
+        self
+    }
+    /// Sets the `business_connection_id` parameter.
+    pub fn business_connection_id(mut self, val: impl Into<String>) -> Self {
+        self.business_connection_id = Some(val.into());
+        self
+    }
+
+    /// Sends the request to the Telegram Bot API.
+    pub async fn send(self) -> Result<bool> {
+        let payload = serde_json::to_vec(&self)?;
+        self.bot.do_post_json("pinChatMessage", &payload).await
+    }
+}
+
+impl_into_future!(PinChatMessageBuilder, bool);
+
+// =========================================================================
+// UnpinChatMessageBuilder
+// =========================================================================
+
+/// Builder for the [`unpinChatMessage`] API method.
+#[derive(Serialize)]
+pub struct UnpinChatMessageBuilder<'a> {
+    #[serde(skip)]
+    bot: &'a Bot,
+    chat_id: ChatId,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    message_id: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    business_connection_id: Option<String>,
+}
+
+impl<'a> UnpinChatMessageBuilder<'a> {
+    /// Sets the `message_id` parameter.
+    pub fn message_id(mut self, val: i64) -> Self {
+        self.message_id = Some(val);
+        self
+    }
+    /// Sets the `business_connection_id` parameter.
+    pub fn business_connection_id(mut self, val: impl Into<String>) -> Self {
+        self.business_connection_id = Some(val.into());
+        self
+    }
+
+    /// Sends the request to the Telegram Bot API.
+    pub async fn send(self) -> Result<bool> {
+        let payload = serde_json::to_vec(&self)?;
+        self.bot.do_post_json("unpinChatMessage", &payload).await
+    }
+}
+
+impl_into_future!(UnpinChatMessageBuilder, bool);
+
+// =========================================================================
+// UnpinAllChatMessagesBuilder
+// =========================================================================
+
+/// Builder for the [`unpinAllChatMessages`] API method.
+#[derive(Serialize)]
+pub struct UnpinAllChatMessagesBuilder<'a> {
+    #[serde(skip)]
+    bot: &'a Bot,
+    chat_id: ChatId,
+}
+
+impl<'a> UnpinAllChatMessagesBuilder<'a> {
+    /// Sends the request to the Telegram Bot API.
+    pub async fn send(self) -> Result<bool> {
+        let payload = serde_json::to_vec(&self)?;
+        self.bot
+            .do_post_json("unpinAllChatMessages", &payload)
+            .await
+    }
+}
+
+impl_into_future!(UnpinAllChatMessagesBuilder, bool);
+
+// =========================================================================
+// ExportChatInviteLinkBuilder
+// =========================================================================
+
+/// Builder for the [`exportChatInviteLink`] API method.
+#[derive(Serialize)]
+pub struct ExportChatInviteLinkBuilder<'a> {
+    #[serde(skip)]
+    bot: &'a Bot,
+    chat_id: ChatId,
+}
+
+impl<'a> ExportChatInviteLinkBuilder<'a> {
+    /// Sends the request to the Telegram Bot API.
+    pub async fn send(self) -> Result<String> {
+        let payload = serde_json::to_vec(&self)?;
+        self.bot
+            .do_post_json("exportChatInviteLink", &payload)
+            .await
+    }
+}
+
+impl_into_future!(ExportChatInviteLinkBuilder, String);
+
+// =========================================================================
+// CreateChatInviteLinkBuilder
+// =========================================================================
+
+/// Builder for the [`createChatInviteLink`] API method.
+#[derive(Serialize)]
+pub struct CreateChatInviteLinkBuilder<'a> {
+    #[serde(skip)]
+    bot: &'a Bot,
+    chat_id: ChatId,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    expire_date: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    member_limit: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    name: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    creates_join_request: Option<bool>,
+}
+
+impl<'a> CreateChatInviteLinkBuilder<'a> {
+    /// Sets the `expire_date` parameter.
+    pub fn expire_date(mut self, val: i64) -> Self {
+        self.expire_date = Some(val);
+        self
+    }
+    /// Sets the `member_limit` parameter.
+    pub fn member_limit(mut self, val: i64) -> Self {
+        self.member_limit = Some(val);
+        self
+    }
+    /// Sets the `name` parameter.
+    pub fn name(mut self, val: impl Into<String>) -> Self {
+        self.name = Some(val.into());
+        self
+    }
+    /// Sets the `creates_join_request` parameter.
+    pub fn creates_join_request(mut self, val: bool) -> Self {
+        self.creates_join_request = Some(val);
+        self
+    }
+
+    /// Sends the request to the Telegram Bot API.
+    pub async fn send(self) -> Result<chat_invite_link::ChatInviteLink> {
+        let payload = serde_json::to_vec(&self)?;
+        self.bot
+            .do_post_json("createChatInviteLink", &payload)
+            .await
+    }
+}
+
+impl_into_future!(
+    CreateChatInviteLinkBuilder,
+    chat_invite_link::ChatInviteLink
+);
+
+// =========================================================================
+// EditChatInviteLinkBuilder
+// =========================================================================
+
+/// Builder for the [`editChatInviteLink`] API method.
+#[derive(Serialize)]
+pub struct EditChatInviteLinkBuilder<'a> {
+    #[serde(skip)]
+    bot: &'a Bot,
+    chat_id: ChatId,
+    invite_link: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    expire_date: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    member_limit: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    name: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    creates_join_request: Option<bool>,
+}
+
+impl<'a> EditChatInviteLinkBuilder<'a> {
+    /// Sets the `expire_date` parameter.
+    pub fn expire_date(mut self, val: i64) -> Self {
+        self.expire_date = Some(val);
+        self
+    }
+    /// Sets the `member_limit` parameter.
+    pub fn member_limit(mut self, val: i64) -> Self {
+        self.member_limit = Some(val);
+        self
+    }
+    /// Sets the `name` parameter.
+    pub fn name(mut self, val: impl Into<String>) -> Self {
+        self.name = Some(val.into());
+        self
+    }
+    /// Sets the `creates_join_request` parameter.
+    pub fn creates_join_request(mut self, val: bool) -> Self {
+        self.creates_join_request = Some(val);
+        self
+    }
+
+    /// Sends the request to the Telegram Bot API.
+    pub async fn send(self) -> Result<chat_invite_link::ChatInviteLink> {
+        let payload = serde_json::to_vec(&self)?;
+        self.bot.do_post_json("editChatInviteLink", &payload).await
+    }
+}
+
+impl_into_future!(EditChatInviteLinkBuilder, chat_invite_link::ChatInviteLink);
+
+// =========================================================================
+// RevokeChatInviteLinkBuilder
+// =========================================================================
+
+/// Builder for the [`revokeChatInviteLink`] API method.
+#[derive(Serialize)]
+pub struct RevokeChatInviteLinkBuilder<'a> {
+    #[serde(skip)]
+    bot: &'a Bot,
+    chat_id: ChatId,
+    invite_link: String,
+}
+
+impl<'a> RevokeChatInviteLinkBuilder<'a> {
+    /// Sends the request to the Telegram Bot API.
+    pub async fn send(self) -> Result<chat_invite_link::ChatInviteLink> {
+        let payload = serde_json::to_vec(&self)?;
+        self.bot
+            .do_post_json("revokeChatInviteLink", &payload)
+            .await
+    }
+}
+
+impl_into_future!(
+    RevokeChatInviteLinkBuilder,
+    chat_invite_link::ChatInviteLink
+);
+
+// =========================================================================
+// CreateChatSubscriptionInviteLinkBuilder
+// =========================================================================
+
+/// Builder for the [`createChatSubscriptionInviteLink`] API method.
+#[derive(Serialize)]
+pub struct CreateChatSubscriptionInviteLinkBuilder<'a> {
+    #[serde(skip)]
+    bot: &'a Bot,
+    chat_id: ChatId,
+    subscription_period: i64,
+    subscription_price: i64,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    name: Option<String>,
+}
+
+impl<'a> CreateChatSubscriptionInviteLinkBuilder<'a> {
+    /// Sets the `name` parameter.
+    pub fn name(mut self, val: impl Into<String>) -> Self {
+        self.name = Some(val.into());
+        self
+    }
+
+    /// Sends the request to the Telegram Bot API.
+    pub async fn send(self) -> Result<chat_invite_link::ChatInviteLink> {
+        let payload = serde_json::to_vec(&self)?;
+        self.bot
+            .do_post_json("createChatSubscriptionInviteLink", &payload)
+            .await
+    }
+}
+
+impl_into_future!(
+    CreateChatSubscriptionInviteLinkBuilder,
+    chat_invite_link::ChatInviteLink
+);
+
+// =========================================================================
+// EditChatSubscriptionInviteLinkBuilder
+// =========================================================================
+
+/// Builder for the [`editChatSubscriptionInviteLink`] API method.
+#[derive(Serialize)]
+pub struct EditChatSubscriptionInviteLinkBuilder<'a> {
+    #[serde(skip)]
+    bot: &'a Bot,
+    chat_id: ChatId,
+    invite_link: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    name: Option<String>,
+}
+
+impl<'a> EditChatSubscriptionInviteLinkBuilder<'a> {
+    /// Sets the `name` parameter.
+    pub fn name(mut self, val: impl Into<String>) -> Self {
+        self.name = Some(val.into());
+        self
+    }
+
+    /// Sends the request to the Telegram Bot API.
+    pub async fn send(self) -> Result<chat_invite_link::ChatInviteLink> {
+        let payload = serde_json::to_vec(&self)?;
+        self.bot
+            .do_post_json("editChatSubscriptionInviteLink", &payload)
+            .await
+    }
+}
+
+impl_into_future!(
+    EditChatSubscriptionInviteLinkBuilder,
+    chat_invite_link::ChatInviteLink
+);
+
+// =========================================================================
+// ApproveChatJoinRequestBuilder
+// =========================================================================
+
+/// Builder for the [`approveChatJoinRequest`] API method.
+#[derive(Serialize)]
+pub struct ApproveChatJoinRequestBuilder<'a> {
+    #[serde(skip)]
+    bot: &'a Bot,
+    chat_id: ChatId,
+    user_id: i64,
+}
+
+impl<'a> ApproveChatJoinRequestBuilder<'a> {
+    /// Sends the request to the Telegram Bot API.
+    pub async fn send(self) -> Result<bool> {
+        let payload = serde_json::to_vec(&self)?;
+        self.bot
+            .do_post_json("approveChatJoinRequest", &payload)
+            .await
+    }
+}
+
+impl_into_future!(ApproveChatJoinRequestBuilder, bool);
+
+// =========================================================================
+// DeclineChatJoinRequestBuilder
+// =========================================================================
+
+/// Builder for the [`declineChatJoinRequest`] API method.
+#[derive(Serialize)]
+pub struct DeclineChatJoinRequestBuilder<'a> {
+    #[serde(skip)]
+    bot: &'a Bot,
+    chat_id: ChatId,
+    user_id: i64,
+}
+
+impl<'a> DeclineChatJoinRequestBuilder<'a> {
+    /// Sends the request to the Telegram Bot API.
+    pub async fn send(self) -> Result<bool> {
+        let payload = serde_json::to_vec(&self)?;
+        self.bot
+            .do_post_json("declineChatJoinRequest", &payload)
+            .await
+    }
+}
+
+impl_into_future!(DeclineChatJoinRequestBuilder, bool);
+
+// =========================================================================
+// Builder factory methods on Bot for messages and chat methods
+// =========================================================================
+
+impl Bot {
+    // -- Message methods ---------------------------------------------------
+
+    /// Build a `copyMessage` request.
+    pub fn copy_message(
+        &self,
+        chat_id: impl Into<ChatId>,
+        from_chat_id: impl Into<ChatId>,
+        message_id: i64,
+    ) -> CopyMessageBuilder<'_> {
+        CopyMessageBuilder {
+            bot: self,
+            chat_id: chat_id.into(),
+            from_chat_id: from_chat_id.into(),
+            message_id,
+            caption: None,
+            parse_mode: None,
+            caption_entities: None,
+            disable_notification: None,
+            protect_content: None,
+            reply_parameters: None,
+            reply_markup: None,
+            message_thread_id: None,
+            show_caption_above_media: None,
+            allow_paid_broadcast: None,
+            video_start_timestamp: None,
+            direct_messages_topic_id: None,
+            suggested_post_parameters: None,
+            message_effect_id: None,
+        }
+    }
+
+    /// Build a `copyMessages` request.
+    pub fn copy_messages(
+        &self,
+        chat_id: impl Into<ChatId>,
+        from_chat_id: impl Into<ChatId>,
+        message_ids: Vec<i64>,
+    ) -> CopyMessagesBuilder<'_> {
+        CopyMessagesBuilder {
+            bot: self,
+            chat_id: chat_id.into(),
+            from_chat_id: from_chat_id.into(),
+            message_ids,
+            disable_notification: None,
+            protect_content: None,
+            message_thread_id: None,
+            remove_caption: None,
+            direct_messages_topic_id: None,
+        }
+    }
+
+    /// Build a `deleteMessage` request.
+    pub fn delete_message(
+        &self,
+        chat_id: impl Into<ChatId>,
+        message_id: i64,
+    ) -> DeleteMessageBuilder<'_> {
+        DeleteMessageBuilder {
+            bot: self,
+            chat_id: chat_id.into(),
+            message_id,
+        }
+    }
+
+    /// Build a `deleteMessages` request.
+    pub fn delete_messages(
+        &self,
+        chat_id: impl Into<ChatId>,
+        message_ids: Vec<i64>,
+    ) -> DeleteMessagesBuilder<'_> {
+        DeleteMessagesBuilder {
+            bot: self,
+            chat_id: chat_id.into(),
+            message_ids,
+        }
+    }
+
+    /// Build a `forwardMessage` request.
+    pub fn forward_message(
+        &self,
+        chat_id: impl Into<ChatId>,
+        from_chat_id: impl Into<ChatId>,
+        message_id: i64,
+    ) -> ForwardMessageBuilder<'_> {
+        ForwardMessageBuilder {
+            bot: self,
+            chat_id: chat_id.into(),
+            from_chat_id: from_chat_id.into(),
+            message_id,
+            disable_notification: None,
+            protect_content: None,
+            message_thread_id: None,
+            video_start_timestamp: None,
+            direct_messages_topic_id: None,
+            suggested_post_parameters: None,
+            message_effect_id: None,
+        }
+    }
+
+    /// Build a `forwardMessages` request.
+    pub fn forward_messages(
+        &self,
+        chat_id: impl Into<ChatId>,
+        from_chat_id: impl Into<ChatId>,
+        message_ids: Vec<i64>,
+    ) -> ForwardMessagesBuilder<'_> {
+        ForwardMessagesBuilder {
+            bot: self,
+            chat_id: chat_id.into(),
+            from_chat_id: from_chat_id.into(),
+            message_ids,
+            disable_notification: None,
+            protect_content: None,
+            message_thread_id: None,
+            direct_messages_topic_id: None,
+        }
+    }
+
+    /// Build a `sendMessageDraft` request.
+    pub fn send_message_draft(
+        &self,
+        chat_id: i64,
+        draft_id: i64,
+        text: impl Into<String>,
+    ) -> SendMessageDraftBuilder<'_> {
+        SendMessageDraftBuilder {
+            bot: self,
+            chat_id,
+            draft_id,
+            text: text.into(),
+            message_thread_id: None,
+            parse_mode: None,
+            entities: None,
+        }
+    }
+
+    // -- Chat management methods -------------------------------------------
+
+    /// Build a `leaveChat` request.
+    pub fn leave_chat(&self, chat_id: impl Into<ChatId>) -> LeaveChatBuilder<'_> {
+        LeaveChatBuilder {
+            bot: self,
+            chat_id: chat_id.into(),
+        }
+    }
+
+    /// Build a `getChat` request.
+    pub fn get_chat(&self, chat_id: impl Into<ChatId>) -> GetChatBuilder<'_> {
+        GetChatBuilder {
+            bot: self,
+            chat_id: chat_id.into(),
+        }
+    }
+
+    /// Build a `getChatAdministrators` request.
+    pub fn get_chat_administrators(
+        &self,
+        chat_id: impl Into<ChatId>,
+    ) -> GetChatAdministratorsBuilder<'_> {
+        GetChatAdministratorsBuilder {
+            bot: self,
+            chat_id: chat_id.into(),
+        }
+    }
+
+    /// Build a `getChatMemberCount` request.
+    pub fn get_chat_member_count(
+        &self,
+        chat_id: impl Into<ChatId>,
+    ) -> GetChatMemberCountBuilder<'_> {
+        GetChatMemberCountBuilder {
+            bot: self,
+            chat_id: chat_id.into(),
+        }
+    }
+
+    /// Build a `getChatMember` request.
+    pub fn get_chat_member(
+        &self,
+        chat_id: impl Into<ChatId>,
+        user_id: i64,
+    ) -> GetChatMemberBuilder<'_> {
+        GetChatMemberBuilder {
+            bot: self,
+            chat_id: chat_id.into(),
+            user_id,
+        }
+    }
+
+    /// Build a `banChatMember` request.
+    pub fn ban_chat_member(
+        &self,
+        chat_id: impl Into<ChatId>,
+        user_id: i64,
+    ) -> BanChatMemberBuilder<'_> {
+        BanChatMemberBuilder {
+            bot: self,
+            chat_id: chat_id.into(),
+            user_id,
+            until_date: None,
+            revoke_messages: None,
+        }
+    }
+
+    /// Build an `unbanChatMember` request.
+    pub fn unban_chat_member(
+        &self,
+        chat_id: impl Into<ChatId>,
+        user_id: i64,
+    ) -> UnbanChatMemberBuilder<'_> {
+        UnbanChatMemberBuilder {
+            bot: self,
+            chat_id: chat_id.into(),
+            user_id,
+            only_if_banned: None,
+        }
+    }
+
+    /// Build a `banChatSenderChat` request.
+    pub fn ban_chat_sender_chat(
+        &self,
+        chat_id: impl Into<ChatId>,
+        sender_chat_id: i64,
+    ) -> BanChatSenderChatBuilder<'_> {
+        BanChatSenderChatBuilder {
+            bot: self,
+            chat_id: chat_id.into(),
+            sender_chat_id,
+        }
+    }
+
+    /// Build an `unbanChatSenderChat` request.
+    pub fn unban_chat_sender_chat(
+        &self,
+        chat_id: impl Into<ChatId>,
+        sender_chat_id: i64,
+    ) -> UnbanChatSenderChatBuilder<'_> {
+        UnbanChatSenderChatBuilder {
+            bot: self,
+            chat_id: chat_id.into(),
+            sender_chat_id,
+        }
+    }
+
+    /// Build a `restrictChatMember` request.
+    pub fn restrict_chat_member(
+        &self,
+        chat_id: impl Into<ChatId>,
+        user_id: i64,
+        permissions: chat_permissions::ChatPermissions,
+    ) -> RestrictChatMemberBuilder<'_> {
+        RestrictChatMemberBuilder {
+            bot: self,
+            chat_id: chat_id.into(),
+            user_id,
+            permissions,
+            until_date: None,
+            use_independent_chat_permissions: None,
+        }
+    }
+
+    /// Build a `promoteChatMember` request.
+    pub fn promote_chat_member(
+        &self,
+        chat_id: impl Into<ChatId>,
+        user_id: i64,
+    ) -> PromoteChatMemberBuilder<'_> {
+        PromoteChatMemberBuilder {
+            bot: self,
+            chat_id: chat_id.into(),
+            user_id,
+            is_anonymous: None,
+            can_manage_chat: None,
+            can_post_messages: None,
+            can_edit_messages: None,
+            can_delete_messages: None,
+            can_manage_video_chats: None,
+            can_restrict_members: None,
+            can_promote_members: None,
+            can_change_info: None,
+            can_invite_users: None,
+            can_pin_messages: None,
+            can_manage_topics: None,
+            can_post_stories: None,
+            can_edit_stories: None,
+            can_delete_stories: None,
+            can_manage_direct_messages: None,
+            can_manage_tags: None,
+        }
+    }
+
+    /// Build a `setChatAdministratorCustomTitle` request.
+    pub fn set_chat_administrator_custom_title(
+        &self,
+        chat_id: impl Into<ChatId>,
+        user_id: i64,
+        custom_title: impl Into<String>,
+    ) -> SetChatAdministratorCustomTitleBuilder<'_> {
+        SetChatAdministratorCustomTitleBuilder {
+            bot: self,
+            chat_id: chat_id.into(),
+            user_id,
+            custom_title: custom_title.into(),
+        }
+    }
+
+    /// Build a `setChatPermissions` request.
+    pub fn set_chat_permissions(
+        &self,
+        chat_id: impl Into<ChatId>,
+        permissions: chat_permissions::ChatPermissions,
+    ) -> SetChatPermissionsBuilder<'_> {
+        SetChatPermissionsBuilder {
+            bot: self,
+            chat_id: chat_id.into(),
+            permissions,
+            use_independent_chat_permissions: None,
+        }
+    }
+
+    /// Build a `setChatPhoto` request.
+    pub fn set_chat_photo(
+        &self,
+        chat_id: impl Into<ChatId>,
+        photo: files::input_file::InputFile,
+    ) -> SetChatPhotoBuilder<'_> {
+        SetChatPhotoBuilder {
+            bot: self,
+            chat_id: chat_id.into(),
+            photo,
+        }
+    }
+
+    /// Build a `deleteChatPhoto` request.
+    pub fn delete_chat_photo(&self, chat_id: impl Into<ChatId>) -> DeleteChatPhotoBuilder<'_> {
+        DeleteChatPhotoBuilder {
+            bot: self,
+            chat_id: chat_id.into(),
+        }
+    }
+
+    /// Build a `setChatTitle` request.
+    pub fn set_chat_title(
+        &self,
+        chat_id: impl Into<ChatId>,
+        title: impl Into<String>,
+    ) -> SetChatTitleBuilder<'_> {
+        SetChatTitleBuilder {
+            bot: self,
+            chat_id: chat_id.into(),
+            title: title.into(),
+        }
+    }
+
+    /// Build a `setChatDescription` request.
+    pub fn set_chat_description(
+        &self,
+        chat_id: impl Into<ChatId>,
+    ) -> SetChatDescriptionBuilder<'_> {
+        SetChatDescriptionBuilder {
+            bot: self,
+            chat_id: chat_id.into(),
+            description: None,
+        }
+    }
+
+    /// Build a `setChatStickerSet` request.
+    pub fn set_chat_sticker_set(
+        &self,
+        chat_id: impl Into<ChatId>,
+        sticker_set_name: impl Into<String>,
+    ) -> SetChatStickerSetBuilder<'_> {
+        SetChatStickerSetBuilder {
+            bot: self,
+            chat_id: chat_id.into(),
+            sticker_set_name: sticker_set_name.into(),
+        }
+    }
+
+    /// Build a `deleteChatStickerSet` request.
+    pub fn delete_chat_sticker_set(
+        &self,
+        chat_id: impl Into<ChatId>,
+    ) -> DeleteChatStickerSetBuilder<'_> {
+        DeleteChatStickerSetBuilder {
+            bot: self,
+            chat_id: chat_id.into(),
+        }
+    }
+
+    /// Build a `setChatMemberTag` request.
+    pub fn set_chat_member_tag(
+        &self,
+        chat_id: impl Into<ChatId>,
+        user_id: i64,
+    ) -> SetChatMemberTagBuilder<'_> {
+        SetChatMemberTagBuilder {
+            bot: self,
+            chat_id: chat_id.into(),
+            user_id,
+            tag: None,
+        }
+    }
+
+    // -- Chat pinning methods ----------------------------------------------
+
+    /// Build a `pinChatMessage` request.
+    pub fn pin_chat_message(
+        &self,
+        chat_id: impl Into<ChatId>,
+        message_id: i64,
+    ) -> PinChatMessageBuilder<'_> {
+        PinChatMessageBuilder {
+            bot: self,
+            chat_id: chat_id.into(),
+            message_id,
+            disable_notification: None,
+            business_connection_id: None,
+        }
+    }
+
+    /// Build an `unpinChatMessage` request.
+    pub fn unpin_chat_message(&self, chat_id: impl Into<ChatId>) -> UnpinChatMessageBuilder<'_> {
+        UnpinChatMessageBuilder {
+            bot: self,
+            chat_id: chat_id.into(),
+            message_id: None,
+            business_connection_id: None,
+        }
+    }
+
+    /// Build an `unpinAllChatMessages` request.
+    pub fn unpin_all_chat_messages(
+        &self,
+        chat_id: impl Into<ChatId>,
+    ) -> UnpinAllChatMessagesBuilder<'_> {
+        UnpinAllChatMessagesBuilder {
+            bot: self,
+            chat_id: chat_id.into(),
+        }
+    }
+
+    // -- Chat invite link methods ------------------------------------------
+
+    /// Build an `exportChatInviteLink` request.
+    pub fn export_chat_invite_link(
+        &self,
+        chat_id: impl Into<ChatId>,
+    ) -> ExportChatInviteLinkBuilder<'_> {
+        ExportChatInviteLinkBuilder {
+            bot: self,
+            chat_id: chat_id.into(),
+        }
+    }
+
+    /// Build a `createChatInviteLink` request.
+    pub fn create_chat_invite_link(
+        &self,
+        chat_id: impl Into<ChatId>,
+    ) -> CreateChatInviteLinkBuilder<'_> {
+        CreateChatInviteLinkBuilder {
+            bot: self,
+            chat_id: chat_id.into(),
+            expire_date: None,
+            member_limit: None,
+            name: None,
+            creates_join_request: None,
+        }
+    }
+
+    /// Build an `editChatInviteLink` request.
+    pub fn edit_chat_invite_link(
+        &self,
+        chat_id: impl Into<ChatId>,
+        invite_link: impl Into<String>,
+    ) -> EditChatInviteLinkBuilder<'_> {
+        EditChatInviteLinkBuilder {
+            bot: self,
+            chat_id: chat_id.into(),
+            invite_link: invite_link.into(),
+            expire_date: None,
+            member_limit: None,
+            name: None,
+            creates_join_request: None,
+        }
+    }
+
+    /// Build a `revokeChatInviteLink` request.
+    pub fn revoke_chat_invite_link(
+        &self,
+        chat_id: impl Into<ChatId>,
+        invite_link: impl Into<String>,
+    ) -> RevokeChatInviteLinkBuilder<'_> {
+        RevokeChatInviteLinkBuilder {
+            bot: self,
+            chat_id: chat_id.into(),
+            invite_link: invite_link.into(),
+        }
+    }
+
+    /// Build a `createChatSubscriptionInviteLink` request.
+    pub fn create_chat_subscription_invite_link(
+        &self,
+        chat_id: impl Into<ChatId>,
+        subscription_period: i64,
+        subscription_price: i64,
+    ) -> CreateChatSubscriptionInviteLinkBuilder<'_> {
+        CreateChatSubscriptionInviteLinkBuilder {
+            bot: self,
+            chat_id: chat_id.into(),
+            subscription_period,
+            subscription_price,
+            name: None,
+        }
+    }
+
+    /// Build an `editChatSubscriptionInviteLink` request.
+    pub fn edit_chat_subscription_invite_link(
+        &self,
+        chat_id: impl Into<ChatId>,
+        invite_link: impl Into<String>,
+    ) -> EditChatSubscriptionInviteLinkBuilder<'_> {
+        EditChatSubscriptionInviteLinkBuilder {
+            bot: self,
+            chat_id: chat_id.into(),
+            invite_link: invite_link.into(),
+            name: None,
+        }
+    }
+
+    /// Build an `approveChatJoinRequest` request.
+    pub fn approve_chat_join_request(
+        &self,
+        chat_id: impl Into<ChatId>,
+        user_id: i64,
+    ) -> ApproveChatJoinRequestBuilder<'_> {
+        ApproveChatJoinRequestBuilder {
+            bot: self,
+            chat_id: chat_id.into(),
+            user_id,
+        }
+    }
+
+    /// Build a `declineChatJoinRequest` request.
+    pub fn decline_chat_join_request(
+        &self,
+        chat_id: impl Into<ChatId>,
+        user_id: i64,
+    ) -> DeclineChatJoinRequestBuilder<'_> {
+        DeclineChatJoinRequestBuilder {
+            bot: self,
+            chat_id: chat_id.into(),
+            user_id,
+        }
+    }
+}
