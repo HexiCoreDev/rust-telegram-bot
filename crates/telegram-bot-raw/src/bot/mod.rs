@@ -184,6 +184,14 @@ fn input_file_param(name: &'static str, file: files::input_file::InputFile) -> R
         }
     }
 }
+/// Returns `true` if a request parameter with the given name is present.
+///
+/// Allocation-free linear scan: parameter lists are short (typically under 20
+/// entries), so this beats hashing per request.
+fn has_param(params: &[RequestParameter], name: &str) -> bool {
+    params.iter().any(|p| p.name.as_ref() == name)
+}
+
 /// Push an optional value as a `RequestParameter` if present.
 fn push_opt<T: Serialize>(
     params: &mut Vec<RequestParameter>,
@@ -340,10 +348,8 @@ impl Bot {
             Some(d) => d,
             None => return,
         };
-        let existing: std::collections::HashSet<String> =
-            params.iter().map(|p| p.name.as_ref().to_owned()).collect();
         if let Some(ref pm) = defaults.parse_mode {
-            if !existing.contains("parse_mode") {
+            if !has_param(params, "parse_mode") {
                 params.push(RequestParameter::new(
                     "parse_mode",
                     serde_json::Value::String(pm.clone()),
@@ -351,7 +357,7 @@ impl Bot {
             }
         }
         if let Some(dn) = defaults.disable_notification {
-            if !existing.contains("disable_notification") {
+            if !has_param(params, "disable_notification") {
                 params.push(RequestParameter::new(
                     "disable_notification",
                     serde_json::Value::Bool(dn),
@@ -359,7 +365,7 @@ impl Bot {
             }
         }
         if let Some(pc) = defaults.protect_content {
-            if !existing.contains("protect_content") {
+            if !has_param(params, "protect_content") {
                 params.push(RequestParameter::new(
                     "protect_content",
                     serde_json::Value::Bool(pc),
@@ -367,7 +373,7 @@ impl Bot {
             }
         }
         if let Some(aswr) = defaults.allow_sending_without_reply {
-            if !existing.contains("allow_sending_without_reply") {
+            if !has_param(params, "allow_sending_without_reply") {
                 params.push(RequestParameter::new(
                     "allow_sending_without_reply",
                     serde_json::Value::Bool(aswr),
@@ -375,7 +381,7 @@ impl Bot {
             }
         }
         if let Some(ref lpo) = defaults.link_preview_options {
-            if !existing.contains("link_preview_options") {
+            if !has_param(params, "link_preview_options") {
                 if let Ok(v) = serde_json::to_value(lpo) {
                     params.push(RequestParameter::new("link_preview_options", v));
                 }
@@ -414,10 +420,8 @@ impl Bot {
         Box::pin(async move {
             self.apply_defaults(&mut params);
             if let Some(kwargs) = api_kwargs {
-                let existing: std::collections::HashSet<String> =
-                    params.iter().map(|p| p.name.as_ref().to_owned()).collect();
                 for (key, value) in kwargs {
-                    if !existing.contains(key.as_str()) {
+                    if !has_param(&params, key.as_str()) {
                         params.push(RequestParameter::new(key, value));
                     }
                 }
@@ -616,3 +620,104 @@ mod stories;
 mod suggested_posts;
 mod user_profile;
 mod verification;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::request::base::{async_trait, BaseRequest, HttpMethod, TimeoutOverride};
+    use bytes::Bytes;
+
+    struct StubRequest;
+
+    #[async_trait]
+    impl BaseRequest for StubRequest {
+        async fn initialize(&self) -> Result<()> {
+            Ok(())
+        }
+        async fn shutdown(&self) -> Result<()> {
+            Ok(())
+        }
+        fn default_read_timeout(&self) -> Option<std::time::Duration> {
+            None
+        }
+        async fn do_request(
+            &self,
+            _url: &str,
+            _method: HttpMethod,
+            _data: Option<&RequestData>,
+            _timeouts: TimeoutOverride,
+        ) -> Result<(u16, Bytes)> {
+            unreachable!()
+        }
+        async fn do_request_json_bytes(
+            &self,
+            _url: &str,
+            _body: &[u8],
+            _timeouts: TimeoutOverride,
+        ) -> Result<(u16, Bytes)> {
+            unreachable!()
+        }
+    }
+
+    fn bot_with_defaults() -> Bot {
+        Bot::with_options(
+            "token",
+            Arc::new(StubRequest),
+            Some(Defaults {
+                parse_mode: Some("HTML".to_owned()),
+                disable_notification: Some(true),
+                ..Default::default()
+            }),
+        )
+    }
+
+    #[test]
+    fn has_param_matches_by_name() {
+        let params = vec![RequestParameter::new(
+            "chat_id",
+            serde_json::Value::Number(1.into()),
+        )];
+        assert!(has_param(&params, "chat_id"));
+        assert!(!has_param(&params, "parse_mode"));
+        assert!(!has_param(&[], "anything"));
+    }
+
+    #[test]
+    fn apply_defaults_fills_missing_only() {
+        let bot = bot_with_defaults();
+        let mut params = vec![RequestParameter::new(
+            "chat_id",
+            serde_json::Value::Number(1.into()),
+        )];
+        bot.apply_defaults(&mut params);
+        assert!(has_param(&params, "parse_mode"));
+        assert!(has_param(&params, "disable_notification"));
+        assert!(!has_param(&params, "protect_content"));
+
+        // Explicit values win: no duplicate is added.
+        let mut explicit = vec![
+            RequestParameter::new("chat_id", serde_json::Value::Number(1.into())),
+            RequestParameter::new(
+                "parse_mode",
+                serde_json::Value::String("MarkdownV2".to_owned()),
+            ),
+        ];
+        bot.apply_defaults(&mut explicit);
+        let modes: Vec<_> = explicit
+            .iter()
+            .filter(|p| p.name.as_ref() == "parse_mode")
+            .collect();
+        assert_eq!(modes.len(), 1);
+    }
+
+    #[test]
+    fn apply_defaults_without_config_is_noop() {
+        let bot = Bot::new("token", Arc::new(StubRequest));
+        let mut params = vec![RequestParameter::new(
+            "chat_id",
+            serde_json::Value::Number(1.into()),
+        )];
+        bot.apply_defaults(&mut params);
+        assert_eq!(params.len(), 1);
+    }
+}
