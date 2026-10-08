@@ -9,8 +9,10 @@ use serde_json::Value;
 use tokio::sync::RwLock;
 
 use rust_tg_bot_raw::bot::MessageOrBool;
+use rust_tg_bot_raw::types::ephemeral::EphemeralMessageParameters;
 use rust_tg_bot_raw::types::files::input_file::InputFile;
-use rust_tg_bot_raw::types::update::Update;
+use rust_tg_bot_raw::types::input_rich_message::InputRichMessage;
+use rust_tg_bot_raw::types::update::{Update, UpdateKind};
 
 use crate::context_types::DefaultData;
 use crate::ext_bot::ExtBot;
@@ -654,6 +656,53 @@ impl CallbackContext {
         self.bot().send_location(chat_id, latitude, longitude).await
     }
 
+    /// Send a rich message reply to the chat associated with the given update.
+    ///
+    /// # Errors
+    ///
+    /// Returns `TelegramError` if the chat cannot be determined from the
+    /// update or if the Telegram API call fails.
+    pub async fn reply_rich_message(
+        &self,
+        update: &Update,
+        rich_message: InputRichMessage,
+    ) -> Result<rust_tg_bot_raw::types::message::Message, rust_tg_bot_raw::error::TelegramError>
+    {
+        let chat_id = update.effective_chat().map(|c| c.id).ok_or_else(|| {
+            rust_tg_bot_raw::error::TelegramError::Network("No chat in update".into())
+        })?;
+        self.bot().send_rich_message(chat_id, rich_message).await
+    }
+
+    /// Send an ephemeral text message visible only to one user and the bot.
+    ///
+    /// When the update carries a callback query (button press), its id is
+    /// attached automatically so the message routes to the pressing client.
+    ///
+    /// # Errors
+    ///
+    /// Returns `TelegramError` if the chat cannot be determined from the
+    /// update or if the Telegram API call fails.
+    pub async fn reply_ephemeral(
+        &self,
+        update: &Update,
+        receiver_user_id: i64,
+        text: &str,
+    ) -> Result<rust_tg_bot_raw::types::message::Message, rust_tg_bot_raw::error::TelegramError>
+    {
+        let chat_id = update.effective_chat().map(|c| c.id).ok_or_else(|| {
+            rust_tg_bot_raw::error::TelegramError::Network("No chat in update".into())
+        })?;
+        let mut params = EphemeralMessageParameters::new(receiver_user_id);
+        if let UpdateKind::CallbackQuery(query) = &update.kind {
+            params = params.callback_query_id(query.id.clone());
+        }
+        self.bot()
+            .send_message(chat_id, text)
+            .ephemeral_message_parameters(params)
+            .await
+    }
+
     /// Answer the callback query from the given update.
     ///
     /// Automatically extracts the callback query ID from the update. This is
@@ -1005,5 +1054,129 @@ mod tests {
         // Use Deref to access HashMap methods directly
         assert!(guard.contains_key("key"));
         assert_eq!(guard.len(), 1);
+    }
+}
+
+#[cfg(test)]
+mod shortcut_tests {
+    use super::*;
+    use rust_tg_bot_raw::bot::Bot;
+    use rust_tg_bot_raw::request::base::{async_trait, BaseRequest, HttpMethod, TimeoutOverride};
+    use rust_tg_bot_raw::request::request_data::RequestData;
+    use std::sync::Mutex;
+
+    struct CaptureRequest {
+        calls: Mutex<Vec<(String, Vec<u8>)>>,
+    }
+
+    #[async_trait]
+    impl BaseRequest for CaptureRequest {
+        async fn initialize(&self) -> rust_tg_bot_raw::error::Result<()> {
+            Ok(())
+        }
+        async fn shutdown(&self) -> rust_tg_bot_raw::error::Result<()> {
+            Ok(())
+        }
+        fn default_read_timeout(&self) -> Option<std::time::Duration> {
+            None
+        }
+        async fn do_request(
+            &self,
+            _url: &str,
+            _method: HttpMethod,
+            _data: Option<&RequestData>,
+            _timeouts: TimeoutOverride,
+        ) -> rust_tg_bot_raw::error::Result<(u16, bytes::Bytes)> {
+            unreachable!("shortcut tests use the JSON path")
+        }
+        async fn do_request_json_bytes(
+            &self,
+            url: &str,
+            body: &[u8],
+            _timeouts: TimeoutOverride,
+        ) -> rust_tg_bot_raw::error::Result<(u16, bytes::Bytes)> {
+            self.calls
+                .lock()
+                .unwrap()
+                .push((url.to_owned(), body.to_owned()));
+            let envelope = br#"{"ok":true,"result":{"message_id":1,"date":0,"chat":{"id":5,"type":"private"}}}"#;
+            Ok((200, bytes::Bytes::from_static(envelope)))
+        }
+    }
+
+    fn make_capture_bot() -> (Arc<ExtBot>, Arc<CaptureRequest>) {
+        let capture = Arc::new(CaptureRequest {
+            calls: Mutex::new(Vec::new()),
+        });
+        let bot = Bot::new("test", capture.clone() as Arc<dyn BaseRequest>);
+        (Arc::new(ExtBot::from_bot(bot)), capture)
+    }
+
+    fn make_ctx(bot: Arc<ExtBot>) -> CallbackContext {
+        CallbackContext::new(
+            bot,
+            None,
+            None,
+            Arc::new(RwLock::new(HashMap::new())),
+            Arc::new(RwLock::new(HashMap::new())),
+            Arc::new(RwLock::new(DefaultData::default())),
+        )
+    }
+
+    #[tokio::test]
+    async fn reply_rich_message_posts_to_rich_endpoint() {
+        let (bot, capture) = make_capture_bot();
+        let ctx = make_ctx(bot);
+        let update: Update = serde_json::from_value(
+            serde_json::json!({"update_id": 1, "message": {"message_id": 1, "date": 0, "chat": {"id": 5, "type": "private"}}}),
+        )
+        .unwrap();
+        let msg = ctx
+            .reply_rich_message(&update, InputRichMessage::markdown("**hi**"))
+            .await
+            .unwrap();
+        assert_eq!(msg.message_id, 1);
+        let calls = capture.calls.lock().unwrap();
+        assert_eq!(calls.len(), 1);
+        assert!(calls[0].0.ends_with("/sendRichMessage"));
+        let body: serde_json::Value = serde_json::from_slice(&calls[0].1).unwrap();
+        assert_eq!(body["rich_message"]["markdown"], "**hi**");
+    }
+
+    #[tokio::test]
+    async fn reply_ephemeral_attaches_query_id_from_callback() {
+        let (bot, capture) = make_capture_bot();
+        let ctx = make_ctx(bot);
+        let update: Update = serde_json::from_value(
+            serde_json::json!({"update_id": 2, "callback_query": {"id": "cq-9", "from": {"id": 8, "is_bot": false, "first_name": "U"}, "chat_instance": "ci", "message": {"message_id": 3, "date": 0, "chat": {"id": 6, "type": "supergroup"}}}}),
+        )
+        .unwrap();
+        ctx.reply_ephemeral(&update, 8, "secret").await.unwrap();
+        let calls = capture.calls.lock().unwrap();
+        assert_eq!(calls.len(), 1);
+        assert!(calls[0].0.ends_with("/sendMessage"));
+        let body: serde_json::Value = serde_json::from_slice(&calls[0].1).unwrap();
+        assert_eq!(body["text"], "secret");
+        assert_eq!(
+            body["ephemeral_message_parameters"],
+            serde_json::json!({"receiver_user_id": 8, "callback_query_id": "cq-9"})
+        );
+    }
+
+    #[tokio::test]
+    async fn reply_ephemeral_without_query_has_no_callback_id() {
+        let (bot, capture) = make_capture_bot();
+        let ctx = make_ctx(bot);
+        let update: Update = serde_json::from_value(
+            serde_json::json!({"update_id": 3, "message": {"message_id": 1, "date": 0, "chat": {"id": 6, "type": "supergroup"}}}),
+        )
+        .unwrap();
+        ctx.reply_ephemeral(&update, 8, "secret").await.unwrap();
+        let calls = capture.calls.lock().unwrap();
+        let body: serde_json::Value = serde_json::from_slice(&calls[0].1).unwrap();
+        assert_eq!(
+            body["ephemeral_message_parameters"],
+            serde_json::json!({"receiver_user_id": 8})
+        );
     }
 }
