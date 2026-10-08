@@ -165,8 +165,9 @@ impl_new!(TextQuote {
 #[non_exhaustive]
 pub struct ReplyParameters {
     /// Identifier of the message that will be replied to in the current chat, or in the chat
-    /// `chat_id` if it is specified.
-    pub message_id: i64,
+    /// `chat_id` if it is specified. Required unless replying to an ephemeral message.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub message_id: Option<i64>,
 
     /// If the message to be replied to is from a different chat, the identifier or username of
     /// that chat. Kept as Value since it can be either an integer chat id or a string username.
@@ -203,6 +204,28 @@ pub struct ReplyParameters {
     /// Added in Bot API 9.6.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub poll_option_id: Option<String>,
+
+    /// Identifier of the incoming ephemeral message to reply to in the current chat.
+    /// A reply to an ephemeral message must itself be an ephemeral message, sent
+    /// within 15 seconds. Required if `message_id` is absent.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub ephemeral_message_id: Option<i64>,
 }
 
-impl_new!(ReplyParameters { message_id: i64 });
+impl ReplyParameters {
+    /// Creates reply parameters targeting a regular message.
+    pub fn new(message_id: i64) -> Self {
+        Self {
+            message_id: Some(message_id),
+            ..Default::default()
+        }
+    }
+
+    /// Creates reply parameters targeting an incoming ephemeral message.
+    pub fn ephemeral(ephemeral_message_id: i64) -> Self {
+        Self {
+            ephemeral_message_id: Some(ephemeral_message_id),
+            ..Default::default()
+        }
+    }
+}

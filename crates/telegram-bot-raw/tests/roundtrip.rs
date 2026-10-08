@@ -1657,3 +1657,111 @@ fn input_rich_message_blocks_and_media() {
     assert_eq!(reserialized["media"][0]["media"]["type"], "photo");
     assert_eq!(reserialized["blocks"][1]["type"], "map");
 }
+
+// ===========================================================================
+// Ephemeral messages, communities, subscriptions
+// ===========================================================================
+
+#[test]
+fn ephemeral_message_fields_and_reply() {
+    use rust_tg_bot_raw::types::reply::ReplyParameters;
+
+    with_large_stack(|| {
+        let json = json!({
+            "message_id": 0,
+            "date": 1780000000,
+            "chat": {"id": -1002, "type": "supergroup"},
+            "receiver_user": {"id": 44, "is_bot": false, "first_name": "Ep"},
+            "ephemeral_message_id": 5,
+            "text": "only you see this"
+        });
+        let msg: Message = roundtrip_check(json);
+        assert_eq!(msg.message_id, 0);
+        assert_eq!(msg.receiver_user.as_ref().unwrap().id, 44);
+        assert_eq!(msg.ephemeral_message_id, Some(5));
+
+        // Ephemeral reply form: message_id absent, ephemeral id present.
+        let reply: ReplyParameters = roundtrip_check(json!({"ephemeral_message_id": 5}));
+        assert_eq!(reply.message_id, None);
+        assert_eq!(reply.ephemeral_message_id, Some(5));
+        let regular = ReplyParameters::new(10);
+        assert_eq!(regular.message_id, Some(10));
+        let value = serde_json::to_value(&regular).unwrap();
+        assert!(value.get("ephemeral_message_id").is_none());
+    });
+}
+
+#[test]
+fn community_service_messages() {
+    with_large_stack(|| {
+        let json = json!({
+            "message_id": 11,
+            "date": 1780000001,
+            "chat": {"id": -1002, "type": "supergroup"},
+            "community_chat_added": {"community": {"id": 7, "name": "Fans"}}
+        });
+        let msg: Message = roundtrip_check(json);
+        let added = msg.community_chat_added.as_ref().unwrap();
+        assert_eq!(added.community.name, "Fans");
+
+        // Fieldless removal marker.
+        let removed_json = json!({
+            "message_id": 12,
+            "date": 1780000002,
+            "chat": {"id": -1002, "type": "supergroup"},
+            "community_chat_removed": {}
+        });
+        let removed: Message = roundtrip_check(removed_json);
+        assert!(removed.community_chat_removed.is_some());
+
+        // Community on full chat info.
+        let full: ChatFullInfo = roundtrip_check(json!({
+            "id": -1002,
+            "type": "supergroup",
+            "accent_color_id": 1,
+            "max_reaction_count": 20,
+            "accepted_gift_types": {
+                "unlimited_gifts": true,
+                "limited_gifts": true,
+                "unique_gifts": true,
+                "premium_subscription": true,
+                "gifts_from_channels": false
+            },
+            "community": {"id": 7, "name": "Fans"}
+        }));
+        assert_eq!(full.community.as_ref().unwrap().id, 7);
+    });
+}
+
+#[test]
+fn subscription_update_plumbing() {
+    with_large_stack(|| {
+        let json = json!({
+            "update_id": 777,
+            "subscription": {
+                "user": {"id": 55, "is_bot": false, "first_name": "Sub"},
+                "invoice_payload": "sub-1",
+                "state": "active"
+            }
+        });
+        let update: Update = roundtrip_check(json);
+        let sub = update.subscription().unwrap();
+        assert_eq!(sub.state, "active");
+        assert_eq!(update.effective_user().unwrap().id, 55);
+        assert!(update.effective_chat().is_none());
+        assert!(update.effective_message().is_none());
+        assert!(update.message().is_none());
+    });
+}
+
+#[test]
+fn ephemeral_bot_command_flag() {
+    use rust_tg_bot_raw::types::bot_command::BotCommand;
+
+    let cmd: BotCommand =
+        roundtrip_check(json!({"command": "secret", "description": "d", "is_ephemeral": true}));
+    assert_eq!(cmd.is_ephemeral, Some(true));
+    // Absent flag still deserializes.
+    let plain: BotCommand = roundtrip_check(json!({"command": "start", "description": "d"}));
+    assert_eq!(plain.is_ephemeral, None);
+}

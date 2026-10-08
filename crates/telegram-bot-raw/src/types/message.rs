@@ -17,6 +17,7 @@ use super::chat_background::ChatBackground;
 use super::chat_boost::ChatBoostAdded;
 use super::chat_owner::{ChatOwnerChanged, ChatOwnerLeft};
 use super::checklists::{Checklist, ChecklistTasksAdded, ChecklistTasksDone};
+use super::community::{CommunityChatAdded, CommunityChatRemoved};
 use super::dice::Dice;
 use super::direct_message_price_changed::DirectMessagePriceChanged;
 use super::direct_messages_topic::DirectMessagesTopic;
@@ -125,6 +126,17 @@ pub struct Message {
     /// the bot's response.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub guest_bot_caller_chat: Option<Chat>,
+
+    // ── Ephemeral messages ──────────────────────────────────────────────────
+    /// For ephemeral messages, the user who received the message.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub receiver_user: Option<User>,
+
+    /// For ephemeral messages, the identifier of the ephemeral message inside this
+    /// chat. May be reused for another ephemeral message after expiry or deletion.
+    /// Note: `message_id` is 0 for ephemeral messages.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub ephemeral_message_id: Option<i64>,
 
     // ── Thread / topic ────────────────────────────────────────────────────────
     /// Unique identifier of a message thread to which the message belongs; for supergroups only.
@@ -413,6 +425,15 @@ pub struct Message {
     /// Service message: chat background set.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub chat_background_set: Option<ChatBackground>,
+
+    // ── Community ───────────────────────────────────────────────────────────
+    /// Service message: chat or bot added to a community.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub community_chat_added: Option<CommunityChatAdded>,
+
+    /// Service message: chat or bot removed from a community.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub community_chat_removed: Option<CommunityChatRemoved>,
 
     // ── Forum topic service messages ──────────────────────────────────────────
     /// Service message: forum topic created.

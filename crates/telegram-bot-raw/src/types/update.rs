@@ -24,6 +24,7 @@ use super::message_reaction_updated::{MessageReactionCountUpdated, MessageReacti
 use super::paid_media::PaidMediaPurchased;
 use super::payment::pre_checkout_query::PreCheckoutQuery;
 use super::payment::shipping_query::ShippingQuery;
+use super::payment::stars::subscription::BotSubscriptionUpdated;
 use super::poll::{Poll, PollAnswer};
 use super::user::User;
 
@@ -100,6 +101,8 @@ pub enum UpdateKind {
     ManagedBot(ManagedBotUpdated),
     /// New guest message from a chat the bot is not a member of.
     GuestMessage(Message),
+    /// A user payment subscription toward the bot has changed.
+    Subscription(BotSubscriptionUpdated),
     /// Unknown or unsupported update types, or an update with no payload fields.
     #[default]
     Unknown,
@@ -198,6 +201,9 @@ impl Serialize for UpdateKind {
             Self::GuestMessage(value) => {
                 serializer.serialize_newtype_variant("UpdateKind", 24, "guest_message", value)
             }
+            Self::Subscription(value) => {
+                serializer.serialize_newtype_variant("UpdateKind", 25, "subscription", value)
+            }
             Self::Unknown => {
                 let map = serializer.serialize_map(Some(0))?;
                 map.end()
@@ -289,6 +295,7 @@ impl<'de> Visitor<'de> for UpdateKindVisitor {
                 }
                 "managed_bot" => parse_kind!(ManagedBot, ManagedBotUpdated),
                 "guest_message" => parse_kind!(GuestMessage, Message),
+                "subscription" => parse_kind!(Subscription, BotSubscriptionUpdated),
                 "update_id" => {
                     map.next_value::<IgnoredAny>()?;
                 }
@@ -366,6 +373,7 @@ impl Update {
         ),
         (managed_bot, ManagedBot, ManagedBotUpdated),
         (guest_message, GuestMessage, Message),
+        (subscription, Subscription, BotSubscriptionUpdated),
     );
 
     /// Returns a reference to the [`User`] that sent this update, regardless of update type.
@@ -394,6 +402,7 @@ impl Update {
             UpdateKind::BusinessConnection(bc) => Some(&bc.user),
             UpdateKind::PurchasedPaidMedia(ppm) => Some(&ppm.from_user),
             UpdateKind::ManagedBot(mbu) => Some(&mbu.user),
+            UpdateKind::Subscription(bsu) => Some(&bsu.user),
             UpdateKind::ChannelPost(_)
             | UpdateKind::EditedChannelPost(_)
             | UpdateKind::DeletedBusinessMessages(_)
@@ -439,6 +448,7 @@ impl Update {
             | UpdateKind::Poll(_)
             | UpdateKind::PollAnswer(_)
             | UpdateKind::ManagedBot(_)
+            | UpdateKind::Subscription(_)
             | UpdateKind::Unknown => None,
         }
     }
@@ -484,6 +494,7 @@ impl Update {
             | UpdateKind::MessageReaction(_)
             | UpdateKind::MessageReactionCount(_)
             | UpdateKind::ManagedBot(_)
+            | UpdateKind::Subscription(_)
             | UpdateKind::Unknown => None,
         }
     }

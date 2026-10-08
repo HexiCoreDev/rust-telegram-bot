@@ -162,6 +162,8 @@ pub mod user_rating;
 // Misc types
 /// Checklist types.
 pub mod checklists;
+/// Community types.
+pub mod community;
 /// Forum topic types.
 pub mod forum_topic;
 /// Guest mode types.

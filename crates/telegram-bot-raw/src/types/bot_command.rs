@@ -9,6 +9,11 @@ pub struct BotCommand {
 
     /// Description of the command; 1-256 characters.
     pub description: String,
+
+    /// `true` if the command sends an ephemeral message, visible only to the
+    /// sender and the bot.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub is_ephemeral: Option<bool>,
 }
 
 impl_new!(BotCommand {

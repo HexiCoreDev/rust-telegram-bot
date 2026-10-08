@@ -11,6 +11,7 @@ use super::business::{BusinessIntro, BusinessLocation, BusinessOpeningHours};
 use super::chat::Chat;
 use super::chat_location::ChatLocation;
 use super::chat_permissions::ChatPermissions;
+use super::community::Community;
 use super::files::audio::Audio;
 use super::files::chat_photo::ChatPhoto;
 use super::gifts::AcceptedGiftTypes;
@@ -242,4 +243,8 @@ pub struct ChatFullInfo {
     /// Only available to chat administrators.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub guard_bot: Option<User>,
+
+    /// The community to which the chat belongs.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub community: Option<Community>,
 }
