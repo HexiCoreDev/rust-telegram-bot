@@ -22,8 +22,8 @@ use crate::error::Result;
 use crate::request::request_parameter::{InputFileRef, RequestParameter};
 use crate::types::{
     chat_full_info, chat_invite_link, chat_member, chat_permissions, files, guest, inline,
-    link_preview_options, managed_bot, message, message_entity, message_id, poll,
-    prepared_keyboard_button, reply, suggested_post,
+    input_rich_message, link_preview_options, managed_bot, message, message_entity, message_id,
+    poll, prepared_keyboard_button, reply, suggested_post,
 };
 use serde::Serialize;
 
@@ -2379,6 +2379,8 @@ pub struct EditMessageTextBuilder<'a> {
     reply_markup: Option<serde_json::Value>,
     #[serde(skip_serializing_if = "Option::is_none")]
     business_connection_id: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    rich_message: Option<input_rich_message::InputRichMessage>,
 }
 
 impl<'a> EditMessageTextBuilder<'a> {
@@ -2420,6 +2422,11 @@ impl<'a> EditMessageTextBuilder<'a> {
     /// Sets the `business_connection_id` parameter.
     pub fn business_connection_id(mut self, val: impl Into<String>) -> Self {
         self.business_connection_id = Some(val.into());
+        self
+    }
+    /// Sets the `rich_message` parameter (new rich content; required if `text` is empty).
+    pub fn rich_message(mut self, val: input_rich_message::InputRichMessage) -> Self {
+        self.rich_message = Some(val);
         self
     }
 
@@ -3646,6 +3653,7 @@ impl Bot {
             link_preview_options: None,
             reply_markup: None,
             business_connection_id: None,
+            rich_message: None,
         }
     }
 
@@ -4546,6 +4554,154 @@ impl<'a> SendMessageDraftBuilder<'a> {
 }
 
 impl_into_future!(SendMessageDraftBuilder, bool);
+
+// =========================================================================
+// SendRichMessageBuilder
+// =========================================================================
+
+/// Builder for the [`sendRichMessage`] API method.
+#[derive(Serialize)]
+pub struct SendRichMessageBuilder<'a> {
+    #[serde(skip)]
+    bot: &'a Bot,
+    chat_id: ChatId,
+    rich_message: input_rich_message::InputRichMessage,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    business_connection_id: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    message_thread_id: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    direct_messages_topic_id: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    disable_notification: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    protect_content: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    allow_paid_broadcast: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    message_effect_id: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    suggested_post_parameters: Option<suggested_post::SuggestedPostParameters>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    reply_parameters: Option<reply::ReplyParameters>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    reply_markup: Option<serde_json::Value>,
+}
+
+impl<'a> SendRichMessageBuilder<'a> {
+    /// Sets the `business_connection_id` parameter.
+    pub fn business_connection_id(mut self, val: impl Into<String>) -> Self {
+        self.business_connection_id = Some(val.into());
+        self
+    }
+    /// Sets the `message_thread_id` parameter.
+    pub fn message_thread_id(mut self, val: i64) -> Self {
+        self.message_thread_id = Some(val);
+        self
+    }
+    /// Sets the `direct_messages_topic_id` parameter.
+    pub fn direct_messages_topic_id(mut self, val: i64) -> Self {
+        self.direct_messages_topic_id = Some(val);
+        self
+    }
+    /// Sets the `disable_notification` parameter.
+    pub fn disable_notification(mut self, val: bool) -> Self {
+        self.disable_notification = Some(val);
+        self
+    }
+    /// Sets the `protect_content` parameter.
+    pub fn protect_content(mut self, val: bool) -> Self {
+        self.protect_content = Some(val);
+        self
+    }
+    /// Sets the `allow_paid_broadcast` parameter.
+    pub fn allow_paid_broadcast(mut self, val: bool) -> Self {
+        self.allow_paid_broadcast = Some(val);
+        self
+    }
+    /// Sets the `message_effect_id` parameter.
+    pub fn message_effect_id(mut self, val: impl Into<String>) -> Self {
+        self.message_effect_id = Some(val.into());
+        self
+    }
+    /// Sets the `suggested_post_parameters` parameter.
+    pub fn suggested_post_parameters(
+        mut self,
+        val: suggested_post::SuggestedPostParameters,
+    ) -> Self {
+        self.suggested_post_parameters = Some(val);
+        self
+    }
+    /// Sets the `reply_parameters` parameter.
+    pub fn reply_parameters(mut self, val: reply::ReplyParameters) -> Self {
+        self.reply_parameters = Some(val);
+        self
+    }
+    /// Sets the `reply_markup` parameter.
+    pub fn reply_markup(mut self, val: serde_json::Value) -> Self {
+        self.reply_markup = Some(val);
+        self
+    }
+
+    /// Sends the request to the Telegram Bot API.
+    pub async fn send(self) -> Result<message::Message> {
+        let payload = serde_json::to_vec(&self)?;
+        self.bot.do_post_json("sendRichMessage", &payload).await
+    }
+}
+
+impl_into_future!(SendRichMessageBuilder, message::Message);
+
+// =========================================================================
+// SendRichMessageDraftBuilder
+// =========================================================================
+
+/// Builder for the [`sendRichMessageDraft`] API method.
+///
+/// Streams a partial rich message as a temporary preview; call
+/// `sendRichMessage` with the complete message to persist it.
+#[derive(Serialize)]
+pub struct SendRichMessageDraftBuilder<'a> {
+    #[serde(skip)]
+    bot: &'a Bot,
+    chat_id: i64,
+    draft_id: i64,
+    rich_message: input_rich_message::InputRichMessage,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    message_thread_id: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    can_stop: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    keep_on_stop: Option<bool>,
+}
+
+impl<'a> SendRichMessageDraftBuilder<'a> {
+    /// Sets the `message_thread_id` parameter.
+    pub fn message_thread_id(mut self, val: i64) -> Self {
+        self.message_thread_id = Some(val);
+        self
+    }
+    /// Sets the `can_stop` parameter (show the user a stop button).
+    pub fn can_stop(mut self, val: bool) -> Self {
+        self.can_stop = Some(val);
+        self
+    }
+    /// Sets the `keep_on_stop` parameter (keep the draft when stopped).
+    pub fn keep_on_stop(mut self, val: bool) -> Self {
+        self.keep_on_stop = Some(val);
+        self
+    }
+
+    /// Sends the request to the Telegram Bot API.
+    pub async fn send(self) -> Result<bool> {
+        let payload = serde_json::to_vec(&self)?;
+        self.bot
+            .do_post_json("sendRichMessageDraft", &payload)
+            .await
+    }
+}
+
+impl_into_future!(SendRichMessageDraftBuilder, bool);
 
 // =========================================================================
 // LeaveChatBuilder
@@ -5576,6 +5732,59 @@ impl<'a> DeclineChatJoinRequestBuilder<'a> {
 impl_into_future!(DeclineChatJoinRequestBuilder, bool);
 
 // =========================================================================
+// AnswerChatJoinRequestQueryBuilder
+// =========================================================================
+
+/// Builder for the [`answerChatJoinRequestQuery`] API method.
+#[derive(Serialize)]
+pub struct AnswerChatJoinRequestQueryBuilder<'a> {
+    #[serde(skip)]
+    bot: &'a Bot,
+    chat_join_request_query_id: String,
+    result: String,
+}
+
+impl<'a> AnswerChatJoinRequestQueryBuilder<'a> {
+    /// Sends the request to the Telegram Bot API.
+    pub async fn send(self) -> Result<bool> {
+        let payload = serde_json::to_vec(&self)?;
+        self.bot
+            .do_post_json("answerChatJoinRequestQuery", &payload)
+            .await
+    }
+}
+
+impl_into_future!(AnswerChatJoinRequestQueryBuilder, bool);
+
+// =========================================================================
+// SendChatJoinRequestWebAppBuilder
+// =========================================================================
+
+/// Builder for the [`sendChatJoinRequestWebApp`] API method.
+///
+/// Shows a Mini App to the user before the join request outcome is decided;
+/// resolve the query afterwards with `answerChatJoinRequestQuery`.
+#[derive(Serialize)]
+pub struct SendChatJoinRequestWebAppBuilder<'a> {
+    #[serde(skip)]
+    bot: &'a Bot,
+    chat_join_request_query_id: String,
+    web_app_url: String,
+}
+
+impl<'a> SendChatJoinRequestWebAppBuilder<'a> {
+    /// Sends the request to the Telegram Bot API.
+    pub async fn send(self) -> Result<bool> {
+        let payload = serde_json::to_vec(&self)?;
+        self.bot
+            .do_post_json("sendChatJoinRequestWebApp", &payload)
+            .await
+    }
+}
+
+impl_into_future!(SendChatJoinRequestWebAppBuilder, bool);
+
+// =========================================================================
 // Builder factory methods on Bot for messages and chat methods
 // =========================================================================
 
@@ -5713,6 +5922,47 @@ impl Bot {
             message_thread_id: None,
             parse_mode: None,
             entities: None,
+        }
+    }
+
+    /// Build a `sendRichMessage` request.
+    pub fn send_rich_message(
+        &self,
+        chat_id: impl Into<ChatId>,
+        rich_message: input_rich_message::InputRichMessage,
+    ) -> SendRichMessageBuilder<'_> {
+        SendRichMessageBuilder {
+            bot: self,
+            chat_id: chat_id.into(),
+            rich_message,
+            business_connection_id: None,
+            message_thread_id: None,
+            direct_messages_topic_id: None,
+            disable_notification: None,
+            protect_content: None,
+            allow_paid_broadcast: None,
+            message_effect_id: None,
+            suggested_post_parameters: None,
+            reply_parameters: None,
+            reply_markup: None,
+        }
+    }
+
+    /// Build a `sendRichMessageDraft` request.
+    pub fn send_rich_message_draft(
+        &self,
+        chat_id: i64,
+        draft_id: i64,
+        rich_message: input_rich_message::InputRichMessage,
+    ) -> SendRichMessageDraftBuilder<'_> {
+        SendRichMessageDraftBuilder {
+            bot: self,
+            chat_id,
+            draft_id,
+            rich_message,
+            message_thread_id: None,
+            can_stop: None,
+            keep_on_stop: None,
         }
     }
 
@@ -6133,6 +6383,32 @@ impl Bot {
             bot: self,
             chat_id: chat_id.into(),
             user_id,
+        }
+    }
+
+    /// Build an `answerChatJoinRequestQuery` request.
+    pub fn answer_chat_join_request_query(
+        &self,
+        chat_join_request_query_id: impl Into<String>,
+        result: impl Into<String>,
+    ) -> AnswerChatJoinRequestQueryBuilder<'_> {
+        AnswerChatJoinRequestQueryBuilder {
+            bot: self,
+            chat_join_request_query_id: chat_join_request_query_id.into(),
+            result: result.into(),
+        }
+    }
+
+    /// Build a `sendChatJoinRequestWebApp` request.
+    pub fn send_chat_join_request_web_app(
+        &self,
+        chat_join_request_query_id: impl Into<String>,
+        web_app_url: impl Into<String>,
+    ) -> SendChatJoinRequestWebAppBuilder<'_> {
+        SendChatJoinRequestWebAppBuilder {
+            bot: self,
+            chat_join_request_query_id: chat_join_request_query_id.into(),
+            web_app_url: web_app_url.into(),
         }
     }
 }

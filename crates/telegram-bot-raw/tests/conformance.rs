@@ -103,6 +103,15 @@ fn all_bot_api_96_builder_methods_exist() {
 
     // -- Sending messages --
     let _ = bot.send_message(1i64, "text");
+    let _ = bot.send_rich_message(
+        1i64,
+        rust_tg_bot_raw::types::input_rich_message::InputRichMessage::markdown("**hi**"),
+    );
+    let _ = bot.send_rich_message_draft(
+        1,
+        1,
+        rust_tg_bot_raw::types::input_rich_message::InputRichMessage::markdown("**hi**"),
+    );
 
     // -- Sending media --
     let _ = bot.send_photo(1i64, dummy_file());
@@ -133,6 +142,9 @@ fn all_bot_api_96_builder_methods_exist() {
 
     // -- Updating messages --
     let _ = bot.edit_message_text("new text");
+    let _ = bot.edit_message_text("new text").rich_message(
+        rust_tg_bot_raw::types::input_rich_message::InputRichMessage::markdown("**hi**"),
+    );
     let _ = bot.edit_message_caption();
     let _ = bot.edit_message_media(json!({}));
     let _ = bot.edit_message_reply_markup();
@@ -209,6 +221,8 @@ fn all_bot_api_96_builder_methods_exist() {
     let _ = bot.edit_chat_subscription_invite_link(1i64, "link");
     let _ = bot.approve_chat_join_request(1i64, 1);
     let _ = bot.decline_chat_join_request(1i64, 1);
+    let _ = bot.answer_chat_join_request_query("qrq-1", "approve");
+    let _ = bot.send_chat_join_request_web_app("qrq-1", "https://example.com");
 }
 
 /// Verify raw async methods exist on Bot.
@@ -572,6 +586,14 @@ fn method_count_matches_api_96() {
         ("revokeChatInviteLink", "revoke_chat_invite_link"),
         ("approveChatJoinRequest", "approve_chat_join_request"),
         ("declineChatJoinRequest", "decline_chat_join_request"),
+        (
+            "answerChatJoinRequestQuery",
+            "answer_chat_join_request_query",
+        ),
+        (
+            "sendChatJoinRequestWebApp",
+            "send_chat_join_request_web_app",
+        ),
         ("setChatPhoto", "set_chat_photo"),
         ("deleteChatPhoto", "delete_chat_photo"),
         ("setChatTitle", "set_chat_title"),
@@ -760,12 +782,14 @@ fn method_count_matches_api_96() {
         ("declineSuggestedPost", "decline_suggested_post"),
         // -- Draft messages --
         ("sendMessageDraft", "send_message_draft"),
+        ("sendRichMessage", "send_rich_message"),
+        ("sendRichMessageDraft", "send_rich_message_draft"),
     ];
 
     assert_eq!(
         methods.len(),
-        176,
-        "Expected 176 Bot API methods, found {}. \
+        180,
+        "Expected 180 Bot API methods, found {}. \
          Update this list if the spec has changed.",
         methods.len()
     );
