@@ -192,6 +192,28 @@ fn has_param(params: &[RequestParameter], name: &str) -> bool {
     params.iter().any(|p| p.name.as_ref() == name)
 }
 
+/// Extracts the local file path from a deferred `__filepath__:` marker value.
+fn path_of(param: &RequestParameter) -> Option<String> {
+    param
+        .value
+        .as_ref()
+        .and_then(|v| v.as_str())
+        .and_then(|s| s.strip_prefix("__filepath__:"))
+        .map(str::to_owned)
+}
+
+/// Stores freshly read file bytes into every empty upload slot of a parameter.
+fn attach_bytes(param: &mut RequestParameter, data: Vec<u8>) {
+    param.value = None;
+    if let Some(ref mut files) = param.input_files {
+        for f in files.iter_mut() {
+            if f.bytes.is_empty() {
+                f.bytes = data.clone();
+            }
+        }
+    }
+}
+
 /// Push an optional value as a `RequestParameter` if present.
 fn push_opt<T: Serialize>(
     params: &mut Vec<RequestParameter>,
@@ -315,30 +337,40 @@ impl Bot {
     }
 
     async fn resolve_file_paths(&self, params: &mut [RequestParameter]) -> Result<()> {
-        for param in params.iter_mut() {
-            let path_str = param
-                .value
-                .as_ref()
-                .and_then(|v| v.as_str())
-                .and_then(|s| s.strip_prefix("__filepath__:"))
-                .map(str::to_owned);
-            if let Some(path_str) = path_str {
-                if self.local_mode {
+        if self.local_mode {
+            for param in params.iter_mut() {
+                if let Some(path_str) = path_of(param) {
                     // In local mode, send the path as a file:// URI rather than uploading bytes.
                     param.value = Some(serde_json::Value::String(format!("file://{path_str}")));
                     param.input_files = None;
-                } else {
-                    let data = tokio::fs::read(&path_str).await?;
-                    param.value = None;
-                    if let Some(ref mut files) = param.input_files {
-                        for f in files.iter_mut() {
-                            if f.bytes.is_empty() {
-                                f.bytes = data.clone();
-                            }
-                        }
-                    }
                 }
             }
+            return Ok(());
+        }
+        // Collect pending disk reads first so multiple uploads proceed concurrently
+        // (e.g. media groups). A single read stays inline to avoid task overhead.
+        let jobs: Vec<(usize, String)> = params
+            .iter()
+            .enumerate()
+            .filter_map(|(i, p)| path_of(p).map(|path| (i, path)))
+            .collect();
+        if jobs.len() < 2 {
+            for (i, path_str) in jobs {
+                let data = tokio::fs::read(&path_str).await?;
+                attach_bytes(&mut params[i], data);
+            }
+            return Ok(());
+        }
+        let mut handles = Vec::with_capacity(jobs.len());
+        for (i, path_str) in jobs {
+            handles.push((
+                i,
+                tokio::spawn(async move { tokio::fs::read(&path_str).await }),
+            ));
+        }
+        for (i, handle) in handles {
+            let data = handle.await.map_err(std::io::Error::from)??;
+            attach_bytes(&mut params[i], data);
         }
         Ok(())
     }
@@ -719,5 +751,53 @@ mod tests {
         )];
         bot.apply_defaults(&mut params);
         assert_eq!(params.len(), 1);
+    }
+
+    fn path_param(name: &'static str, path: &str) -> RequestParameter {
+        RequestParameter {
+            name: std::borrow::Cow::Borrowed(name),
+            value: Some(serde_json::Value::String(format!("__filepath__:{path}"))),
+            input_files: Some(vec![crate::request::request_parameter::InputFileRef {
+                attach_name: None,
+                bytes: Vec::new(),
+                mime_type: None,
+                file_name: Some("f.bin".to_owned()),
+            }]),
+        }
+    }
+
+    #[tokio::test]
+    async fn resolve_file_paths_reads_concurrently_in_order() {
+        let dir = std::env::temp_dir().join("rtb-resolve-test");
+        tokio::fs::create_dir_all(&dir).await.unwrap();
+        let a_path = dir.join("a.bin");
+        let b_path = dir.join("b.bin");
+        tokio::fs::write(&a_path, b"aaa").await.unwrap();
+        tokio::fs::write(&b_path, b"bbbb").await.unwrap();
+
+        let bot = Bot::new("token", Arc::new(StubRequest));
+        let mut params = vec![
+            path_param("first", &a_path.to_string_lossy()),
+            path_param("second", &b_path.to_string_lossy()),
+        ];
+        bot.resolve_file_paths(&mut params).await.unwrap();
+        let bytes_of = |p: &RequestParameter| p.input_files.as_ref().unwrap()[0].bytes.clone();
+        // Order is preserved: each param receives its own file's bytes.
+        assert_eq!(bytes_of(&params[0]), b"aaa");
+        assert_eq!(bytes_of(&params[1]), b"bbbb");
+        assert!(params.iter().all(|p| p.value.is_none()));
+        tokio::fs::remove_dir_all(&dir).await.unwrap();
+    }
+
+    #[tokio::test]
+    async fn resolve_file_paths_local_mode_rewrites_uri() {
+        let bot = Bot::new("token", Arc::new(StubRequest)).with_local_mode();
+        let mut params = vec![path_param("photo", "/tmp/pic.jpg")];
+        bot.resolve_file_paths(&mut params).await.unwrap();
+        assert_eq!(
+            params[0].value,
+            Some(serde_json::Value::String("file:///tmp/pic.jpg".to_owned()))
+        );
+        assert!(params[0].input_files.is_none());
     }
 }
