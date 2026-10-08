@@ -2440,6 +2440,232 @@ impl<'a> EditMessageTextBuilder<'a> {
 impl_into_future!(EditMessageTextBuilder, MessageOrBool);
 
 // =========================================================================
+// EditEphemeralMessageTextBuilder
+// =========================================================================
+
+/// Builder for the [`editEphemeralMessageText`] API method.
+#[derive(Serialize)]
+pub struct EditEphemeralMessageTextBuilder<'a> {
+    #[serde(skip)]
+    bot: &'a Bot,
+    chat_id: ChatId,
+    receiver_user_id: i64,
+    ephemeral_message_id: i64,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    text: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    parse_mode: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    entities: Option<Vec<message_entity::MessageEntity>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    rich_message: Option<input_rich_message::InputRichMessage>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    link_preview_options: Option<link_preview_options::LinkPreviewOptions>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    reply_markup: Option<serde_json::Value>,
+}
+
+impl<'a> EditEphemeralMessageTextBuilder<'a> {
+    /// Sets the `text` parameter (required if `rich_message` is absent).
+    pub fn text(mut self, val: impl Into<String>) -> Self {
+        self.text = Some(val.into());
+        self
+    }
+    /// Sets the `parse_mode` parameter.
+    pub fn parse_mode(mut self, val: impl Into<String>) -> Self {
+        self.parse_mode = Some(val.into());
+        self
+    }
+    /// Sets the `entities` parameter.
+    pub fn entities(mut self, val: Vec<message_entity::MessageEntity>) -> Self {
+        self.entities = Some(val);
+        self
+    }
+    /// Sets the `rich_message` parameter (required if `text` is absent).
+    pub fn rich_message(mut self, val: input_rich_message::InputRichMessage) -> Self {
+        self.rich_message = Some(val);
+        self
+    }
+    /// Sets the `link_preview_options` parameter.
+    pub fn link_preview_options(mut self, val: link_preview_options::LinkPreviewOptions) -> Self {
+        self.link_preview_options = Some(val);
+        self
+    }
+    /// Sets the `reply_markup` parameter.
+    pub fn reply_markup(mut self, val: serde_json::Value) -> Self {
+        self.reply_markup = Some(val);
+        self
+    }
+
+    /// Sends the request to the Telegram Bot API.
+    pub async fn send(self) -> Result<bool> {
+        let payload = serde_json::to_vec(&self)?;
+        self.bot
+            .do_post_json("editEphemeralMessageText", &payload)
+            .await
+    }
+}
+
+impl_into_future!(EditEphemeralMessageTextBuilder, bool);
+
+// =========================================================================
+// EditEphemeralMessageMediaBuilder
+// =========================================================================
+
+/// Builder for the [`editEphemeralMessageMedia`] API method.
+#[derive(Serialize)]
+pub struct EditEphemeralMessageMediaBuilder<'a> {
+    #[serde(skip)]
+    bot: &'a Bot,
+    chat_id: ChatId,
+    receiver_user_id: i64,
+    ephemeral_message_id: i64,
+    media: serde_json::Value,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    reply_markup: Option<serde_json::Value>,
+}
+
+impl<'a> EditEphemeralMessageMediaBuilder<'a> {
+    /// Sets the `reply_markup` parameter.
+    pub fn reply_markup(mut self, val: serde_json::Value) -> Self {
+        self.reply_markup = Some(val);
+        self
+    }
+
+    /// Sends the request to the Telegram Bot API.
+    pub async fn send(self) -> Result<bool> {
+        let payload = serde_json::to_vec(&self)?;
+        self.bot
+            .do_post_json("editEphemeralMessageMedia", &payload)
+            .await
+    }
+}
+
+impl_into_future!(EditEphemeralMessageMediaBuilder, bool);
+
+// =========================================================================
+// EditEphemeralMessageCaptionBuilder
+// =========================================================================
+
+/// Builder for the [`editEphemeralMessageCaption`] API method.
+#[derive(Serialize)]
+pub struct EditEphemeralMessageCaptionBuilder<'a> {
+    #[serde(skip)]
+    bot: &'a Bot,
+    chat_id: ChatId,
+    receiver_user_id: i64,
+    ephemeral_message_id: i64,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    caption: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    parse_mode: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    caption_entities: Option<Vec<message_entity::MessageEntity>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    show_caption_above_media: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    reply_markup: Option<serde_json::Value>,
+}
+
+impl<'a> EditEphemeralMessageCaptionBuilder<'a> {
+    /// Sets the `caption` parameter.
+    pub fn caption(mut self, val: impl Into<String>) -> Self {
+        self.caption = Some(val.into());
+        self
+    }
+    /// Sets the `parse_mode` parameter.
+    pub fn parse_mode(mut self, val: impl Into<String>) -> Self {
+        self.parse_mode = Some(val.into());
+        self
+    }
+    /// Sets the `caption_entities` parameter.
+    pub fn caption_entities(mut self, val: Vec<message_entity::MessageEntity>) -> Self {
+        self.caption_entities = Some(val);
+        self
+    }
+    /// Sets the `show_caption_above_media` parameter.
+    pub fn show_caption_above_media(mut self, val: bool) -> Self {
+        self.show_caption_above_media = Some(val);
+        self
+    }
+    /// Sets the `reply_markup` parameter.
+    pub fn reply_markup(mut self, val: serde_json::Value) -> Self {
+        self.reply_markup = Some(val);
+        self
+    }
+
+    /// Sends the request to the Telegram Bot API.
+    pub async fn send(self) -> Result<bool> {
+        let payload = serde_json::to_vec(&self)?;
+        self.bot
+            .do_post_json("editEphemeralMessageCaption", &payload)
+            .await
+    }
+}
+
+impl_into_future!(EditEphemeralMessageCaptionBuilder, bool);
+
+// =========================================================================
+// EditEphemeralMessageReplyMarkupBuilder
+// =========================================================================
+
+/// Builder for the [`editEphemeralMessageReplyMarkup`] API method.
+#[derive(Serialize)]
+pub struct EditEphemeralMessageReplyMarkupBuilder<'a> {
+    #[serde(skip)]
+    bot: &'a Bot,
+    chat_id: ChatId,
+    receiver_user_id: i64,
+    ephemeral_message_id: i64,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    reply_markup: Option<serde_json::Value>,
+}
+
+impl<'a> EditEphemeralMessageReplyMarkupBuilder<'a> {
+    /// Sets the `reply_markup` parameter.
+    pub fn reply_markup(mut self, val: serde_json::Value) -> Self {
+        self.reply_markup = Some(val);
+        self
+    }
+
+    /// Sends the request to the Telegram Bot API.
+    pub async fn send(self) -> Result<bool> {
+        let payload = serde_json::to_vec(&self)?;
+        self.bot
+            .do_post_json("editEphemeralMessageReplyMarkup", &payload)
+            .await
+    }
+}
+
+impl_into_future!(EditEphemeralMessageReplyMarkupBuilder, bool);
+
+// =========================================================================
+// DeleteEphemeralMessageBuilder
+// =========================================================================
+
+/// Builder for the [`deleteEphemeralMessage`] API method.
+#[derive(Serialize)]
+pub struct DeleteEphemeralMessageBuilder<'a> {
+    #[serde(skip)]
+    bot: &'a Bot,
+    chat_id: ChatId,
+    receiver_user_id: i64,
+    ephemeral_message_id: i64,
+}
+
+impl<'a> DeleteEphemeralMessageBuilder<'a> {
+    /// Sends the request to the Telegram Bot API.
+    pub async fn send(self) -> Result<bool> {
+        let payload = serde_json::to_vec(&self)?;
+        self.bot
+            .do_post_json("deleteEphemeralMessage", &payload)
+            .await
+    }
+}
+
+impl_into_future!(DeleteEphemeralMessageBuilder, bool);
+
+// =========================================================================
 // EditMessageCaptionBuilder
 // =========================================================================
 
@@ -3654,6 +3880,96 @@ impl Bot {
             reply_markup: None,
             business_connection_id: None,
             rich_message: None,
+        }
+    }
+
+    /// Build an `editEphemeralMessageText` request.
+    pub fn edit_ephemeral_message_text(
+        &self,
+        chat_id: impl Into<ChatId>,
+        receiver_user_id: i64,
+        ephemeral_message_id: i64,
+    ) -> EditEphemeralMessageTextBuilder<'_> {
+        EditEphemeralMessageTextBuilder {
+            bot: self,
+            chat_id: chat_id.into(),
+            receiver_user_id,
+            ephemeral_message_id,
+            text: None,
+            parse_mode: None,
+            entities: None,
+            rich_message: None,
+            link_preview_options: None,
+            reply_markup: None,
+        }
+    }
+
+    /// Build an `editEphemeralMessageMedia` request.
+    pub fn edit_ephemeral_message_media(
+        &self,
+        chat_id: impl Into<ChatId>,
+        receiver_user_id: i64,
+        ephemeral_message_id: i64,
+        media: serde_json::Value,
+    ) -> EditEphemeralMessageMediaBuilder<'_> {
+        EditEphemeralMessageMediaBuilder {
+            bot: self,
+            chat_id: chat_id.into(),
+            receiver_user_id,
+            ephemeral_message_id,
+            media,
+            reply_markup: None,
+        }
+    }
+
+    /// Build an `editEphemeralMessageCaption` request.
+    pub fn edit_ephemeral_message_caption(
+        &self,
+        chat_id: impl Into<ChatId>,
+        receiver_user_id: i64,
+        ephemeral_message_id: i64,
+    ) -> EditEphemeralMessageCaptionBuilder<'_> {
+        EditEphemeralMessageCaptionBuilder {
+            bot: self,
+            chat_id: chat_id.into(),
+            receiver_user_id,
+            ephemeral_message_id,
+            caption: None,
+            parse_mode: None,
+            caption_entities: None,
+            show_caption_above_media: None,
+            reply_markup: None,
+        }
+    }
+
+    /// Build an `editEphemeralMessageReplyMarkup` request.
+    pub fn edit_ephemeral_message_reply_markup(
+        &self,
+        chat_id: impl Into<ChatId>,
+        receiver_user_id: i64,
+        ephemeral_message_id: i64,
+    ) -> EditEphemeralMessageReplyMarkupBuilder<'_> {
+        EditEphemeralMessageReplyMarkupBuilder {
+            bot: self,
+            chat_id: chat_id.into(),
+            receiver_user_id,
+            ephemeral_message_id,
+            reply_markup: None,
+        }
+    }
+
+    /// Build a `deleteEphemeralMessage` request.
+    pub fn delete_ephemeral_message(
+        &self,
+        chat_id: impl Into<ChatId>,
+        receiver_user_id: i64,
+        ephemeral_message_id: i64,
+    ) -> DeleteEphemeralMessageBuilder<'_> {
+        DeleteEphemeralMessageBuilder {
+            bot: self,
+            chat_id: chat_id.into(),
+            receiver_user_id,
+            ephemeral_message_id,
         }
     }
 

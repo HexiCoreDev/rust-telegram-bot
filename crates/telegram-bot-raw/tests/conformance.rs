@@ -145,6 +145,11 @@ fn all_bot_api_96_builder_methods_exist() {
     let _ = bot.edit_message_text("new text").rich_message(
         rust_tg_bot_raw::types::input_rich_message::InputRichMessage::markdown("**hi**"),
     );
+    let _ = bot.edit_ephemeral_message_text(1i64, 1, 1);
+    let _ = bot.edit_ephemeral_message_media(1i64, 1, 1, json!({}));
+    let _ = bot.edit_ephemeral_message_caption(1i64, 1, 1);
+    let _ = bot.edit_ephemeral_message_reply_markup(1i64, 1, 1);
+    let _ = bot.delete_ephemeral_message(1i64, 1, 1);
     let _ = bot.edit_message_caption();
     let _ = bot.edit_message_media(json!({}));
     let _ = bot.edit_message_reply_markup();
@@ -662,6 +667,17 @@ fn method_count_matches_api_96() {
         ("stopMessageLiveLocation", "stop_message_live_location"),
         ("editMessageReplyMarkup", "edit_message_reply_markup"),
         ("stopPoll", "stop_poll"),
+        ("editEphemeralMessageText", "edit_ephemeral_message_text"),
+        ("editEphemeralMessageMedia", "edit_ephemeral_message_media"),
+        (
+            "editEphemeralMessageCaption",
+            "edit_ephemeral_message_caption",
+        ),
+        (
+            "editEphemeralMessageReplyMarkup",
+            "edit_ephemeral_message_reply_markup",
+        ),
+        ("deleteEphemeralMessage", "delete_ephemeral_message"),
         ("deleteMessage", "delete_message"),
         ("deleteMessages", "delete_messages"),
         // -- Stickers --
@@ -788,8 +804,8 @@ fn method_count_matches_api_96() {
 
     assert_eq!(
         methods.len(),
-        180,
-        "Expected 180 Bot API methods, found {}. \
+        185,
+        "Expected 185 Bot API methods, found {}. \
          Update this list if the spec has changed.",
         methods.len()
     );
