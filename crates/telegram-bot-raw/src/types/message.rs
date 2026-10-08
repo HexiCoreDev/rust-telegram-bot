@@ -520,15 +520,15 @@ pub struct Message {
     // ── Gifts ─────────────────────────────────────────────────────────────────
     /// Message is a gift.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub gift: Option<GiftInfo>,
+    pub gift: Option<Box<GiftInfo>>,
 
     /// A unique gift was sent or received.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub unique_gift: Option<UniqueGiftInfo>,
+    pub unique_gift: Option<Box<UniqueGiftInfo>>,
 
     /// Service message: a gift was upgraded and the original gift was sent to the receiver.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub gift_upgrade_sent: Option<GiftInfo>,
+    pub gift_upgrade_sent: Option<Box<GiftInfo>>,
 
     // ── Checklists ────────────────────────────────────────────────────────────
     /// Message contains a checklist.

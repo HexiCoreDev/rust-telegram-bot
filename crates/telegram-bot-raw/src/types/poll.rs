@@ -56,7 +56,7 @@ pub struct PollOption {
 
     /// Media added to the poll option.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub media: Option<PollMedia>,
+    pub media: Option<Box<PollMedia>>,
 
     /// Persistent identifier for the option.
     ///
@@ -192,11 +192,11 @@ pub struct Poll {
 
     /// Media added to the poll description; for polls inside a `Message` only.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub media: Option<PollMedia>,
+    pub media: Option<Box<PollMedia>>,
 
     /// Media added to a quiz explanation.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub explanation_media: Option<PollMedia>,
+    pub explanation_media: Option<Box<PollMedia>>,
 
     /// `true` if voting is limited to users who have been members of the chat
     /// where the poll was sent for more than 24 hours.

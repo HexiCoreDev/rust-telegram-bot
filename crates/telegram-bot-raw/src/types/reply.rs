@@ -113,7 +113,7 @@ pub struct ExternalReplyInfo {
 
     /// A giveaway with public winners was completed.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub giveaway_winners: Option<GiveawayWinners>,
+    pub giveaway_winners: Option<Box<GiveawayWinners>>,
 
     /// Message is an invoice for a payment.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -125,7 +125,7 @@ pub struct ExternalReplyInfo {
 
     /// Message is a native poll.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub poll: Option<Poll>,
+    pub poll: Option<Box<Poll>>,
 
     /// Message is a venue.
     #[serde(skip_serializing_if = "Option::is_none")]

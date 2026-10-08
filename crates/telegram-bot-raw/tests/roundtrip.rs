@@ -1957,3 +1957,37 @@ fn send_builders_include_ephemeral_params_on_the_wire() {
     let bare_value = serde_json::to_value(&bare).unwrap();
     assert_eq!(bare_value, json!({"receiver_user_id": 7}));
 }
+
+/// Hot-path types stay small: rarely-present large payloads must remain
+/// behind `Box` so every update doesn't pay for them. Bounds have headroom;
+/// they catch accidental unboxing, not byte-exact sizes.
+#[test]
+fn hot_types_size_bounds() {
+    use rust_tg_bot_raw::types::message::Message;
+    use rust_tg_bot_raw::types::poll::Poll;
+    use rust_tg_bot_raw::types::reply::ExternalReplyInfo;
+    use rust_tg_bot_raw::types::update::{Update, UpdateKind};
+    use std::mem::size_of;
+
+    assert!(
+        size_of::<Message>() <= 6400,
+        "Message grew: {}",
+        size_of::<Message>()
+    );
+    assert!(
+        size_of::<Update>() <= 6464,
+        "Update grew: {}",
+        size_of::<Update>()
+    );
+    assert!(
+        size_of::<UpdateKind>() <= 6400,
+        "UpdateKind grew: {}",
+        size_of::<UpdateKind>()
+    );
+    assert!(size_of::<Poll>() <= 512, "Poll grew: {}", size_of::<Poll>());
+    assert!(
+        size_of::<ExternalReplyInfo>() <= 3584,
+        "ExternalReplyInfo grew: {}",
+        size_of::<ExternalReplyInfo>()
+    );
+}
