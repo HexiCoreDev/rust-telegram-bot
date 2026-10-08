@@ -14,7 +14,7 @@ impl Bot {
     /// Returns the bot token as a [`String`] on success.
     pub(crate) async fn get_managed_bot_token_raw(&self, bot_user_id: i64) -> Result<String> {
         let params = vec![RequestParameter::new(
-            "bot_user_id",
+            "user_id",
             serde_json::to_value(bot_user_id)?,
         )];
         self.do_post("getManagedBotToken", params).await
@@ -27,7 +27,7 @@ impl Bot {
     /// Returns the new bot token as a [`String`] on success.
     pub(crate) async fn replace_managed_bot_token_raw(&self, bot_user_id: i64) -> Result<String> {
         let params = vec![RequestParameter::new(
-            "bot_user_id",
+            "user_id",
             serde_json::to_value(bot_user_id)?,
         )];
         self.do_post("replaceManagedBotToken", params).await

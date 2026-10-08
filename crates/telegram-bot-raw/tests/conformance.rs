@@ -240,6 +240,15 @@ fn all_bot_api_builder_methods_exist() {
     let _ = bot.send_chat_join_request_web_app("qrq-1", "https://example.com");
 }
 
+#[test]
+fn managed_bot_token_builders_send_user_id_key() {
+    let bot = make_bot();
+    let get = serde_json::to_value(bot.get_managed_bot_token(7)).unwrap();
+    assert_eq!(get, json!({"user_id": 7}));
+    let replace = serde_json::to_value(bot.replace_managed_bot_token(7)).unwrap();
+    assert_eq!(replace, json!({"user_id": 7}));
+}
+
 /// Verify raw async methods exist on Bot.
 ///
 /// Each call constructs a future (never polled). If a method is missing or its

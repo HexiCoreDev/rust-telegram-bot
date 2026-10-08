@@ -2143,6 +2143,22 @@ pub struct SendPollBuilder<'a> {
     members_only: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     country_codes: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    allows_revoting: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    shuffle_options: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    allow_adding_options: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    hide_results_until_closes: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    correct_option_ids: Option<Vec<i64>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    description: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    description_parse_mode: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    description_entities: Option<Vec<message_entity::MessageEntity>>,
 }
 
 impl<'a> SendPollBuilder<'a> {
@@ -2277,6 +2293,46 @@ impl<'a> SendPollBuilder<'a> {
     /// Sets the `country_codes` parameter (ISO 3166-1 alpha-2 codes of allowed voter countries).
     pub fn country_codes(mut self, val: Vec<String>) -> Self {
         self.country_codes = Some(val);
+        self
+    }
+    /// Sets the `allows_revoting` parameter (voters may change their answers).
+    pub fn allows_revoting(mut self, val: bool) -> Self {
+        self.allows_revoting = Some(val);
+        self
+    }
+    /// Sets the `shuffle_options` parameter (show options in random order).
+    pub fn shuffle_options(mut self, val: bool) -> Self {
+        self.shuffle_options = Some(val);
+        self
+    }
+    /// Sets the `allow_adding_options` parameter (voters may add options).
+    pub fn allow_adding_options(mut self, val: bool) -> Self {
+        self.allow_adding_options = Some(val);
+        self
+    }
+    /// Sets the `hide_results_until_closes` parameter (results visible only after close).
+    pub fn hide_results_until_closes(mut self, val: bool) -> Self {
+        self.hide_results_until_closes = Some(val);
+        self
+    }
+    /// Sets the `correct_option_ids` parameter (0-based ids of correct quiz answers).
+    pub fn correct_option_ids(mut self, val: Vec<i64>) -> Self {
+        self.correct_option_ids = Some(val);
+        self
+    }
+    /// Sets the `description` parameter (poll description text).
+    pub fn description(mut self, val: impl Into<String>) -> Self {
+        self.description = Some(val.into());
+        self
+    }
+    /// Sets the `description_parse_mode` parameter.
+    pub fn description_parse_mode(mut self, val: impl Into<String>) -> Self {
+        self.description_parse_mode = Some(val.into());
+        self
+    }
+    /// Sets the `description_entities` parameter.
+    pub fn description_entities(mut self, val: Vec<message_entity::MessageEntity>) -> Self {
+        self.description_entities = Some(val);
         self
     }
 
@@ -4007,6 +4063,14 @@ impl Bot {
             explanation_media: None,
             members_only: None,
             country_codes: None,
+            allows_revoting: None,
+            shuffle_options: None,
+            allow_adding_options: None,
+            hide_results_until_closes: None,
+            correct_option_ids: None,
+            description: None,
+            description_parse_mode: None,
+            description_entities: None,
         }
     }
 
@@ -4387,7 +4451,7 @@ impl Bot {
 pub struct GetManagedBotTokenBuilder<'a> {
     #[serde(skip)]
     bot: &'a Bot,
-    bot_user_id: i64,
+    user_id: i64,
 }
 
 impl<'a> GetManagedBotTokenBuilder<'a> {
@@ -4409,7 +4473,7 @@ impl_into_future!(GetManagedBotTokenBuilder, String);
 pub struct ReplaceManagedBotTokenBuilder<'a> {
     #[serde(skip)]
     bot: &'a Bot,
-    bot_user_id: i64,
+    user_id: i64,
 }
 
 impl<'a> ReplaceManagedBotTokenBuilder<'a> {
@@ -4550,7 +4614,7 @@ impl Bot {
     pub fn get_managed_bot_token(&self, bot_user_id: i64) -> GetManagedBotTokenBuilder<'_> {
         GetManagedBotTokenBuilder {
             bot: self,
-            bot_user_id,
+            user_id: bot_user_id,
         }
     }
 
@@ -4558,7 +4622,7 @@ impl Bot {
     pub fn replace_managed_bot_token(&self, bot_user_id: i64) -> ReplaceManagedBotTokenBuilder<'_> {
         ReplaceManagedBotTokenBuilder {
             bot: self,
-            bot_user_id,
+            user_id: bot_user_id,
         }
     }
 
@@ -5290,9 +5354,17 @@ pub struct GetChatAdministratorsBuilder<'a> {
     #[serde(skip)]
     bot: &'a Bot,
     chat_id: ChatId,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    return_bots: Option<bool>,
 }
 
 impl<'a> GetChatAdministratorsBuilder<'a> {
+    /// Sets the `return_bots` parameter (also receive bots that administer the chat).
+    pub fn return_bots(mut self, val: bool) -> Self {
+        self.return_bots = Some(val);
+        self
+    }
+
     /// Sends the request to the Telegram Bot API.
     pub async fn send(self) -> Result<Vec<chat_member::ChatMember>> {
         let payload = serde_json::to_vec(&self)?;
@@ -6535,6 +6607,7 @@ impl Bot {
         GetChatAdministratorsBuilder {
             bot: self,
             chat_id: chat_id.into(),
+            return_bots: None,
         }
     }
 
