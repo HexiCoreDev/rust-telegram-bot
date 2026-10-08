@@ -1933,3 +1933,23 @@ fn markup_and_rights_new_flags() {
     assert_eq!(gift.is_private, Some(true));
     assert!(gift.entities.is_none());
 }
+
+#[test]
+fn send_builders_include_ephemeral_params_on_the_wire() {
+    use rust_tg_bot_raw::types::ephemeral::EphemeralMessageParameters;
+
+    // The object form nests under "ephemeral_message_parameters" (not flat ids).
+    let params = EphemeralMessageParameters::new(7).replace_original();
+    let value = serde_json::to_value(&params).unwrap();
+    assert_eq!(
+        value,
+        json!({
+            "receiver_user_id": 7,
+            "replace_callback_query_message": true
+        })
+    );
+    // Absent optionals are skipped so untouched builders send no new keys.
+    let bare = EphemeralMessageParameters::new(7);
+    let bare_value = serde_json::to_value(&bare).unwrap();
+    assert_eq!(bare_value, json!({"receiver_user_id": 7}));
+}

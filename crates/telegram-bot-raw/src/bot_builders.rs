@@ -21,9 +21,9 @@ use crate::bot::{Bot, ChatId, MessageOrBool};
 use crate::error::Result;
 use crate::request::request_parameter::{InputFileRef, RequestParameter};
 use crate::types::{
-    chat_full_info, chat_invite_link, chat_member, chat_permissions, files, guest, inline,
-    input_rich_message, link_preview_options, managed_bot, message, message_entity, message_id,
-    poll, prepared_keyboard_button, reply, suggested_post,
+    chat_full_info, chat_invite_link, chat_member, chat_permissions, ephemeral, files, guest,
+    inline, input_rich_message, link_preview_options, managed_bot, message, message_entity,
+    message_id, poll, prepared_keyboard_button, reply, suggested_post,
 };
 use serde::Serialize;
 
@@ -152,6 +152,8 @@ pub struct SendMessageBuilder<'a> {
     direct_messages_topic_id: Option<i64>,
     #[serde(skip_serializing_if = "Option::is_none")]
     suggested_post_parameters: Option<suggested_post::SuggestedPostParameters>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    ephemeral_message_parameters: Option<ephemeral::EphemeralMessageParameters>,
 }
 
 impl<'a> SendMessageBuilder<'a> {
@@ -224,6 +226,15 @@ impl<'a> SendMessageBuilder<'a> {
         self
     }
 
+    /// Sets the `ephemeral_message_parameters` parameter.
+    pub fn ephemeral_message_parameters(
+        mut self,
+        val: ephemeral::EphemeralMessageParameters,
+    ) -> Self {
+        self.ephemeral_message_parameters = Some(val);
+        self
+    }
+
     /// Sends the request to the Telegram Bot API.
     pub async fn send(self) -> Result<message::Message> {
         let payload = serde_json::to_vec(&self)?;
@@ -257,6 +268,7 @@ pub struct SendPhotoBuilder<'a> {
     show_caption_above_media: Option<bool>,
     direct_messages_topic_id: Option<i64>,
     suggested_post_parameters: Option<suggested_post::SuggestedPostParameters>,
+    ephemeral_message_parameters: Option<ephemeral::EphemeralMessageParameters>,
 }
 
 impl<'a> SendPhotoBuilder<'a> {
@@ -339,6 +351,15 @@ impl<'a> SendPhotoBuilder<'a> {
         self
     }
 
+    /// Sets the `ephemeral_message_parameters` parameter.
+    pub fn ephemeral_message_parameters(
+        mut self,
+        val: ephemeral::EphemeralMessageParameters,
+    ) -> Self {
+        self.ephemeral_message_parameters = Some(val);
+        self
+    }
+
     /// Sends the request to the Telegram Bot API.
     pub async fn send(self) -> Result<message::Message> {
         let mut params = vec![
@@ -384,6 +405,11 @@ impl<'a> SendPhotoBuilder<'a> {
             "suggested_post_parameters",
             &self.suggested_post_parameters,
         )?;
+        push_opt(
+            &mut params,
+            "ephemeral_message_parameters",
+            &self.ephemeral_message_parameters,
+        )?;
         self.bot.do_api_request("sendPhoto", params).await
     }
 }
@@ -415,6 +441,7 @@ pub struct SendLivePhotoBuilder<'a> {
     allow_paid_broadcast: Option<bool>,
     direct_messages_topic_id: Option<i64>,
     suggested_post_parameters: Option<suggested_post::SuggestedPostParameters>,
+    ephemeral_message_parameters: Option<ephemeral::EphemeralMessageParameters>,
 }
 
 impl<'a> SendLivePhotoBuilder<'a> {
@@ -497,6 +524,15 @@ impl<'a> SendLivePhotoBuilder<'a> {
         self
     }
 
+    /// Sets the `ephemeral_message_parameters` parameter.
+    pub fn ephemeral_message_parameters(
+        mut self,
+        val: ephemeral::EphemeralMessageParameters,
+    ) -> Self {
+        self.ephemeral_message_parameters = Some(val);
+        self
+    }
+
     /// Sends the request to the Telegram Bot API.
     pub async fn send(self) -> Result<message::Message> {
         let mut params = vec![
@@ -543,6 +579,11 @@ impl<'a> SendLivePhotoBuilder<'a> {
             "suggested_post_parameters",
             &self.suggested_post_parameters,
         )?;
+        push_opt(
+            &mut params,
+            "ephemeral_message_parameters",
+            &self.ephemeral_message_parameters,
+        )?;
         self.bot.do_api_request("sendLivePhoto", params).await
     }
 }
@@ -573,6 +614,7 @@ pub struct SendDocumentBuilder<'a> {
     allow_paid_broadcast: Option<bool>,
     direct_messages_topic_id: Option<i64>,
     suggested_post_parameters: Option<suggested_post::SuggestedPostParameters>,
+    ephemeral_message_parameters: Option<ephemeral::EphemeralMessageParameters>,
 }
 
 impl<'a> SendDocumentBuilder<'a> {
@@ -655,6 +697,15 @@ impl<'a> SendDocumentBuilder<'a> {
         self
     }
 
+    /// Sets the `ephemeral_message_parameters` parameter.
+    pub fn ephemeral_message_parameters(
+        mut self,
+        val: ephemeral::EphemeralMessageParameters,
+    ) -> Self {
+        self.ephemeral_message_parameters = Some(val);
+        self
+    }
+
     /// Sends the request to the Telegram Bot API.
     pub async fn send(self) -> Result<message::Message> {
         let mut params = vec![
@@ -700,6 +751,11 @@ impl<'a> SendDocumentBuilder<'a> {
             "suggested_post_parameters",
             &self.suggested_post_parameters,
         )?;
+        push_opt(
+            &mut params,
+            "ephemeral_message_parameters",
+            &self.ephemeral_message_parameters,
+        )?;
         self.bot.do_api_request("sendDocument", params).await
     }
 }
@@ -737,6 +793,7 @@ pub struct SendVideoBuilder<'a> {
     allow_paid_broadcast: Option<bool>,
     direct_messages_topic_id: Option<i64>,
     suggested_post_parameters: Option<suggested_post::SuggestedPostParameters>,
+    ephemeral_message_parameters: Option<ephemeral::EphemeralMessageParameters>,
 }
 
 impl<'a> SendVideoBuilder<'a> {
@@ -854,6 +911,15 @@ impl<'a> SendVideoBuilder<'a> {
         self
     }
 
+    /// Sets the `ephemeral_message_parameters` parameter.
+    pub fn ephemeral_message_parameters(
+        mut self,
+        val: ephemeral::EphemeralMessageParameters,
+    ) -> Self {
+        self.ephemeral_message_parameters = Some(val);
+        self
+    }
+
     /// Sends the request to the Telegram Bot API.
     pub async fn send(self) -> Result<message::Message> {
         let mut params = vec![
@@ -906,6 +972,11 @@ impl<'a> SendVideoBuilder<'a> {
             "suggested_post_parameters",
             &self.suggested_post_parameters,
         )?;
+        push_opt(
+            &mut params,
+            "ephemeral_message_parameters",
+            &self.ephemeral_message_parameters,
+        )?;
         self.bot.do_api_request("sendVideo", params).await
     }
 }
@@ -938,6 +1009,7 @@ pub struct SendAudioBuilder<'a> {
     allow_paid_broadcast: Option<bool>,
     direct_messages_topic_id: Option<i64>,
     suggested_post_parameters: Option<suggested_post::SuggestedPostParameters>,
+    ephemeral_message_parameters: Option<ephemeral::EphemeralMessageParameters>,
 }
 
 impl<'a> SendAudioBuilder<'a> {
@@ -1030,6 +1102,15 @@ impl<'a> SendAudioBuilder<'a> {
         self
     }
 
+    /// Sets the `ephemeral_message_parameters` parameter.
+    pub fn ephemeral_message_parameters(
+        mut self,
+        val: ephemeral::EphemeralMessageParameters,
+    ) -> Self {
+        self.ephemeral_message_parameters = Some(val);
+        self
+    }
+
     /// Sends the request to the Telegram Bot API.
     pub async fn send(self) -> Result<message::Message> {
         let mut params = vec![
@@ -1073,6 +1154,11 @@ impl<'a> SendAudioBuilder<'a> {
             "suggested_post_parameters",
             &self.suggested_post_parameters,
         )?;
+        push_opt(
+            &mut params,
+            "ephemeral_message_parameters",
+            &self.ephemeral_message_parameters,
+        )?;
         self.bot.do_api_request("sendAudio", params).await
     }
 }
@@ -1107,6 +1193,7 @@ pub struct SendAnimationBuilder<'a> {
     allow_paid_broadcast: Option<bool>,
     direct_messages_topic_id: Option<i64>,
     suggested_post_parameters: Option<suggested_post::SuggestedPostParameters>,
+    ephemeral_message_parameters: Option<ephemeral::EphemeralMessageParameters>,
 }
 
 impl<'a> SendAnimationBuilder<'a> {
@@ -1209,6 +1296,15 @@ impl<'a> SendAnimationBuilder<'a> {
         self
     }
 
+    /// Sets the `ephemeral_message_parameters` parameter.
+    pub fn ephemeral_message_parameters(
+        mut self,
+        val: ephemeral::EphemeralMessageParameters,
+    ) -> Self {
+        self.ephemeral_message_parameters = Some(val);
+        self
+    }
+
     /// Sends the request to the Telegram Bot API.
     pub async fn send(self) -> Result<message::Message> {
         let mut params = vec![
@@ -1258,6 +1354,11 @@ impl<'a> SendAnimationBuilder<'a> {
             "suggested_post_parameters",
             &self.suggested_post_parameters,
         )?;
+        push_opt(
+            &mut params,
+            "ephemeral_message_parameters",
+            &self.ephemeral_message_parameters,
+        )?;
         self.bot.do_api_request("sendAnimation", params).await
     }
 }
@@ -1287,6 +1388,7 @@ pub struct SendVoiceBuilder<'a> {
     allow_paid_broadcast: Option<bool>,
     direct_messages_topic_id: Option<i64>,
     suggested_post_parameters: Option<suggested_post::SuggestedPostParameters>,
+    ephemeral_message_parameters: Option<ephemeral::EphemeralMessageParameters>,
 }
 
 impl<'a> SendVoiceBuilder<'a> {
@@ -1364,6 +1466,15 @@ impl<'a> SendVoiceBuilder<'a> {
         self
     }
 
+    /// Sets the `ephemeral_message_parameters` parameter.
+    pub fn ephemeral_message_parameters(
+        mut self,
+        val: ephemeral::EphemeralMessageParameters,
+    ) -> Self {
+        self.ephemeral_message_parameters = Some(val);
+        self
+    }
+
     /// Sends the request to the Telegram Bot API.
     pub async fn send(self) -> Result<message::Message> {
         let mut params = vec![
@@ -1404,6 +1515,11 @@ impl<'a> SendVoiceBuilder<'a> {
             "suggested_post_parameters",
             &self.suggested_post_parameters,
         )?;
+        push_opt(
+            &mut params,
+            "ephemeral_message_parameters",
+            &self.ephemeral_message_parameters,
+        )?;
         self.bot.do_api_request("sendVoice", params).await
     }
 }
@@ -1432,6 +1548,7 @@ pub struct SendVideoNoteBuilder<'a> {
     allow_paid_broadcast: Option<bool>,
     direct_messages_topic_id: Option<i64>,
     suggested_post_parameters: Option<suggested_post::SuggestedPostParameters>,
+    ephemeral_message_parameters: Option<ephemeral::EphemeralMessageParameters>,
 }
 
 impl<'a> SendVideoNoteBuilder<'a> {
@@ -1504,6 +1621,15 @@ impl<'a> SendVideoNoteBuilder<'a> {
         self
     }
 
+    /// Sets the `ephemeral_message_parameters` parameter.
+    pub fn ephemeral_message_parameters(
+        mut self,
+        val: ephemeral::EphemeralMessageParameters,
+    ) -> Self {
+        self.ephemeral_message_parameters = Some(val);
+        self
+    }
+
     /// Sends the request to the Telegram Bot API.
     pub async fn send(self) -> Result<message::Message> {
         let mut params = vec![
@@ -1542,6 +1668,11 @@ impl<'a> SendVideoNoteBuilder<'a> {
             &mut params,
             "suggested_post_parameters",
             &self.suggested_post_parameters,
+        )?;
+        push_opt(
+            &mut params,
+            "ephemeral_message_parameters",
+            &self.ephemeral_message_parameters,
         )?;
         self.bot.do_api_request("sendVideoNote", params).await
     }
@@ -1589,6 +1720,8 @@ pub struct SendLocationBuilder<'a> {
     direct_messages_topic_id: Option<i64>,
     #[serde(skip_serializing_if = "Option::is_none")]
     suggested_post_parameters: Option<suggested_post::SuggestedPostParameters>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    ephemeral_message_parameters: Option<ephemeral::EphemeralMessageParameters>,
 }
 
 impl<'a> SendLocationBuilder<'a> {
@@ -1666,6 +1799,15 @@ impl<'a> SendLocationBuilder<'a> {
         self
     }
 
+    /// Sets the `ephemeral_message_parameters` parameter.
+    pub fn ephemeral_message_parameters(
+        mut self,
+        val: ephemeral::EphemeralMessageParameters,
+    ) -> Self {
+        self.ephemeral_message_parameters = Some(val);
+        self
+    }
+
     /// Sends the request to the Telegram Bot API.
     pub async fn send(self) -> Result<message::Message> {
         let payload = serde_json::to_vec(&self)?;
@@ -1717,6 +1859,8 @@ pub struct SendVenueBuilder<'a> {
     direct_messages_topic_id: Option<i64>,
     #[serde(skip_serializing_if = "Option::is_none")]
     suggested_post_parameters: Option<suggested_post::SuggestedPostParameters>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    ephemeral_message_parameters: Option<ephemeral::EphemeralMessageParameters>,
 }
 
 impl<'a> SendVenueBuilder<'a> {
@@ -1794,6 +1938,15 @@ impl<'a> SendVenueBuilder<'a> {
         self
     }
 
+    /// Sets the `ephemeral_message_parameters` parameter.
+    pub fn ephemeral_message_parameters(
+        mut self,
+        val: ephemeral::EphemeralMessageParameters,
+    ) -> Self {
+        self.ephemeral_message_parameters = Some(val);
+        self
+    }
+
     /// Sends the request to the Telegram Bot API.
     pub async fn send(self) -> Result<message::Message> {
         let payload = serde_json::to_vec(&self)?;
@@ -1839,6 +1992,8 @@ pub struct SendContactBuilder<'a> {
     direct_messages_topic_id: Option<i64>,
     #[serde(skip_serializing_if = "Option::is_none")]
     suggested_post_parameters: Option<suggested_post::SuggestedPostParameters>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    ephemeral_message_parameters: Option<ephemeral::EphemeralMessageParameters>,
 }
 
 impl<'a> SendContactBuilder<'a> {
@@ -1903,6 +2058,15 @@ impl<'a> SendContactBuilder<'a> {
         val: suggested_post::SuggestedPostParameters,
     ) -> Self {
         self.suggested_post_parameters = Some(val);
+        self
+    }
+
+    /// Sets the `ephemeral_message_parameters` parameter.
+    pub fn ephemeral_message_parameters(
+        mut self,
+        val: ephemeral::EphemeralMessageParameters,
+    ) -> Self {
+        self.ephemeral_message_parameters = Some(val);
         self
     }
 
@@ -2248,6 +2412,7 @@ pub struct SendStickerBuilder<'a> {
     allow_paid_broadcast: Option<bool>,
     direct_messages_topic_id: Option<i64>,
     suggested_post_parameters: Option<suggested_post::SuggestedPostParameters>,
+    ephemeral_message_parameters: Option<ephemeral::EphemeralMessageParameters>,
 }
 
 impl<'a> SendStickerBuilder<'a> {
@@ -2310,6 +2475,15 @@ impl<'a> SendStickerBuilder<'a> {
         self
     }
 
+    /// Sets the `ephemeral_message_parameters` parameter.
+    pub fn ephemeral_message_parameters(
+        mut self,
+        val: ephemeral::EphemeralMessageParameters,
+    ) -> Self {
+        self.ephemeral_message_parameters = Some(val);
+        self
+    }
+
     /// Sends the request to the Telegram Bot API.
     pub async fn send(self) -> Result<message::Message> {
         let mut params = vec![
@@ -2346,6 +2520,11 @@ impl<'a> SendStickerBuilder<'a> {
             &mut params,
             "suggested_post_parameters",
             &self.suggested_post_parameters,
+        )?;
+        push_opt(
+            &mut params,
+            "ephemeral_message_parameters",
+            &self.ephemeral_message_parameters,
         )?;
         self.bot.do_api_request("sendSticker", params).await
     }
@@ -3446,6 +3625,7 @@ impl Bot {
             allow_paid_broadcast: None,
             direct_messages_topic_id: None,
             suggested_post_parameters: None,
+            ephemeral_message_parameters: None,
         }
     }
 
@@ -3476,6 +3656,7 @@ impl Bot {
             show_caption_above_media: None,
             direct_messages_topic_id: None,
             suggested_post_parameters: None,
+            ephemeral_message_parameters: None,
         }
     }
 
@@ -3506,6 +3687,7 @@ impl Bot {
             allow_paid_broadcast: None,
             direct_messages_topic_id: None,
             suggested_post_parameters: None,
+            ephemeral_message_parameters: None,
         }
     }
 
@@ -3534,6 +3716,7 @@ impl Bot {
             allow_paid_broadcast: None,
             direct_messages_topic_id: None,
             suggested_post_parameters: None,
+            ephemeral_message_parameters: None,
         }
     }
 
@@ -3569,6 +3752,7 @@ impl Bot {
             allow_paid_broadcast: None,
             direct_messages_topic_id: None,
             suggested_post_parameters: None,
+            ephemeral_message_parameters: None,
         }
     }
 
@@ -3599,6 +3783,7 @@ impl Bot {
             allow_paid_broadcast: None,
             direct_messages_topic_id: None,
             suggested_post_parameters: None,
+            ephemeral_message_parameters: None,
         }
     }
 
@@ -3631,6 +3816,7 @@ impl Bot {
             allow_paid_broadcast: None,
             direct_messages_topic_id: None,
             suggested_post_parameters: None,
+            ephemeral_message_parameters: None,
         }
     }
 
@@ -3658,6 +3844,7 @@ impl Bot {
             allow_paid_broadcast: None,
             direct_messages_topic_id: None,
             suggested_post_parameters: None,
+            ephemeral_message_parameters: None,
         }
     }
 
@@ -3684,6 +3871,7 @@ impl Bot {
             allow_paid_broadcast: None,
             direct_messages_topic_id: None,
             suggested_post_parameters: None,
+            ephemeral_message_parameters: None,
         }
     }
 
@@ -3715,6 +3903,7 @@ impl Bot {
             allow_paid_broadcast: None,
             direct_messages_topic_id: None,
             suggested_post_parameters: None,
+            ephemeral_message_parameters: None,
         }
     }
 
@@ -3748,6 +3937,7 @@ impl Bot {
             allow_paid_broadcast: None,
             direct_messages_topic_id: None,
             suggested_post_parameters: None,
+            ephemeral_message_parameters: None,
         }
     }
 
@@ -3775,6 +3965,7 @@ impl Bot {
             allow_paid_broadcast: None,
             direct_messages_topic_id: None,
             suggested_post_parameters: None,
+            ephemeral_message_parameters: None,
         }
     }
 
@@ -3861,6 +4052,7 @@ impl Bot {
             allow_paid_broadcast: None,
             direct_messages_topic_id: None,
             suggested_post_parameters: None,
+            ephemeral_message_parameters: None,
         }
     }
 
@@ -4843,6 +5035,10 @@ pub struct SendMessageDraftBuilder<'a> {
     parse_mode: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     entities: Option<Vec<message_entity::MessageEntity>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    can_stop: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    keep_on_stop: Option<bool>,
 }
 
 impl<'a> SendMessageDraftBuilder<'a> {
@@ -4859,6 +5055,16 @@ impl<'a> SendMessageDraftBuilder<'a> {
     /// Sets the `entities` parameter.
     pub fn entities(mut self, val: Vec<message_entity::MessageEntity>) -> Self {
         self.entities = Some(val);
+        self
+    }
+    /// Sets the `can_stop` parameter (show the user a button to stop further drafts).
+    pub fn can_stop(mut self, val: bool) -> Self {
+        self.can_stop = Some(val);
+        self
+    }
+    /// Sets the `keep_on_stop` parameter (keep the draft in the chat when stopped).
+    pub fn keep_on_stop(mut self, val: bool) -> Self {
+        self.keep_on_stop = Some(val);
         self
     }
 
@@ -4902,6 +5108,8 @@ pub struct SendRichMessageBuilder<'a> {
     reply_parameters: Option<reply::ReplyParameters>,
     #[serde(skip_serializing_if = "Option::is_none")]
     reply_markup: Option<serde_json::Value>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    ephemeral_message_parameters: Option<ephemeral::EphemeralMessageParameters>,
 }
 
 impl<'a> SendRichMessageBuilder<'a> {
@@ -4956,6 +5164,15 @@ impl<'a> SendRichMessageBuilder<'a> {
     /// Sets the `reply_markup` parameter.
     pub fn reply_markup(mut self, val: serde_json::Value) -> Self {
         self.reply_markup = Some(val);
+        self
+    }
+
+    /// Sets the `ephemeral_message_parameters` parameter.
+    pub fn ephemeral_message_parameters(
+        mut self,
+        val: ephemeral::EphemeralMessageParameters,
+    ) -> Self {
+        self.ephemeral_message_parameters = Some(val);
         self
     }
 
@@ -5331,6 +5548,8 @@ pub struct PromoteChatMemberBuilder<'a> {
     can_manage_direct_messages: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     can_manage_tags: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    can_send_welcome_messages: Option<bool>,
 }
 
 impl<'a> PromoteChatMemberBuilder<'a> {
@@ -5417,6 +5636,11 @@ impl<'a> PromoteChatMemberBuilder<'a> {
     /// Sets the `can_manage_tags` parameter.
     pub fn can_manage_tags(mut self, val: bool) -> Self {
         self.can_manage_tags = Some(val);
+        self
+    }
+    /// Sets the `can_send_welcome_messages` parameter.
+    pub fn can_send_welcome_messages(mut self, val: bool) -> Self {
+        self.can_send_welcome_messages = Some(val);
         self
     }
 
@@ -6238,6 +6462,8 @@ impl Bot {
             message_thread_id: None,
             parse_mode: None,
             entities: None,
+            can_stop: None,
+            keep_on_stop: None,
         }
     }
 
@@ -6261,6 +6487,7 @@ impl Bot {
             suggested_post_parameters: None,
             reply_parameters: None,
             reply_markup: None,
+            ephemeral_message_parameters: None,
         }
     }
 
@@ -6434,6 +6661,7 @@ impl Bot {
             can_delete_stories: None,
             can_manage_direct_messages: None,
             can_manage_tags: None,
+            can_send_welcome_messages: None,
         }
     }
 

@@ -103,6 +103,9 @@ fn all_bot_api_96_builder_methods_exist() {
 
     // -- Sending messages --
     let _ = bot.send_message(1i64, "text");
+    let _ = bot.send_message(1i64, "text").ephemeral_message_parameters(
+        rust_tg_bot_raw::types::ephemeral::EphemeralMessageParameters::new(1),
+    );
     let _ = bot.send_rich_message(
         1i64,
         rust_tg_bot_raw::types::input_rich_message::InputRichMessage::markdown("**hi**"),
@@ -182,6 +185,10 @@ fn all_bot_api_96_builder_methods_exist() {
     let _ = bot.copy_message(1i64, 1i64, 1);
     let _ = bot.copy_messages(1i64, 1i64, vec![1]);
     let _ = bot.send_message_draft(1, 1, "t");
+    let _ = bot
+        .send_message_draft(1, 1, "t")
+        .can_stop(true)
+        .keep_on_stop(true);
     let _ = bot.delete_message(1i64, 1);
     let _ = bot.delete_messages(1i64, vec![1]);
     let _ = bot.delete_message_reaction(1i64, 1);
@@ -203,6 +210,9 @@ fn all_bot_api_96_builder_methods_exist() {
         rust_tg_bot_raw::types::chat_permissions::ChatPermissions::default(),
     );
     let _ = bot.promote_chat_member(1i64, 1);
+    let _ = bot
+        .promote_chat_member(1i64, 1)
+        .can_send_welcome_messages(true);
     let _ = bot.set_chat_administrator_custom_title(1i64, 1, "title");
     let _ = bot.set_chat_permissions(
         1i64,
