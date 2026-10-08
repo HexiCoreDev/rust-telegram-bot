@@ -21,8 +21,8 @@ use crate::bot::{Bot, ChatId, MessageOrBool};
 use crate::error::Result;
 use crate::request::request_parameter::{InputFileRef, RequestParameter};
 use crate::types::{
-    chat_full_info, chat_invite_link, chat_member, chat_permissions, files, inline,
-    link_preview_options, managed_bot, message, message_entity, message_id,
+    chat_full_info, chat_invite_link, chat_member, chat_permissions, files, guest, inline,
+    link_preview_options, managed_bot, message, message_entity, message_id, poll,
     prepared_keyboard_button, reply, suggested_post,
 };
 use serde::Serialize;
@@ -389,6 +389,165 @@ impl<'a> SendPhotoBuilder<'a> {
 }
 
 impl_into_future!(SendPhotoBuilder, message::Message);
+
+// =========================================================================
+// SendLivePhotoBuilder
+// =========================================================================
+
+/// Builder for the [`sendLivePhoto`] API method.
+pub struct SendLivePhotoBuilder<'a> {
+    bot: &'a Bot,
+    chat_id: ChatId,
+    live_photo: files::input_file::InputFile,
+    photo: files::input_file::InputFile,
+    caption: Option<String>,
+    parse_mode: Option<String>,
+    caption_entities: Option<Vec<message_entity::MessageEntity>>,
+    show_caption_above_media: Option<bool>,
+    has_spoiler: Option<bool>,
+    disable_notification: Option<bool>,
+    protect_content: Option<bool>,
+    reply_parameters: Option<reply::ReplyParameters>,
+    reply_markup: Option<serde_json::Value>,
+    message_thread_id: Option<i64>,
+    business_connection_id: Option<String>,
+    message_effect_id: Option<String>,
+    allow_paid_broadcast: Option<bool>,
+    direct_messages_topic_id: Option<i64>,
+    suggested_post_parameters: Option<suggested_post::SuggestedPostParameters>,
+}
+
+impl<'a> SendLivePhotoBuilder<'a> {
+    /// Sets the `caption` parameter.
+    pub fn caption(mut self, val: impl Into<String>) -> Self {
+        self.caption = Some(val.into());
+        self
+    }
+    /// Sets the `parse_mode` parameter.
+    pub fn parse_mode(mut self, val: impl Into<String>) -> Self {
+        self.parse_mode = Some(val.into());
+        self
+    }
+    /// Sets the `caption_entities` parameter.
+    pub fn caption_entities(mut self, val: Vec<message_entity::MessageEntity>) -> Self {
+        self.caption_entities = Some(val);
+        self
+    }
+    /// Sets the `show_caption_above_media` parameter.
+    pub fn show_caption_above_media(mut self, val: bool) -> Self {
+        self.show_caption_above_media = Some(val);
+        self
+    }
+    /// Sets the `has_spoiler` parameter.
+    pub fn has_spoiler(mut self, val: bool) -> Self {
+        self.has_spoiler = Some(val);
+        self
+    }
+    /// Sets the `disable_notification` parameter.
+    pub fn disable_notification(mut self, val: bool) -> Self {
+        self.disable_notification = Some(val);
+        self
+    }
+    /// Sets the `protect_content` parameter.
+    pub fn protect_content(mut self, val: bool) -> Self {
+        self.protect_content = Some(val);
+        self
+    }
+    /// Sets the `reply_parameters` parameter.
+    pub fn reply_parameters(mut self, val: reply::ReplyParameters) -> Self {
+        self.reply_parameters = Some(val);
+        self
+    }
+    /// Sets the `reply_markup` parameter.
+    pub fn reply_markup(mut self, val: serde_json::Value) -> Self {
+        self.reply_markup = Some(val);
+        self
+    }
+    /// Sets the `message_thread_id` parameter.
+    pub fn message_thread_id(mut self, val: i64) -> Self {
+        self.message_thread_id = Some(val);
+        self
+    }
+    /// Sets the `business_connection_id` parameter.
+    pub fn business_connection_id(mut self, val: impl Into<String>) -> Self {
+        self.business_connection_id = Some(val.into());
+        self
+    }
+    /// Sets the `message_effect_id` parameter.
+    pub fn message_effect_id(mut self, val: impl Into<String>) -> Self {
+        self.message_effect_id = Some(val.into());
+        self
+    }
+    /// Sets the `allow_paid_broadcast` parameter.
+    pub fn allow_paid_broadcast(mut self, val: bool) -> Self {
+        self.allow_paid_broadcast = Some(val);
+        self
+    }
+    /// Sets the `direct_messages_topic_id` parameter.
+    pub fn direct_messages_topic_id(mut self, val: i64) -> Self {
+        self.direct_messages_topic_id = Some(val);
+        self
+    }
+    /// Sets the `suggested_post_parameters` parameter.
+    pub fn suggested_post_parameters(
+        mut self,
+        val: suggested_post::SuggestedPostParameters,
+    ) -> Self {
+        self.suggested_post_parameters = Some(val);
+        self
+    }
+
+    /// Sends the request to the Telegram Bot API.
+    pub async fn send(self) -> Result<message::Message> {
+        let mut params = vec![
+            RequestParameter::new("chat_id", serde_json::to_value(&self.chat_id)?),
+            input_file_param("live_photo", self.live_photo),
+            input_file_param("photo", self.photo),
+        ];
+        push_opt_str(&mut params, "caption", &self.caption);
+        push_opt_str(&mut params, "parse_mode", &self.parse_mode);
+        push_opt(&mut params, "caption_entities", &self.caption_entities)?;
+        push_opt(
+            &mut params,
+            "show_caption_above_media",
+            &self.show_caption_above_media,
+        )?;
+        push_opt(&mut params, "has_spoiler", &self.has_spoiler)?;
+        push_opt(
+            &mut params,
+            "disable_notification",
+            &self.disable_notification,
+        )?;
+        push_opt(&mut params, "protect_content", &self.protect_content)?;
+        push_opt(&mut params, "reply_parameters", &self.reply_parameters)?;
+        push_opt(&mut params, "reply_markup", &self.reply_markup)?;
+        push_opt(&mut params, "message_thread_id", &self.message_thread_id)?;
+        push_opt_str(
+            &mut params,
+            "business_connection_id",
+            &self.business_connection_id,
+        );
+        push_opt_str(&mut params, "message_effect_id", &self.message_effect_id);
+        push_opt(
+            &mut params,
+            "allow_paid_broadcast",
+            &self.allow_paid_broadcast,
+        )?;
+        push_opt(
+            &mut params,
+            "direct_messages_topic_id",
+            &self.direct_messages_topic_id,
+        )?;
+        push_opt(
+            &mut params,
+            "suggested_post_parameters",
+            &self.suggested_post_parameters,
+        )?;
+        self.bot.do_api_request("sendLivePhoto", params).await
+    }
+}
+
+impl_into_future!(SendLivePhotoBuilder, message::Message);
 
 // =========================================================================
 // SendDocumentBuilder
@@ -1812,6 +1971,14 @@ pub struct SendPollBuilder<'a> {
     direct_messages_topic_id: Option<i64>,
     #[serde(skip_serializing_if = "Option::is_none")]
     suggested_post_parameters: Option<suggested_post::SuggestedPostParameters>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    media: Option<poll::InputPollMedia>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    explanation_media: Option<poll::InputPollMedia>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    members_only: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    country_codes: Option<Vec<String>>,
 }
 
 impl<'a> SendPollBuilder<'a> {
@@ -1926,6 +2093,26 @@ impl<'a> SendPollBuilder<'a> {
         val: suggested_post::SuggestedPostParameters,
     ) -> Self {
         self.suggested_post_parameters = Some(val);
+        self
+    }
+    /// Sets the `media` parameter (media added to the poll description).
+    pub fn media(mut self, val: poll::InputPollMedia) -> Self {
+        self.media = Some(val);
+        self
+    }
+    /// Sets the `explanation_media` parameter (media added to a quiz explanation).
+    pub fn explanation_media(mut self, val: poll::InputPollMedia) -> Self {
+        self.explanation_media = Some(val);
+        self
+    }
+    /// Sets the `members_only` parameter (limit voting to established chat members).
+    pub fn members_only(mut self, val: bool) -> Self {
+        self.members_only = Some(val);
+        self
+    }
+    /// Sets the `country_codes` parameter (ISO 3166-1 alpha-2 codes of allowed voter countries).
+    pub fn country_codes(mut self, val: Vec<String>) -> Self {
+        self.country_codes = Some(val);
         self
     }
 
@@ -2551,6 +2738,54 @@ impl<'a> AnswerInlineQueryBuilder<'a> {
 impl_into_future!(AnswerInlineQueryBuilder, bool);
 
 // =========================================================================
+// AnswerGuestQueryBuilder
+// =========================================================================
+
+/// Builder for the [`answerGuestQuery`] API method.
+#[derive(Serialize)]
+pub struct AnswerGuestQueryBuilder<'a> {
+    #[serde(skip)]
+    bot: &'a Bot,
+    guest_query_id: String,
+    result: serde_json::Value,
+}
+
+impl<'a> AnswerGuestQueryBuilder<'a> {
+    /// Sends the request to the Telegram Bot API.
+    pub async fn send(self) -> Result<guest::SentGuestMessage> {
+        let payload = serde_json::to_vec(&self)?;
+        self.bot.do_post_json("answerGuestQuery", &payload).await
+    }
+}
+
+impl_into_future!(AnswerGuestQueryBuilder, guest::SentGuestMessage);
+
+// =========================================================================
+// GetUserPersonalChatMessagesBuilder
+// =========================================================================
+
+/// Builder for the [`getUserPersonalChatMessages`] API method.
+#[derive(Serialize)]
+pub struct GetUserPersonalChatMessagesBuilder<'a> {
+    #[serde(skip)]
+    bot: &'a Bot,
+    user_id: i64,
+    limit: i64,
+}
+
+impl<'a> GetUserPersonalChatMessagesBuilder<'a> {
+    /// Sends the request to the Telegram Bot API.
+    pub async fn send(self) -> Result<Vec<message::Message>> {
+        let payload = serde_json::to_vec(&self)?;
+        self.bot
+            .do_post_json("getUserPersonalChatMessages", &payload)
+            .await
+    }
+}
+
+impl_into_future!(GetUserPersonalChatMessagesBuilder, Vec<message::Message>);
+
+// =========================================================================
 // SetWebhookBuilder
 // =========================================================================
 
@@ -3011,6 +3246,36 @@ impl Bot {
         }
     }
 
+    /// Build a `sendLivePhoto` request.
+    pub fn send_live_photo(
+        &self,
+        chat_id: impl Into<ChatId>,
+        live_photo: files::input_file::InputFile,
+        photo: files::input_file::InputFile,
+    ) -> SendLivePhotoBuilder<'_> {
+        SendLivePhotoBuilder {
+            bot: self,
+            chat_id: chat_id.into(),
+            live_photo,
+            photo,
+            caption: None,
+            parse_mode: None,
+            caption_entities: None,
+            show_caption_above_media: None,
+            has_spoiler: None,
+            disable_notification: None,
+            protect_content: None,
+            reply_parameters: None,
+            reply_markup: None,
+            message_thread_id: None,
+            business_connection_id: None,
+            message_effect_id: None,
+            allow_paid_broadcast: None,
+            direct_messages_topic_id: None,
+            suggested_post_parameters: None,
+        }
+    }
+
     /// Build a `sendDocument` request.
     pub fn send_document(
         &self,
@@ -3314,6 +3579,10 @@ impl Bot {
             allow_paid_broadcast: None,
             direct_messages_topic_id: None,
             suggested_post_parameters: None,
+            media: None,
+            explanation_media: None,
+            members_only: None,
+            country_codes: None,
         }
     }
 
@@ -3452,6 +3721,32 @@ impl Bot {
             is_personal: None,
             next_offset: None,
             button: None,
+        }
+    }
+
+    /// Build an `answerGuestQuery` request.
+    pub fn answer_guest_query(
+        &self,
+        guest_query_id: impl Into<String>,
+        result: serde_json::Value,
+    ) -> AnswerGuestQueryBuilder<'_> {
+        AnswerGuestQueryBuilder {
+            bot: self,
+            guest_query_id: guest_query_id.into(),
+            result,
+        }
+    }
+
+    /// Build a `getUserPersonalChatMessages` request.
+    pub fn get_user_personal_chat_messages(
+        &self,
+        user_id: i64,
+        limit: i64,
+    ) -> GetUserPersonalChatMessagesBuilder<'_> {
+        GetUserPersonalChatMessagesBuilder {
+            bot: self,
+            user_id,
+            limit,
         }
     }
 

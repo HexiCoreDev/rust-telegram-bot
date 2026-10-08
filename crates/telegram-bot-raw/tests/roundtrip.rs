@@ -1145,3 +1145,15 @@ fn roundtrip_react_permissions() {
     assert!(ChatPermissions::all().can_react_to_messages == Some(true));
     assert!(ChatPermissions::none().can_react_to_messages == Some(false));
 }
+
+#[test]
+fn poll_media_input_serializes_with_type_tag() {
+    use rust_tg_bot_raw::types::files::input_file::InputFile;
+    use rust_tg_bot_raw::types::files::input_media::InputMediaPhoto;
+    use rust_tg_bot_raw::types::poll::InputPollMedia;
+
+    let media = InputPollMedia::Photo(InputMediaPhoto::new(InputFile::file_id("photo_file_id")));
+    let value = serde_json::to_value(&media).unwrap();
+    assert_eq!(value["type"], "photo");
+    assert_eq!(value["media"], "photo_file_id");
+}

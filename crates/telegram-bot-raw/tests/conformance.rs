@@ -106,6 +106,7 @@ fn all_bot_api_96_builder_methods_exist() {
 
     // -- Sending media --
     let _ = bot.send_photo(1i64, dummy_file());
+    let _ = bot.send_live_photo(1i64, dummy_file(), dummy_file());
     let _ = bot.send_audio(1i64, dummy_file());
     let _ = bot.send_document(1i64, dummy_file());
     let _ = bot.send_video(1i64, dummy_file());
@@ -119,6 +120,13 @@ fn all_bot_api_96_builder_methods_exist() {
     let _ = bot.send_venue(1i64, 0.0, 0.0, "Title", "Address");
     let _ = bot.send_contact(1i64, "+1234", "John");
     let _ = bot.send_poll(1i64, "Question?", vec![]);
+    let _ = bot
+        .send_poll(1i64, "Question?", vec![])
+        .media(rust_tg_bot_raw::types::poll::InputPollMedia::Photo(
+            rust_tg_bot_raw::types::files::input_media::InputMediaPhoto::new(dummy_file()),
+        ))
+        .members_only(true)
+        .country_codes(vec!["US".to_string()]);
     let _ = bot.send_dice(1i64);
     let _ = bot.send_sticker(1i64, dummy_file());
     let _ = bot.send_invoice(1i64, "Title", "Desc", "payload", "USD", vec![]);
@@ -132,6 +140,8 @@ fn all_bot_api_96_builder_methods_exist() {
     // -- Inline mode --
     let _ = bot.answer_inline_query("query_id", vec![]);
     let _ = bot.answer_callback_query("callback_id");
+    let _ = bot.answer_guest_query("guest_query_id", json!({}));
+    let _ = bot.get_user_personal_chat_messages(1, 20);
 
     // -- Payments --
     let _ = bot.answer_shipping_query("sq_id", true);
@@ -517,6 +527,7 @@ fn method_count_matches_api_96() {
         ("copyMessage", "copy_message"),
         ("copyMessages", "copy_messages"),
         ("sendPhoto", "send_photo"),
+        ("sendLivePhoto", "send_live_photo"),
         ("sendAudio", "send_audio"),
         ("sendDocument", "send_document"),
         ("sendVideo", "send_video"),
@@ -595,7 +606,12 @@ fn method_count_matches_api_96() {
             "unpin_all_general_forum_topic_messages",
         ),
         ("answerCallbackQuery", "answer_callback_query"),
+        ("answerGuestQuery", "answer_guest_query"),
         ("getUserChatBoosts", "get_user_chat_boosts"),
+        (
+            "getUserPersonalChatMessages",
+            "get_user_personal_chat_messages",
+        ),
         ("getBusinessConnection", "get_business_connection"),
         ("setMyCommands", "set_my_commands"),
         ("deleteMyCommands", "delete_my_commands"),
@@ -748,8 +764,8 @@ fn method_count_matches_api_96() {
 
     assert_eq!(
         methods.len(),
-        173,
-        "Expected 173 Bot API methods, found {}. \
+        176,
+        "Expected 176 Bot API methods, found {}. \
          Update this list if the spec has changed.",
         methods.len()
     );

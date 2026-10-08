@@ -69,6 +69,69 @@ impl Bot {
         self.do_post("sendPhoto", params).await
     }
 
+    /// Sends a live photo. Internal raw method used by builder APIs.
+    ///
+    /// Calls the Telegram `sendLivePhoto` API method.
+    pub async fn send_live_photo_raw(
+        &self,
+        chat_id: ChatId,
+        live_photo: files::input_file::InputFile,
+        photo: files::input_file::InputFile,
+        caption: Option<&str>,
+        parse_mode: Option<&str>,
+        caption_entities: Option<Vec<message_entity::MessageEntity>>,
+        show_caption_above_media: Option<bool>,
+        has_spoiler: Option<bool>,
+        disable_notification: Option<bool>,
+        protect_content: Option<bool>,
+        reply_parameters: Option<reply::ReplyParameters>,
+        reply_markup: Option<serde_json::Value>,
+        message_thread_id: Option<i64>,
+        business_connection_id: Option<&str>,
+        message_effect_id: Option<&str>,
+        allow_paid_broadcast: Option<bool>,
+        direct_messages_topic_id: Option<i64>,
+        suggested_post_parameters: Option<suggested_post::SuggestedPostParameters>,
+    ) -> Result<message::Message> {
+        let mut params = vec![
+            RequestParameter::new("chat_id", serde_json::to_value(&chat_id)?),
+            input_file_param("live_photo", live_photo),
+            input_file_param("photo", photo),
+        ];
+        push_opt_str(&mut params, "caption", caption);
+        push_opt_str(&mut params, "parse_mode", parse_mode);
+        push_opt(&mut params, "caption_entities", &caption_entities)?;
+        push_opt(
+            &mut params,
+            "show_caption_above_media",
+            &show_caption_above_media,
+        )?;
+        push_opt(&mut params, "has_spoiler", &has_spoiler)?;
+        push_opt(&mut params, "disable_notification", &disable_notification)?;
+        push_opt(&mut params, "protect_content", &protect_content)?;
+        push_opt(&mut params, "reply_parameters", &reply_parameters)?;
+        push_opt(&mut params, "reply_markup", &reply_markup)?;
+        push_opt(&mut params, "message_thread_id", &message_thread_id)?;
+        push_opt_str(
+            &mut params,
+            "business_connection_id",
+            business_connection_id,
+        );
+        push_opt_str(&mut params, "message_effect_id", message_effect_id);
+        push_opt(&mut params, "allow_paid_broadcast", &allow_paid_broadcast)?;
+        push_opt(
+            &mut params,
+            "direct_messages_topic_id",
+            &direct_messages_topic_id,
+        )?;
+        push_opt(
+            &mut params,
+            "suggested_post_parameters",
+            &suggested_post_parameters,
+        )?;
+        self.do_post("sendLivePhoto", params).await
+    }
+
     /// Sends an audio file. Internal raw method used by builder APIs.
     ///
     /// Calls the Telegram `sendAudio` API method.
