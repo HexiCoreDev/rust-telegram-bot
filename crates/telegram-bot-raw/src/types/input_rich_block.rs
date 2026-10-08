@@ -99,6 +99,8 @@ pub enum InputRichBlock {
     Map(InputRichBlockMap),
     /// Button row (`<tg-button-row>`).
     Buttons(InputRichBlockButtons),
+    /// General file (`<tg-document>`).
+    Document(InputRichBlockDocument),
     /// Animation (`<video>`).
     Animation(InputRichBlockAnimation),
     /// Music file (`<audio>`).
@@ -465,6 +467,27 @@ impl InputRichBlockButtons {
         Self {
             buttons,
             align: None,
+        }
+    }
+}
+
+/// General file block to be sent. The caption is ignored.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
+pub struct InputRichBlockDocument {
+    /// The document.
+    pub document: InputMediaDocument,
+    /// Caption of the block.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub caption: Option<RichBlockCaption>,
+}
+
+impl InputRichBlockDocument {
+    /// Creates a document block.
+    pub fn new(document: InputMediaDocument) -> Self {
+        Self {
+            document,
+            caption: None,
         }
     }
 }

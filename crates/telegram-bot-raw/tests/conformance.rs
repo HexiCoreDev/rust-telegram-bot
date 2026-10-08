@@ -1,7 +1,7 @@
-//! API conformance tests for Telegram Bot API 9.6.
+//! API conformance tests for the Telegram Bot API (currently 10.3).
 //!
 //! These tests verify that our crate implements every method and type defined in
-//! the official Telegram Bot API specification (version 9.6, April 2025).
+//! the official Telegram Bot API specification.
 //!
 //! Method checks are compile-time: if a method is missing from `Bot`, the test
 //! file will not compile.  Type checks verify deserialization from minimal JSON.
@@ -82,7 +82,7 @@ fn make_accepted_gift_types() -> rust_tg_bot_raw::types::gifts::AcceptedGiftType
 }
 
 // ===========================================================================
-// #3a: All Bot API 9.6 methods exist
+// #3a: All Bot API methods exist
 // ===========================================================================
 //
 // For each official method we verify either:
@@ -94,7 +94,7 @@ fn make_accepted_gift_types() -> rust_tg_bot_raw::types::gifts::AcceptedGiftType
 
 /// Verify builder factory methods compile (no runtime needed -- just construction).
 #[test]
-fn all_bot_api_96_builder_methods_exist() {
+fn all_bot_api_builder_methods_exist() {
     let bot = make_bot();
 
     // -- Getting updates --
@@ -246,7 +246,7 @@ fn all_bot_api_96_builder_methods_exist() {
 /// signature changes, this test will fail to compile. We leak the Bot to obtain
 /// a `'&'static Bot` so the returned futures satisfy their lifetime bounds.
 #[test]
-fn all_bot_api_96_raw_methods_exist() {
+fn all_bot_api_raw_methods_exist() {
     let bot: &'static Bot = Box::leak(Box::new(make_bot()));
 
     macro_rules! check {
@@ -533,13 +533,13 @@ fn all_bot_api_96_raw_methods_exist() {
 }
 
 // ===========================================================================
-// Official Telegram Bot API 9.6 method list (169 methods)
+// Official Telegram Bot API method list (185 methods, 10.3)
 // ===========================================================================
 
-/// The complete list of Bot API 9.6 methods mapped to our Rust snake_case names.
+/// The complete list of Bot API methods mapped to our Rust snake_case names.
 /// This test verifies the count matches the official spec.
 #[test]
-fn method_count_matches_api_96() {
+fn method_count_matches_spec() {
     let methods: Vec<(&str, &str)> = vec![
         // -- Getting updates --
         ("getUpdates", "get_updates"),
@@ -831,7 +831,7 @@ fn method_count_matches_api_96() {
 }
 
 // ===========================================================================
-// #3b: All Bot API 9.6 types exist and deserialize from minimal JSON
+// #3b: All Bot API types exist and deserialize from minimal JSON
 // ===========================================================================
 
 fn with_large_stack<F, R>(f: F) -> R
@@ -854,7 +854,7 @@ fn assert_deserializes<T: serde::de::DeserializeOwned>(json: serde_json::Value, 
 }
 
 #[test]
-fn all_bot_api_96_types_deserialize() {
+fn all_bot_api_types_deserialize() {
     with_large_stack(|| {
         use rust_tg_bot_raw::types::*;
 

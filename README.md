@@ -8,8 +8,8 @@
 
 <p align="center">
 
-[![Version: 1.0.0-rc.1](https://img.shields.io/badge/version-1.0.0--rc.1-blueviolet)](https://github.com/HexiCoreDev/rust-telegram-bot/releases)
-[![Bot API 9.6](https://img.shields.io/badge/Bot%20API-9.6-blue?logo=telegram)](https://core.telegram.org/bots/api-changelog)
+[![Version: 1.0.0-rc.2](https://img.shields.io/badge/version-1.0.0--rc.2-blueviolet)](https://github.com/HexiCoreDev/rust-telegram-bot/releases)
+[![Bot API 10.3](https://img.shields.io/badge/Bot%20API-10.3-blue?logo=telegram)](https://core.telegram.org/bots/api-changelog)
 [![Rust: 1.75+](https://img.shields.io/badge/Rust-1.75%2B-orange?logo=rust)](https://www.rust-lang.org)
 [![License: LGPL-3.0](https://img.shields.io/badge/License-LGPL--3.0-green.svg)](https://www.gnu.org/licenses/lgpl-3.0.html)
 [![CI](https://github.com/HexiCoreDev/rust-telegram-bot/actions/workflows/ci.yml/badge.svg?branch=dev)](https://github.com/HexiCoreDev/rust-telegram-bot/actions/workflows/ci.yml)
@@ -26,7 +26,7 @@
 
 ---
 
-> **Release Candidate (v1.0.0-rc.1).** The API surface is complete and stabilizing. Minor breaking changes may still occur before v1.0.0 stable. Please report any issues.
+> **Release Candidate (v1.0.0-rc.2).** The API surface is complete and stabilizing. Minor breaking changes may still occur before v1.0.0 stable. Please report any issues.
 
 ---
 
@@ -66,7 +66,7 @@ rust-telegram-bot/
     telegram-bot/         # Facade crate -- re-exports all three for convenience
 ```
 
-**`rust-tg-bot-raw`** contains every type and method from Bot API 9.6: `Message`, `Update`, `User`, `Chat`, inline types, payments, passport, games, stickers, and all API methods on the `Bot` struct. It depends only on `serde`, `reqwest`, and `tokio`.
+**`rust-tg-bot-raw`** contains every type and method from Bot API 10.3: `Message`, `Update`, `User`, `Chat`, rich messages, ephemeral messages, communities, inline types, payments, passport, games, stickers, and all API methods on the `Bot` struct. It depends only on `serde`, `reqwest`, and `tokio`.
 
 **`rust-tg-bot-ext`** provides the application framework: `ApplicationBuilder`, typed handler system, composable filters, `ConversationHandler`, `JobQueue`, persistence backends (JSON file, SQLite, Redis, PostgreSQL), rate limiting, webhook support with optional TLS, and callback data caching.
 
@@ -467,7 +467,7 @@ rust-tg-bot = { git = "https://github.com/HexiCoreDev/rust-telegram-bot", featur
 
 | Feature | rust-tg-bot | python-telegram-bot | teloxide |
 |---|:---:|:---:|:---:|
-| Bot API version | **9.6** | 9.5 | 9.2 |
+| Bot API version | **10.3** | 9.5 | 9.2 |
 | Language | Rust | Python | Rust |
 | Async runtime | tokio | asyncio | tokio |
 | Handler system | 22 typed handlers + FnHandler | 22 handler types | Dispatcher + handler chains |
@@ -483,7 +483,7 @@ rust-tg-bot = { git = "https://github.com/HexiCoreDev/rust-telegram-bot", featur
 | Minimum version | Rust 1.75 | Python 3.10 | Rust 1.68 |
 | Builder pattern | IntoFuture (directly awaitable) | Keyword args | Method chains |
 | Typed constants | `ParseMode::Html` | `ParseMode.HTML` | String-based |
-| Maturity | **v1.0.0-rc.1** (new) | Mature (10+ years) | Mature (3+ years) |
+| Maturity | **v1.0.0-rc.2** (new) | Mature (10+ years) | Mature (3+ years) |
 
 ## Examples
 
@@ -516,11 +516,11 @@ TELEGRAM_BOT_TOKEN="your-token" WEBHOOK_URL="https://your.domain" \
 
 ## Project Status
 
-**Current: v1.0.0-rc.1 -- API complete, stabilizing**
+**Current: v1.0.0-rc.2 -- API complete, stabilizing**
 
 What is implemented:
 
-- All Bot API 9.6 types and methods (281 types, 171 method builders)
+- All Bot API 10.3 types and methods (185 methods, 186 builders, 414 core types)
 - `ApplicationBuilder` with typestate pattern
 - Typed handler system (`CommandHandler`, `MessageHandler`, `FnHandler`, and more)
 - 50+ composable filters with `&`, `|`, `^`, `!` operators

@@ -1612,6 +1612,10 @@ fn input_rich_block_tags_dispatch() {
             json!({"type": "voice_note", "voice_note": {"type": "voice_note", "media": "f"}}),
             "voice_note",
         ),
+        (
+            json!({"type": "document", "document": {"type": "document", "media": "f"}}),
+            "document",
+        ),
         (json!({"type": "thinking", "text": "..."}), "thinking"),
     ];
     for (payload, tag) in cases {

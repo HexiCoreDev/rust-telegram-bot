@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.0-rc.2] - 2026-10-08
+
+### Added
+- Full Bot API 10.0 coverage: `sendLivePhoto`, guest mode (`answerGuestQuery`,
+  `getUserPersonalChatMessages`, `Update::guest_message`), managed bot access
+  settings, message reaction deletion, poll media (`PollMedia`, `members_only`,
+  `country_codes`), live photo types across messages, paid media and inputs
+- Full Bot API 10.1 coverage: rich messages (`RichText` + 26 members, `RichBlock`
+  + 24 blocks, `RichMessage`, `InputRichMessage`, `InputRichMessageContent`),
+  join request queries (`answerChatJoinRequestQuery`, `sendChatJoinRequestWebApp`),
+  poll links (`Link`, `InputMediaLink`), `sendRichMessage`/`sendRichMessageDraft`
+- Full Bot API 10.2 coverage: ephemeral messages (5 edit/delete methods),
+  communities (`Community`, `Update::subscription`), input rich blocks,
+  `InputRichMessage::{blocks, media}`
+- Full Bot API 10.3 coverage: `EphemeralMessageParameters` on all 14 send
+  methods, rich buttons (`RichMessageButton`, input buttons blocks),
+  `DisabledButton`, `force_reply` markups, message generation updates,
+  welcome-message rights, draft stop flags
+- Method coverage is now 185/185 with a pinned conformance table; 117+ tests,
+  zero new clippy warnings
+
 ## [1.0.0-rc.1] - 2026-04-10
 
 ### Changed
