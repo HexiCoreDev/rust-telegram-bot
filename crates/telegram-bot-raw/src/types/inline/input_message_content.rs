@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 use super::input_contact_message_content::InputContactMessageContent;
 use super::input_invoice_message_content::InputInvoiceMessageContent;
 use super::input_location_message_content::InputLocationMessageContent;
+use super::input_rich_message_content::InputRichMessageContent;
 use super::input_text_message_content::InputTextMessageContent;
 use super::input_venue_message_content::InputVenueMessageContent;
 
@@ -23,4 +24,6 @@ pub enum InputMessageContent {
     Contact(InputContactMessageContent),
     /// An invoice.
     Invoice(InputInvoiceMessageContent),
+    /// A rich message.
+    Rich(InputRichMessageContent),
 }

@@ -17,6 +17,7 @@ use super::gifts::AcceptedGiftTypes;
 use super::message::Message;
 use super::reaction::ReactionType;
 use super::unique_gift::UniqueGiftColors;
+use super::user::User;
 use super::user_rating::UserRating;
 
 /// This object contains full information about a chat.
@@ -236,4 +237,9 @@ pub struct ChatFullInfo {
     /// First audio in the profile of the chat or the other party in a private chat.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub first_profile_audio: Option<Audio>,
+
+    /// The bot that processes join request queries in the chat.
+    /// Only available to chat administrators.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub guard_bot: Option<User>,
 }

@@ -1416,3 +1416,135 @@ fn rich_block_table_list_item_and_details() {
         other => panic!("expected details, got {:?}", other),
     }
 }
+
+// ===========================================================================
+// Rich message, inputs, join-request and link types
+// ===========================================================================
+
+#[test]
+fn rich_message_nested_blocks_roundtrip() {
+    use rust_tg_bot_raw::types::rich_message::RichMessage;
+
+    with_large_stack(|| {
+        let json = json!({
+            "blocks": [
+                {"type": "heading", "text": "Title", "size": 1},
+                {"type": "paragraph", "text": [
+                    "Hello ",
+                    {"type": "bold", "text": "world"},
+                    {"type": "mention", "text": "@durov", "username": "durov"}
+                ]},
+                {"type": "list", "items": [
+                    {"label": "one", "blocks": [{"type": "paragraph", "text": "1"}]}
+                ]}
+            ],
+            "is_rtl": false
+        });
+        let msg: RichMessage = roundtrip_check(json);
+        assert_eq!(msg.blocks.len(), 3);
+        let reserialized = serde_json::to_value(&msg).unwrap();
+        assert_eq!(reserialized["blocks"][0]["type"], "heading");
+        assert_eq!(reserialized["blocks"][1]["text"][1]["type"], "bold");
+    });
+}
+
+#[test]
+fn input_rich_message_and_content_variants() {
+    use rust_tg_bot_raw::types::inline::input_message_content::InputMessageContent;
+    use rust_tg_bot_raw::types::inline::input_rich_message_content::InputRichMessageContent;
+    use rust_tg_bot_raw::types::input_rich_message::InputRichMessage;
+
+    // HTML input with entity-detection skip.
+    let html_input = InputRichMessage::html("<b>Hi</b>");
+    let value = serde_json::to_value(&html_input).unwrap();
+    assert_eq!(value["html"], "<b>Hi</b>");
+    assert!(value.get("markdown").is_none());
+
+    let md_input = InputRichMessage::markdown("**Hi**");
+    let value = serde_json::to_value(&md_input).unwrap();
+    assert_eq!(value["markdown"], "**Hi**");
+
+    // Rich content dispatches inside the untagged InputMessageContent union.
+    let content = InputMessageContent::Rich(InputRichMessageContent::new(html_input));
+    let value = serde_json::to_value(&content).unwrap();
+    assert_eq!(value["rich_message"]["html"], "<b>Hi</b>");
+
+    // And deserializes back to the Rich variant (unique key, no ambiguity).
+    let back: InputMessageContent = serde_json::from_value(value).unwrap();
+    assert!(matches!(back, InputMessageContent::Rich(_)));
+}
+
+#[test]
+fn link_and_input_media_link() {
+    use rust_tg_bot_raw::types::files::input_media::InputMediaLink;
+    use rust_tg_bot_raw::types::link::Link;
+    use rust_tg_bot_raw::types::poll::InputPollOptionMedia;
+
+    let link: Link = roundtrip_check(json!({"url": "https://t.me"}));
+    assert_eq!(link.url, "https://t.me");
+
+    let media = InputPollOptionMedia::Link(InputMediaLink::new("https://t.me"));
+    let value = serde_json::to_value(&media).unwrap();
+    assert_eq!(value["type"], "link");
+    assert_eq!(value["url"], "https://t.me");
+}
+
+#[test]
+fn join_request_query_and_guard_bot_fields() {
+    with_large_stack(|| {
+        // ChatJoinRequest with a join request query id.
+        let json = json!({
+            "update_id": 4242,
+            "chat_join_request": {
+                "chat": {"id": -1005, "type": "supergroup"},
+                "from": {"id": 77, "is_bot": false, "first_name": "Jo"},
+                "user_chat_id": 77,
+                "date": 1780000000,
+                "query_id": "jrq-1"
+            }
+        });
+        let update: Update = roundtrip_check(json);
+        let req = update.chat_join_request().unwrap();
+        assert_eq!(req.query_id.as_deref(), Some("jrq-1"));
+
+        // ChatFullInfo carrying the guard bot.
+        let full_json = json!({
+            "id": -1005,
+            "type": "supergroup",
+            "accent_color_id": 1,
+            "max_reaction_count": 20,
+            "accepted_gift_types": {
+                "unlimited_gifts": true,
+                "limited_gifts": true,
+                "unique_gifts": true,
+                "premium_subscription": true,
+                "gifts_from_channels": false
+            },
+            "guard_bot": {"id": 99, "is_bot": true, "first_name": "Guard"}
+        });
+        let full: ChatFullInfo = roundtrip_check(full_json);
+        assert_eq!(full.guard_bot.as_ref().unwrap().id, 99);
+
+        // getMe-style user flags.
+        let user: User = roundtrip_check(json!({
+            "id": 99, "is_bot": true, "first_name": "Guard",
+            "supports_join_request_queries": true
+        }));
+        assert_eq!(user.supports_join_request_queries, Some(true));
+    });
+}
+
+#[test]
+fn message_rich_message_field() {
+    with_large_stack(|| {
+        let json = json!({
+            "message_id": 3,
+            "date": 1780000002,
+            "chat": {"id": 1, "type": "private"},
+            "rich_message": {"blocks": [{"type": "paragraph", "text": "hi"}]}
+        });
+        let msg: Message = roundtrip_check(json);
+        let rich = msg.rich_message.as_ref().unwrap();
+        assert_eq!(rich.blocks.len(), 1);
+    });
+}

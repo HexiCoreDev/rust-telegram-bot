@@ -26,4 +26,10 @@ pub struct ChatJoinRequest {
     /// Chat invite link that was used by the user to send the join request.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub invite_link: Option<ChatInviteLink>,
+
+    /// Identifier of the join request query, for bots assigned to process join requests.
+    /// The bot must answer within 10 seconds via `sendChatJoinRequestWebApp` or
+    /// `answerChatJoinRequestQuery`.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub query_id: Option<String>,
 }

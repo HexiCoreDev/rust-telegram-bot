@@ -51,6 +51,11 @@ pub struct User {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub supports_guest_queries: Option<bool>,
 
+    /// `true` if the bot supports join request queries and can be assigned to process them.
+    /// Returned only in `getMe`.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub supports_join_request_queries: Option<bool>,
+
     /// `true` if this user is a Telegram Premium user.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub is_premium: Option<bool>,
@@ -103,6 +108,7 @@ impl User {
             can_read_all_group_messages: None,
             supports_inline_queries: None,
             supports_guest_queries: None,
+            supports_join_request_queries: None,
             is_premium: None,
             added_to_attachment_menu: None,
             can_connect_to_business: None,

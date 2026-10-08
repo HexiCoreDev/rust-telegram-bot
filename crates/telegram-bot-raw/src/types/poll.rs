@@ -5,7 +5,7 @@ use super::files::animation::Animation;
 use super::files::audio::Audio;
 use super::files::document::Document;
 use super::files::input_media::{
-    InputMediaAnimation, InputMediaAudio, InputMediaDocument, InputMediaLivePhoto,
+    InputMediaAnimation, InputMediaAudio, InputMediaDocument, InputMediaLink, InputMediaLivePhoto,
     InputMediaLocation, InputMediaPhoto, InputMediaSticker, InputMediaVenue, InputMediaVideo,
 };
 use super::files::location::Location;
@@ -353,6 +353,8 @@ pub enum InputPollMedia {
 pub enum InputPollOptionMedia {
     /// An animation.
     Animation(InputMediaAnimation),
+    /// An HTTP link.
+    Link(InputMediaLink),
     /// A live photo.
     LivePhoto(InputMediaLivePhoto),
     /// A location.

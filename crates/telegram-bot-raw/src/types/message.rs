@@ -54,6 +54,7 @@ use super::payment::successful_payment::SuccessfulPayment;
 use super::poll::{Poll, PollOptionAdded, PollOptionDeleted};
 use super::proximity_alert_triggered::ProximityAlertTriggered;
 use super::reply::{ExternalReplyInfo, TextQuote};
+use super::rich_message::RichMessage;
 use super::shared::{ChatShared, UsersShared};
 use super::story::Story;
 use super::suggested_post::{
@@ -220,6 +221,10 @@ pub struct Message {
     /// Unique identifier of the message effect added to the message.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub effect_id: Option<String>,
+
+    /// Message is a rich formatted message.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub rich_message: Option<RichMessage>,
 
     // ── Media attachments ─────────────────────────────────────────────────────
     /// Message is an animation, information about the animation.

@@ -94,6 +94,10 @@ pub mod switch_inline_query_chosen_chat;
 // Media & content types
 /// Dice type.
 pub mod dice;
+/// Rich message input type.
+pub mod input_rich_message;
+/// Link type.
+pub mod link;
 /// Live photo type.
 pub mod live_photo;
 /// Poll and poll answer types.
@@ -102,6 +106,8 @@ pub mod poll;
 pub mod reaction;
 /// Rich block types.
 pub mod rich_block;
+/// Rich formatted message type.
+pub mod rich_message;
 /// Rich formatted text types.
 pub mod rich_text;
 /// Story type.

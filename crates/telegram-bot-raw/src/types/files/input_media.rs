@@ -513,6 +513,21 @@ impl InputMediaSticker {
     }
 }
 
+/// An HTTP link to be sent.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
+#[non_exhaustive]
+pub struct InputMediaLink {
+    /// HTTP URL of the link.
+    pub url: String,
+}
+
+impl InputMediaLink {
+    /// Creates a new `InputMediaLink` with the given URL.
+    pub fn new(url: impl Into<String>) -> Self {
+        Self { url: url.into() }
+    }
+}
+
 /// A tagged union of all `InputMedia*` variants, serialized with a `"type"` discriminant.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]

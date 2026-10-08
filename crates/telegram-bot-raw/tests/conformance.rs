@@ -1300,6 +1300,29 @@ fn all_bot_api_96_types_deserialize() {
         // -- Poll media --
         assert_deserializes::<poll::PollMedia>(json!({}), "PollMedia");
 
+        // -- Rich text --
+        assert_deserializes::<rich_text::RichText>(json!("plain"), "RichText");
+        assert_deserializes::<rich_text::RichText>(
+            json!({"type": "bold", "text": "b"}),
+            "RichTextBold",
+        );
+
+        // -- Rich blocks --
+        assert_deserializes::<rich_block::RichBlock>(
+            json!({"type": "divider"}),
+            "RichBlockDivider",
+        );
+
+        // -- Rich message --
+        assert_deserializes::<rich_message::RichMessage>(json!({"blocks": []}), "RichMessage");
+        assert_deserializes::<input_rich_message::InputRichMessage>(
+            json!({"markdown": "**hi**"}),
+            "InputRichMessage",
+        );
+
+        // -- Link --
+        assert_deserializes::<link::Link>(json!({"url": "https://t.me"}), "Link");
+
         // -- Story area --
         assert_deserializes::<story_area::StoryArea>(
             json!({"position": {"x_percentage": 0.0, "y_percentage": 0.0, "width_percentage": 100.0, "height_percentage": 100.0, "rotation_angle": 0.0, "corner_radius_percentage": 0.0}, "type": {"type": "suggested_reaction", "reaction_type": {"type": "emoji", "emoji": "\u{1F44D}"}}}),
