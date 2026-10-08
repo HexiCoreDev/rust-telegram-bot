@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 
+use super::rich_message::RichMessageButton;
 use super::user::User;
 
 // ---------------------------------------------------------------------------
@@ -502,18 +503,16 @@ impl RichTextBotCommand {
 }
 
 /// Button rich text.
-///
-/// The button payload is kept as raw JSON until the button type is modeled.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[non_exhaustive]
 pub struct RichTextButton {
-    /// The button payload.
-    pub button: Box<serde_json::Value>,
+    /// The button.
+    pub button: Box<RichMessageButton>,
 }
 
 impl RichTextButton {
-    /// Creates button rich text from a raw button payload.
-    pub fn new(button: serde_json::Value) -> Self {
+    /// Creates button rich text.
+    pub fn new(button: RichMessageButton) -> Self {
         Self {
             button: Box::new(button),
         }

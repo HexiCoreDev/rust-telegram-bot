@@ -1363,6 +1363,18 @@ fn all_bot_api_96_types_deserialize() {
         // -- Link --
         assert_deserializes::<link::Link>(json!({"url": "https://t.me"}), "Link");
 
+        // -- Ephemeral parameters --
+        assert_deserializes::<ephemeral::EphemeralMessageParameters>(
+            json!({"receiver_user_id": 1}),
+            "EphemeralMessageParameters",
+        );
+
+        // -- Rich buttons --
+        assert_deserializes::<rich_message::RichMessageButton>(
+            json!({"text": "Go", "url": "https://t.me"}),
+            "RichMessageButton",
+        );
+
         // -- Story area --
         assert_deserializes::<story_area::StoryArea>(
             json!({"position": {"x_percentage": 0.0, "y_percentage": 0.0, "width_percentage": 100.0, "height_percentage": 100.0, "rotation_angle": 0.0, "corner_radius_percentage": 0.0}, "type": {"type": "suggested_reaction", "reaction_type": {"type": "emoji", "emoji": "\u{1F44D}"}}}),

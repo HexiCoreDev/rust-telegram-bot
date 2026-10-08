@@ -8,6 +8,11 @@ use super::inline_keyboard_button::InlineKeyboardButton;
 pub struct InlineKeyboardMarkup {
     /// Array of button rows, each represented by an array of `InlineKeyboardButton` objects.
     pub inline_keyboard: Vec<Vec<InlineKeyboardButton>>,
+
+    /// Pass `true` to show the reply interface to the user, as if they had
+    /// manually selected the bot's message and tapped 'Reply'.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub force_reply: Option<bool>,
 }
 
 impl InlineKeyboardMarkup {
@@ -15,6 +20,7 @@ impl InlineKeyboardMarkup {
     pub fn new(rows: Vec<Vec<InlineKeyboardButton>>) -> Self {
         Self {
             inline_keyboard: rows,
+            force_reply: None,
         }
     }
 
@@ -22,6 +28,7 @@ impl InlineKeyboardMarkup {
     pub fn from_button(button: InlineKeyboardButton) -> Self {
         Self {
             inline_keyboard: vec![vec![button]],
+            force_reply: None,
         }
     }
 
@@ -29,6 +36,7 @@ impl InlineKeyboardMarkup {
     pub fn from_row(buttons: Vec<InlineKeyboardButton>) -> Self {
         Self {
             inline_keyboard: vec![buttons],
+            force_reply: None,
         }
     }
 
@@ -36,6 +44,7 @@ impl InlineKeyboardMarkup {
     pub fn from_column(buttons: Vec<InlineKeyboardButton>) -> Self {
         Self {
             inline_keyboard: buttons.into_iter().map(|b| vec![b]).collect(),
+            force_reply: None,
         }
     }
 }

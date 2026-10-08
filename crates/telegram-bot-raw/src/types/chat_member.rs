@@ -76,6 +76,10 @@ pub struct ChatMemberAdministrator {
     /// True if the administrator can edit the tags of regular members; groups and supergroups only.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub can_manage_tags: Option<bool>,
+    /// True if the administrator can manage chat welcome messages, or directly send them
+    /// in the case of bots.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub can_send_welcome_messages: Option<bool>,
 }
 
 /// Represents a chat member that has no additional privileges or restrictions.

@@ -60,7 +60,16 @@ pub struct InlineKeyboardButton {
     /// Custom emoji identifier for the button icon.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub icon_custom_emoji_id: Option<String>,
+
+    /// If set, the button is disabled and does nothing.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub disabled: Option<DisabledButton>,
 }
+
+/// A disabled button which does nothing. Currently holds no information.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
+#[non_exhaustive]
+pub struct DisabledButton {}
 
 impl InlineKeyboardButton {
     /// Create a button that sends callback data when pressed.

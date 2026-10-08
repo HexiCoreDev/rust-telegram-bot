@@ -17,7 +17,7 @@ use super::chat_background::ChatBackground;
 use super::chat_boost::ChatBoostAdded;
 use super::chat_owner::{ChatOwnerChanged, ChatOwnerLeft};
 use super::checklists::{Checklist, ChecklistTasksAdded, ChecklistTasksDone};
-use super::community::{CommunityChatAdded, CommunityChatRemoved};
+use super::community::{CommunityChatAdded, CommunityChatJoined, CommunityChatRemoved};
 use super::dice::Dice;
 use super::direct_message_price_changed::DirectMessagePriceChanged;
 use super::direct_messages_topic::DirectMessagesTopic;
@@ -430,6 +430,10 @@ pub struct Message {
     /// Service message: chat or bot added to a community.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub community_chat_added: Option<CommunityChatAdded>,
+
+    /// Service message: chat was joined by a user from a community.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub community_chat_joined: Option<CommunityChatJoined>,
 
     /// Service message: chat or bot removed from a community.
     #[serde(skip_serializing_if = "Option::is_none")]

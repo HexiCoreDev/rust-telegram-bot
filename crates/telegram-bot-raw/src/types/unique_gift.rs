@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use super::chat::Chat;
 use super::files::sticker::Sticker;
+use super::message_entity::MessageEntity;
 
 // ---------------------------------------------------------------------------
 // UniqueGiftColors
@@ -173,6 +174,18 @@ pub struct UniqueGiftInfo {
     /// Origin of the gift: `"upgrade"`, `"transfer"`, `"resale"`, `"gifted_upgrade"`,
     /// or `"offer"`.
     pub origin: String,
+
+    /// Text of the message that was added to the gift.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub text: Option<String>,
+
+    /// Special entities that appear in the text.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub entities: Option<Vec<MessageEntity>>,
+
+    /// `true` if the sender and gift text are shown only to the gift receiver.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub is_private: Option<bool>,
 
     /// Unique identifier of the received gift for the bot; business accounts only.
     #[serde(skip_serializing_if = "Option::is_none")]

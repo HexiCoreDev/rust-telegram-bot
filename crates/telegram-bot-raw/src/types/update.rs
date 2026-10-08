@@ -28,6 +28,23 @@ use super::payment::stars::subscription::BotSubscriptionUpdated;
 use super::poll::{Poll, PollAnswer};
 use super::user::User;
 
+/// Update about a user stopping message generation via a draft stop button.
+///
+/// Corresponds to the Bot API [`MessageGenerationStopped`](https://core.telegram.org/bots/api#messagegenerationstopped) object.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
+pub struct MessageGenerationStopped {
+    /// Chat in which the message is generated.
+    pub chat: Chat,
+
+    /// Unique identifier of the message thread in which the message is generated.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub message_thread_id: Option<i64>,
+
+    /// Unique identifier of the message draft which was stopped.
+    pub draft_id: i64,
+}
+
 /// This object represents an incoming update.
 ///
 /// Corresponds to the Bot API [`Update`](https://core.telegram.org/bots/api#update) object.
@@ -103,6 +120,8 @@ pub enum UpdateKind {
     GuestMessage(Message),
     /// A user payment subscription toward the bot has changed.
     Subscription(BotSubscriptionUpdated),
+    /// A user asked the bot to stop the generation of a message.
+    StoppedMessageGeneration(MessageGenerationStopped),
     /// Unknown or unsupported update types, or an update with no payload fields.
     #[default]
     Unknown,
@@ -204,6 +223,12 @@ impl Serialize for UpdateKind {
             Self::Subscription(value) => {
                 serializer.serialize_newtype_variant("UpdateKind", 25, "subscription", value)
             }
+            Self::StoppedMessageGeneration(value) => serializer.serialize_newtype_variant(
+                "UpdateKind",
+                26,
+                "stopped_message_generation",
+                value,
+            ),
             Self::Unknown => {
                 let map = serializer.serialize_map(Some(0))?;
                 map.end()
@@ -296,6 +321,9 @@ impl<'de> Visitor<'de> for UpdateKindVisitor {
                 "managed_bot" => parse_kind!(ManagedBot, ManagedBotUpdated),
                 "guest_message" => parse_kind!(GuestMessage, Message),
                 "subscription" => parse_kind!(Subscription, BotSubscriptionUpdated),
+                "stopped_message_generation" => {
+                    parse_kind!(StoppedMessageGeneration, MessageGenerationStopped)
+                }
                 "update_id" => {
                     map.next_value::<IgnoredAny>()?;
                 }
@@ -374,6 +402,11 @@ impl Update {
         (managed_bot, ManagedBot, ManagedBotUpdated),
         (guest_message, GuestMessage, Message),
         (subscription, Subscription, BotSubscriptionUpdated),
+        (
+            stopped_message_generation,
+            StoppedMessageGeneration,
+            MessageGenerationStopped
+        ),
     );
 
     /// Returns a reference to the [`User`] that sent this update, regardless of update type.
@@ -410,6 +443,7 @@ impl Update {
             | UpdateKind::ChatBoost(_)
             | UpdateKind::RemovedChatBoost(_)
             | UpdateKind::MessageReactionCount(_)
+            | UpdateKind::StoppedMessageGeneration(_)
             | UpdateKind::Unknown => None,
         }
     }
@@ -439,6 +473,7 @@ impl Update {
             UpdateKind::MessageReaction(mru) => Some(&mru.chat),
             UpdateKind::MessageReactionCount(mrcu) => Some(&mrcu.chat),
             UpdateKind::DeletedBusinessMessages(dbm) => Some(&dbm.chat),
+            UpdateKind::StoppedMessageGeneration(smg) => Some(&smg.chat),
             UpdateKind::BusinessConnection(_)
             | UpdateKind::InlineQuery(_)
             | UpdateKind::ChosenInlineResult(_)
@@ -495,6 +530,7 @@ impl Update {
             | UpdateKind::MessageReactionCount(_)
             | UpdateKind::ManagedBot(_)
             | UpdateKind::Subscription(_)
+            | UpdateKind::StoppedMessageGeneration(_)
             | UpdateKind::Unknown => None,
         }
     }

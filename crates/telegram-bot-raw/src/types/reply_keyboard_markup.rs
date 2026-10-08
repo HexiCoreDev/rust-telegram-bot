@@ -29,6 +29,11 @@ pub struct ReplyKeyboardMarkup {
     /// `true` to always show the keyboard when the regular keyboard is hidden.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub is_persistent: Option<bool>,
+
+    /// Pass `true` to show the reply interface to the user, as if they had
+    /// manually selected the bot's message and tapped 'Reply'.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub force_reply: Option<bool>,
 }
 
 impl ReplyKeyboardMarkup {

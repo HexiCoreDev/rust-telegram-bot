@@ -1765,3 +1765,171 @@ fn ephemeral_bot_command_flag() {
     let plain: BotCommand = roundtrip_check(json!({"command": "start", "description": "d"}));
     assert_eq!(plain.is_ephemeral, None);
 }
+
+// ===========================================================================
+// Rich buttons, ephemeral params, generation-stopped, communities, misc 10.3
+// ===========================================================================
+
+#[test]
+fn rich_message_button_and_typed_wrappers() {
+    use rust_tg_bot_raw::types::rich_block::{RichBlock, RichBlockButtons};
+    use rust_tg_bot_raw::types::rich_message::RichMessageButton;
+    use rust_tg_bot_raw::types::rich_text::{RichText, RichTextFormatted};
+
+    let json = json!({
+        "type": "buttons",
+        "buttons": [
+            {"text": "Open", "url": "https://t.me", "style": "success"},
+            {"text": "Off", "disabled": {}}
+        ],
+        "align": "center"
+    });
+    let block: RichBlock = roundtrip_check(json);
+    match &block {
+        RichBlock::Buttons(b) => {
+            assert_eq!(b.buttons.len(), 2);
+            assert_eq!(b.buttons[0].url.as_deref(), Some("https://t.me"));
+            assert!(b.buttons[1].disabled.is_some());
+            assert_eq!(b.align.as_deref(), Some("center"));
+        }
+        other => panic!("expected buttons, got {:?}", other),
+    }
+
+    // Button inside rich text is now typed too.
+    let text: RichText = roundtrip_check(json!({
+        "type": "button",
+        "button": {"text": "Go", "callback_data": "go"}
+    }));
+    match text {
+        RichText::Formatted(inner) => match *inner {
+            RichTextFormatted::Button(b) => {
+                assert_eq!(b.button.callback_data.as_deref(), Some("go"));
+            }
+            other => panic!("expected button text, got {:?}", other),
+        },
+        other => panic!("expected formatted, got {:?}", other),
+    }
+
+    // Direct button round-trip keeps every field.
+    let direct: RichMessageButton = roundtrip_check(json!({
+        "text": "Hi",
+        "login_url": {"url": "https://example.com"}
+    }));
+    assert!(direct.login_url.is_some());
+    let _: RichBlockButtons = roundtrip_check(json!({"buttons": []}));
+}
+
+#[test]
+fn input_buttons_block_and_ephemeral_params() {
+    use rust_tg_bot_raw::types::ephemeral::EphemeralMessageParameters;
+    use rust_tg_bot_raw::types::input_rich_block::InputRichBlock;
+
+    let block: InputRichBlock = roundtrip_check(json!({
+        "type": "buttons",
+        "buttons": [{"text": "nick", "copy_text": {"text": "copy me"}}]
+    }));
+    match &block {
+        InputRichBlock::Buttons(b) => {
+            assert!(b.buttons[0].copy_text.is_some());
+        }
+        other => panic!("expected buttons, got {:?}", other),
+    }
+
+    let params = EphemeralMessageParameters::new(42)
+        .callback_query_id("cq-1")
+        .replace_original();
+    let value = serde_json::to_value(&params).unwrap();
+    assert_eq!(
+        value,
+        json!({
+            "receiver_user_id": 42,
+            "callback_query_id": "cq-1",
+            "replace_callback_query_message": true
+        })
+    );
+}
+
+#[test]
+fn generation_stopped_update_and_community_joined() {
+    with_large_stack(|| {
+        let json = json!({
+            "update_id": 31337,
+            "stopped_message_generation": {
+                "chat": {"id": 1, "type": "private"},
+                "draft_id": 9
+            }
+        });
+        let update: Update = roundtrip_check(json);
+        let stopped = update.stopped_message_generation().unwrap();
+        assert_eq!(stopped.draft_id, 9);
+        assert_eq!(update.effective_chat().unwrap().id, 1);
+        assert!(update.effective_user().is_none());
+        assert!(update.effective_message().is_none());
+
+        let joined: Message = roundtrip_check(json!({
+            "message_id": 21,
+            "date": 1780000003,
+            "chat": {"id": -1002, "type": "supergroup"},
+            "community_chat_joined": {"community": {"id": 7, "name": "Fans"}}
+        }));
+        assert_eq!(
+            joined
+                .community_chat_joined
+                .as_ref()
+                .unwrap()
+                .community
+                .name,
+            "Fans"
+        );
+    });
+}
+
+#[test]
+fn markup_and_rights_new_flags() {
+    use rust_tg_bot_raw::types::chat_administrator_rights::ChatAdministratorRights;
+    use rust_tg_bot_raw::types::inline::inline_keyboard_markup::InlineKeyboardMarkup;
+    use rust_tg_bot_raw::types::reply_keyboard_markup::ReplyKeyboardMarkup;
+    use rust_tg_bot_raw::types::unique_gift::UniqueGiftInfo;
+
+    // force_reply on both keyboard markups.
+    let inline: InlineKeyboardMarkup =
+        roundtrip_check(json!({"inline_keyboard": [], "force_reply": true}));
+    assert_eq!(inline.force_reply, Some(true));
+    assert!(inline.inline_keyboard.is_empty());
+
+    let reply: ReplyKeyboardMarkup = roundtrip_check(json!({"keyboard": [], "force_reply": true}));
+    assert_eq!(reply.force_reply, Some(true));
+
+    // Welcome-message rights.
+    let rights: ChatAdministratorRights = roundtrip_check(json!({
+        "is_anonymous": false,
+        "can_manage_chat": true,
+        "can_delete_messages": true,
+        "can_manage_video_chats": false,
+        "can_restrict_members": false,
+        "can_promote_members": false,
+        "can_change_info": false,
+        "can_invite_users": true,
+        "can_post_stories": false,
+        "can_edit_stories": false,
+        "can_delete_stories": false,
+        "can_send_welcome_messages": true
+    }));
+    assert_eq!(rights.can_send_welcome_messages, Some(true));
+
+    // Gift info text fields.
+    let gift: UniqueGiftInfo = roundtrip_check(json!({
+        "gift": {
+            "gift_id": "g", "base_name": "b", "name": "n", "number": 1,
+            "model": {"name": "m", "sticker": {"file_id": "f", "file_unique_id": "u", "type": "regular", "width": 1, "height": 1, "is_animated": false, "is_video": false}, "rarity_per_mille": 1},
+            "symbol": {"name": "s", "sticker": {"file_id": "f", "file_unique_id": "u", "type": "regular", "width": 1, "height": 1, "is_animated": false, "is_video": false}, "rarity_per_mille": 1},
+            "backdrop": {"name": "b", "colors": {"center_color": 0, "edge_color": 0, "symbol_color": 0, "text_color": 0}, "rarity_per_mille": 1}
+        },
+        "origin": "upgrade",
+        "text": "enjoy",
+        "is_private": true
+    }));
+    assert_eq!(gift.text.as_deref(), Some("enjoy"));
+    assert_eq!(gift.is_private, Some(true));
+    assert!(gift.entities.is_none());
+}

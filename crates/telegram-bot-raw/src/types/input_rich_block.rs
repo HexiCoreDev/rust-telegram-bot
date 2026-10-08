@@ -6,6 +6,7 @@ use super::files::input_media::{
 };
 use super::files::location::Location;
 use super::rich_block::{RichBlockCaption, RichBlockTableCell};
+use super::rich_message::RichMessageButton;
 use super::rich_text::RichText;
 
 // ---------------------------------------------------------------------------
@@ -96,6 +97,8 @@ pub enum InputRichBlock {
     Details(InputRichBlockDetails),
     /// Map (`<tg-map>`).
     Map(InputRichBlockMap),
+    /// Button row (`<tg-button-row>`).
+    Buttons(InputRichBlockButtons),
     /// Animation (`<video>`).
     Animation(InputRichBlockAnimation),
     /// Music file (`<audio>`).
@@ -441,6 +444,27 @@ impl InputRichBlockMap {
             width: None,
             height: None,
             caption: None,
+        }
+    }
+}
+
+/// Button row block to be sent, with 1–8 buttons.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
+pub struct InputRichBlockButtons {
+    /// List of buttons to send.
+    pub buttons: Vec<RichMessageButton>,
+    /// Horizontal alignment: `"left"`, `"center"` or `"right"`.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub align: Option<String>,
+}
+
+impl InputRichBlockButtons {
+    /// Creates a button row block.
+    pub fn new(buttons: Vec<RichMessageButton>) -> Self {
+        Self {
+            buttons,
+            align: None,
         }
     }
 }

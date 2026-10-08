@@ -164,6 +164,8 @@ pub mod user_rating;
 pub mod checklists;
 /// Community types.
 pub mod community;
+/// Ephemeral message types.
+pub mod ephemeral;
 /// Forum topic types.
 pub mod forum_topic;
 /// Guest mode types.

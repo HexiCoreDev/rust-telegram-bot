@@ -7,6 +7,7 @@ use super::files::location::Location;
 use super::files::photo_size::PhotoSize;
 use super::files::video::Video;
 use super::files::voice::Voice;
+use super::rich_message::RichMessageButton;
 use super::rich_text::RichText;
 
 // ---------------------------------------------------------------------------
@@ -508,13 +509,11 @@ impl RichBlockMap {
 }
 
 /// Button row block.
-///
-/// Button payloads are kept as raw JSON until the button type is modeled.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[non_exhaustive]
 pub struct RichBlockButtons {
     /// The buttons.
-    pub buttons: Vec<serde_json::Value>,
+    pub buttons: Vec<RichMessageButton>,
     /// Horizontal alignment: `"left"`, `"center"` or `"right"`.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub align: Option<String>,
@@ -522,7 +521,7 @@ pub struct RichBlockButtons {
 
 impl RichBlockButtons {
     /// Creates a button row block.
-    pub fn new(buttons: Vec<serde_json::Value>) -> Self {
+    pub fn new(buttons: Vec<RichMessageButton>) -> Self {
         Self {
             buttons,
             align: None,
