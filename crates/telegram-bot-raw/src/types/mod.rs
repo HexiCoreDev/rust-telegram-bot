@@ -100,6 +100,8 @@ pub mod live_photo;
 pub mod poll;
 /// Reaction types.
 pub mod reaction;
+/// Rich block types.
+pub mod rich_block;
 /// Rich formatted text types.
 pub mod rich_text;
 /// Story type.

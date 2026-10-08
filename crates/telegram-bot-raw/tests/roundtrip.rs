@@ -1295,3 +1295,124 @@ fn rich_text_all_member_shapes() {
         other => panic!("expected formatted, got {:?}", other),
     }
 }
+
+// ===========================================================================
+// Rich blocks
+// ===========================================================================
+
+#[test]
+fn rich_block_tags_dispatch_including_renames() {
+    use rust_tg_bot_raw::types::rich_block::RichBlock;
+
+    // (payload, expected wire tag); covers every renamed tag.
+    let cases = [
+        (json!({"type": "paragraph", "text": "p"}), "paragraph"),
+        (
+            json!({"type": "heading", "text": "h", "size": 2}),
+            "heading",
+        ),
+        (json!({"type": "pre", "text": "c"}), "pre"),
+        (json!({"type": "footer", "text": "f"}), "footer"),
+        (json!({"type": "divider"}), "divider"),
+        (
+            json!({"type": "mathematical_expression", "expression": "x"}),
+            "mathematical_expression",
+        ),
+        (json!({"type": "anchor", "name": "a"}), "anchor"),
+        (json!({"type": "list", "items": []}), "list"),
+        (json!({"type": "blockquote", "blocks": []}), "blockquote"),
+        (
+            json!({"type": "expandable_blockquote", "text": "q"}),
+            "expandable_blockquote",
+        ),
+        (json!({"type": "pullquote", "text": "q"}), "pullquote"),
+        (json!({"type": "collage", "blocks": []}), "collage"),
+        (json!({"type": "slideshow", "blocks": []}), "slideshow"),
+        (json!({"type": "table", "cells": []}), "table"),
+        (
+            json!({"type": "details", "summary": "s", "blocks": []}),
+            "details",
+        ),
+        (
+            json!({"type": "map", "location": {"latitude": 1.0, "longitude": 2.0}, "zoom": 14, "width": 600, "height": 400}),
+            "map",
+        ),
+        (json!({"type": "buttons", "buttons": []}), "buttons"),
+        (json!({"type": "thinking", "text": "..."}), "thinking"),
+    ];
+    for (payload, tag) in cases {
+        let parsed: RichBlock = serde_json::from_value(payload).unwrap_or_else(|e| {
+            panic!("{} failed to deserialize: {}", tag, e);
+        });
+        let reserialized = serde_json::to_value(&parsed).unwrap();
+        assert_eq!(reserialized["type"], tag, "tag lost for {}", tag);
+    }
+}
+
+#[test]
+fn rich_block_table_list_item_and_details() {
+    use rust_tg_bot_raw::types::rich_block::RichBlock;
+
+    // Compact table with a header cell and a list item carrying checkbox state.
+    let table: RichBlock = serde_json::from_value(json!({
+        "type": "table",
+        "cells": [[
+            {"text": "H", "is_header": true, "align": "left", "valign": "top"},
+            {"align": "center", "valign": "middle"}
+        ]],
+        "is_bordered": true,
+        "is_compact": true,
+        "caption": "cap"
+    }))
+    .unwrap();
+    match &table {
+        RichBlock::Table(t) => {
+            assert!(t.is_compact == Some(true));
+            assert_eq!(t.cells[0][0].align, "left");
+            assert!(t.cells[0][1].text.is_none());
+        }
+        other => panic!("expected table, got {:?}", other),
+    }
+    let reserialized = serde_json::to_value(&table).unwrap();
+    assert_eq!(reserialized["type"], "table");
+
+    // List item: JSON "type" maps to item_type; checkbox state survives.
+    let list: RichBlock = serde_json::from_value(json!({
+        "type": "list",
+        "items": [{
+            "label": "task",
+            "blocks": [{"type": "paragraph", "text": "do it"}],
+            "has_checkbox": true,
+            "is_checked": true,
+            "type": "1"
+        }]
+    }))
+    .unwrap();
+    match &list {
+        RichBlock::List(l) => {
+            let item = &l.items[0];
+            assert_eq!(item.item_type.as_deref(), Some("1"));
+            assert!(item.has_checkbox == Some(true));
+            assert!(matches!(item.blocks[0], RichBlock::Paragraph(_)));
+        }
+        other => panic!("expected list, got {:?}", other),
+    }
+    let reserialized = serde_json::to_value(&list).unwrap();
+    assert_eq!(reserialized["items"][0]["type"], "1");
+
+    // Details with nested quotation.
+    let details: RichBlock = serde_json::from_value(json!({
+        "type": "details",
+        "summary": "more",
+        "blocks": [{"type": "blockquote", "blocks": [], "credit": "anon"}],
+        "is_open": true
+    }))
+    .unwrap();
+    match &details {
+        RichBlock::Details(d) => {
+            assert!(d.is_open == Some(true));
+            assert!(matches!(d.blocks[0], RichBlock::BlockQuotation(_)));
+        }
+        other => panic!("expected details, got {:?}", other),
+    }
+}
