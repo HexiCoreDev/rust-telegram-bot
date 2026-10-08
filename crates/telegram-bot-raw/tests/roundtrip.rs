@@ -1157,3 +1157,141 @@ fn poll_media_input_serializes_with_type_tag() {
     assert_eq!(value["type"], "photo");
     assert_eq!(value["media"], "photo_file_id");
 }
+
+// ===========================================================================
+// Rich text
+// ===========================================================================
+
+#[test]
+fn rich_text_plain_string_and_array() {
+    use rust_tg_bot_raw::types::rich_text::RichText;
+
+    let plain: RichText = serde_json::from_value(json!("hello")).unwrap();
+    assert!(matches!(plain, RichText::Text(_)));
+    assert_eq!(serde_json::to_value(&plain).unwrap(), json!("hello"));
+
+    let array: RichText =
+        serde_json::from_value(json!(["a", {"type": "bold", "text": "b"}])).unwrap();
+    match &array {
+        RichText::Array(parts) => {
+            assert_eq!(parts.len(), 2);
+            assert!(matches!(parts[0], RichText::Text(_)));
+            assert!(matches!(parts[1], RichText::Formatted(_)));
+        }
+        other => panic!("expected array, got {:?}", other),
+    }
+    // Full round-trip preserves the untagged shape.
+    let reserialized = serde_json::to_value(&array).unwrap();
+    assert_eq!(reserialized, json!(["a", {"type": "bold", "text": "b"}]));
+}
+
+#[test]
+fn rich_text_nested_formatting_dispatches_on_tag() {
+    use rust_tg_bot_raw::types::rich_text::{RichText, RichTextFormatted};
+
+    // Bold containing italic must not collapse into the first untagged variant.
+    let nested: RichText = serde_json::from_value(json!({
+        "type": "bold",
+        "text": {"type": "italic", "text": "deep"}
+    }))
+    .unwrap();
+    match &nested {
+        RichText::Formatted(inner) => match inner.as_ref() {
+            RichTextFormatted::Bold(bold) => match bold.text.as_ref() {
+                RichText::Formatted(inner2) => {
+                    assert!(matches!(inner2.as_ref(), RichTextFormatted::Italic(_)));
+                }
+                other => panic!("expected nested formatted, got {:?}", other),
+            },
+            other => panic!("expected bold, got {:?}", other),
+        },
+        other => panic!("expected formatted, got {:?}", other),
+    }
+    // Tag survives the round-trip.
+    let reserialized = serde_json::to_value(&nested).unwrap();
+    assert_eq!(reserialized["type"], "bold");
+    assert_eq!(reserialized["text"]["type"], "italic");
+}
+
+#[test]
+fn rich_text_all_member_shapes() {
+    use rust_tg_bot_raw::types::rich_text::{RichText, RichTextFormatted};
+
+    let cases = [
+        (json!({"type": "underline", "text": "u"}), "underline"),
+        (
+            json!({"type": "strikethrough", "text": "s"}),
+            "strikethrough",
+        ),
+        (json!({"type": "spoiler", "text": "s"}), "spoiler"),
+        (json!({"type": "subscript", "text": "s"}), "subscript"),
+        (json!({"type": "superscript", "text": "s"}), "superscript"),
+        (json!({"type": "marked", "text": "m"}), "marked"),
+        (json!({"type": "code", "text": "c"}), "code"),
+        (
+            json!({"type": "mathematical_expression", "expression": "x^2"}),
+            "mathematical_expression",
+        ),
+        (json!({"type": "anchor", "name": "ch1"}), "anchor"),
+        (
+            json!({"type": "custom_emoji", "custom_emoji_id": "e1", "alternative_text": "🙂"}),
+            "custom_emoji",
+        ),
+        (
+            json!({"type": "date_time", "text": "now", "unix_time": 1780000000, "date_time_format": "wDT"}),
+            "date_time",
+        ),
+        (
+            json!({"type": "url", "text": "t", "url": "https://t.me"}),
+            "url",
+        ),
+        (
+            json!({"type": "mention", "text": "t", "username": "durov"}),
+            "mention",
+        ),
+        (
+            json!({"type": "bot_command", "text": "/start", "bot_command": "/start"}),
+            "bot_command",
+        ),
+        (
+            json!({"type": "anchor_link", "text": "t", "anchor_name": "ch1"}),
+            "anchor_link",
+        ),
+        (
+            json!({"type": "reference", "text": "t", "name": "n1"}),
+            "reference",
+        ),
+        (
+            json!({"type": "reference_link", "text": "t", "reference_name": "n1"}),
+            "reference_link",
+        ),
+        (json!({"type": "button", "button": {"text": "b"}}), "button"),
+    ];
+    for (payload, tag) in cases {
+        let parsed: RichText = serde_json::from_value(payload).unwrap_or_else(|e| {
+            panic!("{} failed to deserialize: {}", tag, e);
+        });
+        assert!(
+            matches!(parsed, RichText::Formatted(_)),
+            "{} did not dispatch to Formatted",
+            tag
+        );
+        let reserialized = serde_json::to_value(&parsed).unwrap();
+        assert_eq!(reserialized["type"], tag, "tag lost for {}", tag);
+    }
+
+    // User-carrying member.
+    let mention: RichText = serde_json::from_value(json!({
+        "type": "text_mention",
+        "text": "Pat",
+        "user": {"id": 22, "is_bot": false, "first_name": "Pat"}
+    }))
+    .unwrap();
+    match mention {
+        RichText::Formatted(inner) => match *inner {
+            RichTextFormatted::TextMention(m) => assert_eq!(m.user.id, 22),
+            other => panic!("expected text mention, got {:?}", other),
+        },
+        other => panic!("expected formatted, got {:?}", other),
+    }
+}
