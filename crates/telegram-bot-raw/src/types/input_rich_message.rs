@@ -1,17 +1,25 @@
 use serde::{Deserialize, Serialize};
 
+use super::input_rich_block::{InputRichBlock, InputRichMessageMedia};
+
 // ---------------------------------------------------------------------------
 // InputRichMessage
 // ---------------------------------------------------------------------------
 
-/// A rich message to be sent, described with HTML or Markdown markup.
+/// A rich message to be sent: explicit blocks, or HTML / Markdown markup.
 ///
-/// Exactly one of `html` or `markdown` must be used.
+/// Exactly one of `blocks`, `html` or `markdown` must be used. When `html` or
+/// `markdown` is used, media referenced via `tg://photo?id=` style links is
+/// supplied through `media`.
 ///
 /// Corresponds to the Bot API [`InputRichMessage`](https://core.telegram.org/bots/api#inputrichmessage) type.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
 #[non_exhaustive]
 pub struct InputRichMessage {
+    /// Content described as a list of blocks.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub blocks: Option<Vec<InputRichBlock>>,
+
     /// Content described using HTML formatting.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub html: Option<String>,
@@ -19,6 +27,10 @@ pub struct InputRichMessage {
     /// Content described using Markdown formatting.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub markdown: Option<String>,
+
+    /// Media referenced from `html` or `markdown` through `tg://` links.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub media: Option<Vec<InputRichMessageMedia>>,
 
     /// `true` if the rich message must be shown right-to-left.
     #[serde(skip_serializing_if = "Option::is_none")]

@@ -528,6 +528,52 @@ impl InputMediaLink {
     }
 }
 
+/// A voice message file to be sent.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
+#[non_exhaustive]
+pub struct InputMediaVoiceNote {
+    /// File to send: file_id, HTTP URL, or `attach://` upload.
+    pub media: InputFile,
+
+    /// Caption (0–1024 characters after entity parsing).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub caption: Option<String>,
+
+    /// Parse mode for the caption.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub parse_mode: Option<String>,
+
+    /// Special entities in the caption.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub caption_entities: Option<Vec<MessageEntity>>,
+
+    /// Duration of the voice message in seconds.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub duration: Option<i64>,
+}
+
+impl InputMediaVoiceNote {
+    /// Creates a new `InputMediaVoiceNote` with the given media file.
+    pub fn new(media: InputFile) -> Self {
+        Self {
+            media,
+            ..Default::default()
+        }
+    }
+
+    /// Set the caption.
+    pub fn caption(mut self, caption: impl Into<String>) -> Self {
+        self.caption = Some(caption.into());
+        self
+    }
+
+    /// Set the parse mode.
+    pub fn parse_mode(mut self, mode: impl Into<String>) -> Self {
+        self.parse_mode = Some(mode.into());
+        self
+    }
+}
+
 /// A tagged union of all `InputMedia*` variants, serialized with a `"type"` discriminant.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]

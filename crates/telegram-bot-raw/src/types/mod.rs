@@ -94,6 +94,8 @@ pub mod switch_inline_query_chosen_chat;
 // Media & content types
 /// Dice type.
 pub mod dice;
+/// Rich input block types.
+pub mod input_rich_block;
 /// Rich message input type.
 pub mod input_rich_message;
 /// Link type.

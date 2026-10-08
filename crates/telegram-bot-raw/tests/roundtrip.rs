@@ -1548,3 +1548,112 @@ fn message_rich_message_field() {
         assert_eq!(rich.blocks.len(), 1);
     });
 }
+
+// ===========================================================================
+// Rich input blocks
+// ===========================================================================
+
+#[test]
+fn input_rich_block_tags_dispatch() {
+    use rust_tg_bot_raw::types::input_rich_block::InputRichBlock;
+
+    let cases = [
+        (json!({"type": "paragraph", "text": "p"}), "paragraph"),
+        (
+            json!({"type": "heading", "text": "h", "size": 1}),
+            "heading",
+        ),
+        (
+            json!({"type": "pre", "text": "c", "language": "rust"}),
+            "pre",
+        ),
+        (json!({"type": "footer", "text": "f"}), "footer"),
+        (json!({"type": "divider"}), "divider"),
+        (
+            json!({"type": "mathematical_expression", "expression": "x"}),
+            "mathematical_expression",
+        ),
+        (json!({"type": "anchor", "name": "a"}), "anchor"),
+        (json!({"type": "list", "items": []}), "list"),
+        (json!({"type": "blockquote", "blocks": []}), "blockquote"),
+        (
+            json!({"type": "expandable_blockquote", "text": "q"}),
+            "expandable_blockquote",
+        ),
+        (json!({"type": "pullquote", "text": "q"}), "pullquote"),
+        (json!({"type": "collage", "blocks": []}), "collage"),
+        (json!({"type": "slideshow", "blocks": []}), "slideshow"),
+        (json!({"type": "table", "cells": []}), "table"),
+        (
+            json!({"type": "details", "summary": "s", "blocks": []}),
+            "details",
+        ),
+        (
+            json!({"type": "map", "location": {"latitude": 1.0, "longitude": 2.0}}),
+            "map",
+        ),
+        (
+            json!({"type": "animation", "animation": {"type": "animation", "media": "f"}}),
+            "animation",
+        ),
+        (
+            json!({"type": "audio", "audio": {"type": "audio", "media": "f"}}),
+            "audio",
+        ),
+        (
+            json!({"type": "photo", "photo": {"type": "photo", "media": "f"}}),
+            "photo",
+        ),
+        (
+            json!({"type": "video", "video": {"type": "video", "media": "f"}}),
+            "video",
+        ),
+        (
+            json!({"type": "voice_note", "voice_note": {"type": "voice_note", "media": "f"}}),
+            "voice_note",
+        ),
+        (json!({"type": "thinking", "text": "..."}), "thinking"),
+    ];
+    for (payload, tag) in cases {
+        let parsed: InputRichBlock = serde_json::from_value(payload).unwrap_or_else(|e| {
+            panic!("{} failed to deserialize: {}", tag, e);
+        });
+        let reserialized = serde_json::to_value(&parsed).unwrap();
+        assert_eq!(reserialized["type"], tag, "tag lost for {}", tag);
+    }
+}
+
+#[test]
+fn input_rich_message_blocks_and_media() {
+    use rust_tg_bot_raw::types::input_rich_block::InputRichBlock;
+    use rust_tg_bot_raw::types::input_rich_message::InputRichMessage;
+
+    // Block-based message with embedded media and a labelless list item.
+    let json = json!({
+        "blocks": [
+            {"type": "list", "items": [
+                {"blocks": [{"type": "paragraph", "text": "do it"}], "is_checked": true, "type": "1"}
+            ]},
+            {"type": "map", "location": {"latitude": 41.9, "longitude": 12.5}, "zoom": 14}
+        ],
+        "media": [
+            {"id": "pic1", "media": {"type": "photo", "media": "file_id_1"}}
+        ],
+        "is_rtl": false
+    });
+    let msg: InputRichMessage = roundtrip_check(json);
+    let blocks = msg.blocks.as_ref().unwrap();
+    assert_eq!(blocks.len(), 2);
+    match &blocks[0] {
+        InputRichBlock::List(list) => {
+            assert_eq!(list.items[0].item_type.as_deref(), Some("1"));
+            assert!(list.items[0].is_checked == Some(true));
+        }
+        other => panic!("expected list, got {:?}", other),
+    }
+    let media = msg.media.as_ref().unwrap();
+    assert_eq!(media[0].id, "pic1");
+    let reserialized = serde_json::to_value(&msg).unwrap();
+    assert_eq!(reserialized["media"][0]["media"]["type"], "photo");
+    assert_eq!(reserialized["blocks"][1]["type"], "map");
+}
