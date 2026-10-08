@@ -183,6 +183,30 @@ pub mod update_type {
     /// Constant filter matching both `BusinessMessage` and `EditedBusinessMessage` updates.
     pub const BUSINESS_MESSAGES: BusinessMessages = BusinessMessages;
 
+    update_type_filter!(
+        GuestMessage,
+        UpdateKind::GuestMessage(_),
+        "filters.UpdateType.GUEST_MESSAGE"
+    );
+    /// Constant filter matching `GuestMessage` updates.
+    pub const GUEST_MESSAGE: GuestMessage = GuestMessage;
+
+    update_type_filter!(
+        Subscription,
+        UpdateKind::Subscription(_),
+        "filters.UpdateType.SUBSCRIPTION"
+    );
+    /// Constant filter matching `Subscription` updates.
+    pub const SUBSCRIPTION: Subscription = Subscription;
+
+    update_type_filter!(
+        StoppedMessageGeneration,
+        UpdateKind::StoppedMessageGeneration(_),
+        "filters.UpdateType.STOPPED_MESSAGE_GENERATION"
+    );
+    /// Constant filter matching `StoppedMessageGeneration` updates.
+    pub const STOPPED_MESSAGE_GENERATION: StoppedMessageGeneration = StoppedMessageGeneration;
+
     #[cfg(test)]
     mod tests {
         use super::*;
@@ -244,6 +268,28 @@ pub mod update_type {
             assert!(EDITED_BUSINESS_MESSAGE.check_update(&update).is_match());
             assert!(BUSINESS_MESSAGES.check_update(&update).is_match());
             assert!(EDITED.check_update(&update).is_match());
+        }
+        #[test]
+        fn guest_message_filter() {
+            let update = make_update(
+                json!({"update_id": 1, "guest_message": {"message_id": 1, "date": 0, "chat": {"id": 1, "type": "supergroup"}, "guest_query_id": "gq-1"}}),
+            );
+            assert!(GUEST_MESSAGE.check_update(&update).is_match());
+            assert!(!MESSAGE.check_update(&update).is_match());
+        }
+        #[test]
+        fn subscription_filter() {
+            let update = make_update(
+                json!({"update_id": 1, "subscription": {"user": {"id": 1, "is_bot": false, "first_name": "S"}, "invoice_payload": "p", "state": "active"}}),
+            );
+            assert!(SUBSCRIPTION.check_update(&update).is_match());
+        }
+        #[test]
+        fn stopped_message_generation_filter() {
+            let update = make_update(
+                json!({"update_id": 1, "stopped_message_generation": {"chat": {"id": 1, "type": "private"}, "draft_id": 9}}),
+            );
+            assert!(STOPPED_MESSAGE_GENERATION.check_update(&update).is_match());
         }
     }
 }

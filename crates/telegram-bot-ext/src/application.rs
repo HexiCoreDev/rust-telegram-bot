@@ -14,14 +14,14 @@
 //! iterated in ascending numeric order.  Within each group, the first handler whose
 //! `check_update` returns `true` wins -- at most one handler per group fires.
 
-use std::collections::{BTreeMap, HashMap};
+use std::collections::{BTreeMap, HashMap, HashSet, VecDeque};
 use std::future::Future;
 use std::pin::Pin;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 
 use serde_json::Value;
-use tokio::sync::{mpsc, Notify, RwLock};
+use tokio::sync::{mpsc, Mutex, Notify, RwLock};
 use tracing::{debug, error, info, warn};
 
 use rust_tg_bot_raw::types::update::Update;
@@ -245,6 +245,12 @@ pub struct Application {
     job_queue: Option<Arc<JobQueue>>,
     pending_tasks: Arc<RwLock<Vec<tokio::task::JoinHandle<()>>>>,
 
+    /// Recently dispatched update ids for at-least-once delivery dedup.
+    /// Bounded (see [`MAX_SEEN_UPDATE_IDS`]); shared by the polling and
+    /// webhook paths since both funnel through
+    /// [`process_update`](Application::process_update).
+    seen_updates: Mutex<(HashSet<i64>, VecDeque<i64>)>,
+
     initialized: AtomicBool,
     running: AtomicBool,
 
@@ -266,6 +272,10 @@ impl std::fmt::Debug for Application {
 }
 /// The default handler dispatch group (group 0).
 pub const DEFAULT_GROUP: i32 = 0;
+
+/// Maximum number of recently dispatched update ids retained for
+/// at-least-once delivery dedup (~64 KiB worst case).
+pub const MAX_SEEN_UPDATE_IDS: usize = 2048;
 
 pub(crate) struct ApplicationConfig {
     pub(crate) bot: Arc<ExtBot>,
@@ -336,6 +346,7 @@ impl Application {
             #[cfg(feature = "job-queue")]
             job_queue,
             pending_tasks: Arc::new(RwLock::new(Vec::new())),
+            seen_updates: Mutex::new((HashSet::new(), VecDeque::new())),
             initialized: AtomicBool::new(false),
             running: AtomicBool::new(false),
             update_tx: tx,
@@ -1005,10 +1016,33 @@ impl Application {
         self.add_raw_handler(legacy, group).await;
     }
 
+    /// Records an update id, returning `true` if it was already dispatched.
+    ///
+    /// Covers redeliveries from long-polling retries, webhook retries, and
+    /// restart overlap. Bounded to [`MAX_SEEN_UPDATE_IDS`] entries.
+    async fn mark_update_seen(&self, update_id: i64) -> bool {
+        let mut guard = self.seen_updates.lock().await;
+        let (set, order) = &mut *guard;
+        if !set.insert(update_id) {
+            return true;
+        }
+        order.push_back(update_id);
+        if order.len() > MAX_SEEN_UPDATE_IDS {
+            if let Some(evicted) = order.pop_front() {
+                set.remove(&evicted);
+            }
+        }
+        false
+    }
+
     /// Dispatch a single update through all registered handler groups.
     // -- Core dispatch --
     pub async fn process_update(&self, update: Arc<Update>) -> Result<(), ApplicationError> {
         self.check_initialized()?;
+        if self.mark_update_seen(update.update_id).await {
+            tracing::debug!(update_id = update.update_id, "duplicate update skipped");
+            return Ok(());
+        }
         let mut context: Option<CallbackContext> = None;
         let groups: Vec<(i32, Vec<usize>)> = {
             let h = self.handlers.read().await;
@@ -1301,6 +1335,38 @@ mod tests {
         .await;
         app.process_update(Arc::new(make_update(serde_json::json!({"update_id":1,"message":{"message_id":1,"date":0,"chat":{"id":1,"type":"private"},"text":"hello"}})))).await.unwrap();
         assert!(called.load(std::sync::atomic::Ordering::SeqCst));
+    }
+
+    #[tokio::test]
+    async fn duplicate_update_dispatched_once() {
+        let app = make_app();
+        app.initialize().await.unwrap();
+        let count = Arc::new(std::sync::atomic::AtomicUsize::new(0));
+        let c2 = count.clone();
+        app.add_raw_handler(
+            Handler {
+                check_update: Arc::new(|_| true),
+                callback: Arc::new(move |_, _| {
+                    let c = c2.clone();
+                    Box::pin(async move {
+                        c.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
+                        Ok(())
+                    })
+                }),
+                block: true,
+            },
+            DEFAULT_GROUP,
+        )
+        .await;
+        let payload = serde_json::json!({"update_id":42,"message":{"message_id":1,"date":0,"chat":{"id":1,"type":"private"},"text":"hello"}});
+        app.process_update(Arc::new(make_update(payload.clone())))
+            .await
+            .unwrap();
+        // Redelivery of the same update id is skipped.
+        app.process_update(Arc::new(make_update(payload)))
+            .await
+            .unwrap();
+        assert_eq!(count.load(std::sync::atomic::Ordering::SeqCst), 1);
     }
 
     #[tokio::test]
