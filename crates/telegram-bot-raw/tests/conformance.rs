@@ -143,6 +143,8 @@ fn all_bot_api_96_builder_methods_exist() {
     // -- Managed bots --
     let _ = bot.get_managed_bot_token(1i64);
     let _ = bot.replace_managed_bot_token(1i64);
+    let _ = bot.get_managed_bot_access_settings(1i64);
+    let _ = bot.set_managed_bot_access_settings(1i64, true);
 
     // -- Keyboard --
     let _ = bot.save_prepared_keyboard_button(1i64, make_inline_keyboard_button());
@@ -155,6 +157,8 @@ fn all_bot_api_96_builder_methods_exist() {
     let _ = bot.send_message_draft(1, 1, "t");
     let _ = bot.delete_message(1i64, 1);
     let _ = bot.delete_messages(1i64, vec![1]);
+    let _ = bot.delete_message_reaction(1i64, 1);
+    let _ = bot.delete_all_message_reactions(1i64);
 
     // -- Chat management builders --
     let _ = bot.leave_chat(1i64);
@@ -528,6 +532,8 @@ fn method_count_matches_api_96() {
         ("sendDice", "send_dice"),
         ("sendChatAction", "send_chat_action"),
         ("setMessageReaction", "set_message_reaction"),
+        ("deleteMessageReaction", "delete_message_reaction"),
+        ("deleteAllMessageReactions", "delete_all_message_reactions"),
         ("getUserProfilePhotos", "get_user_profile_photos"),
         ("getFile", "get_file"),
         ("banChatMember", "ban_chat_member"),
@@ -720,6 +726,14 @@ fn method_count_matches_api_96() {
         // -- Managed bots --
         ("getManagedBotToken", "get_managed_bot_token"),
         ("replaceManagedBotToken", "replace_managed_bot_token"),
+        (
+            "getManagedBotAccessSettings",
+            "get_managed_bot_access_settings",
+        ),
+        (
+            "setManagedBotAccessSettings",
+            "set_managed_bot_access_settings",
+        ),
         // -- Prepared keyboard --
         (
             "savePreparedKeyboardButton",
@@ -734,8 +748,8 @@ fn method_count_matches_api_96() {
 
     assert_eq!(
         methods.len(),
-        169,
-        "Expected 169 Bot API 9.6 methods, found {}. \
+        173,
+        "Expected 173 Bot API methods, found {}. \
          Update this list if the spec has changed.",
         methods.len()
     );
@@ -1250,6 +1264,25 @@ fn all_bot_api_96_types_deserialize() {
             json!({"user": {"id": 2, "is_bot": false, "first_name": "U"}, "bot": {"id": 1, "is_bot": true, "first_name": "B"}}),
             "ManagedBotUpdated",
         );
+        assert_deserializes::<managed_bot::BotAccessSettings>(
+            json!({"is_access_restricted": true, "added_users": []}),
+            "BotAccessSettings",
+        );
+
+        // -- Guest mode --
+        assert_deserializes::<guest::SentGuestMessage>(
+            json!({"inline_message_id": "im-1"}),
+            "SentGuestMessage",
+        );
+
+        // -- Live photo --
+        assert_deserializes::<live_photo::LivePhoto>(
+            json!({"file_id": "v", "file_unique_id": "vu", "width": 1080, "height": 1920, "duration": 3}),
+            "LivePhoto",
+        );
+
+        // -- Poll media --
+        assert_deserializes::<poll::PollMedia>(json!({}), "PollMedia");
 
         // -- Story area --
         assert_deserializes::<story_area::StoryArea>(

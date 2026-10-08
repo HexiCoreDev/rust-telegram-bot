@@ -22,8 +22,8 @@ use crate::error::Result;
 use crate::request::request_parameter::{InputFileRef, RequestParameter};
 use crate::types::{
     chat_full_info, chat_invite_link, chat_member, chat_permissions, files, inline,
-    link_preview_options, message, message_entity, message_id, prepared_keyboard_button, reply,
-    suggested_post,
+    link_preview_options, managed_bot, message, message_entity, message_id,
+    prepared_keyboard_button, reply, suggested_post,
 };
 use serde::Serialize;
 
@@ -3614,6 +3614,66 @@ impl<'a> ReplaceManagedBotTokenBuilder<'a> {
 impl_into_future!(ReplaceManagedBotTokenBuilder, String);
 
 // =========================================================================
+// GetManagedBotAccessSettingsBuilder
+// =========================================================================
+
+/// Builder for the [`getManagedBotAccessSettings`] API method.
+#[derive(Serialize)]
+pub struct GetManagedBotAccessSettingsBuilder<'a> {
+    #[serde(skip)]
+    bot: &'a Bot,
+    user_id: i64,
+}
+
+impl<'a> GetManagedBotAccessSettingsBuilder<'a> {
+    /// Sends the request to the Telegram Bot API.
+    pub async fn send(self) -> Result<managed_bot::BotAccessSettings> {
+        let payload = serde_json::to_vec(&self)?;
+        self.bot
+            .do_post_json("getManagedBotAccessSettings", &payload)
+            .await
+    }
+}
+
+impl_into_future!(
+    GetManagedBotAccessSettingsBuilder,
+    managed_bot::BotAccessSettings
+);
+
+// =========================================================================
+// SetManagedBotAccessSettingsBuilder
+// =========================================================================
+
+/// Builder for the [`setManagedBotAccessSettings`] API method.
+#[derive(Serialize)]
+pub struct SetManagedBotAccessSettingsBuilder<'a> {
+    #[serde(skip)]
+    bot: &'a Bot,
+    user_id: i64,
+    is_access_restricted: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    added_user_ids: Option<Vec<i64>>,
+}
+
+impl<'a> SetManagedBotAccessSettingsBuilder<'a> {
+    /// Sets the `added_user_ids` parameter (up to 10 users besides the owner).
+    pub fn added_user_ids(mut self, val: Vec<i64>) -> Self {
+        self.added_user_ids = Some(val);
+        self
+    }
+
+    /// Sends the request to the Telegram Bot API.
+    pub async fn send(self) -> Result<bool> {
+        let payload = serde_json::to_vec(&self)?;
+        self.bot
+            .do_post_json("setManagedBotAccessSettings", &payload)
+            .await
+    }
+}
+
+impl_into_future!(SetManagedBotAccessSettingsBuilder, bool);
+
+// =========================================================================
 // SavePreparedKeyboardButtonBuilder
 // =========================================================================
 
@@ -3688,6 +3748,28 @@ impl Bot {
         ReplaceManagedBotTokenBuilder {
             bot: self,
             bot_user_id,
+        }
+    }
+
+    /// Build a `getManagedBotAccessSettings` request.
+    pub fn get_managed_bot_access_settings(
+        &self,
+        user_id: i64,
+    ) -> GetManagedBotAccessSettingsBuilder<'_> {
+        GetManagedBotAccessSettingsBuilder { bot: self, user_id }
+    }
+
+    /// Build a `setManagedBotAccessSettings` request.
+    pub fn set_managed_bot_access_settings(
+        &self,
+        user_id: i64,
+        is_access_restricted: bool,
+    ) -> SetManagedBotAccessSettingsBuilder<'_> {
+        SetManagedBotAccessSettingsBuilder {
+            bot: self,
+            user_id,
+            is_access_restricted,
+            added_user_ids: None,
         }
     }
 

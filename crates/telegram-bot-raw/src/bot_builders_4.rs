@@ -1043,6 +1043,87 @@ impl<'a> SetMessageReactionBuilder<'a> {
 impl_into_future!(SetMessageReactionBuilder, bool);
 
 // -------------------------------------------------------------------------
+// DeleteMessageReactionBuilder
+// -------------------------------------------------------------------------
+
+/// Builder for the [`deleteMessageReaction`] API method.
+#[derive(Serialize)]
+pub struct DeleteMessageReactionBuilder<'a> {
+    #[serde(skip)]
+    bot: &'a Bot,
+    chat_id: ChatId,
+    message_id: i64,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    user_id: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    actor_chat_id: Option<i64>,
+}
+
+impl<'a> DeleteMessageReactionBuilder<'a> {
+    /// Sets the `user_id` parameter (remove that user's reaction).
+    pub fn user_id(mut self, val: i64) -> Self {
+        self.user_id = Some(val);
+        self
+    }
+
+    /// Sets the `actor_chat_id` parameter (remove that chat's reaction).
+    pub fn actor_chat_id(mut self, val: i64) -> Self {
+        self.actor_chat_id = Some(val);
+        self
+    }
+
+    /// Sends the request to the Telegram Bot API.
+    pub async fn send(self) -> Result<bool> {
+        let payload = serde_json::to_vec(&self)?;
+        self.bot
+            .do_post_json("deleteMessageReaction", &payload)
+            .await
+    }
+}
+
+impl_into_future!(DeleteMessageReactionBuilder, bool);
+
+// -------------------------------------------------------------------------
+// DeleteAllMessageReactionsBuilder
+// -------------------------------------------------------------------------
+
+/// Builder for the [`deleteAllMessageReactions`] API method.
+#[derive(Serialize)]
+pub struct DeleteAllMessageReactionsBuilder<'a> {
+    #[serde(skip)]
+    bot: &'a Bot,
+    chat_id: ChatId,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    user_id: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    actor_chat_id: Option<i64>,
+}
+
+impl<'a> DeleteAllMessageReactionsBuilder<'a> {
+    /// Sets the `user_id` parameter (remove that user's reactions).
+    pub fn user_id(mut self, val: i64) -> Self {
+        self.user_id = Some(val);
+        self
+    }
+
+    /// Sets the `actor_chat_id` parameter (remove that chat's reactions).
+    pub fn actor_chat_id(mut self, val: i64) -> Self {
+        self.actor_chat_id = Some(val);
+        self
+    }
+
+    /// Sends the request to the Telegram Bot API.
+    pub async fn send(self) -> Result<bool> {
+        let payload = serde_json::to_vec(&self)?;
+        self.bot
+            .do_post_json("deleteAllMessageReactions", &payload)
+            .await
+    }
+}
+
+impl_into_future!(DeleteAllMessageReactionsBuilder, bool);
+
+// -------------------------------------------------------------------------
 // GetUserChatBoostsBuilder
 // -------------------------------------------------------------------------
 
@@ -1870,6 +1951,34 @@ impl Bot {
             message_id,
             reaction: None,
             is_big: None,
+        }
+    }
+
+    /// Build a `deleteMessageReaction` request.
+    pub fn delete_message_reaction(
+        &self,
+        chat_id: impl Into<ChatId>,
+        message_id: i64,
+    ) -> DeleteMessageReactionBuilder<'_> {
+        DeleteMessageReactionBuilder {
+            bot: self,
+            chat_id: chat_id.into(),
+            message_id,
+            user_id: None,
+            actor_chat_id: None,
+        }
+    }
+
+    /// Build a `deleteAllMessageReactions` request.
+    pub fn delete_all_message_reactions(
+        &self,
+        chat_id: impl Into<ChatId>,
+    ) -> DeleteAllMessageReactionsBuilder<'_> {
+        DeleteAllMessageReactionsBuilder {
+            bot: self,
+            chat_id: chat_id.into(),
+            user_id: None,
+            actor_chat_id: None,
         }
     }
 
