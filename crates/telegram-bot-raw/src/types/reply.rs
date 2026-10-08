@@ -18,6 +18,7 @@ use super::files::voice::Voice;
 use super::games::game::Game;
 use super::giveaway::{Giveaway, GiveawayWinners};
 use super::link_preview_options::LinkPreviewOptions;
+use super::live_photo::LivePhoto;
 use super::message_entity::MessageEntity;
 use super::message_origin::MessageOrigin;
 use super::paid_media::PaidMediaInfo;
@@ -57,6 +58,10 @@ pub struct ExternalReplyInfo {
     /// Message is a general file.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub document: Option<Document>,
+
+    /// Message is a live photo.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub live_photo: Option<LivePhoto>,
 
     /// Message is a photo; available sizes of the photo.
     #[serde(skip_serializing_if = "Option::is_none")]

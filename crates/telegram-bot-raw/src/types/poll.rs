@@ -1,6 +1,19 @@
 use serde::{Deserialize, Serialize};
 
 use super::chat::Chat;
+use super::files::animation::Animation;
+use super::files::audio::Audio;
+use super::files::document::Document;
+use super::files::input_media::{
+    InputMediaAnimation, InputMediaAudio, InputMediaDocument, InputMediaLivePhoto,
+    InputMediaLocation, InputMediaPhoto, InputMediaSticker, InputMediaVenue, InputMediaVideo,
+};
+use super::files::location::Location;
+use super::files::photo_size::PhotoSize;
+use super::files::sticker::Sticker;
+use super::files::venue::Venue;
+use super::files::video::Video;
+use super::live_photo::LivePhoto;
 use super::message::Message;
 use super::message_entity::MessageEntity;
 use super::user::User;
@@ -19,6 +32,10 @@ pub struct InputPollOption {
     /// Special entities that appear in the option text.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub text_entities: Option<Vec<MessageEntity>>,
+
+    /// Media added to the poll option.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub media: Option<InputPollOptionMedia>,
 }
 
 impl_new!(InputPollOption { text: String });
@@ -36,6 +53,10 @@ pub struct PollOption {
     /// Special entities that appear in the option text.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub text_entities: Option<Vec<MessageEntity>>,
+
+    /// Media added to the poll option.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub media: Option<PollMedia>,
 
     /// Persistent identifier for the option.
     ///
@@ -168,6 +189,24 @@ pub struct Poll {
     /// Added in Bot API 9.6.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub description_entities: Option<Vec<MessageEntity>>,
+
+    /// Media added to the poll description; for polls inside a `Message` only.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub media: Option<PollMedia>,
+
+    /// Media added to a quiz explanation.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub explanation_media: Option<PollMedia>,
+
+    /// `true` if voting is limited to users who have been members of the chat
+    /// where the poll was sent for more than 24 hours.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub members_only: Option<bool>,
+
+    /// Two-letter ISO 3166-1 alpha-2 country codes of countries whose users may vote.
+    /// `"FT"` allows users with anonymous numbers. Omitted means all countries.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub country_codes: Option<Vec<String>>,
 }
 
 // ---------------------------------------------------------------------------
@@ -226,4 +265,104 @@ pub struct PollOptionDeleted {
     /// Special entities that appear in the option text.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub option_text_entities: Option<Vec<MessageEntity>>,
+}
+
+// ---------------------------------------------------------------------------
+// PollMedia
+// ---------------------------------------------------------------------------
+
+/// Media attached to a poll, a quiz explanation, or a poll option.
+///
+/// At most one of the optional fields is present in any given object.
+/// Corresponds to the Bot API [`PollMedia`](https://core.telegram.org/bots/api#pollmedia) object.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
+#[non_exhaustive]
+pub struct PollMedia {
+    /// Media is an animation.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub animation: Option<Animation>,
+
+    /// Media is an audio file. Cannot currently be received in a poll option.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub audio: Option<Audio>,
+
+    /// Media is a general file. Cannot currently be received in a poll option.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub document: Option<Document>,
+
+    /// Media is a live photo.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub live_photo: Option<LivePhoto>,
+
+    /// Media is a shared location.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub location: Option<Location>,
+
+    /// Media is a photo.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub photo: Option<Vec<PhotoSize>>,
+
+    /// Media is a sticker. Currently, for poll options only.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub sticker: Option<Sticker>,
+
+    /// Media is a venue.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub venue: Option<Venue>,
+
+    /// Media is a video.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub video: Option<Video>,
+}
+
+impl_new!(PollMedia {});
+
+// ---------------------------------------------------------------------------
+// InputPollMedia / InputPollOptionMedia
+// ---------------------------------------------------------------------------
+
+/// Content of a poll description or quiz explanation to be sent.
+/// Corresponds to the Bot API [`InputPollMedia`](https://core.telegram.org/bots/api#inputpollmedia) object.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(tag = "type", rename_all = "snake_case")]
+#[non_exhaustive]
+pub enum InputPollMedia {
+    /// An animation.
+    Animation(InputMediaAnimation),
+    /// An audio file.
+    Audio(InputMediaAudio),
+    /// A general file.
+    Document(InputMediaDocument),
+    /// A live photo.
+    LivePhoto(InputMediaLivePhoto),
+    /// A location.
+    Location(InputMediaLocation),
+    /// A photo.
+    Photo(InputMediaPhoto),
+    /// A venue.
+    Venue(InputMediaVenue),
+    /// A video.
+    Video(InputMediaVideo),
+}
+
+/// Content of a poll option to be sent.
+/// Corresponds to the Bot API [`InputPollOptionMedia`](https://core.telegram.org/bots/api#inputpolloptionmedia) object.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(tag = "type", rename_all = "snake_case")]
+#[non_exhaustive]
+pub enum InputPollOptionMedia {
+    /// An animation.
+    Animation(InputMediaAnimation),
+    /// A live photo.
+    LivePhoto(InputMediaLivePhoto),
+    /// A location.
+    Location(InputMediaLocation),
+    /// A photo.
+    Photo(InputMediaPhoto),
+    /// A sticker.
+    Sticker(InputMediaSticker),
+    /// A venue.
+    Venue(InputMediaVenue),
+    /// A video.
+    Video(InputMediaVideo),
 }

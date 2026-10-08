@@ -40,6 +40,7 @@ use super::gifts::GiftInfo;
 use super::giveaway::{Giveaway, GiveawayCompleted, GiveawayCreated, GiveawayWinners};
 use super::inline::inline_keyboard_markup::InlineKeyboardMarkup;
 use super::link_preview_options::LinkPreviewOptions;
+use super::live_photo::LivePhoto;
 use super::managed_bot::ManagedBotCreated;
 use super::message_auto_delete_timer_changed::MessageAutoDeleteTimerChanged;
 use super::message_entity::MessageEntity;
@@ -107,6 +108,22 @@ pub struct Message {
     /// Unique identifier of the business connection from which the message was received.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub business_connection_id: Option<String>,
+
+    // ── Guest mode ──────────────────────────────────────────────────────────
+    /// Unique identifier for a guest query. Use with `answerGuestQuery` to respond.
+    /// If non-empty, the message belongs to the chat where the guest bot was summoned.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub guest_query_id: Option<String>,
+
+    /// For a message sent by a guest bot: the user whose original message triggered
+    /// the bot's response.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub guest_bot_caller_user: Option<User>,
+
+    /// For a message sent by a guest bot: the chat whose original message triggered
+    /// the bot's response.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub guest_bot_caller_chat: Option<Chat>,
 
     // ── Thread / topic ────────────────────────────────────────────────────────
     /// Unique identifier of a message thread to which the message belongs; for supergroups only.
@@ -216,6 +233,11 @@ pub struct Message {
     /// Message is a general file, information about the file.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub document: Option<Document>,
+
+    /// Message is a live photo, information about the live photo.
+    /// For backward compatibility, when this field is set, the `photo` field is also set.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub live_photo: Option<LivePhoto>,
 
     /// Message contains paid media; information about the paid media.
     #[serde(skip_serializing_if = "Option::is_none")]

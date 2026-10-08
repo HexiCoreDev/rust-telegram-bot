@@ -18,6 +18,10 @@ pub struct ChatPermissions {
     /// True if the user is allowed to add web page previews to their messages.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub can_add_web_page_previews: Option<bool>,
+    /// True if the user is allowed to react to messages. If omitted, defaults to the
+    /// value of `can_send_messages`.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub can_react_to_messages: Option<bool>,
     /// True if the user is allowed to change the chat title, photo and other settings.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub can_change_info: Option<bool>,
@@ -63,6 +67,7 @@ impl ChatPermissions {
             can_send_polls: Some(true),
             can_send_other_messages: Some(true),
             can_add_web_page_previews: Some(true),
+            can_react_to_messages: Some(true),
             can_change_info: Some(true),
             can_invite_users: Some(true),
             can_pin_messages: Some(true),
@@ -84,6 +89,7 @@ impl ChatPermissions {
             can_send_polls: Some(false),
             can_send_other_messages: Some(false),
             can_add_web_page_previews: Some(false),
+            can_react_to_messages: Some(false),
             can_change_info: Some(false),
             can_invite_users: Some(false),
             can_pin_messages: Some(false),

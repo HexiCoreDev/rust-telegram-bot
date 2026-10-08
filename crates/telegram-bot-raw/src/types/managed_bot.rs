@@ -32,3 +32,32 @@ pub struct ManagedBotUpdated {
     /// Information about the bot. Token of the bot can be fetched using `getManagedBotToken`.
     pub bot: User,
 }
+
+// ---------------------------------------------------------------------------
+// BotAccessSettings
+// ---------------------------------------------------------------------------
+
+/// Access settings of a managed bot.
+///
+/// Returned by `getManagedBotAccessSettings`. Corresponds to the Bot API
+/// [`BotAccessSettings`](https://core.telegram.org/bots/api#botaccesssettings) object.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
+pub struct BotAccessSettings {
+    /// `true` if only selected users can access the bot. The bot's owner can always access it.
+    pub is_access_restricted: bool,
+
+    /// Users who have access to the bot when access is restricted, besides its owner.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub added_users: Option<Vec<User>>,
+}
+
+impl BotAccessSettings {
+    /// Creates access settings with the given restriction flag.
+    pub fn new(is_access_restricted: bool) -> Self {
+        Self {
+            is_access_restricted,
+            added_users: None,
+        }
+    }
+}

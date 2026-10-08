@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use super::files::photo_size::PhotoSize;
 use super::files::video::Video;
+use super::live_photo::LivePhoto;
 use super::user::User;
 
 // ---------------------------------------------------------------------------
@@ -50,6 +51,18 @@ pub struct PaidMediaVideo {
 }
 
 // ---------------------------------------------------------------------------
+// PaidMediaLivePhoto
+// ---------------------------------------------------------------------------
+
+/// The paid media is a live photo.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
+pub struct PaidMediaLivePhoto {
+    /// The live photo.
+    pub live_photo: LivePhoto,
+}
+
+// ---------------------------------------------------------------------------
 // PaidMedia — polymorphic, tagged on "type"
 // ---------------------------------------------------------------------------
 
@@ -68,6 +81,9 @@ pub enum PaidMedia {
 
     /// A video.
     Video(Box<PaidMediaVideo>),
+
+    /// A live photo.
+    LivePhoto(Box<PaidMediaLivePhoto>),
 }
 
 // ---------------------------------------------------------------------------

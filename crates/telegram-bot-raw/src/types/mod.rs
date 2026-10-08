@@ -94,6 +94,8 @@ pub mod switch_inline_query_chosen_chat;
 // Media & content types
 /// Dice type.
 pub mod dice;
+/// Live photo type.
+pub mod live_photo;
 /// Poll and poll answer types.
 pub mod poll;
 /// Reaction types.
@@ -150,6 +152,8 @@ pub mod user_rating;
 pub mod checklists;
 /// Forum topic types.
 pub mod forum_topic;
+/// Guest mode types.
+pub mod guest;
 /// Input checklist type.
 pub mod input_checklist;
 /// Login URL type.

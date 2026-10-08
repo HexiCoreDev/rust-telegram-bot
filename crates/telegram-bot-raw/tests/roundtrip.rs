@@ -7,8 +7,13 @@
 use rust_tg_bot_raw::types::callback_query::CallbackQuery;
 use rust_tg_bot_raw::types::chat::Chat;
 use rust_tg_bot_raw::types::chat_full_info::ChatFullInfo;
+use rust_tg_bot_raw::types::chat_member::ChatMember;
+use rust_tg_bot_raw::types::chat_permissions::ChatPermissions;
+use rust_tg_bot_raw::types::guest::SentGuestMessage;
 use rust_tg_bot_raw::types::inline::inline_query::InlineQuery;
+use rust_tg_bot_raw::types::managed_bot::BotAccessSettings;
 use rust_tg_bot_raw::types::message::Message;
+use rust_tg_bot_raw::types::poll::Poll;
 use rust_tg_bot_raw::types::update::Update;
 use rust_tg_bot_raw::types::user::User;
 use serde_json::json;
@@ -995,4 +1000,148 @@ fn roundtrip_complex_message_with_reply_markup() {
         assert_eq!(from.is_premium, Some(true));
         assert!(msg.reply_markup.is_some());
     });
+}
+
+// ===========================================================================
+// Guest mode, live photos, poll media, reactions (10.0 surface)
+// ===========================================================================
+
+#[test]
+fn roundtrip_message_live_photo_and_guest_fields() {
+    with_large_stack(|| {
+        let json = json!({
+            "message_id": 7,
+            "date": 1780000000,
+            "chat": {"id": -1001, "type": "supergroup", "title": "Club"},
+            "from": {"id": 11, "is_bot": true, "first_name": "GuestBot"},
+            "guest_query_id": "gq-1",
+            "guest_bot_caller_user": {"id": 22, "is_bot": false, "first_name": "Pat"},
+            "guest_bot_caller_chat": {"id": -1001, "type": "supergroup"},
+            "live_photo": {
+                "file_id": "lp_vid",
+                "file_unique_id": "lp_uniq",
+                "width": 1080,
+                "height": 1920,
+                "duration": 3,
+                "photo": [{"file_id": "lp_img", "file_unique_id": "lp_img_u", "width": 1080, "height": 1920}]
+            },
+            "photo": [{"file_id": "lp_img", "file_unique_id": "lp_img_u", "width": 1080, "height": 1920}]
+        });
+        let msg: Message = roundtrip_check(json);
+        assert_eq!(msg.guest_query_id.as_deref(), Some("gq-1"));
+        assert_eq!(msg.guest_bot_caller_user.as_ref().unwrap().id, 22);
+        assert_eq!(msg.guest_bot_caller_chat.as_ref().unwrap().id, -1001);
+        let lp = msg.live_photo.as_ref().unwrap();
+        assert_eq!(lp.file_id, "lp_vid");
+        assert_eq!(lp.duration, 3);
+        assert_eq!(lp.photo.as_ref().unwrap().len(), 1);
+    });
+}
+
+#[test]
+fn roundtrip_poll_with_media() {
+    let json = json!({
+        "id": "poll1",
+        "question": "Pick one",
+        "options": [
+            {"text": "A", "voter_count": 3, "media": {"photo": [{"file_id": "p", "file_unique_id": "pu", "width": 1, "height": 1}]}},
+            {"text": "B", "voter_count": 0}
+        ],
+        "total_voter_count": 3,
+        "is_closed": false,
+        "is_anonymous": false,
+        "type": "regular",
+        "allows_multiple_answers": false,
+        "members_only": true,
+        "country_codes": ["US", "FT"],
+        "media": {"video": {"file_id": "v", "file_unique_id": "vu", "width": 640, "height": 480, "duration": 10}}
+    });
+    let poll: Poll = roundtrip_check(json);
+    assert!(poll.members_only == Some(true));
+    assert_eq!(
+        poll.country_codes.as_ref().unwrap(),
+        &vec!["US".to_string(), "FT".to_string()]
+    );
+    assert!(poll.media.as_ref().unwrap().video.is_some());
+    assert!(poll.options[0].media.as_ref().unwrap().photo.is_some());
+    assert!(poll.options[1].media.is_none());
+}
+
+#[test]
+fn roundtrip_update_guest_message() {
+    with_large_stack(|| {
+        let json = json!({
+            "update_id": 9001,
+            "guest_message": {
+                "message_id": 1,
+                "date": 1780000001,
+                "chat": {"id": -1001, "type": "supergroup"},
+                "from": {"id": 11, "is_bot": true, "first_name": "GuestBot"},
+                "guest_query_id": "gq-9",
+                "text": "At your service"
+            }
+        });
+        let update: Update = roundtrip_check(json);
+        let msg = update.guest_message().unwrap();
+        assert_eq!(msg.guest_query_id.as_deref(), Some("gq-9"));
+        assert_eq!(update.message().unwrap().message_id, 1);
+        assert_eq!(update.effective_chat().unwrap().id, -1001);
+        assert_eq!(update.effective_user().unwrap().id, 11);
+        assert_eq!(
+            update.effective_message().unwrap().text.as_deref(),
+            Some("At your service")
+        );
+    });
+}
+
+#[test]
+fn roundtrip_bot_access_settings_and_sent_guest_message() {
+    let settings_json = json!({
+        "is_access_restricted": true,
+        "added_users": [{"id": 5, "is_bot": false, "first_name": "Ann"}]
+    });
+    let settings: BotAccessSettings = roundtrip_check(settings_json);
+    assert!(settings.is_access_restricted);
+    assert_eq!(settings.added_users.as_ref().unwrap().len(), 1);
+
+    let sent_json = json!({"inline_message_id": "im-1"});
+    let sent: SentGuestMessage = roundtrip_check(sent_json);
+    assert_eq!(sent.inline_message_id, "im-1");
+}
+
+#[test]
+fn roundtrip_react_permissions() {
+    let json = json!({
+        "status": "restricted",
+        "user": {"id": 33, "is_bot": false, "first_name": "Sam"},
+        "is_member": true,
+        "can_change_info": false,
+        "can_invite_users": true,
+        "can_pin_messages": false,
+        "can_send_messages": true,
+        "can_send_polls": true,
+        "can_send_other_messages": false,
+        "can_add_web_page_previews": true,
+        "can_react_to_messages": true,
+        "can_send_audios": true,
+        "can_send_documents": true,
+        "can_send_photos": true,
+        "can_send_videos": true,
+        "can_send_video_notes": false,
+        "can_send_voice_notes": true,
+        "can_edit_tag": false,
+        "can_manage_topics": false,
+        "until_date": 0
+    });
+    let member: ChatMember = roundtrip_check(json);
+    match &member {
+        ChatMember::Restricted(r) => assert!(r.can_react_to_messages),
+        other => panic!("expected restricted member, got {:?}", other),
+    }
+
+    let perms_json = json!({"can_send_messages": true, "can_react_to_messages": false});
+    let perms: ChatPermissions = roundtrip_check(perms_json);
+    assert_eq!(perms.can_react_to_messages, Some(false));
+    assert!(ChatPermissions::all().can_react_to_messages == Some(true));
+    assert!(ChatPermissions::none().can_react_to_messages == Some(false));
 }

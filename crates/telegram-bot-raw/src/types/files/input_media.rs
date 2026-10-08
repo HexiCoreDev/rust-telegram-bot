@@ -350,6 +350,169 @@ impl InputMediaDocument {
     }
 }
 
+/// A live photo to be sent.
+///
+/// The video must be no longer than 10 seconds and must not exceed 10 MB.
+/// Sending live photos by URL is currently unsupported.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
+#[non_exhaustive]
+pub struct InputMediaLivePhoto {
+    /// Video of the live photo to send.
+    pub media: InputFile,
+
+    /// The static photo to send.
+    pub photo: InputFile,
+
+    /// Caption (0–1024 characters after entity parsing).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub caption: Option<String>,
+
+    /// Parse mode for the caption.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub parse_mode: Option<String>,
+
+    /// Special entities in the caption.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub caption_entities: Option<Vec<MessageEntity>>,
+
+    /// Pass `true` to show the caption above the media.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub show_caption_above_media: Option<bool>,
+
+    /// Pass `true` to cover the live photo with a spoiler animation.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub has_spoiler: Option<bool>,
+}
+
+impl InputMediaLivePhoto {
+    /// Creates a new `InputMediaLivePhoto` with the given video and static photo.
+    pub fn new(media: InputFile, photo: InputFile) -> Self {
+        Self {
+            media,
+            photo,
+            ..Default::default()
+        }
+    }
+
+    /// Set the caption.
+    pub fn caption(mut self, caption: impl Into<String>) -> Self {
+        self.caption = Some(caption.into());
+        self
+    }
+
+    /// Set the parse mode.
+    pub fn parse_mode(mut self, mode: impl Into<String>) -> Self {
+        self.parse_mode = Some(mode.into());
+        self
+    }
+
+    /// Cover the live photo with a spoiler animation.
+    pub fn spoiler(mut self) -> Self {
+        self.has_spoiler = Some(true);
+        self
+    }
+}
+
+/// A location to be sent.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
+#[non_exhaustive]
+pub struct InputMediaLocation {
+    /// Latitude of the location.
+    pub latitude: f64,
+
+    /// Longitude of the location.
+    pub longitude: f64,
+
+    /// Radius of uncertainty for the location, in meters (0–1500).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub horizontal_accuracy: Option<f64>,
+}
+
+impl InputMediaLocation {
+    /// Creates a new `InputMediaLocation` with the given latitude and longitude.
+    pub fn new(latitude: f64, longitude: f64) -> Self {
+        Self {
+            latitude,
+            longitude,
+            ..Default::default()
+        }
+    }
+}
+
+/// A venue to be sent.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
+#[non_exhaustive]
+pub struct InputMediaVenue {
+    /// Latitude of the venue.
+    pub latitude: f64,
+
+    /// Longitude of the venue.
+    pub longitude: f64,
+
+    /// Name of the venue.
+    pub title: String,
+
+    /// Address of the venue.
+    pub address: String,
+
+    /// Foursquare identifier of the venue.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub foursquare_id: Option<String>,
+
+    /// Foursquare type of the venue.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub foursquare_type: Option<String>,
+
+    /// Google Places identifier of the venue.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub google_place_id: Option<String>,
+
+    /// Google Places type of the venue.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub google_place_type: Option<String>,
+}
+
+impl InputMediaVenue {
+    /// Creates a new `InputMediaVenue` with the given coordinates, name and address.
+    pub fn new(
+        latitude: f64,
+        longitude: f64,
+        title: impl Into<String>,
+        address: impl Into<String>,
+    ) -> Self {
+        Self {
+            latitude,
+            longitude,
+            title: title.into(),
+            address: address.into(),
+            ..Default::default()
+        }
+    }
+}
+
+/// A sticker file to be sent.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
+#[non_exhaustive]
+pub struct InputMediaSticker {
+    /// File to send: file_id, HTTP URL for .WEBP stickers, or `attach://` upload
+    /// of a .WEBP, .TGS or .WEBM sticker.
+    pub media: InputFile,
+
+    /// Emoji associated with the sticker; only for just uploaded stickers.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub emoji: Option<String>,
+}
+
+impl InputMediaSticker {
+    /// Creates a new `InputMediaSticker` with the given media file.
+    pub fn new(media: InputFile) -> Self {
+        Self {
+            media,
+            ..Default::default()
+        }
+    }
+}
+
 /// A tagged union of all `InputMedia*` variants, serialized with a `"type"` discriminant.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -365,6 +528,14 @@ pub enum InputMedia {
     Audio(InputMediaAudio),
     /// A general document file.
     Document(InputMediaDocument),
+    /// A live photo.
+    LivePhoto(InputMediaLivePhoto),
+    /// A location.
+    Location(InputMediaLocation),
+    /// A venue.
+    Venue(InputMediaVenue),
+    /// A sticker.
+    Sticker(InputMediaSticker),
 }
 
 // ─── InputPaidMedia variants ──────────────────────────────────────────────────
@@ -430,6 +601,26 @@ impl InputPaidMediaVideo {
     }
 }
 
+/// A paid live photo media item.
+///
+/// Sending live photos by URL is currently unsupported.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
+#[non_exhaustive]
+pub struct InputPaidMediaLivePhoto {
+    /// Video of the live photo to send.
+    pub media: InputFile,
+
+    /// The static photo to send.
+    pub photo: InputFile,
+}
+
+impl InputPaidMediaLivePhoto {
+    /// Creates a new `InputPaidMediaLivePhoto` with the given video and static photo.
+    pub fn new(media: InputFile, photo: InputFile) -> Self {
+        Self { media, photo }
+    }
+}
+
 /// A tagged union of paid media variants, serialized with a `"type"` discriminant.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -439,4 +630,6 @@ pub enum InputPaidMedia {
     Photo(InputPaidMediaPhoto),
     /// A paid video.
     Video(InputPaidMediaVideo),
+    /// A paid live photo.
+    LivePhoto(InputPaidMediaLivePhoto),
 }

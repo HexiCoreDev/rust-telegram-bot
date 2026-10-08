@@ -119,6 +119,8 @@ pub struct ChatMemberRestricted {
     pub can_send_other_messages: bool,
     /// True if the user is allowed to add web page previews to their messages.
     pub can_add_web_page_previews: bool,
+    /// True if the user is allowed to react to messages.
+    pub can_react_to_messages: bool,
     /// True if the user is allowed to create forum topics.
     pub can_manage_topics: bool,
     /// Unix timestamp of when restrictions will be lifted for this user.

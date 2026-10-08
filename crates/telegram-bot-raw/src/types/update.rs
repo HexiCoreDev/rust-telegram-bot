@@ -98,6 +98,8 @@ pub enum UpdateKind {
     MessageReactionCount(MessageReactionCountUpdated),
     /// A managed bot was created or updated.
     ManagedBot(ManagedBotUpdated),
+    /// New guest message from a chat the bot is not a member of.
+    GuestMessage(Message),
     /// Unknown or unsupported update types, or an update with no payload fields.
     #[default]
     Unknown,
@@ -193,6 +195,9 @@ impl Serialize for UpdateKind {
             Self::ManagedBot(value) => {
                 serializer.serialize_newtype_variant("UpdateKind", 23, "managed_bot", value)
             }
+            Self::GuestMessage(value) => {
+                serializer.serialize_newtype_variant("UpdateKind", 24, "guest_message", value)
+            }
             Self::Unknown => {
                 let map = serializer.serialize_map(Some(0))?;
                 map.end()
@@ -283,6 +288,7 @@ impl<'de> Visitor<'de> for UpdateKindVisitor {
                     parse_kind!(MessageReactionCount, MessageReactionCountUpdated)
                 }
                 "managed_bot" => parse_kind!(ManagedBot, ManagedBotUpdated),
+                "guest_message" => parse_kind!(GuestMessage, Message),
                 "update_id" => {
                     map.next_value::<IgnoredAny>()?;
                 }
@@ -321,7 +327,8 @@ impl Update {
             | UpdateKind::ChannelPost(message)
             | UpdateKind::EditedChannelPost(message)
             | UpdateKind::BusinessMessage(message)
-            | UpdateKind::EditedBusinessMessage(message) => Some(message),
+            | UpdateKind::EditedBusinessMessage(message)
+            | UpdateKind::GuestMessage(message) => Some(message),
             _ => None,
         }
     }
@@ -358,6 +365,7 @@ impl Update {
             MessageReactionCountUpdated
         ),
         (managed_bot, ManagedBot, ManagedBotUpdated),
+        (guest_message, GuestMessage, Message),
     );
 
     /// Returns a reference to the [`User`] that sent this update, regardless of update type.
@@ -372,7 +380,8 @@ impl Update {
             UpdateKind::Message(msg)
             | UpdateKind::EditedMessage(msg)
             | UpdateKind::BusinessMessage(msg)
-            | UpdateKind::EditedBusinessMessage(msg) => msg.from_user.as_ref(),
+            | UpdateKind::EditedBusinessMessage(msg)
+            | UpdateKind::GuestMessage(msg) => msg.from_user.as_ref(),
             UpdateKind::CallbackQuery(cbq) => Some(&cbq.from_user),
             UpdateKind::ChosenInlineResult(cir) => Some(&cir.from_user),
             UpdateKind::InlineQuery(iq) => Some(&iq.from_user),
@@ -411,7 +420,8 @@ impl Update {
             | UpdateKind::ChannelPost(msg)
             | UpdateKind::EditedChannelPost(msg)
             | UpdateKind::BusinessMessage(msg)
-            | UpdateKind::EditedBusinessMessage(msg) => Some(&msg.chat),
+            | UpdateKind::EditedBusinessMessage(msg)
+            | UpdateKind::GuestMessage(msg) => Some(&msg.chat),
             UpdateKind::CallbackQuery(cbq) => cbq.message.as_deref().map(|message| message.chat()),
             UpdateKind::MyChatMember(cmu) | UpdateKind::ChatMember(cmu) => Some(&cmu.chat),
             UpdateKind::ChatJoinRequest(cjr) => Some(&cjr.chat),
@@ -436,8 +446,8 @@ impl Update {
     /// Returns a reference to the [`Message`] carried by this update, if any.
     ///
     /// Considers `message`, `edited_message`, `channel_post`, `edited_channel_post`,
-    /// the message inside `callback_query`, `business_message`, and
-    /// `edited_business_message`.
+    /// the message inside `callback_query`, `business_message`,
+    /// `edited_business_message`, and `guest_message`.
     ///
     /// For callback queries where the message is inaccessible (date == 0), this returns `None`
     /// for the callback query branch.
@@ -451,7 +461,8 @@ impl Update {
             | UpdateKind::ChannelPost(msg)
             | UpdateKind::EditedChannelPost(msg)
             | UpdateKind::BusinessMessage(msg)
-            | UpdateKind::EditedBusinessMessage(msg) => Some(msg),
+            | UpdateKind::EditedBusinessMessage(msg)
+            | UpdateKind::GuestMessage(msg) => Some(msg),
             UpdateKind::CallbackQuery(cbq) => cbq
                 .message
                 .as_ref()
