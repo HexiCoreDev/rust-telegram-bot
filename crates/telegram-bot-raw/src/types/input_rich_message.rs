@@ -58,4 +58,30 @@ impl InputRichMessage {
             ..Default::default()
         }
     }
+
+    /// Creates a rich message from an explicit block list.
+    pub fn blocks(blocks: Vec<InputRichBlock>) -> Self {
+        Self {
+            blocks: Some(blocks),
+            ..Default::default()
+        }
+    }
+
+    /// Sets the media referenced from `html` or `markdown` through `tg://` links.
+    pub fn media(mut self, media: Vec<InputRichMessageMedia>) -> Self {
+        self.media = Some(media);
+        self
+    }
+
+    /// Shows the rich message right-to-left.
+    pub fn rtl(mut self) -> Self {
+        self.is_rtl = Some(true);
+        self
+    }
+
+    /// Skips automatic entity detection (URLs, mentions, hashtags, commands, phones).
+    pub fn skip_entity_detection(mut self) -> Self {
+        self.skip_entity_detection = Some(true);
+        self
+    }
 }

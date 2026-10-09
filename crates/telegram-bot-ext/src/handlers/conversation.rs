@@ -497,7 +497,6 @@ impl<S: Hash + Eq + Clone + Send + Sync + 'static> Handler for ConversationHandl
             .collect();
 
         let is_persistent = self.persistent;
-        let _handler_name = self.name.clone();
 
         Box::pin(async move {
             let key = match key {

@@ -258,6 +258,7 @@ pub struct Application {
 
     /// Value of [`LAST_UPDATE_ID_KEY`] at the last persistence flush.
     /// Tracks whether the floor needs rewriting into `bot_data`.
+    #[cfg(feature = "persistence")]
     flushed_update_id: AtomicI64,
 
     initialized: AtomicBool,
@@ -363,6 +364,7 @@ impl Application {
             pending_tasks: Arc::new(RwLock::new(Vec::new())),
             seen_updates: Mutex::new((HashSet::new(), VecDeque::new())),
             max_update_id: AtomicI64::new(-1),
+            #[cfg(feature = "persistence")]
             flushed_update_id: AtomicI64::new(-1),
             initialized: AtomicBool::new(false),
             running: AtomicBool::new(false),
@@ -1164,7 +1166,8 @@ impl Application {
         }
         let error_arc: Arc<dyn std::error::Error + Send + Sync> = Arc::from(error);
         for (callback, block) in handlers.iter() {
-            let ctx = CallbackContext::from_error(
+            #[allow(unused_mut)]
+            let mut ctx = CallbackContext::from_error(
                 update.as_deref(),
                 Arc::clone(&error_arc),
                 Arc::clone(&self.bot),

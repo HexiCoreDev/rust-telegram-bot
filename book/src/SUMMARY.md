@@ -33,6 +33,8 @@
 - [Webhooks](guides/webhooks.md)
 - [Inline Mode](guides/inline-mode.md)
 - [Payments](guides/payments.md)
+- [Rich Messages](guides/rich-messages.md)
+- [Ephemeral Messages](guides/ephemeral-messages.md)
 
 ---
 

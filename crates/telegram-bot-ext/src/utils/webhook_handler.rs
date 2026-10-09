@@ -814,7 +814,7 @@ mod tests {
     fn webhook_handler_creates_router() {
         let (tx, _rx) = mpsc::channel(1);
         let handler = WebhookHandler::new(tx, Some("secret".into()));
-        let _router = handler.into_router("/webhook");
+        handler.into_router("/webhook");
         // If we got here without panic, the router was built successfully.
     }
 
@@ -822,7 +822,7 @@ mod tests {
     fn webhook_handler_normalizes_path_without_slash() {
         let (tx, _rx) = mpsc::channel(1);
         let handler = WebhookHandler::new(tx, None);
-        let _router = handler.into_router("webhook");
+        handler.into_router("webhook");
         // Path normalization succeeded (prepends '/').
     }
 }

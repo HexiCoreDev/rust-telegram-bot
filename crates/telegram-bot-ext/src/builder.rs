@@ -415,6 +415,6 @@ mod tests {
     #[test]
     fn default_builder_is_no_token() {
         let b = ApplicationBuilder::default();
-        let _b2 = b.token("tok");
+        let _ = b.token("tok");
     }
 }
