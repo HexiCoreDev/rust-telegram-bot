@@ -51,3 +51,7 @@ book/book/
 
 # Claude Code
 .claude/
+
+# Python bytecode (tools/tg-api-docs)
+__pycache__/
+*.pyc

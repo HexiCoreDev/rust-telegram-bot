@@ -76,6 +76,24 @@ book: ## Build the mdBook guide
 book-serve: ## Serve mdBook locally with live reload
 	mdbook serve book --open
 
+# ── Telegram Bot API reference ──────────────────────────────────────
+
+.PHONY: tg-api-docs tg-api-parity
+
+TG_API_HTML := /tmp/tg-bot-api.html
+TG_API_MD   := docs/telegram-bot-api.md
+UV_RUN      := uv run --quiet --with beautifulsoup4 --with lxml
+
+tg-api-docs: ## Re-scrape core.telegram.org/bots/api and verify the conversion
+	curl -sS -L -A "Mozilla/5.0" -o $(TG_API_HTML) https://core.telegram.org/bots/api
+	$(UV_RUN) tools/tg-api-docs/convert.py $(TG_API_HTML) $(TG_API_MD)
+	$(UV_RUN) tools/tg-api-docs/verify.py $(TG_API_HTML) $(TG_API_MD)
+	$(UV_RUN) tools/tg-api-docs/structcheck.py $(TG_API_HTML) $(TG_API_MD)
+
+tg-api-parity: ## Diff docs/telegram-bot-api.md against the raw crate (methods + types)
+	uv run --quiet tools/tg-api-docs/parity.py
+	uv run --quiet tools/tg-api-docs/parity_types.py
+
 # ── Examples ───────────────────────────────────────────────────────
 
 .PHONY: echo inline-keyboard timer conversation raw-api error-handler
