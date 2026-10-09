@@ -48,7 +48,7 @@ fn extract_chat_id(update: &Update) -> i64 {
     update.effective_chat().map(|c| c.id).unwrap_or(0)
 }
 
-fn extract_text<'a>(update: &'a Update) -> Option<&'a str> {
+fn extract_text(update: &Update) -> Option<&str> {
     update.effective_message().and_then(|m| m.text.as_deref())
 }
 
@@ -65,7 +65,7 @@ fn check_command(update: &Update, expected: &str) -> bool {
         Some(e) => e,
         None => return false,
     };
-    entities.first().map_or(false, |e| {
+    entities.first().is_some_and(|e| {
         if e.entity_type == MessageEntityType::BotCommand && e.offset == 0 {
             let length = e.length as usize;
             if length <= text.len() {
@@ -208,7 +208,7 @@ async fn regular_choice(
         .bot()
         .send_message(
             chat_id,
-            &format!(
+            format!(
                 "Your {}? Yes, I would love to hear about that!",
                 text.to_lowercase()
             ),
@@ -273,7 +273,7 @@ async fn received_information(
         .bot()
         .send_message(
             chat_id,
-            &format!(
+            format!(
                 "Neat! Just so you know, this is what you already told me:\
                  {facts_summary}\
                  You can tell me more, or change your opinion on something."
@@ -314,7 +314,7 @@ async fn done(
         .bot()
         .send_message(
             chat_id,
-            &format!("I learned these facts about you:{facts_summary}Until next time!"),
+            format!("I learned these facts about you:{facts_summary}Until next time!"),
         )
         .reply_markup(remove_keyboard)
         .await
@@ -409,7 +409,7 @@ async fn main() {
             FnHandler::new(
                 move |u| {
                     is_text_in_state(u, &cs_check, ConvState::TypingChoice)
-                        && extract_text(u).map_or(true, |t| t != "Done")
+                        && (extract_text(u) != Some("Done"))
                 },
                 move |update, ctx| {
                     let cs = Arc::clone(&cs);
@@ -431,7 +431,7 @@ async fn main() {
             FnHandler::new(
                 move |u| {
                     is_text_in_state(u, &cs_check, ConvState::TypingReply)
-                        && extract_text(u).map_or(true, |t| t != "Done")
+                        && (extract_text(u) != Some("Done"))
                 },
                 move |update, ctx| {
                     let cs = Arc::clone(&cs);

@@ -53,8 +53,7 @@ async fn start(update: Arc<Update>, context: Context) -> HandlerResult {
 /// Intentionally trigger an error so the error handler fires.
 async fn bad_command(_update: Arc<Update>, _context: Context) -> HandlerResult {
     // Simulate an application error by returning an Err.
-    Err(HandlerError::Other(Box::new(std::io::Error::new(
-        std::io::ErrorKind::Other,
+    Err(HandlerError::Other(Box::new(std::io::Error::other(
         "This is a deliberately triggered error from /bad_command!",
     ))))
 }

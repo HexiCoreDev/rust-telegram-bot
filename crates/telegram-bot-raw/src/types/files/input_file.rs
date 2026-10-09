@@ -53,7 +53,7 @@ impl InputFile {
 
     /// Create an `InputFile` from a local filesystem path.
     ///
-    /// See the [`Path`](Self::Path) variant docs for the security contract:
+    /// See the [`Path`](crate::types::files::input_file::InputFile::Path) variant docs for the security contract:
     /// application-controlled paths only, never raw user input.
     pub fn path(path: impl Into<PathBuf>) -> Self {
         Self::Path(path.into())

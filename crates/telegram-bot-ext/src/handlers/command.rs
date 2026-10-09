@@ -315,7 +315,7 @@ impl Handler for CommandHandler {
     ///
     /// Mirrors Python's `CommandHandler.collect_additional_context` which
     /// populates `context.args` from the parsed argument list produced by
-    /// [`check_update`](Handler::check_update).
+    /// `check_update`.
     fn collect_additional_context(
         &self,
         context: &mut CallbackContext,

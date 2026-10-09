@@ -2,7 +2,7 @@
 //!
 //! Ported from `python-telegram-bot/src/telegram/ext/_contexttypes.py`.
 //!
-//! [`ContextTypes`] lets users swap the concrete types used for `bot_data`, `chat_data`, and
+//! `ContextTypes` lets users swap the concrete types used for `bot_data`, `chat_data`, and
 //! `user_data` by supplying factory functions that produce the initial (empty) values.
 //!
 //! In Rust, Python's "pass a type that supports calling with zero args" maps to

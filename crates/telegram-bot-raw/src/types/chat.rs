@@ -1,7 +1,7 @@
-//! Telegram [`Chat`] type — ported from `python-telegram-bot/src/telegram/_chat.py`.
+//! Telegram `Chat` type — ported from `python-telegram-bot/src/telegram/_chat.py`.
 //!
 //! `Chat` is the lightweight identifier object used throughout API responses.
-//! Full chat details live in [`ChatFullInfo`](super::chat_full_info::ChatFullInfo).
+//! Full chat details live in `ChatFullInfo`(super::chat_full_info::ChatFullInfo).
 //! Only data fields are included. No Bot reference, no API shortcuts.
 
 use serde::{Deserialize, Serialize};
@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize};
 /// Corresponds to the Bot API [`Chat`](https://core.telegram.org/bots/api#chat) object.
 ///
 /// As of Bot API 7.3 most extended fields have moved to
-/// [`ChatFullInfo`](super::chat_full_info::ChatFullInfo).
+/// `ChatFullInfo`(super::chat_full_info::ChatFullInfo).
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[non_exhaustive]
 pub struct Chat {

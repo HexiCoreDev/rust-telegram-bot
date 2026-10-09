@@ -1,6 +1,6 @@
 //! Builder pattern for Admin, Forum, and Sticker Telegram Bot API methods.
 //!
-//! These builders follow the same pattern as those in [`bot_builders`](crate::bot_builders):
+//! These builders follow the same pattern as those in [`bot_builders`]:
 //! 1. Created via the corresponding `Bot` factory method with only required parameters.
 //! 2. Chained setter calls for optional parameters.
 //! 3. `.await?` (or `.send().await?`) to execute the request.
@@ -92,7 +92,7 @@ macro_rules! impl_into_future {
 // SetChatMenuButtonBuilder
 // =========================================================================
 
-/// Builder for the [`setChatMenuButton`] API method.
+/// Builder for the [`Bot::set_chat_menu_button`] API method.
 #[derive(Serialize)]
 pub struct SetChatMenuButtonBuilder<'a> {
     #[serde(skip)]
@@ -128,7 +128,7 @@ impl_into_future!(SetChatMenuButtonBuilder, bool);
 // GetChatMenuButtonBuilder
 // =========================================================================
 
-/// Builder for the [`getChatMenuButton`] API method.
+/// Builder for the [`Bot::get_chat_menu_button`] API method.
 #[derive(Serialize)]
 pub struct GetChatMenuButtonBuilder<'a> {
     #[serde(skip)]
@@ -157,7 +157,7 @@ impl_into_future!(GetChatMenuButtonBuilder, menu_button::MenuButton);
 // SetMyCommandsBuilder
 // =========================================================================
 
-/// Builder for the [`setMyCommands`] API method.
+/// Builder for the [`Bot::set_my_commands`] API method.
 #[derive(Serialize)]
 pub struct SetMyCommandsBuilder<'a> {
     #[serde(skip)]
@@ -194,7 +194,7 @@ impl_into_future!(SetMyCommandsBuilder, bool);
 // GetMyCommandsBuilder
 // =========================================================================
 
-/// Builder for the [`getMyCommands`] API method.
+/// Builder for the [`Bot::get_my_commands`] API method.
 #[derive(Serialize)]
 pub struct GetMyCommandsBuilder<'a> {
     #[serde(skip)]
@@ -230,7 +230,7 @@ impl_into_future!(GetMyCommandsBuilder, Vec<bot_command::BotCommand>);
 // DeleteMyCommandsBuilder
 // =========================================================================
 
-/// Builder for the [`deleteMyCommands`] API method.
+/// Builder for the [`Bot::delete_my_commands`] API method.
 #[derive(Serialize)]
 pub struct DeleteMyCommandsBuilder<'a> {
     #[serde(skip)]
@@ -266,7 +266,7 @@ impl_into_future!(DeleteMyCommandsBuilder, bool);
 // SetMyDefaultAdministratorRightsBuilder
 // =========================================================================
 
-/// Builder for the [`setMyDefaultAdministratorRights`] API method.
+/// Builder for the [`Bot::set_my_default_administrator_rights`] API method.
 #[derive(Serialize)]
 pub struct SetMyDefaultAdministratorRightsBuilder<'a> {
     #[serde(skip)]
@@ -304,7 +304,7 @@ impl_into_future!(SetMyDefaultAdministratorRightsBuilder, bool);
 // GetMyDefaultAdministratorRightsBuilder
 // =========================================================================
 
-/// Builder for the [`getMyDefaultAdministratorRights`] API method.
+/// Builder for the [`Bot::get_my_default_administrator_rights`] API method.
 #[derive(Serialize)]
 pub struct GetMyDefaultAdministratorRightsBuilder<'a> {
     #[serde(skip)]
@@ -338,7 +338,7 @@ impl_into_future!(
 // SetMyDescriptionBuilder
 // =========================================================================
 
-/// Builder for the [`setMyDescription`] API method.
+/// Builder for the [`Bot::set_my_description`] API method.
 #[derive(Serialize)]
 pub struct SetMyDescriptionBuilder<'a> {
     #[serde(skip)]
@@ -374,7 +374,7 @@ impl_into_future!(SetMyDescriptionBuilder, bool);
 // GetMyDescriptionBuilder
 // =========================================================================
 
-/// Builder for the [`getMyDescription`] API method.
+/// Builder for the [`Bot::get_my_description`] API method.
 #[derive(Serialize)]
 pub struct GetMyDescriptionBuilder<'a> {
     #[serde(skip)]
@@ -403,7 +403,7 @@ impl_into_future!(GetMyDescriptionBuilder, bot_description::BotDescription);
 // SetMyShortDescriptionBuilder
 // =========================================================================
 
-/// Builder for the [`setMyShortDescription`] API method.
+/// Builder for the [`Bot::set_my_short_description`] API method.
 #[derive(Serialize)]
 pub struct SetMyShortDescriptionBuilder<'a> {
     #[serde(skip)]
@@ -441,7 +441,7 @@ impl_into_future!(SetMyShortDescriptionBuilder, bool);
 // GetMyShortDescriptionBuilder
 // =========================================================================
 
-/// Builder for the [`getMyShortDescription`] API method.
+/// Builder for the [`Bot::get_my_short_description`] API method.
 #[derive(Serialize)]
 pub struct GetMyShortDescriptionBuilder<'a> {
     #[serde(skip)]
@@ -475,7 +475,7 @@ impl_into_future!(
 // SetMyNameBuilder
 // =========================================================================
 
-/// Builder for the [`setMyName`] API method.
+/// Builder for the [`Bot::set_my_name`] API method.
 #[derive(Serialize)]
 pub struct SetMyNameBuilder<'a> {
     #[serde(skip)]
@@ -511,7 +511,7 @@ impl_into_future!(SetMyNameBuilder, bool);
 // GetMyNameBuilder
 // =========================================================================
 
-/// Builder for the [`getMyName`] API method.
+/// Builder for the [`Bot::get_my_name`] API method.
 #[derive(Serialize)]
 pub struct GetMyNameBuilder<'a> {
     #[serde(skip)]
@@ -544,7 +544,7 @@ impl_into_future!(GetMyNameBuilder, bot_name::BotName);
 // CreateForumTopicBuilder
 // =========================================================================
 
-/// Builder for the [`createForumTopic`] API method.
+/// Builder for the [`Bot::create_forum_topic`] API method.
 #[derive(Serialize)]
 pub struct CreateForumTopicBuilder<'a> {
     #[serde(skip)]
@@ -582,7 +582,7 @@ impl_into_future!(CreateForumTopicBuilder, forum_topic::ForumTopic);
 // EditForumTopicBuilder
 // =========================================================================
 
-/// Builder for the [`editForumTopic`] API method.
+/// Builder for the [`Bot::edit_forum_topic`] API method.
 #[derive(Serialize)]
 pub struct EditForumTopicBuilder<'a> {
     #[serde(skip)]
@@ -620,7 +620,7 @@ impl_into_future!(EditForumTopicBuilder, bool);
 // CloseForumTopicBuilder
 // =========================================================================
 
-/// Builder for the [`closeForumTopic`] API method.
+/// Builder for the [`Bot::close_forum_topic`] API method.
 #[derive(Serialize)]
 pub struct CloseForumTopicBuilder<'a> {
     #[serde(skip)]
@@ -643,7 +643,7 @@ impl_into_future!(CloseForumTopicBuilder, bool);
 // ReopenForumTopicBuilder
 // =========================================================================
 
-/// Builder for the [`reopenForumTopic`] API method.
+/// Builder for the [`Bot::reopen_forum_topic`] API method.
 #[derive(Serialize)]
 pub struct ReopenForumTopicBuilder<'a> {
     #[serde(skip)]
@@ -666,7 +666,7 @@ impl_into_future!(ReopenForumTopicBuilder, bool);
 // DeleteForumTopicBuilder
 // =========================================================================
 
-/// Builder for the [`deleteForumTopic`] API method.
+/// Builder for the [`Bot::delete_forum_topic`] API method.
 #[derive(Serialize)]
 pub struct DeleteForumTopicBuilder<'a> {
     #[serde(skip)]
@@ -689,7 +689,7 @@ impl_into_future!(DeleteForumTopicBuilder, bool);
 // UnpinAllForumTopicMessagesBuilder
 // =========================================================================
 
-/// Builder for the [`unpinAllForumTopicMessages`] API method.
+/// Builder for the [`Bot::unpin_all_forum_topic_messages`] API method.
 #[derive(Serialize)]
 pub struct UnpinAllForumTopicMessagesBuilder<'a> {
     #[serde(skip)]
@@ -714,7 +714,7 @@ impl_into_future!(UnpinAllForumTopicMessagesBuilder, bool);
 // UnpinAllGeneralForumTopicMessagesBuilder
 // =========================================================================
 
-/// Builder for the [`unpinAllGeneralForumTopicMessages`] API method.
+/// Builder for the [`Bot::unpin_all_general_forum_topic_messages`] API method.
 #[derive(Serialize)]
 pub struct UnpinAllGeneralForumTopicMessagesBuilder<'a> {
     #[serde(skip)]
@@ -738,7 +738,7 @@ impl_into_future!(UnpinAllGeneralForumTopicMessagesBuilder, bool);
 // EditGeneralForumTopicBuilder
 // =========================================================================
 
-/// Builder for the [`editGeneralForumTopic`] API method.
+/// Builder for the [`Bot::edit_general_forum_topic`] API method.
 #[derive(Serialize)]
 pub struct EditGeneralForumTopicBuilder<'a> {
     #[serde(skip)]
@@ -763,7 +763,7 @@ impl_into_future!(EditGeneralForumTopicBuilder, bool);
 // CloseGeneralForumTopicBuilder
 // =========================================================================
 
-/// Builder for the [`closeGeneralForumTopic`] API method.
+/// Builder for the [`Bot::close_general_forum_topic`] API method.
 #[derive(Serialize)]
 pub struct CloseGeneralForumTopicBuilder<'a> {
     #[serde(skip)]
@@ -787,7 +787,7 @@ impl_into_future!(CloseGeneralForumTopicBuilder, bool);
 // ReopenGeneralForumTopicBuilder
 // =========================================================================
 
-/// Builder for the [`reopenGeneralForumTopic`] API method.
+/// Builder for the [`Bot::reopen_general_forum_topic`] API method.
 #[derive(Serialize)]
 pub struct ReopenGeneralForumTopicBuilder<'a> {
     #[serde(skip)]
@@ -811,7 +811,7 @@ impl_into_future!(ReopenGeneralForumTopicBuilder, bool);
 // HideGeneralForumTopicBuilder
 // =========================================================================
 
-/// Builder for the [`hideGeneralForumTopic`] API method.
+/// Builder for the [`Bot::hide_general_forum_topic`] API method.
 #[derive(Serialize)]
 pub struct HideGeneralForumTopicBuilder<'a> {
     #[serde(skip)]
@@ -835,7 +835,7 @@ impl_into_future!(HideGeneralForumTopicBuilder, bool);
 // UnhideGeneralForumTopicBuilder
 // =========================================================================
 
-/// Builder for the [`unhideGeneralForumTopic`] API method.
+/// Builder for the [`Bot::unhide_general_forum_topic`] API method.
 #[derive(Serialize)]
 pub struct UnhideGeneralForumTopicBuilder<'a> {
     #[serde(skip)]
@@ -863,7 +863,7 @@ impl_into_future!(UnhideGeneralForumTopicBuilder, bool);
 // GetStickerSetBuilder
 // =========================================================================
 
-/// Builder for the [`getStickerSet`] API method.
+/// Builder for the [`Bot::get_sticker_set`] API method.
 #[derive(Serialize)]
 pub struct GetStickerSetBuilder<'a> {
     #[serde(skip)]
@@ -885,7 +885,7 @@ impl_into_future!(GetStickerSetBuilder, files::sticker::StickerSet);
 // GetCustomEmojiStickersBuilder
 // =========================================================================
 
-/// Builder for the [`getCustomEmojiStickers`] API method.
+/// Builder for the [`Bot::get_custom_emoji_stickers`] API method.
 #[derive(Serialize)]
 pub struct GetCustomEmojiStickersBuilder<'a> {
     #[serde(skip)]
@@ -909,7 +909,7 @@ impl_into_future!(GetCustomEmojiStickersBuilder, Vec<files::sticker::Sticker>);
 // UploadStickerFileBuilder
 // =========================================================================
 
-/// Builder for the [`uploadStickerFile`] API method.
+/// Builder for the [`Bot::upload_sticker_file`] API method.
 pub struct UploadStickerFileBuilder<'a> {
     bot: &'a Bot,
     user_id: i64,
@@ -938,7 +938,7 @@ impl_into_future!(UploadStickerFileBuilder, files::file::File);
 // CreateNewStickerSetBuilder
 // =========================================================================
 
-/// Builder for the [`createNewStickerSet`] API method.
+/// Builder for the [`Bot::create_new_sticker_set`] API method.
 #[derive(Serialize)]
 pub struct CreateNewStickerSetBuilder<'a> {
     #[serde(skip)]
@@ -978,7 +978,7 @@ impl_into_future!(CreateNewStickerSetBuilder, bool);
 // AddStickerToSetBuilder
 // =========================================================================
 
-/// Builder for the [`addStickerToSet`] API method.
+/// Builder for the [`Bot::add_sticker_to_set`] API method.
 #[derive(Serialize)]
 pub struct AddStickerToSetBuilder<'a> {
     #[serde(skip)]
@@ -1002,7 +1002,7 @@ impl_into_future!(AddStickerToSetBuilder, bool);
 // SetStickerPositionInSetBuilder
 // =========================================================================
 
-/// Builder for the [`setStickerPositionInSet`] API method.
+/// Builder for the [`Bot::set_sticker_position_in_set`] API method.
 #[derive(Serialize)]
 pub struct SetStickerPositionInSetBuilder<'a> {
     #[serde(skip)]
@@ -1027,7 +1027,7 @@ impl_into_future!(SetStickerPositionInSetBuilder, bool);
 // DeleteStickerFromSetBuilder
 // =========================================================================
 
-/// Builder for the [`deleteStickerFromSet`] API method.
+/// Builder for the [`Bot::delete_sticker_from_set`] API method.
 #[derive(Serialize)]
 pub struct DeleteStickerFromSetBuilder<'a> {
     #[serde(skip)]
@@ -1051,7 +1051,7 @@ impl_into_future!(DeleteStickerFromSetBuilder, bool);
 // ReplaceStickerInSetBuilder
 // =========================================================================
 
-/// Builder for the [`replaceStickerInSet`] API method.
+/// Builder for the [`Bot::replace_sticker_in_set`] API method.
 #[derive(Serialize)]
 pub struct ReplaceStickerInSetBuilder<'a> {
     #[serde(skip)]
@@ -1076,7 +1076,7 @@ impl_into_future!(ReplaceStickerInSetBuilder, bool);
 // SetStickerEmojiListBuilder
 // =========================================================================
 
-/// Builder for the [`setStickerEmojiList`] API method.
+/// Builder for the [`Bot::set_sticker_emoji_list`] API method.
 #[derive(Serialize)]
 pub struct SetStickerEmojiListBuilder<'a> {
     #[serde(skip)]
@@ -1099,7 +1099,7 @@ impl_into_future!(SetStickerEmojiListBuilder, bool);
 // SetStickerKeywordsBuilder
 // =========================================================================
 
-/// Builder for the [`setStickerKeywords`] API method.
+/// Builder for the [`Bot::set_sticker_keywords`] API method.
 #[derive(Serialize)]
 pub struct SetStickerKeywordsBuilder<'a> {
     #[serde(skip)]
@@ -1129,7 +1129,7 @@ impl_into_future!(SetStickerKeywordsBuilder, bool);
 // SetStickerMaskPositionBuilder
 // =========================================================================
 
-/// Builder for the [`setStickerMaskPosition`] API method.
+/// Builder for the [`Bot::set_sticker_mask_position`] API method.
 #[derive(Serialize)]
 pub struct SetStickerMaskPositionBuilder<'a> {
     #[serde(skip)]
@@ -1161,7 +1161,7 @@ impl_into_future!(SetStickerMaskPositionBuilder, bool);
 // SetStickerSetThumbnailBuilder
 // =========================================================================
 
-/// Builder for the [`setStickerSetThumbnail`] API method.
+/// Builder for the [`Bot::set_sticker_set_thumbnail`] API method.
 ///
 /// This builder uses the `RequestParameter` approach because `thumbnail`
 /// can be a file upload.
@@ -1200,7 +1200,7 @@ impl_into_future!(SetStickerSetThumbnailBuilder, bool);
 // SetStickerSetTitleBuilder
 // =========================================================================
 
-/// Builder for the [`setStickerSetTitle`] API method.
+/// Builder for the [`Bot::set_sticker_set_title`] API method.
 #[derive(Serialize)]
 pub struct SetStickerSetTitleBuilder<'a> {
     #[serde(skip)]
@@ -1223,7 +1223,7 @@ impl_into_future!(SetStickerSetTitleBuilder, bool);
 // SetCustomEmojiStickerSetThumbnailBuilder
 // =========================================================================
 
-/// Builder for the [`setCustomEmojiStickerSetThumbnail`] API method.
+/// Builder for the [`Bot::set_custom_emoji_sticker_set_thumbnail`] API method.
 #[derive(Serialize)]
 pub struct SetCustomEmojiStickerSetThumbnailBuilder<'a> {
     #[serde(skip)]
@@ -1255,7 +1255,7 @@ impl_into_future!(SetCustomEmojiStickerSetThumbnailBuilder, bool);
 // DeleteStickerSetBuilder
 // =========================================================================
 
-/// Builder for the [`deleteStickerSet`] API method.
+/// Builder for the [`Bot::delete_sticker_set`] API method.
 #[derive(Serialize)]
 pub struct DeleteStickerSetBuilder<'a> {
     #[serde(skip)]
@@ -1277,7 +1277,7 @@ impl_into_future!(DeleteStickerSetBuilder, bool);
 // GetForumTopicIconStickersBuilder
 // =========================================================================
 
-/// Builder for the [`getForumTopicIconStickers`] API method.
+/// Builder for the [`Bot::get_forum_topic_icon_stickers`] API method.
 #[derive(Serialize)]
 pub struct GetForumTopicIconStickersBuilder<'a> {
     #[serde(skip)]

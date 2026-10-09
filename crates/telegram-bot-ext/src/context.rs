@@ -334,7 +334,7 @@ impl CallbackContext {
 
     // -- Factory methods (mirrors Python classmethod constructors) -------------
 
-    /// Constructs a context from a typed [`Update`].
+    /// Constructs a context from a typed `Update`.
     #[must_use]
     pub fn from_update(
         update: &Update,
@@ -764,7 +764,7 @@ impl CallbackContext {
 // Helpers
 // ---------------------------------------------------------------------------
 
-/// Extract chat and user IDs from a typed [`Update`] using its computed
+/// Extract chat and user IDs from a typed `Update` using its computed
 /// properties. This is vastly cleaner than the previous Value-based approach.
 fn extract_ids(update: &Update) -> (Option<i64>, Option<i64>) {
     let chat_id = update.effective_chat().map(|c| c.id);
@@ -783,11 +783,9 @@ mod tests {
         Arc::new(ExtBot::from_bot(bot))
     }
 
-    fn make_stores() -> (
-        Arc<RwLock<HashMap<i64, DefaultData>>>,
-        Arc<RwLock<HashMap<i64, DefaultData>>>,
-        Arc<RwLock<DefaultData>>,
-    ) {
+    type TestStore = Arc<RwLock<HashMap<i64, DefaultData>>>;
+
+    fn make_stores() -> (TestStore, TestStore, Arc<RwLock<DefaultData>>) {
         (
             Arc::new(RwLock::new(HashMap::new())),
             Arc::new(RwLock::new(HashMap::new())),
@@ -858,8 +856,7 @@ mod tests {
     fn from_error_factory() {
         let bot = make_bot();
         let (ud, cd, bd) = make_stores();
-        let err: Arc<dyn std::error::Error + Send + Sync> =
-            Arc::new(std::io::Error::new(std::io::ErrorKind::Other, "boom"));
+        let err: Arc<dyn std::error::Error + Send + Sync> = Arc::new(std::io::Error::other("boom"));
         let ctx = CallbackContext::from_error(None, err, bot, ud, cd, bd);
         assert!(ctx.error.is_some());
         assert!(ctx.chat_id().is_none());

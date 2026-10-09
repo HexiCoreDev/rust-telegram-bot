@@ -2,7 +2,7 @@
 //!
 //! Ported from `python-telegram-bot/src/telegram/ext/_baseupdateprocessor.py`.
 //!
-//! Provides [`BaseUpdateProcessor`] (the async trait) and [`SimpleUpdateProcessor`] (the default
+//! Provides `BaseUpdateProcessor` (the async trait) and `SimpleUpdateProcessor` (the default
 //! implementation that immediately awaits each coroutine under a semaphore).
 
 use std::future::Future;
@@ -40,9 +40,9 @@ pub enum UpdateProcessorError {
 /// Implementations control *how* update coroutines are driven (e.g. immediately awaited,
 /// batched, prioritised, etc.).
 ///
-/// The [`process_update`](BaseUpdateProcessor::process_update) method is *final* -- it
-/// acquires the internal semaphore and then delegates to
-/// [`do_process_update`](BaseUpdateProcessor::do_process_update).
+/// The `process_update` method is *final* -- it
+/// acquires the internal semaphore and then delegates to the implementor's
+/// `do_process_update`.
 #[async_trait::async_trait]
 // `async_trait` adds a bare `#[must_use]` to the generated async methods, and
 // they return `Result`, which is already `#[must_use]` — hence the lint.
@@ -52,7 +52,7 @@ pub trait UpdateProcessor: Send + Sync {
     /// concrete type.
     ///
     /// **Warning**: This method is called by
-    /// [`process_update`](BaseUpdateProcessor::process_update).  It should *not* be called
+    /// `process_update`.  It should *not* be called
     /// manually.
     async fn do_process_update(
         &self,
@@ -158,7 +158,7 @@ impl BaseUpdateProcessor {
 /// Default [`UpdateProcessor`] that immediately awaits the coroutine.
 ///
 /// This is used when `ApplicationBuilder.concurrent_updates` is set to an integer -- the
-/// semaphore in [`BaseUpdateProcessor`] provides the actual bounding.
+/// semaphore in `BaseUpdateProcessor` provides the actual bounding.
 #[derive(Debug, Default)]
 pub struct SimpleUpdateProcessor;
 
@@ -173,8 +173,8 @@ impl UpdateProcessor for SimpleUpdateProcessor {
     }
 }
 
-/// Convenience constructor that builds a [`BaseUpdateProcessor`] wrapping a
-/// [`SimpleUpdateProcessor`] with the given concurrency limit.
+/// Convenience constructor that builds a `BaseUpdateProcessor` wrapping a
+/// `SimpleUpdateProcessor` with the given concurrency limit.
 ///
 /// # Errors
 ///

@@ -134,9 +134,8 @@ impl RequestData {
 
     /// URL-encode all JSON parameters.
     ///
-    /// Mirrors `RequestData.url_encoded_parameters` in Python (without the
-    /// `encode_kwargs` variant — use [`Self::url_encoded_parameters_with`] for
-    /// that).
+    /// Mirrors `RequestData.url_encoded_parameters` in Python. Python's
+    /// `encode_kwargs` variant has no equivalent here.
     ///
     /// ```
     /// use rust_tg_bot_raw::request::request_data::RequestData;

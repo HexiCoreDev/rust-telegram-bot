@@ -248,7 +248,7 @@ pub struct Application {
     /// Recently dispatched update ids for at-least-once delivery dedup.
     /// Bounded (see [`MAX_SEEN_UPDATE_IDS`]); shared by the polling and
     /// webhook paths since both funnel through
-    /// [`process_update`](Application::process_update).
+    /// `process_update`.
     seen_updates: Mutex<(HashSet<i64>, VecDeque<i64>)>,
 
     /// Highest update id dispatched so far. Doubles as the replay floor:
@@ -330,7 +330,7 @@ impl ApplicationConfig {
 impl Application {
     /// Creates a new `Application`.
     ///
-    /// Prefer [`ApplicationBuilder`](crate::builder::ApplicationBuilder) for public
+    /// Prefer [`ApplicationBuilder`] for public
     /// construction -- this avoids long positional argument lists.
     #[must_use]
     pub(crate) fn new(config: ApplicationConfig) -> Arc<Self> {
@@ -379,7 +379,7 @@ impl Application {
 
     // -- Accessors --
     #[must_use]
-    /// Returns a reference to the [`ExtBot`] used by this application.
+    /// Returns a reference to the `ExtBot` used by this application.
     pub fn bot(&self) -> &Arc<ExtBot> {
         &self.bot
     }
@@ -498,7 +498,7 @@ impl Application {
     }
 
     // -- Lifecycle: start / stop --
-    /// Start the update dispatch loop. Must be called after [`initialize`](Self::initialize).
+    /// Start the update dispatch loop. Must be called after `initialize`.
     pub async fn start(self: &Arc<Self>) -> Result<(), ApplicationError> {
         if self.running.load(Ordering::Acquire) {
             return Err(ApplicationError::AlreadyRunning);
@@ -608,7 +608,7 @@ impl Application {
         self.stop_notify.notify_waiters();
     }
 
-    /// Spawn a background task and track its [`JoinHandle`](tokio::task::JoinHandle)
+    /// Spawn a background task and track its `JoinHandle`
     /// in `pending_tasks`.
     ///
     /// The task will be awaited (with a timeout) when the application stops,
@@ -792,6 +792,8 @@ impl Application {
     }
 
     // -- M8: run_webhook --
+    /// Start polling or webhook mode according to `config` and run until the
+    /// application is shut down.
     #[cfg(feature = "webhooks")]
     pub async fn run_webhook(
         self: Arc<Self>,
@@ -806,8 +808,8 @@ impl Application {
         self.start().await?;
 
         #[cfg(feature = "persistence")]
-        let persistence_handle = if self.persistence.is_some() {
-            let secs = self.persistence.as_ref().unwrap().update_interval();
+        let persistence_handle = if let Some(persistence) = self.persistence.as_ref() {
+            let secs = persistence.update_interval();
             let app = Arc::clone(&self);
             let stop = Arc::clone(&self.stop_notify);
             Some(tokio::spawn(async move {
@@ -1079,7 +1081,7 @@ impl Application {
     /// Advances the high-water mark after an update's handlers ran.
     ///
     /// Called only on successful dispatch paths in
-    /// [`process_update`](Self::process_update); a crash before this runs
+    /// `process_update`; a crash before this runs
     /// leaves the update below the floor so it is replayed after restart.
     fn mark_update_complete(&self, update_id: i64) {
         self.max_update_id.fetch_max(update_id, Ordering::AcqRel);
@@ -1090,7 +1092,7 @@ impl Application {
     /// Delivery is at-least-once across restarts: the high-water mark
     /// advances only after handlers run, so a crash mid-dispatch leaves the
     /// update below the persisted floor and Telegram replays it (within the
-    /// server's ~24h retention). Within a run, [`mark_update_seen`](Self::mark_update_seen)
+    /// server's ~24h retention). Within a run, `mark_update_seen`
     /// suppresses redeliveries. Notes:
     ///
     /// - Non-blocking handlers count as complete once spawned; a crash before
@@ -1709,10 +1711,7 @@ mod tests {
                 check_update: Arc::new(|_| true),
                 callback: Arc::new(|_, _| {
                     Box::pin(async {
-                        Err(HandlerError::Other(Box::new(std::io::Error::new(
-                            std::io::ErrorKind::Other,
-                            "test",
-                        ))))
+                        Err(HandlerError::Other(Box::new(std::io::Error::other("test"))))
                     })
                 }),
                 block: true,
@@ -1746,10 +1745,7 @@ mod tests {
                 check_update: Arc::new(|_| true),
                 callback: Arc::new(|_, _| {
                     Box::pin(async {
-                        Err(HandlerError::Other(Box::new(std::io::Error::new(
-                            std::io::ErrorKind::Other,
-                            "e",
-                        ))))
+                        Err(HandlerError::Other(Box::new(std::io::Error::other("e"))))
                     })
                 }),
                 block: true,

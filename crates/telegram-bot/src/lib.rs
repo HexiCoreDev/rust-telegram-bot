@@ -4,8 +4,8 @@
 //! from [python-telegram-bot](https://github.com/python-telegram-bot/python-telegram-bot).
 //!
 //! This is the facade crate that re-exports everything from:
-//! - [`rust_tg_bot_raw`](raw) — Bot API types and methods
-//! - [`rust_tg_bot_ext`](ext) — Application framework (handlers, filters, persistence)
+//! - [`rust_tg_bot_raw`] — Bot API types and methods
+//! - [`rust_tg_bot_ext`] — Application framework (handlers, filters, persistence)
 //!
 //! ## Quick Start
 //!

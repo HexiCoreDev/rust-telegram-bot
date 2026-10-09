@@ -4,14 +4,13 @@
 //! on top of [`rust_tg_bot_raw`].  It is modeled after Python's
 //! `python-telegram-bot` extension package and offers:
 //!
-//! - **Handlers**: [`CommandHandler`](handlers::command::CommandHandler),
-//!   [`MessageHandler`](handlers::message::MessageHandler),
-//!   [`CallbackQueryHandler`](handlers::callback_query::CallbackQueryHandler), etc.
-//! - **Filters**: composable with `&`, `|`, `^`, `!` operators via [`F`](filters::base::F).
+//! - **Handlers**: [`CommandHandler`](crate::handlers::command::CommandHandler),
+//!   [`MessageHandler`](crate::handlers::message::MessageHandler),
+//!   [`CallbackQueryHandler`](crate::handlers::callback_query::CallbackQueryHandler), etc.
+//! - **Filters**: composable with `&`, `|`, `^`, `!` operators via [`F`](crate::filters::base::F).
 //! - **Persistence** *(feature `persistence`)*: in-memory
-//!   ([`DictPersistence`](persistence::dict::DictPersistence)) and JSON-file
-//!   ([`JsonFilePersistence`](persistence::json_file::JsonFilePersistence)).
-//! - **Application**: the main dispatch loop ([`Application`](application::Application)).
+//!   (`DictPersistence`) and JSON-file (`JsonFilePersistence`).
+//! - **Application**: the main dispatch loop ([`Application`](crate::application::Application)).
 //!
 //! # Quick start
 //!
@@ -31,15 +30,15 @@
 #![warn(missing_docs)]
 #![forbid(unsafe_code)]
 
-/// The core [`Application`](application::Application) that dispatches updates
+/// The core [`Application`](crate::application::Application) that dispatches updates
 /// to registered handlers.
 pub mod application;
-/// Builder for constructing an [`Application`](application::Application) with
+/// Builder for constructing an [`Application`](crate::application::Application) with
 /// custom configuration.
 pub mod builder;
 /// Cache for arbitrary callback-data payloads attached to inline keyboards.
 pub mod callback_data_cache;
-/// The [`CallbackContext`](context::CallbackContext) passed to handler callbacks.
+/// The [`CallbackContext`](crate::context::CallbackContext) passed to handler callbacks.
 pub mod context;
 /// Configuration types for context data categories.
 pub mod context_types;

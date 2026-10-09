@@ -25,7 +25,7 @@ use crate::filters::base::{self, Filter, FilterResult};
 /// `crate::filters::base::F` directly.
 pub type FilterFn = Arc<dyn Fn(&Update) -> bool + Send + Sync>;
 
-/// Handler that matches updates based on the composable [`Filter`](base::Filter)
+/// Handler that matches updates based on the composable [`Filter`]
 /// trait system.
 ///
 /// This is the most general-purpose handler. It mirrors the Python

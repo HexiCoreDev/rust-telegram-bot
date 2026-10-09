@@ -1,6 +1,6 @@
 //! Base handler trait and core types for the handler system.
 //!
-//! Every concrete handler implements [`Handler`], which provides a two-phase
+//! Every concrete handler implements `Handler`, which provides a two-phase
 //! dispatch: [`Handler::check_update`] tests whether an update is relevant,
 //! and [`Handler::handle_update`] processes it.
 
@@ -69,7 +69,7 @@ pub enum HandlerResult {
 
 /// A type-erased, `Arc`-wrapped async handler callback.
 ///
-/// The callback receives the [`Update`] and the [`MatchResult`] produced by
+/// The callback receives the `Update` and the [`MatchResult`] produced by
 /// `check_update`, and returns a future resolving to [`HandlerResult`].
 pub type HandlerCallback = Arc<
     dyn Fn(Arc<Update>, MatchResult) -> Pin<Box<dyn Future<Output = HandlerResult> + Send>>
@@ -113,7 +113,7 @@ pub trait Handler: Send + Sync {
     /// `None` to pass.
     fn check_update(&self, update: &Update) -> Option<MatchResult>;
 
-    /// Process the update. Called only when [`check_update`](Handler::check_update)
+    /// Process the update. Called only when `check_update`
     /// returned `Some`.
     fn handle_update(
         &self,
@@ -143,7 +143,7 @@ pub trait Handler: Send + Sync {
     /// Process the update with an Application-provided [`CallbackContext`].
     ///
     /// The default implementation ignores the context and delegates to
-    /// [`handle_update`](Handler::handle_update). Handlers created with
+    /// `handle_update`. Handlers created with
     /// ergonomic constructors (e.g. `CommandHandler::new("start", my_fn)`)
     /// override this to pass the context to the user's callback function.
     fn handle_update_with_context(
@@ -163,8 +163,9 @@ pub trait Handler: Send + Sync {
 /// A lightweight handler that pairs a predicate with an async callback.
 ///
 /// `FnHandler` bridges the gap between raw `application::Handler` structs and
-/// the typed handler trait system. It implements [`Handler`] so it can be
-/// registered via [`Application::add_handler`].
+/// the typed handler trait system. It implements `Handler` so it can be
+/// registered via
+/// [`Application::add_handler`](crate::application::Application::add_handler).
 ///
 /// # Examples
 ///

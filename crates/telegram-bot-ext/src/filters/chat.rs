@@ -1,7 +1,7 @@
 //! Chat identity filter and ChatType namespace.
 //!
 //! - [`ChatFilter`] -- restrict to specific chat IDs or usernames (`RwLock`).
-//! - [`ChatType`] namespace -- `CHANNEL`, `GROUP`, `GROUPS`, `PRIVATE`, `SUPERGROUP`.
+//! - `ChatType` namespace -- `CHANNEL`, `GROUP`, `GROUPS`, `PRIVATE`, `SUPERGROUP`.
 //! - [`SenderChatFilter`] -- restrict by `sender_chat` ID / username.
 //! - Sender-chat sub-filters: `SenderChatChannel`, `SenderChatSuperGroup`.
 

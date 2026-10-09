@@ -1,4 +1,4 @@
-//! Telegram [`ChatFullInfo`] type — ported from
+//! Telegram `ChatFullInfo` type — ported from
 //! `python-telegram-bot/src/telegram/_chatfullinfo.py`.
 //!
 //! `ChatFullInfo` is returned by `getChat` and carries the complete set of chat metadata.

@@ -16,9 +16,13 @@ use std::fmt;
 /// All flags default to `true`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct PersistenceInput {
+    /// Persist bot-wide data.
     pub bot_data: bool,
+    /// Persist per-chat data.
     pub chat_data: bool,
+    /// Persist per-user data.
     pub user_data: bool,
+    /// Persist callback-query data.
     pub callback_data: bool,
 }
 
@@ -41,28 +45,35 @@ impl Default for PersistenceInput {
 #[derive(Debug, thiserror::Error)]
 #[non_exhaustive]
 pub enum PersistenceError {
+    /// A value could not be encoded to or decoded from JSON.
     #[error("serialization error: {0}")]
     Serialization(#[from] serde_json::Error),
 
+    /// The underlying storage medium reported an I/O failure.
     #[error("I/O error: {0}")]
     Io(#[from] std::io::Error),
 
+    /// A back-end specific failure that does not map to another variant.
     #[error("{0}")]
     Custom(String),
 
+    /// The SQLite back-end failed.
     #[cfg(feature = "persistence-sqlite")]
     #[error("SQLite error: {0}")]
     Sqlite(#[from] rusqlite::Error),
 
+    /// The Redis back-end failed.
     #[cfg(feature = "persistence-redis")]
     #[error("Redis error: {0}")]
     Redis(#[from] redis::RedisError),
 
+    /// The PostgreSQL back-end failed.
     #[cfg(feature = "persistence-postgres")]
     #[error("PostgreSQL error: {0}")]
     Postgres(#[from] sqlx::Error),
 }
 
+/// Result alias for fallible persistence operations.
 pub type PersistenceResult<T> = Result<T, PersistenceError>;
 
 /// Validate a table/key prefix supplied via `with_prefix`.

@@ -8,6 +8,10 @@
 use rust_tg_bot::BotCommands;
 
 /// The set of commands this bot understands.
+// Some variants exist purely to demonstrate the `#[command(...)]` attributes
+// the derive macro reads; this example only renders `descriptions()`, so they
+// are never constructed.
+#[allow(dead_code)]
 #[derive(BotCommands, Clone, Debug)]
 #[command(rename_rule = "lowercase")]
 enum Command {

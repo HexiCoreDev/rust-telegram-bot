@@ -2,18 +2,18 @@
 //!
 //! Ported from `python-telegram-bot/src/telegram/ext/_extbot.py`.
 //!
-//! [`ExtBot`] wraps the low-level [`rust_tg_bot_raw::bot::Bot`] and adds:
+//! `ExtBot` wraps the low-level [`rust_tg_bot_raw::bot::Bot`] and adds:
 //!
-//! * [`Defaults`](crate::defaults::Defaults) injection into API calls
+//! * `Defaults`(crate::defaults::Defaults) injection into API calls
 //! * [`CallbackDataCache`](crate::callback_data_cache::CallbackDataCache) for arbitrary
 //!   callback data
-//! * A [`DynRateLimiter`](crate::rate_limiter::DynRateLimiter) that intercepts all HTTP
-//!   requests through a [`RateLimitedRequest`](crate::rate_limiter::RateLimitedRequest)
+//! * A `crate::rate_limiter::DynRateLimiter` that intercepts all HTTP
+//!   requests through a `crate::rate_limiter::RateLimitedRequest`
 //!   wrapper.
 //!
 //! # Construction
 //!
-//! Use [`ExtBot::builder`] for the full option set, or [`ExtBot::from_bot`] when you
+//! Use `ExtBot::builder` for the full option set, or `ExtBot::from_bot` when you
 //! only have a raw `Bot` and need no extras:
 //!
 //! ```rust,ignore
@@ -31,7 +31,7 @@
 //! # Rate limiting
 //!
 //! When a rate limiter is provided, the builder wraps the HTTP request backend
-//! in a [`RateLimitedRequest`](crate::rate_limiter::RateLimitedRequest), so
+//! in a `crate::rate_limiter::RateLimitedRequest`, so
 //! **all** API calls flow through the limiter transparently.  No changes to
 //! handler code are needed.
 //!
@@ -63,7 +63,7 @@ use crate::rate_limiter::{DynRateLimiter, RateLimitedRequest};
 ///
 /// # Construction
 ///
-/// Use [`ExtBot::builder`] for the full option set, or [`ExtBot::from_bot`] for the
+/// Use `ExtBot::builder` for the full option set, or `ExtBot::from_bot` for the
 /// simplest case (no defaults, no cache, no rate limiter).
 ///
 /// # `Deref` to `Bot`
@@ -75,8 +75,8 @@ use crate::rate_limiter::{DynRateLimiter, RateLimitedRequest};
 /// # Rate limiter
 ///
 /// When a rate limiter is set, the inner `Bot`'s HTTP request backend is wrapped in a
-/// [`RateLimitedRequest`](crate::rate_limiter::RateLimitedRequest) so that all API calls
-/// are throttled transparently at the transport layer.
+/// `RateLimitedRequest` so that all API calls are throttled transparently at the
+/// transport layer.
 pub struct ExtBot {
     /// The underlying raw bot.
     bot: Bot,
@@ -135,7 +135,7 @@ impl ExtBot {
     /// * `rate_limiter` - An optional rate limiter.  When `Some`, the bot's request backend
     ///   is wrapped in a `RateLimitedRequest` so all API calls are throttled.
     ///
-    /// Prefer [`ExtBot::builder`] or [`ExtBot::from_bot`] for public construction.
+    /// Prefer `ExtBot::builder` or `ExtBot::from_bot` for public construction.
     #[cfg(feature = "rate-limiter")]
     #[must_use]
     pub(crate) fn new(
@@ -282,7 +282,7 @@ impl ExtBot {
 // ExtBotBuilder
 // ---------------------------------------------------------------------------
 
-/// Builder for [`ExtBot`].
+/// Builder for `ExtBot`.
 ///
 /// # Example
 ///
@@ -354,7 +354,7 @@ impl ExtBotBuilder {
     /// Sets the rate limiter.
     ///
     /// When set, the builder wraps the request backend in a
-    /// [`RateLimitedRequest`](crate::rate_limiter::RateLimitedRequest) so all
+    /// `crate::rate_limiter::RateLimitedRequest` so all
     /// API calls are throttled transparently.
     #[cfg(feature = "rate-limiter")]
     #[must_use]
@@ -371,7 +371,7 @@ impl ExtBotBuilder {
         self
     }
 
-    /// Builds the [`ExtBot`].
+    /// Builds the `ExtBot`.
     ///
     /// If a rate limiter was provided, the HTTP request backend is wrapped in a
     /// `RateLimitedRequest` before being passed to the inner `Bot`.
@@ -413,7 +413,7 @@ impl std::fmt::Debug for ExtBotBuilder {
 // Test-only mock request
 // ---------------------------------------------------------------------------
 
-/// A minimal mock [`BaseRequest`] for use in tests throughout the ext crate.
+/// A minimal mock `BaseRequest` for use in tests throughout the ext crate.
 ///
 /// Returns `{"ok": true, "result": []}` for every request.
 #[cfg(test)]

@@ -16,7 +16,7 @@ use super::base::{Handler, HandlerCallback, HandlerResult, MatchResult};
 
 /// Handler that matches messages whose text starts with `/command`.
 ///
-/// Unlike [`CommandHandler`](super::command), this handler does **not**
+/// Unlike [`CommandHandler`](crate::handlers::command::CommandHandler)(super::command), this handler does **not**
 /// require the message to have a `bot_command` entity. It performs a plain
 /// string prefix check on the message text.
 ///

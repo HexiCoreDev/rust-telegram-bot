@@ -74,11 +74,13 @@ impl SqlitePersistence {
         })
     }
 
+    /// Restrict which data categories are written to the database.
     pub fn with_store_data(mut self, input: PersistenceInput) -> Self {
         self.store_data = input;
         self
     }
 
+    /// Seconds between automatic flushes of in-memory state.
     pub fn with_update_interval(mut self, seconds: f64) -> Self {
         self.update_interval = seconds;
         self
@@ -266,7 +268,7 @@ impl BasePersistence for SqlitePersistence {
         new_state: Option<&Value>,
     ) -> PersistenceResult<()> {
         let key_json = serde_json::to_string(key)?;
-        let state_json: Option<String> = new_state.map(|v| serde_json::to_string(v)).transpose()?;
+        let state_json: Option<String> = new_state.map(serde_json::to_string).transpose()?;
         let conn = self.conn.lock().await;
         conn.execute(
             "INSERT OR REPLACE INTO conversations (handler, key, state) VALUES (?1, ?2, ?3)",

@@ -41,7 +41,7 @@ async fn start(update: Arc<Update>, context: Context) -> HandlerResult {
         .bot()
         .send_message(
             chat_id,
-            &format!("Hi {name}! I am a benchmark bot.\nUse /help for info."),
+            format!("Hi {name}! I am a benchmark bot.\nUse /help for info."),
         )
         .reply_markup(serde_json::to_value(&keyboard).unwrap_or_default())
         .await?;
@@ -88,7 +88,7 @@ async fn button_callback(update: Arc<Update>, context: Context) -> HandlerResult
     if let Some(msg) = cq.message.as_ref().and_then(|m| m.as_message()) {
         context
             .bot()
-            .edit_message_text(&format!("You selected: Option {data}"))
+            .edit_message_text(format!("You selected: Option {data}"))
             .chat_id(msg.chat.id)
             .message_id(msg.message_id)
             .await?;

@@ -60,7 +60,7 @@ fn extract_chat_id(update: &Update) -> i64 {
     update.effective_chat().expect("update must have a chat").id
 }
 
-fn extract_text<'a>(update: &'a Update) -> Option<&'a str> {
+fn extract_text(update: &Update) -> Option<&str> {
     update.effective_message().and_then(|m| m.text.as_deref())
 }
 
@@ -77,7 +77,7 @@ fn check_command(update: &Update, expected: &str) -> bool {
         Some(e) => e,
         None => return false,
     };
-    entities.first().map_or(false, |e| {
+    entities.first().is_some_and(|e| {
         if e.entity_type == MessageEntityType::BotCommand && e.offset == 0 {
             let length = e.length as usize;
             if length <= text.len() {

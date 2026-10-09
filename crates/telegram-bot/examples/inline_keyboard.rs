@@ -15,7 +15,7 @@
 //! ```
 
 use rust_tg_bot::ext::prelude::{
-    ApplicationBuilder, Arc, CommandHandler, Context, FnHandler, HandlerError, HandlerResult,
+    ApplicationBuilder, Arc, CommandHandler, Context, FnHandler, HandlerResult,
     InlineKeyboardButton, InlineKeyboardMarkup, Update,
 };
 

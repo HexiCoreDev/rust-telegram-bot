@@ -119,7 +119,7 @@ fn input_file_param(name: &'static str, file: files::input_file::InputFile) -> R
 // SendMessageBuilder
 // =========================================================================
 
-/// Builder for the [`sendMessage`] API method.
+/// Builder for the [`Bot::send_message`] API method.
 #[derive(Serialize)]
 pub struct SendMessageBuilder<'a> {
     #[serde(skip)]
@@ -248,7 +248,7 @@ impl_into_future!(SendMessageBuilder, message::Message);
 // SendPhotoBuilder
 // =========================================================================
 
-/// Builder for the [`sendPhoto`] API method.
+/// Builder for the [`Bot::send_photo`] API method.
 pub struct SendPhotoBuilder<'a> {
     bot: &'a Bot,
     chat_id: ChatId,
@@ -420,7 +420,7 @@ impl_into_future!(SendPhotoBuilder, message::Message);
 // SendLivePhotoBuilder
 // =========================================================================
 
-/// Builder for the [`sendLivePhoto`] API method.
+/// Builder for the [`Bot::send_live_photo`] API method.
 pub struct SendLivePhotoBuilder<'a> {
     bot: &'a Bot,
     chat_id: ChatId,
@@ -594,7 +594,7 @@ impl_into_future!(SendLivePhotoBuilder, message::Message);
 // SendDocumentBuilder
 // =========================================================================
 
-/// Builder for the [`sendDocument`] API method.
+/// Builder for the [`Bot::send_document`] API method.
 pub struct SendDocumentBuilder<'a> {
     bot: &'a Bot,
     chat_id: ChatId,
@@ -766,7 +766,7 @@ impl_into_future!(SendDocumentBuilder, message::Message);
 // SendVideoBuilder
 // =========================================================================
 
-/// Builder for the [`sendVideo`] API method.
+/// Builder for the [`Bot::send_video`] API method.
 pub struct SendVideoBuilder<'a> {
     bot: &'a Bot,
     chat_id: ChatId,
@@ -987,7 +987,7 @@ impl_into_future!(SendVideoBuilder, message::Message);
 // SendAudioBuilder
 // =========================================================================
 
-/// Builder for the [`sendAudio`] API method.
+/// Builder for the [`Bot::send_audio`] API method.
 pub struct SendAudioBuilder<'a> {
     bot: &'a Bot,
     chat_id: ChatId,
@@ -1169,7 +1169,7 @@ impl_into_future!(SendAudioBuilder, message::Message);
 // SendAnimationBuilder
 // =========================================================================
 
-/// Builder for the [`sendAnimation`] API method.
+/// Builder for the [`Bot::send_animation`] API method.
 pub struct SendAnimationBuilder<'a> {
     bot: &'a Bot,
     chat_id: ChatId,
@@ -1369,7 +1369,7 @@ impl_into_future!(SendAnimationBuilder, message::Message);
 // SendVoiceBuilder
 // =========================================================================
 
-/// Builder for the [`sendVoice`] API method.
+/// Builder for the [`Bot::send_voice`] API method.
 pub struct SendVoiceBuilder<'a> {
     bot: &'a Bot,
     chat_id: ChatId,
@@ -1530,7 +1530,7 @@ impl_into_future!(SendVoiceBuilder, message::Message);
 // SendVideoNoteBuilder
 // =========================================================================
 
-/// Builder for the [`sendVideoNote`] API method.
+/// Builder for the [`Bot::send_video_note`] API method.
 pub struct SendVideoNoteBuilder<'a> {
     bot: &'a Bot,
     chat_id: ChatId,
@@ -1684,7 +1684,7 @@ impl_into_future!(SendVideoNoteBuilder, message::Message);
 // SendLocationBuilder
 // =========================================================================
 
-/// Builder for the [`sendLocation`] API method.
+/// Builder for the [`Bot::send_location`] API method.
 #[derive(Serialize)]
 pub struct SendLocationBuilder<'a> {
     #[serde(skip)]
@@ -1821,7 +1821,7 @@ impl_into_future!(SendLocationBuilder, message::Message);
 // SendVenueBuilder
 // =========================================================================
 
-/// Builder for the [`sendVenue`] API method.
+/// Builder for the [`Bot::send_venue`] API method.
 #[derive(Serialize)]
 pub struct SendVenueBuilder<'a> {
     #[serde(skip)]
@@ -1960,7 +1960,7 @@ impl_into_future!(SendVenueBuilder, message::Message);
 // SendContactBuilder
 // =========================================================================
 
-/// Builder for the [`sendContact`] API method.
+/// Builder for the [`Bot::send_contact`] API method.
 #[derive(Serialize)]
 pub struct SendContactBuilder<'a> {
     #[serde(skip)]
@@ -2083,7 +2083,7 @@ impl_into_future!(SendContactBuilder, message::Message);
 // SendPollBuilder
 // =========================================================================
 
-/// Builder for the [`sendPoll`] API method.
+/// Builder for the [`Bot::send_poll`] API method.
 #[derive(Serialize)]
 pub struct SendPollBuilder<'a> {
     #[serde(skip)]
@@ -2332,7 +2332,7 @@ impl_into_future!(SendPollBuilder, message::Message);
 // SendDiceBuilder
 // =========================================================================
 
-/// Builder for the [`sendDice`] API method.
+/// Builder for the [`Bot::send_dice`] API method.
 #[derive(Serialize)]
 pub struct SendDiceBuilder<'a> {
     #[serde(skip)]
@@ -2435,7 +2435,7 @@ impl_into_future!(SendDiceBuilder, message::Message);
 // SendStickerBuilder
 // =========================================================================
 
-/// Builder for the [`sendSticker`] API method.
+/// Builder for the [`Bot::send_sticker`] API method.
 pub struct SendStickerBuilder<'a> {
     bot: &'a Bot,
     chat_id: ChatId,
@@ -2575,7 +2575,7 @@ impl_into_future!(SendStickerBuilder, message::Message);
 // EditMessageTextBuilder
 // =========================================================================
 
-/// Builder for the [`editMessageText`] API method.
+/// Builder for the [`Bot::edit_message_text`] API method.
 #[derive(Serialize)]
 pub struct EditMessageTextBuilder<'a> {
     #[serde(skip)]
@@ -2662,7 +2662,7 @@ impl_into_future!(EditMessageTextBuilder, MessageOrBool);
 // EditEphemeralMessageTextBuilder
 // =========================================================================
 
-/// Builder for the [`editEphemeralMessageText`] API method.
+/// Builder for the [`Bot::edit_ephemeral_message_text`] API method.
 #[derive(Serialize)]
 pub struct EditEphemeralMessageTextBuilder<'a> {
     #[serde(skip)]
@@ -2731,7 +2731,7 @@ impl_into_future!(EditEphemeralMessageTextBuilder, bool);
 // EditEphemeralMessageMediaBuilder
 // =========================================================================
 
-/// Builder for the [`editEphemeralMessageMedia`] API method.
+/// Builder for the [`Bot::edit_ephemeral_message_media`] API method.
 ///
 /// New-file uploads are supported via
 /// [`media_input`](Self::media_input): pass a typed
@@ -2833,7 +2833,7 @@ impl_into_future!(EditEphemeralMessageMediaBuilder, bool);
 // EditEphemeralMessageCaptionBuilder
 // =========================================================================
 
-/// Builder for the [`editEphemeralMessageCaption`] API method.
+/// Builder for the [`Bot::edit_ephemeral_message_caption`] API method.
 #[derive(Serialize)]
 pub struct EditEphemeralMessageCaptionBuilder<'a> {
     #[serde(skip)]
@@ -2895,7 +2895,7 @@ impl_into_future!(EditEphemeralMessageCaptionBuilder, bool);
 // EditEphemeralMessageReplyMarkupBuilder
 // =========================================================================
 
-/// Builder for the [`editEphemeralMessageReplyMarkup`] API method.
+/// Builder for the [`Bot::edit_ephemeral_message_reply_markup`] API method.
 #[derive(Serialize)]
 pub struct EditEphemeralMessageReplyMarkupBuilder<'a> {
     #[serde(skip)]
@@ -2929,7 +2929,7 @@ impl_into_future!(EditEphemeralMessageReplyMarkupBuilder, bool);
 // DeleteEphemeralMessageBuilder
 // =========================================================================
 
-/// Builder for the [`deleteEphemeralMessage`] API method.
+/// Builder for the [`Bot::delete_ephemeral_message`] API method.
 #[derive(Serialize)]
 pub struct DeleteEphemeralMessageBuilder<'a> {
     #[serde(skip)]
@@ -2955,7 +2955,7 @@ impl_into_future!(DeleteEphemeralMessageBuilder, bool);
 // EditMessageCaptionBuilder
 // =========================================================================
 
-/// Builder for the [`editMessageCaption`] API method.
+/// Builder for the [`Bot::edit_message_caption`] API method.
 #[derive(Serialize)]
 pub struct EditMessageCaptionBuilder<'a> {
     #[serde(skip)]
@@ -3040,7 +3040,7 @@ impl_into_future!(EditMessageCaptionBuilder, MessageOrBool);
 // EditMessageMediaBuilder
 // =========================================================================
 
-/// Builder for the [`editMessageMedia`] API method.
+/// Builder for the [`Bot::edit_message_media`] API method.
 #[derive(Serialize)]
 pub struct EditMessageMediaBuilder<'a> {
     #[serde(skip)]
@@ -3098,7 +3098,7 @@ impl_into_future!(EditMessageMediaBuilder, MessageOrBool);
 // EditMessageReplyMarkupBuilder
 // =========================================================================
 
-/// Builder for the [`editMessageReplyMarkup`] API method.
+/// Builder for the [`Bot::edit_message_reply_markup`] API method.
 #[derive(Serialize)]
 pub struct EditMessageReplyMarkupBuilder<'a> {
     #[serde(skip)]
@@ -3157,7 +3157,7 @@ impl_into_future!(EditMessageReplyMarkupBuilder, MessageOrBool);
 // AnswerCallbackQueryBuilder
 // =========================================================================
 
-/// Builder for the [`answerCallbackQuery`] API method.
+/// Builder for the [`Bot::answer_callback_query`] API method.
 #[derive(Serialize)]
 pub struct AnswerCallbackQueryBuilder<'a> {
     #[serde(skip)]
@@ -3208,7 +3208,7 @@ impl_into_future!(AnswerCallbackQueryBuilder, bool);
 // AnswerInlineQueryBuilder
 // =========================================================================
 
-/// Builder for the [`answerInlineQuery`] API method.
+/// Builder for the [`Bot::answer_inline_query`] API method.
 #[derive(Serialize)]
 pub struct AnswerInlineQueryBuilder<'a> {
     #[serde(skip)]
@@ -3260,7 +3260,7 @@ impl_into_future!(AnswerInlineQueryBuilder, bool);
 // AnswerGuestQueryBuilder
 // =========================================================================
 
-/// Builder for the [`answerGuestQuery`] API method.
+/// Builder for the [`Bot::answer_guest_query`] API method.
 #[derive(Serialize)]
 pub struct AnswerGuestQueryBuilder<'a> {
     #[serde(skip)]
@@ -3283,7 +3283,7 @@ impl_into_future!(AnswerGuestQueryBuilder, guest::SentGuestMessage);
 // GetUserPersonalChatMessagesBuilder
 // =========================================================================
 
-/// Builder for the [`getUserPersonalChatMessages`] API method.
+/// Builder for the [`Bot::get_user_personal_chat_messages`] API method.
 #[derive(Serialize)]
 pub struct GetUserPersonalChatMessagesBuilder<'a> {
     #[serde(skip)]
@@ -3308,7 +3308,7 @@ impl_into_future!(GetUserPersonalChatMessagesBuilder, Vec<message::Message>);
 // SetWebhookBuilder
 // =========================================================================
 
-/// Builder for the [`setWebhook`] API method.
+/// Builder for the [`Bot::set_webhook`] API method.
 pub struct SetWebhookBuilder<'a> {
     bot: &'a Bot,
     url: String,
@@ -3378,7 +3378,7 @@ impl_into_future!(SetWebhookBuilder, bool);
 // DeleteWebhookBuilder
 // =========================================================================
 
-/// Builder for the [`deleteWebhook`] API method.
+/// Builder for the [`Bot::delete_webhook`] API method.
 #[derive(Serialize)]
 pub struct DeleteWebhookBuilder<'a> {
     #[serde(skip)]
@@ -3407,7 +3407,7 @@ impl_into_future!(DeleteWebhookBuilder, bool);
 // GetFileBuilder
 // =========================================================================
 
-/// Builder for the [`getFile`] API method.
+/// Builder for the [`Bot::get_file`] API method.
 #[derive(Serialize)]
 pub struct GetFileBuilder<'a> {
     #[serde(skip)]
@@ -3429,7 +3429,7 @@ impl_into_future!(GetFileBuilder, files::file::File);
 // SendInvoiceBuilder
 // =========================================================================
 
-/// Builder for the [`sendInvoice`] API method.
+/// Builder for the [`Bot::send_invoice`] API method.
 #[derive(Serialize)]
 pub struct SendInvoiceBuilder<'a> {
     #[serde(skip)]
@@ -3635,7 +3635,7 @@ impl_into_future!(SendInvoiceBuilder, message::Message);
 // AnswerShippingQueryBuilder
 // =========================================================================
 
-/// Builder for the [`answerShippingQuery`] API method.
+/// Builder for the [`Bot::answer_shipping_query`] API method.
 #[derive(Serialize)]
 pub struct AnswerShippingQueryBuilder<'a> {
     #[serde(skip)]
@@ -3673,7 +3673,7 @@ impl_into_future!(AnswerShippingQueryBuilder, bool);
 // AnswerPreCheckoutQueryBuilder
 // =========================================================================
 
-/// Builder for the [`answerPreCheckoutQuery`] API method.
+/// Builder for the [`Bot::answer_pre_checkout_query`] API method.
 #[derive(Serialize)]
 pub struct AnswerPreCheckoutQueryBuilder<'a> {
     #[serde(skip)]
@@ -4516,7 +4516,7 @@ impl Bot {
 // GetManagedBotTokenBuilder
 // =========================================================================
 
-/// Builder for the [`getManagedBotToken`] API method.
+/// Builder for the [`Bot::get_managed_bot_token`] API method.
 #[derive(Serialize)]
 pub struct GetManagedBotTokenBuilder<'a> {
     #[serde(skip)]
@@ -4538,7 +4538,7 @@ impl_into_future!(GetManagedBotTokenBuilder, String);
 // ReplaceManagedBotTokenBuilder
 // =========================================================================
 
-/// Builder for the [`replaceManagedBotToken`] API method.
+/// Builder for the [`Bot::replace_managed_bot_token`] API method.
 #[derive(Serialize)]
 pub struct ReplaceManagedBotTokenBuilder<'a> {
     #[serde(skip)]
@@ -4562,7 +4562,7 @@ impl_into_future!(ReplaceManagedBotTokenBuilder, String);
 // GetManagedBotAccessSettingsBuilder
 // =========================================================================
 
-/// Builder for the [`getManagedBotAccessSettings`] API method.
+/// Builder for the [`Bot::get_managed_bot_access_settings`] API method.
 #[derive(Serialize)]
 pub struct GetManagedBotAccessSettingsBuilder<'a> {
     #[serde(skip)]
@@ -4589,7 +4589,7 @@ impl_into_future!(
 // SetManagedBotAccessSettingsBuilder
 // =========================================================================
 
-/// Builder for the [`setManagedBotAccessSettings`] API method.
+/// Builder for the [`Bot::set_managed_bot_access_settings`] API method.
 #[derive(Serialize)]
 pub struct SetManagedBotAccessSettingsBuilder<'a> {
     #[serde(skip)]
@@ -4622,7 +4622,7 @@ impl_into_future!(SetManagedBotAccessSettingsBuilder, bool);
 // SavePreparedKeyboardButtonBuilder
 // =========================================================================
 
-/// Builder for the [`savePreparedKeyboardButton`] API method.
+/// Builder for the [`Bot::save_prepared_keyboard_button`] API method.
 #[derive(Serialize)]
 pub struct SavePreparedKeyboardButtonBuilder<'a> {
     #[serde(skip)]
@@ -4722,7 +4722,7 @@ impl Bot {
 // SendChatActionBuilder
 // ---------------------------------------------------------------------------
 
-/// Builder for the [`sendChatAction`] API method.
+/// Builder for the [`Bot::send_chat_action`] API method.
 #[derive(Serialize)]
 pub struct SendChatActionBuilder<'a> {
     #[serde(skip)]
@@ -4760,7 +4760,7 @@ impl_into_future!(SendChatActionBuilder, bool);
 // CopyMessageBuilder
 // =========================================================================
 
-/// Builder for the [`copyMessage`] API method.
+/// Builder for the [`Bot::copy_message`] API method.
 #[derive(Serialize)]
 pub struct CopyMessageBuilder<'a> {
     #[serde(skip)]
@@ -4886,7 +4886,7 @@ impl_into_future!(CopyMessageBuilder, message_id::MessageId);
 // CopyMessagesBuilder
 // =========================================================================
 
-/// Builder for the [`copyMessages`] API method.
+/// Builder for the [`Bot::copy_messages`] API method.
 #[derive(Serialize)]
 pub struct CopyMessagesBuilder<'a> {
     #[serde(skip)]
@@ -4946,7 +4946,7 @@ impl_into_future!(CopyMessagesBuilder, Vec<message_id::MessageId>);
 // DeleteMessageBuilder
 // =========================================================================
 
-/// Builder for the [`deleteMessage`] API method.
+/// Builder for the [`Bot::delete_message`] API method.
 #[derive(Serialize)]
 pub struct DeleteMessageBuilder<'a> {
     #[serde(skip)]
@@ -4969,7 +4969,7 @@ impl_into_future!(DeleteMessageBuilder, bool);
 // DeleteMessagesBuilder
 // =========================================================================
 
-/// Builder for the [`deleteMessages`] API method.
+/// Builder for the [`Bot::delete_messages`] API method.
 #[derive(Serialize)]
 pub struct DeleteMessagesBuilder<'a> {
     #[serde(skip)]
@@ -4992,7 +4992,7 @@ impl_into_future!(DeleteMessagesBuilder, bool);
 // ForwardMessageBuilder
 // =========================================================================
 
-/// Builder for the [`forwardMessage`] API method.
+/// Builder for the [`Bot::forward_message`] API method.
 #[derive(Serialize)]
 pub struct ForwardMessageBuilder<'a> {
     #[serde(skip)]
@@ -5069,7 +5069,7 @@ impl_into_future!(ForwardMessageBuilder, message::Message);
 // ForwardMessagesBuilder
 // =========================================================================
 
-/// Builder for the [`forwardMessages`] API method.
+/// Builder for the [`Bot::forward_messages`] API method.
 #[derive(Serialize)]
 pub struct ForwardMessagesBuilder<'a> {
     #[serde(skip)]
@@ -5122,7 +5122,7 @@ impl_into_future!(ForwardMessagesBuilder, Vec<message_id::MessageId>);
 // SendMessageDraftBuilder
 // =========================================================================
 
-/// Builder for the [`sendMessageDraft`] API method.
+/// Builder for the [`Bot::send_message_draft`] API method.
 #[derive(Serialize)]
 pub struct SendMessageDraftBuilder<'a> {
     #[serde(skip)]
@@ -5182,7 +5182,7 @@ impl_into_future!(SendMessageDraftBuilder, bool);
 // SendRichMessageBuilder
 // =========================================================================
 
-/// Builder for the [`sendRichMessage`] API method.
+/// Builder for the [`Bot::send_rich_message`] API method.
 #[derive(Serialize)]
 pub struct SendRichMessageBuilder<'a> {
     #[serde(skip)]
@@ -5290,7 +5290,7 @@ impl_into_future!(SendRichMessageBuilder, message::Message);
 // SendRichMessageDraftBuilder
 // =========================================================================
 
-/// Builder for the [`sendRichMessageDraft`] API method.
+/// Builder for the [`Bot::send_rich_message_draft`] API method.
 ///
 /// Streams a partial rich message as a temporary preview; call
 /// `sendRichMessage` with the complete message to persist it.
@@ -5341,7 +5341,7 @@ impl_into_future!(SendRichMessageDraftBuilder, bool);
 // LeaveChatBuilder
 // =========================================================================
 
-/// Builder for the [`leaveChat`] API method.
+/// Builder for the [`Bot::leave_chat`] API method.
 #[derive(Serialize)]
 pub struct LeaveChatBuilder<'a> {
     #[serde(skip)]
@@ -5363,7 +5363,7 @@ impl_into_future!(LeaveChatBuilder, bool);
 // GetChatBuilder
 // =========================================================================
 
-/// Builder for the [`getChat`] API method.
+/// Builder for the [`Bot::get_chat`] API method.
 #[derive(Serialize)]
 pub struct GetChatBuilder<'a> {
     #[serde(skip)]
@@ -5385,7 +5385,7 @@ impl_into_future!(GetChatBuilder, chat_full_info::ChatFullInfo);
 // GetChatAdministratorsBuilder
 // =========================================================================
 
-/// Builder for the [`getChatAdministrators`] API method.
+/// Builder for the [`Bot::get_chat_administrators`] API method.
 #[derive(Serialize)]
 pub struct GetChatAdministratorsBuilder<'a> {
     #[serde(skip)]
@@ -5417,7 +5417,7 @@ impl_into_future!(GetChatAdministratorsBuilder, Vec<chat_member::ChatMember>);
 // GetChatMemberCountBuilder
 // =========================================================================
 
-/// Builder for the [`getChatMemberCount`] API method.
+/// Builder for the [`Bot::get_chat_member_count`] API method.
 #[derive(Serialize)]
 pub struct GetChatMemberCountBuilder<'a> {
     #[serde(skip)]
@@ -5439,7 +5439,7 @@ impl_into_future!(GetChatMemberCountBuilder, i64);
 // GetChatMemberBuilder
 // =========================================================================
 
-/// Builder for the [`getChatMember`] API method.
+/// Builder for the [`Bot::get_chat_member`] API method.
 #[derive(Serialize)]
 pub struct GetChatMemberBuilder<'a> {
     #[serde(skip)]
@@ -5462,7 +5462,7 @@ impl_into_future!(GetChatMemberBuilder, chat_member::ChatMember);
 // BanChatMemberBuilder
 // =========================================================================
 
-/// Builder for the [`banChatMember`] API method.
+/// Builder for the [`Bot::ban_chat_member`] API method.
 #[derive(Serialize)]
 pub struct BanChatMemberBuilder<'a> {
     #[serde(skip)]
@@ -5500,7 +5500,7 @@ impl_into_future!(BanChatMemberBuilder, bool);
 // UnbanChatMemberBuilder
 // =========================================================================
 
-/// Builder for the [`unbanChatMember`] API method.
+/// Builder for the [`Bot::unban_chat_member`] API method.
 #[derive(Serialize)]
 pub struct UnbanChatMemberBuilder<'a> {
     #[serde(skip)]
@@ -5531,7 +5531,7 @@ impl_into_future!(UnbanChatMemberBuilder, bool);
 // BanChatSenderChatBuilder
 // =========================================================================
 
-/// Builder for the [`banChatSenderChat`] API method.
+/// Builder for the [`Bot::ban_chat_sender_chat`] API method.
 #[derive(Serialize)]
 pub struct BanChatSenderChatBuilder<'a> {
     #[serde(skip)]
@@ -5554,7 +5554,7 @@ impl_into_future!(BanChatSenderChatBuilder, bool);
 // UnbanChatSenderChatBuilder
 // =========================================================================
 
-/// Builder for the [`unbanChatSenderChat`] API method.
+/// Builder for the [`Bot::unban_chat_sender_chat`] API method.
 #[derive(Serialize)]
 pub struct UnbanChatSenderChatBuilder<'a> {
     #[serde(skip)]
@@ -5577,7 +5577,7 @@ impl_into_future!(UnbanChatSenderChatBuilder, bool);
 // RestrictChatMemberBuilder
 // =========================================================================
 
-/// Builder for the [`restrictChatMember`] API method.
+/// Builder for the [`Bot::restrict_chat_member`] API method.
 #[derive(Serialize)]
 pub struct RestrictChatMemberBuilder<'a> {
     #[serde(skip)]
@@ -5616,7 +5616,7 @@ impl_into_future!(RestrictChatMemberBuilder, bool);
 // PromoteChatMemberBuilder
 // =========================================================================
 
-/// Builder for the [`promoteChatMember`] API method.
+/// Builder for the [`Bot::promote_chat_member`] API method.
 #[derive(Serialize)]
 pub struct PromoteChatMemberBuilder<'a> {
     #[serde(skip)]
@@ -5766,7 +5766,7 @@ impl_into_future!(PromoteChatMemberBuilder, bool);
 // SetChatAdministratorCustomTitleBuilder
 // =========================================================================
 
-/// Builder for the [`setChatAdministratorCustomTitle`] API method.
+/// Builder for the [`Bot::set_chat_administrator_custom_title`] API method.
 #[derive(Serialize)]
 pub struct SetChatAdministratorCustomTitleBuilder<'a> {
     #[serde(skip)]
@@ -5792,7 +5792,7 @@ impl_into_future!(SetChatAdministratorCustomTitleBuilder, bool);
 // SetChatPermissionsBuilder
 // =========================================================================
 
-/// Builder for the [`setChatPermissions`] API method.
+/// Builder for the [`Bot::set_chat_permissions`] API method.
 #[derive(Serialize)]
 pub struct SetChatPermissionsBuilder<'a> {
     #[serde(skip)]
@@ -5823,7 +5823,7 @@ impl_into_future!(SetChatPermissionsBuilder, bool);
 // SetChatPhotoBuilder
 // =========================================================================
 
-/// Builder for the [`setChatPhoto`] API method.
+/// Builder for the [`Bot::set_chat_photo`] API method.
 ///
 /// This builder uses multipart form data since it uploads a file.
 pub struct SetChatPhotoBuilder<'a> {
@@ -5849,7 +5849,7 @@ impl_into_future!(SetChatPhotoBuilder, bool);
 // DeleteChatPhotoBuilder
 // =========================================================================
 
-/// Builder for the [`deleteChatPhoto`] API method.
+/// Builder for the [`Bot::delete_chat_photo`] API method.
 #[derive(Serialize)]
 pub struct DeleteChatPhotoBuilder<'a> {
     #[serde(skip)]
@@ -5871,7 +5871,7 @@ impl_into_future!(DeleteChatPhotoBuilder, bool);
 // SetChatTitleBuilder
 // =========================================================================
 
-/// Builder for the [`setChatTitle`] API method.
+/// Builder for the [`Bot::set_chat_title`] API method.
 #[derive(Serialize)]
 pub struct SetChatTitleBuilder<'a> {
     #[serde(skip)]
@@ -5894,7 +5894,7 @@ impl_into_future!(SetChatTitleBuilder, bool);
 // SetChatDescriptionBuilder
 // =========================================================================
 
-/// Builder for the [`setChatDescription`] API method.
+/// Builder for the [`Bot::set_chat_description`] API method.
 #[derive(Serialize)]
 pub struct SetChatDescriptionBuilder<'a> {
     #[serde(skip)]
@@ -5924,7 +5924,7 @@ impl_into_future!(SetChatDescriptionBuilder, bool);
 // SetChatStickerSetBuilder
 // =========================================================================
 
-/// Builder for the [`setChatStickerSet`] API method.
+/// Builder for the [`Bot::set_chat_sticker_set`] API method.
 #[derive(Serialize)]
 pub struct SetChatStickerSetBuilder<'a> {
     #[serde(skip)]
@@ -5947,7 +5947,7 @@ impl_into_future!(SetChatStickerSetBuilder, bool);
 // DeleteChatStickerSetBuilder
 // =========================================================================
 
-/// Builder for the [`deleteChatStickerSet`] API method.
+/// Builder for the [`Bot::delete_chat_sticker_set`] API method.
 #[derive(Serialize)]
 pub struct DeleteChatStickerSetBuilder<'a> {
     #[serde(skip)]
@@ -5971,7 +5971,7 @@ impl_into_future!(DeleteChatStickerSetBuilder, bool);
 // SetChatMemberTagBuilder
 // =========================================================================
 
-/// Builder for the [`setChatMemberTag`] API method.
+/// Builder for the [`Bot::set_chat_member_tag`] API method.
 #[derive(Serialize)]
 pub struct SetChatMemberTagBuilder<'a> {
     #[serde(skip)]
@@ -6002,7 +6002,7 @@ impl_into_future!(SetChatMemberTagBuilder, bool);
 // PinChatMessageBuilder
 // =========================================================================
 
-/// Builder for the [`pinChatMessage`] API method.
+/// Builder for the [`Bot::pin_chat_message`] API method.
 #[derive(Serialize)]
 pub struct PinChatMessageBuilder<'a> {
     #[serde(skip)]
@@ -6040,7 +6040,7 @@ impl_into_future!(PinChatMessageBuilder, bool);
 // UnpinChatMessageBuilder
 // =========================================================================
 
-/// Builder for the [`unpinChatMessage`] API method.
+/// Builder for the [`Bot::unpin_chat_message`] API method.
 #[derive(Serialize)]
 pub struct UnpinChatMessageBuilder<'a> {
     #[serde(skip)]
@@ -6077,7 +6077,7 @@ impl_into_future!(UnpinChatMessageBuilder, bool);
 // UnpinAllChatMessagesBuilder
 // =========================================================================
 
-/// Builder for the [`unpinAllChatMessages`] API method.
+/// Builder for the [`Bot::unpin_all_chat_messages`] API method.
 #[derive(Serialize)]
 pub struct UnpinAllChatMessagesBuilder<'a> {
     #[serde(skip)]
@@ -6101,7 +6101,7 @@ impl_into_future!(UnpinAllChatMessagesBuilder, bool);
 // ExportChatInviteLinkBuilder
 // =========================================================================
 
-/// Builder for the [`exportChatInviteLink`] API method.
+/// Builder for the [`Bot::export_chat_invite_link`] API method.
 #[derive(Serialize)]
 pub struct ExportChatInviteLinkBuilder<'a> {
     #[serde(skip)]
@@ -6125,7 +6125,7 @@ impl_into_future!(ExportChatInviteLinkBuilder, String);
 // CreateChatInviteLinkBuilder
 // =========================================================================
 
-/// Builder for the [`createChatInviteLink`] API method.
+/// Builder for the [`Bot::create_chat_invite_link`] API method.
 #[derive(Serialize)]
 pub struct CreateChatInviteLinkBuilder<'a> {
     #[serde(skip)]
@@ -6181,7 +6181,7 @@ impl_into_future!(
 // EditChatInviteLinkBuilder
 // =========================================================================
 
-/// Builder for the [`editChatInviteLink`] API method.
+/// Builder for the [`Bot::edit_chat_invite_link`] API method.
 #[derive(Serialize)]
 pub struct EditChatInviteLinkBuilder<'a> {
     #[serde(skip)]
@@ -6233,7 +6233,7 @@ impl_into_future!(EditChatInviteLinkBuilder, chat_invite_link::ChatInviteLink);
 // RevokeChatInviteLinkBuilder
 // =========================================================================
 
-/// Builder for the [`revokeChatInviteLink`] API method.
+/// Builder for the [`Bot::revoke_chat_invite_link`] API method.
 #[derive(Serialize)]
 pub struct RevokeChatInviteLinkBuilder<'a> {
     #[serde(skip)]
@@ -6261,7 +6261,7 @@ impl_into_future!(
 // CreateChatSubscriptionInviteLinkBuilder
 // =========================================================================
 
-/// Builder for the [`createChatSubscriptionInviteLink`] API method.
+/// Builder for the [`Bot::create_chat_subscription_invite_link`] API method.
 #[derive(Serialize)]
 pub struct CreateChatSubscriptionInviteLinkBuilder<'a> {
     #[serde(skip)]
@@ -6298,7 +6298,7 @@ impl_into_future!(
 // EditChatSubscriptionInviteLinkBuilder
 // =========================================================================
 
-/// Builder for the [`editChatSubscriptionInviteLink`] API method.
+/// Builder for the [`Bot::edit_chat_subscription_invite_link`] API method.
 #[derive(Serialize)]
 pub struct EditChatSubscriptionInviteLinkBuilder<'a> {
     #[serde(skip)]
@@ -6334,7 +6334,7 @@ impl_into_future!(
 // ApproveChatJoinRequestBuilder
 // =========================================================================
 
-/// Builder for the [`approveChatJoinRequest`] API method.
+/// Builder for the [`Bot::approve_chat_join_request`] API method.
 #[derive(Serialize)]
 pub struct ApproveChatJoinRequestBuilder<'a> {
     #[serde(skip)]
@@ -6359,7 +6359,7 @@ impl_into_future!(ApproveChatJoinRequestBuilder, bool);
 // DeclineChatJoinRequestBuilder
 // =========================================================================
 
-/// Builder for the [`declineChatJoinRequest`] API method.
+/// Builder for the [`Bot::decline_chat_join_request`] API method.
 #[derive(Serialize)]
 pub struct DeclineChatJoinRequestBuilder<'a> {
     #[serde(skip)]
@@ -6384,7 +6384,7 @@ impl_into_future!(DeclineChatJoinRequestBuilder, bool);
 // AnswerChatJoinRequestQueryBuilder
 // =========================================================================
 
-/// Builder for the [`answerChatJoinRequestQuery`] API method.
+/// Builder for the [`Bot::answer_chat_join_request_query`] API method.
 #[derive(Serialize)]
 pub struct AnswerChatJoinRequestQueryBuilder<'a> {
     #[serde(skip)]
@@ -6409,7 +6409,7 @@ impl_into_future!(AnswerChatJoinRequestQueryBuilder, bool);
 // SendChatJoinRequestWebAppBuilder
 // =========================================================================
 
-/// Builder for the [`sendChatJoinRequestWebApp`] API method.
+/// Builder for the [`Bot::send_chat_join_request_web_app`] API method.
 ///
 /// Shows a Mini App to the user before the join request outcome is decided;
 /// resolve the query afterwards with `answerChatJoinRequestQuery`.

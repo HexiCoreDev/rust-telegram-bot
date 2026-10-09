@@ -81,9 +81,13 @@ pub type JobCallbackFn = Arc<
 /// that the callback needs.
 #[derive(Debug, Clone)]
 pub struct JobContext {
+    /// Name of the job that produced this context.
     pub job_name: String,
+    /// Chat the job is scoped to, when it was scheduled with one.
     pub chat_id: Option<i64>,
+    /// User the job is scoped to, when it was scheduled with one.
     pub user_id: Option<i64>,
+    /// Arbitrary JSON payload captured at scheduling time.
     pub data: Option<serde_json::Value>,
 }
 
@@ -94,10 +98,15 @@ pub struct JobContext {
 /// A handle to a scheduled job. Can be used to check status or cancel.
 #[derive(Clone)]
 pub struct Job {
+    /// Unique identifier for this job, used to cancel or reschedule it.
     pub id: u64,
+    /// Human-readable name supplied at scheduling time.
     pub name: String,
+    /// Chat the job is scoped to, when it was scheduled with one.
     pub chat_id: Option<i64>,
+    /// User the job is scoped to, when it was scheduled with one.
     pub user_id: Option<i64>,
+    /// Arbitrary JSON payload delivered to the callback on each run.
     pub data: Option<serde_json::Value>,
     callback: JobCallbackFn,
     /// Sending `true` cancels the job's timer loop.
@@ -192,14 +201,19 @@ impl Job {
         let _ = self.cancel_tx.send(true);
     }
 
+    /// Whether the job has been removed from the queue or has finished.
     pub fn is_removed(&self) -> bool {
         self.removed.load(Ordering::Relaxed)
     }
 
+    /// Whether the job is currently enabled.
+    ///
+    /// A disabled job stays registered but its timer does not fire.
     pub fn is_enabled(&self) -> bool {
         self.enabled.load(Ordering::Relaxed)
     }
 
+    /// Enable or disable the job without removing it from the queue.
     pub fn set_enabled(&self, enabled: bool) {
         self.enabled.store(enabled, Ordering::Relaxed);
     }
@@ -278,6 +292,7 @@ impl Default for JobQueue {
 }
 
 impl JobQueue {
+    /// Create an empty queue that is not yet running.
     pub fn new() -> Self {
         let (tx, rx) = watch::channel(false);
         Self {
@@ -1394,10 +1409,8 @@ mod tests {
         // A callback that always fails.
         let failing_cb: JobCallbackFn = Arc::new(|_ctx| {
             Box::pin(async {
-                Err(
-                    Box::new(std::io::Error::new(std::io::ErrorKind::Other, "job failed"))
-                        as Box<dyn std::error::Error + Send + Sync>,
-                )
+                Err(Box::new(std::io::Error::other("job failed"))
+                    as Box<dyn std::error::Error + Send + Sync>)
             })
         });
 

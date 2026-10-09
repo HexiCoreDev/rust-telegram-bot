@@ -6,7 +6,7 @@
 //!
 //! # Rate-limited request wrapping
 //!
-//! The [`RateLimitedRequest`] adapter wraps any [`BaseRequest`] implementation
+//! The `RateLimitedRequest` adapter wraps any `BaseRequest` implementation
 //! and calls the rate limiter before each HTTP request is dispatched.  This is
 //! the cleanest interception point -- it operates at the HTTP transport layer
 //! so all API methods are rate-limited transparently without touching the
@@ -70,7 +70,7 @@ type BoxedCallback = Box<
 >;
 
 /// Object-safe rate-limiter trait so we can store it as a trait object inside
-/// [`ExtBot`](crate::ext_bot::ExtBot).
+/// `ExtBot`(crate::ext_bot::ExtBot).
 ///
 /// Unlike [`BaseRateLimiter`], `process_request` takes **owned** parameters
 /// and a boxed callback, making the trait object-safe and avoiding lifetime
@@ -95,9 +95,9 @@ pub trait DynRateLimiter: Send + Sync + std::fmt::Debug {
 // RateLimitedRequest -- BaseRequest wrapper that applies rate limiting
 // ---------------------------------------------------------------------------
 
-/// A [`BaseRequest`] adapter that applies rate limiting before each HTTP call.
+/// A `BaseRequest` adapter that applies rate limiting before each HTTP call.
 ///
-/// This wraps an inner [`BaseRequest`] implementation and a [`DynRateLimiter`].
+/// This wraps an inner `BaseRequest` implementation and a `DynRateLimiter`.
 /// Before each `do_request` or `do_request_json_bytes` call, it passes the
 /// actual HTTP call as a callback to the rate limiter, which decides when to
 /// invoke it.
@@ -145,7 +145,7 @@ fn params_to_value_map(request_data: Option<&RequestData>) -> HashMap<String, se
     rd.json_parameters()
         .into_iter()
         .map(|(k, v)| {
-            let value = serde_json::from_str(&v).unwrap_or_else(|_| serde_json::Value::String(v));
+            let value = serde_json::from_str(&v).unwrap_or(serde_json::Value::String(v));
             (k, value)
         })
         .collect()
@@ -260,7 +260,7 @@ impl BaseRequest for RateLimitedRequest {
 fn base64_encode(data: &[u8]) -> String {
     const ALPHABET: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
-    let mut out = Vec::with_capacity((data.len() + 2) / 3 * 4);
+    let mut out = Vec::with_capacity(data.len().div_ceil(3) * 4);
     for chunk in data.chunks(3) {
         let b0 = chunk[0] as u32;
         let b1 = if chunk.len() > 1 { chunk[1] as u32 } else { 0 };
@@ -384,6 +384,10 @@ impl TokenBucket {
 /// Extracted so both `BaseRateLimiter::process_request` (which takes `&str` +
 /// `&HashMap`) and `DynRateLimiter::process_request` (which takes owned
 /// `String` + `HashMap`) can share the same throttling logic.
+// Private helper whose parameters mirror the three shared entry points it
+// serves (`&TokenBucket`, owned `String` + `HashMap`, and the raw request
+// path); bundling them into a config struct would obscure that symmetry.
+#[allow(clippy::too_many_arguments)]
 async fn throttle_and_call<F, Fut>(
     base_limiter: &Option<TokenBucket>,
     group_max_rate: u32,

@@ -33,10 +33,10 @@ pub struct HasToken;
 // ---------------------------------------------------------------------------
 // Builder
 // ---------------------------------------------------------------------------
-/// Typestate builder for constructing an [`Application`](crate::application::Application).
+/// Typestate builder for constructing an [`Application`].
 ///
 /// The builder enforces at compile time that a bot token is set before
-/// [`build`](ApplicationBuilder::build) can be called, using the
+/// `build` can be called, using the
 /// [`NoToken`] / [`HasToken`] marker types.
 pub struct ApplicationBuilder<State = NoToken> {
     token: Option<String>,
@@ -230,7 +230,7 @@ impl<S> ApplicationBuilder<S> {
 }
 
 impl ApplicationBuilder<HasToken> {
-    /// Consume the builder and construct the [`Application`](crate::application::Application).
+    /// Consume the builder and construct the [`Application`].
     #[must_use]
     pub fn build(self) -> Arc<Application> {
         let token = self.token.expect("HasToken state guarantees a token");

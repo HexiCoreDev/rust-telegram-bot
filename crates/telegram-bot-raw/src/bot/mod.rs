@@ -58,7 +58,7 @@ impl From<&str> for ChatId {
     }
 }
 
-/// Result type for edit methods that return either a [`Message`](message::Message) or a `bool`.
+/// Result type for edit methods that return either a `Message`(message::Message) or a `bool`.
 ///
 /// Some Telegram API edit methods return the edited `Message` when called with `chat_id`
 /// and `message_id`, but return `true` when called with `inline_message_id`.
@@ -287,7 +287,7 @@ impl Bot {
 
     /// Creates a `Bot` with full configuration options.
     ///
-    /// Allows optional [`Defaults`] to merge into every API call.
+    /// Allows optional `Defaults` to merge into every API call.
     pub fn with_options(
         token: impl Into<String>,
         request: Arc<dyn BaseRequest>,
@@ -624,7 +624,7 @@ impl Bot {
     // Basic methods
     // ======================================================================
 
-    /// Calls the `getMe` endpoint, returning the bot's own [`User`](user::User) object.
+    /// Calls the `getMe` endpoint, returning the bot's own `User`(user::User) object.
     pub async fn get_me_raw(&self) -> Result<user::User> {
         self.do_post("getMe", Vec::new()).await
     }

@@ -16,7 +16,7 @@
 //! TELEGRAM_BOT_TOKEN="your-token-here" cargo run -p rust-tg-bot --example inline_bot
 //! ```
 use rust_tg_bot::ext::prelude::{
-    ApplicationBuilder, Arc, CommandHandler, Context, FnHandler, HandlerResult, ParseMode, Update,
+    ApplicationBuilder, Arc, CommandHandler, Context, FnHandler, HandlerResult, Update,
 };
 use rust_tg_bot::raw::types::inline::inline_query_result_article::InlineQueryResultArticle;
 use rust_tg_bot::raw::types::inline::input_message_content::InputMessageContent;

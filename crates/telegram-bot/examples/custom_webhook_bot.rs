@@ -75,8 +75,6 @@ struct AppState {
     app: Arc<Application>,
     /// Admin chat ID to receive forwarded custom payloads.
     admin_chat_id: i64,
-    /// The public webhook URL, captured at startup.
-    webhook_url: String,
 }
 
 // ---------------------------------------------------------------------------
@@ -311,7 +309,6 @@ async fn main() {
         update_tx: app.update_sender(),
         app: Arc::clone(&app),
         admin_chat_id,
-        webhook_url,
     };
 
     let router = Router::new()

@@ -26,7 +26,7 @@ pub type Update = rust_tg_bot_raw::types::update::Update;
 // Value bridge for filters (legacy — kept for compatibility)
 // ---------------------------------------------------------------------------
 
-/// Convert a typed [`Update`] reference to a [`serde_json::Value`].
+/// Convert a typed `Update` reference to a [`serde_json::Value`].
 ///
 /// Retained for callers that still need raw JSON inspection.  All filter
 /// `check_update` implementations use typed field access instead.
@@ -40,8 +40,8 @@ pub fn to_value(update: &Update) -> Value {
 
 /// Result of a filter check, supporting data filters (like Python's `data_filter`).
 ///
-/// Simple filters return [`Match`](FilterResult::Match) or [`NoMatch`](FilterResult::NoMatch).
-/// Data filters (e.g. regex) return [`MatchWithData`](FilterResult::MatchWithData) carrying
+/// Simple filters return [`FilterResult::Match`] or [`FilterResult::NoMatch`].
+/// Data filters (e.g. regex) return [`FilterResult::MatchWithData`] carrying
 /// named capture groups or other extracted data.
 #[derive(Debug, Clone, PartialEq, Eq)]
 #[non_exhaustive]
@@ -61,7 +61,7 @@ impl FilterResult {
         !matches!(self, FilterResult::NoMatch)
     }
 
-    /// Merge data from two `FilterResult` values. Used by [`AndFilter`].
+    /// Merge data from two `FilterResult` values. Used by `AndFilter`.
     ///
     /// - If either side is `NoMatch`, the result is `NoMatch`.
     /// - If both carry data, their maps are merged (values appended).
@@ -152,7 +152,7 @@ pub fn effective_chat_val(v: &Value) -> Option<&Value> {
 // Message / user / chat extraction helpers (Value-based, owned)
 // ---------------------------------------------------------------------------
 
-/// Best-effort extraction of the *effective message* from an [`Update`] as a
+/// Best-effort extraction of the *effective message* from an `Update` as a
 /// [`Value`] for callers that still operate on JSON field access.
 pub fn effective_message(update: &Update) -> Option<Value> {
     update
@@ -160,14 +160,14 @@ pub fn effective_message(update: &Update) -> Option<Value> {
         .and_then(|m| serde_json::to_value(m).ok())
 }
 
-/// Extract the effective user from an [`Update`] as a [`Value`].
+/// Extract the effective user from an `Update` as a [`Value`].
 pub fn effective_user(update: &Update) -> Option<Value> {
     update
         .effective_user()
         .and_then(|u| serde_json::to_value(u).ok())
 }
 
-/// Extract the effective chat from an [`Update`] as a [`Value`].
+/// Extract the effective chat from an `Update` as a [`Value`].
 pub fn effective_chat(update: &Update) -> Option<Value> {
     update
         .effective_chat()

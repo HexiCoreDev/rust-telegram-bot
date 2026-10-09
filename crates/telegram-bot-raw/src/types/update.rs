@@ -1,4 +1,4 @@
-//! Telegram [`Update`] type — ported from `python-telegram-bot/src/telegram/_update.py`.
+//! Telegram `Update` type — ported from `python-telegram-bot/src/telegram/_update.py`.
 //!
 //! Only data fields are included. No Bot reference, no API shortcuts.
 //! The three computed properties from Python (`effective_user`, `effective_chat`,
@@ -60,7 +60,7 @@ pub struct Update {
     pub kind: UpdateKind,
 }
 
-/// The payload carried by an incoming [`Update`].
+/// The payload carried by an incoming `Update`.
 ///
 /// Telegram sends update kinds as a single top-level key such as `message`,
 /// `callback_query`, or `poll`. This enum preserves that wire format via a
@@ -409,7 +409,7 @@ impl Update {
         ),
     );
 
-    /// Returns a reference to the [`User`] that sent this update, regardless of update type.
+    /// Returns a reference to the `User` that sent this update, regardless of update type.
     ///
     /// Returns `None` for updates that have no associated user (channel posts, polls, chat
     /// boosts, removed chat boosts, message reaction count, deleted business messages).
@@ -448,7 +448,7 @@ impl Update {
         }
     }
 
-    /// Returns a reference to the [`Chat`] in which this update occurred, if any.
+    /// Returns a reference to the `Chat` in which this update occurred, if any.
     ///
     /// Returns `None` for updates with no associated chat (inline queries, chosen inline
     /// results, shipping/pre-checkout queries, polls, poll answers, business connections,
@@ -488,7 +488,7 @@ impl Update {
         }
     }
 
-    /// Returns a reference to the [`Message`] carried by this update, if any.
+    /// Returns a reference to the `Message` carried by this update, if any.
     ///
     /// Considers `message`, `edited_message`, `channel_post`, `edited_channel_post`,
     /// the message inside `callback_query`, `business_message`,

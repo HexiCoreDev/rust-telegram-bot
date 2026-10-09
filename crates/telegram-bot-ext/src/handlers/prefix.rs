@@ -1,8 +1,8 @@
 //! [`PrefixHandler`] -- handles custom prefix commands.
 //!
 //! Ported from `python-telegram-bot`'s `PrefixHandler`. This is an
-//! intermediate handler between [`MessageHandler`](super::message) and
-//! [`CommandHandler`](super::command). It matches messages whose first word
+//! intermediate handler between [`MessageHandler`](crate::handlers::message::MessageHandler)(super::message) and
+//! [`CommandHandler`](crate::handlers::command::CommandHandler)(super::command). It matches messages whose first word
 //! equals one of the cartesian products of `prefix x command`
 //! (case-insensitive).
 //!

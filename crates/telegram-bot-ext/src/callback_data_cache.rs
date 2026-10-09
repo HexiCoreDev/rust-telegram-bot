@@ -188,7 +188,7 @@ pub type CdcData = (
 // CallbackDataCache
 // ---------------------------------------------------------------------------
 
-/// A custom cache for storing the callback data of an [`ExtBot`](super::ext_bot::ExtBot).
+/// A custom cache for storing the callback data of an `ExtBot`(super::ext_bot::ExtBot).
 ///
 /// Internally, it keeps two mappings with fixed maximum size:
 ///

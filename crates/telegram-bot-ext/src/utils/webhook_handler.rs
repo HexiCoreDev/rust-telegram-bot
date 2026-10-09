@@ -358,7 +358,7 @@ impl WebhookServer {
     /// Start serving. Resolves when `ready` is notified (server is bound) or
     /// an error occurs.
     ///
-    /// The server runs until [`shutdown`](Self::shutdown) is called. In-flight
+    /// The server runs until `shutdown` is called. In-flight
     /// requests are drained before the server exits (graceful shutdown).
     ///
     /// When TLS is configured (via the `webhooks-tls` feature and a
@@ -620,6 +620,9 @@ pub struct WebhookApp;
 
 impl WebhookApp {
     /// Create a [`WebhookServer`] from the standard set of parameters.
+    // Deliberately named `new` for parity with PTB's `WebhookAppClass`, even
+    // though it returns a `WebhookServer` rather than `Self`.
+    #[allow(clippy::new_ret_no_self)]
     pub fn new(
         listen: impl Into<String>,
         port: u16,
@@ -878,7 +881,7 @@ mod tests {
     fn webhook_handler_creates_router() {
         let (tx, _rx) = mpsc::channel(1);
         let handler = WebhookHandler::new(tx, Some("secret".into()));
-        handler.into_router("/webhook");
+        let _router = handler.into_router("/webhook");
         // If we got here without panic, the router was built successfully.
     }
 
@@ -886,7 +889,7 @@ mod tests {
     fn webhook_handler_normalizes_path_without_slash() {
         let (tx, _rx) = mpsc::channel(1);
         let handler = WebhookHandler::new(tx, None);
-        handler.into_router("webhook");
+        let _router = handler.into_router("webhook");
         // Path normalization succeeded (prepends '/').
     }
 }

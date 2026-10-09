@@ -1,4 +1,4 @@
-//! Telegram [`CallbackQuery`] type — ported from
+//! Telegram `CallbackQuery` type — ported from
 //! `python-telegram-bot/src/telegram/_callbackquery.py`.
 //!
 //! Only data fields are included. No Bot reference, no API shortcuts.

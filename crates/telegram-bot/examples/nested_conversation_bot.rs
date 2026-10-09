@@ -61,11 +61,12 @@ enum FeatureState {
 }
 
 /// Combined conversation state for the user.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
 enum ConvState {
     Top(TopState),
     Member(MemberState),
     Feature(FeatureState),
+    #[default]
     End,
 }
 
@@ -112,12 +113,6 @@ struct UserState {
     family: HashMap<String, Vec<PersonInfo>>,
 }
 
-impl Default for ConvState {
-    fn default() -> Self {
-        ConvState::End
-    }
-}
-
 type StateStore = Arc<RwLock<HashMap<i64, UserState>>>;
 
 // ---------------------------------------------------------------------------
@@ -132,7 +127,7 @@ fn extract_user_id(update: &Update) -> i64 {
     update.effective_user().expect("update must have a user").id
 }
 
-fn extract_text<'a>(update: &'a Update) -> Option<&'a str> {
+fn extract_text(update: &Update) -> Option<&str> {
     update.effective_message().and_then(|m| m.text.as_deref())
 }
 
@@ -149,7 +144,7 @@ fn check_command(update: &Update, expected: &str) -> bool {
         Some(e) => e,
         None => return false,
     };
-    entities.first().map_or(false, |e| {
+    entities.first().is_some_and(|e| {
         if e.entity_type == MessageEntityType::BotCommand && e.offset == 0 {
             let length = e.length as usize;
             if length <= text.len() {

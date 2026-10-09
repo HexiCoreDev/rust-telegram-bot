@@ -88,11 +88,13 @@ impl JsonFilePersistence {
         }
     }
 
+    /// Restrict which data categories are written to disk.
     pub fn with_store_data(mut self, input: PersistenceInput) -> Self {
         self.store_data = input;
         self
     }
 
+    /// Seconds between automatic flushes of in-memory state.
     pub fn with_update_interval(mut self, seconds: f64) -> Self {
         self.update_interval = seconds;
         self

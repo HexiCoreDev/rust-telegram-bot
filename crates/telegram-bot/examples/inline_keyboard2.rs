@@ -319,7 +319,7 @@ fn check_command(update: &Update, expected: &str) -> bool {
         Some(e) => e,
         None => return false,
     };
-    entities.first().map_or(false, |e| {
+    entities.first().is_some_and(|e| {
         if e.entity_type == MessageEntityType::BotCommand && e.offset == 0 {
             let length = e.length as usize;
             if length <= text.len() {

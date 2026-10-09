@@ -104,7 +104,7 @@ impl PostgresPersistenceBuilder {
     ///
     /// All table names will be formatted as `{prefix}_user_data`, etc. Only
     /// ASCII letters, digits, and underscores are accepted (enforced in
-    /// [`build`](Self::build)); anything else is rejected to prevent SQL
+    /// `build`); anything else is rejected to prevent SQL
     /// injection through table-name interpolation.
     #[must_use]
     pub fn with_prefix(mut self, prefix: impl Into<String>) -> Self {
@@ -211,7 +211,7 @@ impl PostgresPersistence {
     /// rejected to prevent SQL injection through table-name interpolation.
     /// Note: this setter acts on an already-initialised instance whose tables
     /// were created with the previous prefix — prefer
-    /// [`PostgresPersistenceBuilder::with_prefix`] before [`build`](PostgresPersistenceBuilder::build).
+    /// [`PostgresPersistenceBuilder::with_prefix`] before `build`.
     #[must_use]
     pub fn with_prefix(mut self, prefix: impl Into<String>) -> Self {
         self.prefix = prefix.into();

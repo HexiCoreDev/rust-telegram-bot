@@ -11,7 +11,7 @@ impl Bot {
     /// Use this method to save a keyboard button to be later shown to the
     /// user via a Mini App.
     ///
-    /// Returns a [`PreparedKeyboardButton`](crate::types::prepared_keyboard_button::PreparedKeyboardButton)
+    /// Returns a [`PreparedKeyboardButton`]
     /// on success.
     pub(crate) async fn save_prepared_keyboard_button_raw(
         &self,

@@ -73,9 +73,9 @@ fn is_start_with_payload(update: &Update, payload: &str) -> bool {
         Some(e) => e,
         None => return false,
     };
-    let is_cmd = entities.first().map_or(false, |e| {
-        e.entity_type == MessageEntityType::BotCommand && e.offset == 0
-    });
+    let is_cmd = entities
+        .first()
+        .is_some_and(|e| e.entity_type == MessageEntityType::BotCommand && e.offset == 0);
     if !is_cmd {
         return false;
     }
@@ -96,9 +96,9 @@ fn is_plain_start(update: &Update) -> bool {
         Some(e) => e,
         None => return false,
     };
-    let is_cmd = entities.first().map_or(false, |e| {
-        e.entity_type == MessageEntityType::BotCommand && e.offset == 0
-    });
+    let is_cmd = entities
+        .first()
+        .is_some_and(|e| e.entity_type == MessageEntityType::BotCommand && e.offset == 0);
     // Only match bare "/start" (no payload).
     is_cmd && (text.trim() == "/start" || text.trim().starts_with("/start@"))
 }

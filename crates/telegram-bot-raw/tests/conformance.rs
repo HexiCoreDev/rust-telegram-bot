@@ -261,9 +261,11 @@ fn managed_bot_token_builders_send_user_id_key() {
 fn all_bot_api_raw_methods_exist() {
     let bot: &'static Bot = Box::leak(Box::new(make_bot()));
 
+    // `drop` rather than `let _ =` so the intent is explicit: construct the
+    // future to type-check the signature, then discard it unpolled.
     macro_rules! check {
         ($expr:expr) => {
-            let _ = $expr;
+            drop($expr);
         };
     }
 

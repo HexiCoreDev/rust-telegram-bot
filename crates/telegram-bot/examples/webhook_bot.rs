@@ -18,7 +18,7 @@ use std::sync::Arc;
 
 use rust_tg_bot::ext::prelude::{
     ApplicationBuilder, CommandHandler, Context, FnHandler, HandlerResult, InlineKeyboardButton,
-    InlineKeyboardMarkup, MessageEntityType, MessageHandler, ParseMode, Update, COMMAND, TEXT,
+    InlineKeyboardMarkup, MessageHandler, ParseMode, Update, COMMAND, TEXT,
 };
 use rust_tg_bot::ext::updater::WebhookConfig;
 
@@ -40,7 +40,7 @@ async fn start(update: Arc<Update>, context: Context) -> HandlerResult {
     let chat_id = update.effective_chat().map(|c| c.id).unwrap_or(0);
     context
         .bot()
-        .send_message(chat_id, &format!("Hi {name}! I am running via webhook."))
+        .send_message(chat_id, format!("Hi {name}! I am running via webhook."))
         .parse_mode(ParseMode::Html)
         .reply_markup(serde_json::to_value(&keyboard).unwrap_or_default())
         .await?;

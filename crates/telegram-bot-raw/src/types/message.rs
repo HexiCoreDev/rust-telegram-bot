@@ -1,4 +1,4 @@
-//! Telegram [`Message`] type — ported from `python-telegram-bot/src/telegram/_message.py`.
+//! Telegram `Message` type — ported from `python-telegram-bot/src/telegram/_message.py`.
 //!
 //! All 80+ optional fields from the Python source are represented.
 //! Only data fields are included. No Bot reference, no API shortcuts.
@@ -643,7 +643,7 @@ pub struct InaccessibleMessage {
 // MaybeInaccessibleMessage
 // ---------------------------------------------------------------------------
 
-/// Union type: either a full [`Message`] or an [`InaccessibleMessage`].
+/// Union type: either a full `Message` or an [`InaccessibleMessage`].
 ///
 /// Discriminated by whether `date == 0` (inaccessible) or not.
 ///
@@ -660,7 +660,7 @@ pub enum MaybeInaccessibleMessage {
 }
 
 impl MaybeInaccessibleMessage {
-    /// Returns a reference to the [`Chat`] regardless of variant.
+    /// Returns a reference to the `Chat` regardless of variant.
     #[must_use]
     pub fn chat(&self) -> &Chat {
         match self {
@@ -678,7 +678,7 @@ impl MaybeInaccessibleMessage {
         }
     }
 
-    /// Returns a reference to the inner [`Message`] if accessible, `None` otherwise.
+    /// Returns a reference to the inner `Message` if accessible, `None` otherwise.
     #[must_use]
     pub fn as_message(&self) -> Option<&Message> {
         match self {

@@ -1,6 +1,6 @@
 //! Regex filter for message text.
 //!
-//! Searches the message `text` with [`regex::Regex`] and returns captured
+//! Searches the message `text` with `regex::Regex` and returns captured
 //! groups as [`FilterResult::MatchWithData`].
 
 use std::collections::HashMap;
@@ -31,7 +31,7 @@ impl RegexFilter {
         }
     }
 
-    /// Create from a pre-compiled [`regex::Regex`].
+    /// Create from a pre-compiled `regex::Regex`.
     pub fn from_regex(re: regex::Regex) -> Self {
         let display = format!("filters.Regex({})", re.as_str());
         Self {

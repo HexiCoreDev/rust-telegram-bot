@@ -46,10 +46,10 @@ use rust_tg_bot::ext::prelude::{
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum ConvState {
-    AskName,
-    AskAge,
-    AskLocation,
-    AskBio,
+    Name,
+    Age,
+    Location,
+    Bio,
 }
 
 type ConvStore = Arc<RwLock<HashMap<i64, ConvState>>>;
@@ -73,7 +73,7 @@ async fn start_command(
     conv_store: ConvStore,
 ) -> HandlerResult {
     let chat_id = extract_chat_id(&update);
-    conv_store.write().await.insert(chat_id, ConvState::AskName);
+    conv_store.write().await.insert(chat_id, ConvState::Name);
 
     context
         .bot()
@@ -98,13 +98,13 @@ async fn receive_name(
     let text = extract_text(&update).unwrap_or_default();
 
     user_data.write().await.entry(chat_id).or_default().name = Some(text.to_string());
-    conv_store.write().await.insert(chat_id, ConvState::AskAge);
+    conv_store.write().await.insert(chat_id, ConvState::Age);
 
     context
         .bot()
         .send_message(
             chat_id,
-            &format!("Nice to meet you, {text}! How old are you?"),
+            format!("Nice to meet you, {text}! How old are you?"),
         )
         .await
         .map_err(|e| HandlerError::Other(Box::new(e)))?;
@@ -125,7 +125,7 @@ async fn receive_age(
     conv_store
         .write()
         .await
-        .insert(chat_id, ConvState::AskLocation);
+        .insert(chat_id, ConvState::Location);
 
     context
         .bot()
@@ -146,7 +146,7 @@ async fn receive_location(
     let text = extract_text(&update).unwrap_or_default();
 
     user_data.write().await.entry(chat_id).or_default().location = Some(text.to_string());
-    conv_store.write().await.insert(chat_id, ConvState::AskBio);
+    conv_store.write().await.insert(chat_id, ConvState::Bio);
 
     context
         .bot()
@@ -221,7 +221,7 @@ fn extract_chat_id(update: &Update) -> i64 {
     update.effective_chat().expect("update must have a chat").id
 }
 
-fn extract_text<'a>(update: &'a Update) -> Option<&'a str> {
+fn extract_text(update: &Update) -> Option<&str> {
     update.effective_message().and_then(|m| m.text.as_deref())
 }
 
@@ -238,7 +238,7 @@ fn check_command(update: &Update, expected: &str) -> bool {
         Some(e) => e,
         None => return false,
     };
-    entities.first().map_or(false, |e| {
+    entities.first().is_some_and(|e| {
         if e.entity_type == MessageEntityType::BotCommand && e.offset == 0 {
             let length = e.length as usize;
             if length <= text.len() {
@@ -333,7 +333,7 @@ async fn main() {
         let cs_check = Arc::clone(&conv_store);
         app.add_handler(
             FnHandler::new(
-                move |u| is_text_in_state(u, &cs_check, ConvState::AskName),
+                move |u| is_text_in_state(u, &cs_check, ConvState::Name),
                 move |update, ctx| {
                     let cs = Arc::clone(&cs);
                     let ud = Arc::clone(&ud);
@@ -352,7 +352,7 @@ async fn main() {
         let cs_check = Arc::clone(&conv_store);
         app.add_handler(
             FnHandler::new(
-                move |u| is_text_in_state(u, &cs_check, ConvState::AskAge),
+                move |u| is_text_in_state(u, &cs_check, ConvState::Age),
                 move |update, ctx| {
                     let cs = Arc::clone(&cs);
                     let ud = Arc::clone(&ud);
@@ -371,7 +371,7 @@ async fn main() {
         let cs_check = Arc::clone(&conv_store);
         app.add_handler(
             FnHandler::new(
-                move |u| is_text_in_state(u, &cs_check, ConvState::AskLocation),
+                move |u| is_text_in_state(u, &cs_check, ConvState::Location),
                 move |update, ctx| {
                     let cs = Arc::clone(&cs);
                     let ud = Arc::clone(&ud);
@@ -390,7 +390,7 @@ async fn main() {
         let cs_check = Arc::clone(&conv_store);
         app.add_handler(
             FnHandler::new(
-                move |u| is_text_in_state(u, &cs_check, ConvState::AskBio),
+                move |u| is_text_in_state(u, &cs_check, ConvState::Bio),
                 move |update, ctx| {
                     let cs = Arc::clone(&cs);
                     let ud = Arc::clone(&ud);

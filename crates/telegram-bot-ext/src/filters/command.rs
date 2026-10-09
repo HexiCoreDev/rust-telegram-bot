@@ -1,6 +1,6 @@
 //! Command filter.
 //!
-//! - [`CommandStarts`] / [`COMMAND`] -- messages starting with a bot command.
+//! - `CommandStarts` / [`COMMAND`] -- messages starting with a bot command.
 //! - [`CommandFilter`] -- configurable: `only_start` controls whether the
 //!   command must be at offset 0 or can appear anywhere in the text.
 

@@ -2,14 +2,14 @@
 //!
 //! Ported from `python-telegram-bot/src/telegram/ext/_defaults.py`.
 //!
-//! [`Defaults`] gathers all user-defined default values that the [`ExtBot`](super::ext_bot::ExtBot)
+//! `Defaults` gathers all user-defined default values that the `ExtBot`(super::ext_bot::ExtBot)
 //! and handlers consult when an explicit value is not provided by the caller.
 //!
 //! Once constructed, every field is immutable (no public setters).
 //!
 //! # Construction
 //!
-//! Use the builder pattern via [`Defaults::builder()`]:
+//! Use the builder pattern via `Defaults::builder`:
 //!
 //! ```
 //! # use rust_tg_bot_ext::defaults::Defaults;
@@ -51,7 +51,7 @@ impl Defaults {
     /// Only the values that are explicitly `Some(...)` will be injected into API calls.
     /// `block` defaults to `true` when `None` is passed.
     ///
-    /// Prefer [`Defaults::builder()`] for public construction -- this avoids long
+    /// Prefer `Defaults::builder` for public construction -- this avoids long
     /// `None, None, None` argument lists.
     #[must_use]
     pub(crate) fn new(
@@ -129,27 +129,27 @@ impl Defaults {
         self.parse_mode.as_deref()
     }
 
-    /// Alias for [`parse_mode`](Self::parse_mode), used for the corresponding parameter of
+    /// Alias for `parse_mode`, used for the corresponding parameter of
     /// `Bot::send_poll`.
     #[must_use]
     pub fn explanation_parse_mode(&self) -> Option<&str> {
         self.parse_mode.as_deref()
     }
 
-    /// Alias for [`parse_mode`](Self::parse_mode), used for `InputPollOption` and
+    /// Alias for `parse_mode`, used for `InputPollOption` and
     /// `Bot::send_gift`.
     #[must_use]
     pub fn text_parse_mode(&self) -> Option<&str> {
         self.parse_mode.as_deref()
     }
 
-    /// Alias for [`parse_mode`](Self::parse_mode), used for `Bot::send_poll`.
+    /// Alias for `parse_mode`, used for `Bot::send_poll`.
     #[must_use]
     pub fn question_parse_mode(&self) -> Option<&str> {
         self.parse_mode.as_deref()
     }
 
-    /// Alias for [`parse_mode`](Self::parse_mode), used for `ReplyParameters`.
+    /// Alias for `parse_mode`, used for `ReplyParameters`.
     #[must_use]
     pub fn quote_parse_mode(&self) -> Option<&str> {
         self.parse_mode.as_deref()
@@ -234,7 +234,7 @@ impl std::hash::Hash for Defaults {
 // DefaultsBuilder
 // ---------------------------------------------------------------------------
 
-/// Builder for [`Defaults`].
+/// Builder for `Defaults`.
 ///
 /// Provides ergonomic construction without `None, None, None` argument lists.
 ///
@@ -333,7 +333,7 @@ impl DefaultsBuilder {
         self
     }
 
-    /// Builds the [`Defaults`] instance.
+    /// Builds the `Defaults` instance.
     #[must_use]
     pub fn build(self) -> Defaults {
         Defaults::new(

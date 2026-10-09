@@ -1,6 +1,6 @@
 //! Builder pattern for Business, Payments, and Gifts API methods.
 //!
-//! This module mirrors the pattern established in [`bot_builders`](crate::bot_builders),
+//! This module mirrors the pattern established in [`bot_builders`],
 //! providing ergonomic builder structs for the business account management,
 //! payment, and gift-related Telegram Bot API endpoints.
 //!
@@ -64,7 +64,7 @@ macro_rules! impl_into_future {
 // GetBusinessConnectionBuilder
 // =========================================================================
 
-/// Builder for the [`getBusinessConnection`] API method.
+/// Builder for the [`Bot::get_business_connection`] API method.
 pub struct GetBusinessConnectionBuilder<'a> {
     bot: &'a Bot,
     business_connection_id: String,
@@ -89,7 +89,7 @@ impl_into_future!(GetBusinessConnectionBuilder, business::BusinessConnection);
 // GetBusinessAccountGiftsBuilder
 // =========================================================================
 
-/// Builder for the [`getBusinessAccountGifts`] API method.
+/// Builder for the [`Bot::get_business_account_gifts`] API method.
 pub struct GetBusinessAccountGiftsBuilder<'a> {
     bot: &'a Bot,
     business_connection_id: String,
@@ -197,7 +197,7 @@ impl_into_future!(GetBusinessAccountGiftsBuilder, owned_gift::OwnedGifts);
 // GetBusinessAccountStarBalanceBuilder
 // =========================================================================
 
-/// Builder for the [`getBusinessAccountStarBalance`] API method.
+/// Builder for the [`Bot::get_business_account_star_balance`] API method.
 pub struct GetBusinessAccountStarBalanceBuilder<'a> {
     bot: &'a Bot,
     business_connection_id: String,
@@ -225,7 +225,7 @@ impl_into_future!(
 // ReadBusinessMessageBuilder
 // =========================================================================
 
-/// Builder for the [`readBusinessMessage`] API method.
+/// Builder for the [`Bot::read_business_message`] API method.
 pub struct ReadBusinessMessageBuilder<'a> {
     bot: &'a Bot,
     business_connection_id: String,
@@ -254,7 +254,7 @@ impl_into_future!(ReadBusinessMessageBuilder, bool);
 // DeleteBusinessMessagesBuilder
 // =========================================================================
 
-/// Builder for the [`deleteBusinessMessages`] API method.
+/// Builder for the [`Bot::delete_business_messages`] API method.
 pub struct DeleteBusinessMessagesBuilder<'a> {
     bot: &'a Bot,
     business_connection_id: String,
@@ -283,7 +283,7 @@ impl_into_future!(DeleteBusinessMessagesBuilder, bool);
 // SetBusinessAccountNameBuilder
 // =========================================================================
 
-/// Builder for the [`setBusinessAccountName`] API method.
+/// Builder for the [`Bot::set_business_account_name`] API method.
 pub struct SetBusinessAccountNameBuilder<'a> {
     bot: &'a Bot,
     business_connection_id: String,
@@ -320,7 +320,7 @@ impl_into_future!(SetBusinessAccountNameBuilder, bool);
 // SetBusinessAccountUsernameBuilder
 // =========================================================================
 
-/// Builder for the [`setBusinessAccountUsername`] API method.
+/// Builder for the [`Bot::set_business_account_username`] API method.
 pub struct SetBusinessAccountUsernameBuilder<'a> {
     bot: &'a Bot,
     business_connection_id: String,
@@ -353,7 +353,7 @@ impl_into_future!(SetBusinessAccountUsernameBuilder, bool);
 // SetBusinessAccountBioBuilder
 // =========================================================================
 
-/// Builder for the [`setBusinessAccountBio`] API method.
+/// Builder for the [`Bot::set_business_account_bio`] API method.
 pub struct SetBusinessAccountBioBuilder<'a> {
     bot: &'a Bot,
     business_connection_id: String,
@@ -386,7 +386,7 @@ impl_into_future!(SetBusinessAccountBioBuilder, bool);
 // SetBusinessAccountGiftSettingsBuilder
 // =========================================================================
 
-/// Builder for the [`setBusinessAccountGiftSettings`] API method.
+/// Builder for the [`Bot::set_business_account_gift_settings`] API method.
 pub struct SetBusinessAccountGiftSettingsBuilder<'a> {
     bot: &'a Bot,
     business_connection_id: String,
@@ -423,7 +423,7 @@ impl_into_future!(SetBusinessAccountGiftSettingsBuilder, bool);
 // SetBusinessAccountProfilePhotoBuilder
 // =========================================================================
 
-/// Builder for the [`setBusinessAccountProfilePhoto`] API method.
+/// Builder for the [`Bot::set_business_account_profile_photo`] API method.
 pub struct SetBusinessAccountProfilePhotoBuilder<'a> {
     bot: &'a Bot,
     business_connection_id: String,
@@ -460,7 +460,7 @@ impl_into_future!(SetBusinessAccountProfilePhotoBuilder, bool);
 // RemoveBusinessAccountProfilePhotoBuilder
 // =========================================================================
 
-/// Builder for the [`removeBusinessAccountProfilePhoto`] API method.
+/// Builder for the [`Bot::remove_business_account_profile_photo`] API method.
 pub struct RemoveBusinessAccountProfilePhotoBuilder<'a> {
     bot: &'a Bot,
     business_connection_id: String,
@@ -493,7 +493,7 @@ impl_into_future!(RemoveBusinessAccountProfilePhotoBuilder, bool);
 // ConvertGiftToStarsBuilder
 // =========================================================================
 
-/// Builder for the [`convertGiftToStars`] API method.
+/// Builder for the [`Bot::convert_gift_to_stars`] API method.
 pub struct ConvertGiftToStarsBuilder<'a> {
     bot: &'a Bot,
     business_connection_id: String,
@@ -523,7 +523,7 @@ impl_into_future!(ConvertGiftToStarsBuilder, bool);
 // UpgradeGiftBuilder
 // =========================================================================
 
-/// Builder for the [`upgradeGift`] API method.
+/// Builder for the [`Bot::upgrade_gift`] API method.
 pub struct UpgradeGiftBuilder<'a> {
     bot: &'a Bot,
     business_connection_id: String,
@@ -572,7 +572,7 @@ impl_into_future!(UpgradeGiftBuilder, bool);
 // TransferGiftBuilder
 // =========================================================================
 
-/// Builder for the [`transferGift`] API method.
+/// Builder for the [`Bot::transfer_gift`] API method.
 pub struct TransferGiftBuilder<'a> {
     bot: &'a Bot,
     business_connection_id: String,
@@ -615,7 +615,7 @@ impl_into_future!(TransferGiftBuilder, bool);
 // TransferBusinessAccountStarsBuilder
 // =========================================================================
 
-/// Builder for the [`transferBusinessAccountStars`] API method.
+/// Builder for the [`Bot::transfer_business_account_stars`] API method.
 pub struct TransferBusinessAccountStarsBuilder<'a> {
     bot: &'a Bot,
     business_connection_id: String,
@@ -648,7 +648,7 @@ impl_into_future!(TransferBusinessAccountStarsBuilder, bool);
 // CreateInvoiceLinkBuilder
 // =========================================================================
 
-/// Builder for the [`createInvoiceLink`] API method.
+/// Builder for the [`Bot::create_invoice_link`] API method.
 pub struct CreateInvoiceLinkBuilder<'a> {
     bot: &'a Bot,
     title: String,
@@ -822,7 +822,7 @@ impl_into_future!(CreateInvoiceLinkBuilder, String);
 // EditUserStarSubscriptionBuilder
 // =========================================================================
 
-/// Builder for the [`editUserStarSubscription`] API method.
+/// Builder for the [`Bot::edit_user_star_subscription`] API method.
 pub struct EditUserStarSubscriptionBuilder<'a> {
     bot: &'a Bot,
     user_id: i64,
@@ -853,7 +853,7 @@ impl_into_future!(EditUserStarSubscriptionBuilder, bool);
 // GetMyStarBalanceBuilder
 // =========================================================================
 
-/// Builder for the [`getMyStarBalance`] API method.
+/// Builder for the [`Bot::get_my_star_balance`] API method.
 pub struct GetMyStarBalanceBuilder<'a> {
     bot: &'a Bot,
 }
@@ -876,7 +876,7 @@ impl_into_future!(
 // GetStarTransactionsBuilder
 // =========================================================================
 
-/// Builder for the [`getStarTransactions`] API method.
+/// Builder for the [`Bot::get_star_transactions`] API method.
 pub struct GetStarTransactionsBuilder<'a> {
     bot: &'a Bot,
     offset: Option<i64>,
@@ -913,7 +913,7 @@ impl_into_future!(
 // RefundStarPaymentBuilder
 // =========================================================================
 
-/// Builder for the [`refundStarPayment`] API method.
+/// Builder for the [`Bot::refund_star_payment`] API method.
 pub struct RefundStarPaymentBuilder<'a> {
     bot: &'a Bot,
     user_id: i64,
@@ -944,7 +944,7 @@ impl_into_future!(RefundStarPaymentBuilder, bool);
 // GetAvailableGiftsBuilder
 // =========================================================================
 
-/// Builder for the [`getAvailableGifts`] API method.
+/// Builder for the [`Bot::get_available_gifts`] API method.
 pub struct GetAvailableGiftsBuilder<'a> {
     bot: &'a Bot,
 }
@@ -964,7 +964,7 @@ impl_into_future!(GetAvailableGiftsBuilder, gifts::Gifts);
 // SendGiftBuilder
 // =========================================================================
 
-/// Builder for the [`sendGift`] API method.
+/// Builder for the [`Bot::send_gift`] API method.
 pub struct SendGiftBuilder<'a> {
     bot: &'a Bot,
     gift_id: String,
@@ -1030,7 +1030,7 @@ impl_into_future!(SendGiftBuilder, bool);
 // GiftPremiumSubscriptionBuilder
 // =========================================================================
 
-/// Builder for the [`giftPremiumSubscription`] API method.
+/// Builder for the [`Bot::gift_premium_subscription`] API method.
 pub struct GiftPremiumSubscriptionBuilder<'a> {
     bot: &'a Bot,
     user_id: i64,
@@ -1080,7 +1080,7 @@ impl_into_future!(GiftPremiumSubscriptionBuilder, bool);
 // GetUserGiftsBuilder
 // =========================================================================
 
-/// Builder for the [`getUserGifts`] API method.
+/// Builder for the [`Bot::get_user_gifts`] API method.
 pub struct GetUserGiftsBuilder<'a> {
     bot: &'a Bot,
     user_id: i64,
@@ -1172,7 +1172,7 @@ impl_into_future!(GetUserGiftsBuilder, owned_gift::OwnedGifts);
 // GetChatGiftsBuilder
 // =========================================================================
 
-/// Builder for the [`getChatGifts`] API method.
+/// Builder for the [`Bot::get_chat_gifts`] API method.
 pub struct GetChatGiftsBuilder<'a> {
     bot: &'a Bot,
     chat_id: ChatId,

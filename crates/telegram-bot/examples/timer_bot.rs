@@ -138,7 +138,7 @@ async fn set_timer(
 
     context
         .bot()
-        .send_message(chat_id, &format!("Timer set for {seconds} seconds!"))
+        .send_message(chat_id, format!("Timer set for {seconds} seconds!"))
         .await
         .map_err(|e| HandlerError::Other(Box::new(e)))?;
 
@@ -206,7 +206,7 @@ fn check_command(update: &Update, expected: &str) -> bool {
         Some(e) => e,
         None => return false,
     };
-    entities.first().map_or(false, |e| {
+    entities.first().is_some_and(|e| {
         if e.entity_type == MessageEntityType::BotCommand && e.offset == 0 {
             let length = e.length as usize;
             if length <= text.len() {

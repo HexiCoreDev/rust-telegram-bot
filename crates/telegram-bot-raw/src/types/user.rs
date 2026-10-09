@@ -1,4 +1,4 @@
-//! Telegram [`User`] type — ported from `python-telegram-bot/src/telegram/_user.py`.
+//! Telegram `User` type — ported from `python-telegram-bot/src/telegram/_user.py`.
 //!
 //! Only data fields are included. No Bot reference, no API shortcuts.
 

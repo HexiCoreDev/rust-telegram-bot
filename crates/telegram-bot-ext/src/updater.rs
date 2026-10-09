@@ -83,14 +83,38 @@ pub struct PollingConfig {
 #[cfg(feature = "webhooks")]
 #[derive(Clone)]
 pub struct WebhookConfig {
+    /// Address the webhook server binds to, e.g. `"0.0.0.0"` or `"127.0.0.1"`.
     pub listen: String,
+    /// TCP port the webhook server listens on.
     pub port: u16,
+    /// Path the update endpoint is mounted at, e.g. `"/telegram/webhook"`.
+    ///
+    /// A leading `/` is added if missing.
     pub url_path: String,
+    /// Public HTTPS URL registered with Telegram via `setWebhook`.
+    ///
+    /// When `None`, `set_webhook` is not called during bootstrap and the
+    /// server only starts listening.
     pub webhook_url: Option<String>,
+    /// Secret echoed by Telegram in the `X-Telegram-Bot-Api-Secret-Token`
+    /// header of every update, used to reject forged requests.
+    ///
+    /// Only `A-Z`, `a-z`, `0-9`, `_` and `-` are accepted, 1-256 characters.
+    /// **`None` leaves the endpoint unauthenticated** — anyone who learns the
+    /// URL can inject arbitrary updates, so set this for any public
+    /// deployment. An empty string is rejected.
     pub secret_token: Option<String>,
+    /// Number of times bootstrap retries `getMe`/`setWebhook` before giving up.
     pub bootstrap_retries: i32,
+    /// Whether `setWebhook` is called with `drop_pending_updates`.
+    ///
+    /// Drops updates that queued while the bot was offline.
     pub drop_pending_updates: bool,
+    /// Update types to subscribe to, e.g. `Some(vec!["message".into()])`.
+    ///
+    /// `None` lets Telegram use its default set.
     pub allowed_updates: Option<Vec<String>>,
+    /// Maximum number of concurrent connections the webhook server accepts.
     pub max_connections: u32,
     /// Path to a PEM-encoded TLS certificate file.
     ///
@@ -217,7 +241,7 @@ impl WebhookConfig {
 // ---------------------------------------------------------------------------
 
 /// Fetches updates for the bot via long polling or webhooks and forwards
-/// them through [`take_update_rx`](Updater::take_update_rx).
+/// them through `take_update_rx`.
 pub struct Updater {
     update_tx: mpsc::Sender<serde_json::Value>,
     update_rx: Mutex<Option<mpsc::Receiver<serde_json::Value>>>,
@@ -228,7 +252,7 @@ pub struct Updater {
     stop_tx: watch::Sender<bool>,
     /// Handle of the spawned polling-loop task, if one is running.
     ///
-    /// Awaited (with a timeout) by [`stop`](Self::stop) so shutdown does not
+    /// Awaited (with a timeout) by [`stop`] so shutdown does not
     /// return while an in-flight long-poll is still being torn down.
     poll_task: Mutex<Option<tokio::task::JoinHandle<()>>>,
     /// The webhook server, if one was started.
@@ -315,7 +339,7 @@ impl Updater {
     /// Start polling for updates.
     ///
     /// Returns immediately after the bootstrap phase completes. Updates are
-    /// sent through the channel returned by [`take_update_rx`](Self::take_update_rx).
+    /// sent through the channel returned by `take_update_rx`.
     pub async fn start_polling(
         self: &Arc<Self>,
         config: PollingConfig,

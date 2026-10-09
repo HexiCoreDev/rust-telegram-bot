@@ -14,7 +14,7 @@ use rust_tg_bot_raw::types::update::Update;
 
 use super::base::{Handler, HandlerCallback, HandlerResult, MatchResult};
 
-/// A predicate function that inspects an [`Update`] and returns `true` if the
+/// A predicate function that inspects an `Update` and returns `true` if the
 /// handler should process it.
 pub type PredicateFn = Arc<dyn Fn(&Update) -> bool + Send + Sync>;
 

@@ -40,7 +40,7 @@ macro_rules! impl_into_future {
 // EditMessageLiveLocationBuilder
 // -------------------------------------------------------------------------
 
-/// Builder for the [`editMessageLiveLocation`] API method.
+/// Builder for the [`Bot::edit_message_live_location`] API method.
 pub struct EditMessageLiveLocationBuilder<'a> {
     bot: &'a Bot,
     latitude: f64,
@@ -129,7 +129,7 @@ impl_into_future!(EditMessageLiveLocationBuilder, MessageOrBool);
 // StopMessageLiveLocationBuilder
 // -------------------------------------------------------------------------
 
-/// Builder for the [`stopMessageLiveLocation`] API method.
+/// Builder for the [`Bot::stop_message_live_location`] API method.
 pub struct StopMessageLiveLocationBuilder<'a> {
     bot: &'a Bot,
     chat_id: Option<ChatId>,
@@ -186,7 +186,7 @@ impl_into_future!(StopMessageLiveLocationBuilder, MessageOrBool);
 // EditMessageChecklistBuilder
 // -------------------------------------------------------------------------
 
-/// Builder for the [`editMessageChecklist`] API method.
+/// Builder for the [`Bot::edit_message_checklist`] API method.
 pub struct EditMessageChecklistBuilder<'a> {
     bot: &'a Bot,
     business_connection_id: String,
@@ -223,7 +223,7 @@ impl_into_future!(EditMessageChecklistBuilder, message::Message);
 // StopPollBuilder
 // -------------------------------------------------------------------------
 
-/// Builder for the [`stopPoll`] API method.
+/// Builder for the [`Bot::stop_poll`] API method.
 pub struct StopPollBuilder<'a> {
     bot: &'a Bot,
     chat_id: ChatId,
@@ -267,7 +267,7 @@ impl_into_future!(StopPollBuilder, poll::Poll);
 // SendGameBuilder
 // -------------------------------------------------------------------------
 
-/// Builder for the [`sendGame`] API method.
+/// Builder for the [`Bot::send_game`] API method.
 pub struct SendGameBuilder<'a> {
     bot: &'a Bot,
     chat_id: i64,
@@ -349,7 +349,7 @@ impl_into_future!(SendGameBuilder, message::Message);
 // SetGameScoreBuilder
 // -------------------------------------------------------------------------
 
-/// Builder for the [`setGameScore`] API method.
+/// Builder for the [`Bot::set_game_score`] API method.
 pub struct SetGameScoreBuilder<'a> {
     bot: &'a Bot,
     user_id: i64,
@@ -410,7 +410,7 @@ impl_into_future!(SetGameScoreBuilder, MessageOrBool);
 // GetGameHighScoresBuilder
 // -------------------------------------------------------------------------
 
-/// Builder for the [`getGameHighScores`] API method.
+/// Builder for the [`Bot::get_game_high_scores`] API method.
 pub struct GetGameHighScoresBuilder<'a> {
     bot: &'a Bot,
     user_id: i64,
@@ -462,7 +462,7 @@ impl_into_future!(
 // SavePreparedInlineMessageBuilder
 // -------------------------------------------------------------------------
 
-/// Builder for the [`savePreparedInlineMessage`] API method.
+/// Builder for the [`Bot::save_prepared_inline_message`] API method.
 pub struct SavePreparedInlineMessageBuilder<'a> {
     bot: &'a Bot,
     user_id: i64,
@@ -516,7 +516,7 @@ impl_into_future!(SavePreparedInlineMessageBuilder, serde_json::Value);
 // AnswerWebAppQueryBuilder
 // -------------------------------------------------------------------------
 
-/// Builder for the [`answerWebAppQuery`] API method.
+/// Builder for the [`Bot::answer_web_app_query`] API method.
 pub struct AnswerWebAppQueryBuilder<'a> {
     bot: &'a Bot,
     web_app_query_id: String,
@@ -545,7 +545,7 @@ impl_into_future!(
 // SendMediaGroupBuilder
 // -------------------------------------------------------------------------
 
-/// Builder for the [`sendMediaGroup`] API method.
+/// Builder for the [`Bot::send_media_group`] API method.
 pub struct SendMediaGroupBuilder<'a> {
     bot: &'a Bot,
     chat_id: ChatId,
@@ -627,7 +627,7 @@ impl_into_future!(SendMediaGroupBuilder, Vec<message::Message>);
 // SendPaidMediaBuilder
 // -------------------------------------------------------------------------
 
-/// Builder for the [`sendPaidMedia`] API method.
+/// Builder for the [`Bot::send_paid_media`] API method.
 pub struct SendPaidMediaBuilder<'a> {
     bot: &'a Bot,
     chat_id: ChatId,
@@ -760,7 +760,7 @@ impl_into_future!(SendPaidMediaBuilder, message::Message);
 // GetMeBuilder
 // -------------------------------------------------------------------------
 
-/// Builder for the [`getMe`] API method.
+/// Builder for the [`Bot::get_me`] API method.
 #[derive(Serialize)]
 pub struct GetMeBuilder<'a> {
     #[serde(skip)]
@@ -780,7 +780,7 @@ impl_into_future!(GetMeBuilder, user::User);
 // LogOutBuilder
 // -------------------------------------------------------------------------
 
-/// Builder for the [`logOut`] API method.
+/// Builder for the [`Bot::log_out`] API method.
 #[derive(Serialize)]
 pub struct LogOutBuilder<'a> {
     #[serde(skip)]
@@ -800,7 +800,7 @@ impl_into_future!(LogOutBuilder, bool);
 // CloseBuilder
 // -------------------------------------------------------------------------
 
-/// Builder for the [`close`] API method.
+/// Builder for the [`Bot::close`] API method.
 #[derive(Serialize)]
 pub struct CloseBuilder<'a> {
     #[serde(skip)]
@@ -820,7 +820,7 @@ impl_into_future!(CloseBuilder, bool);
 // GetUpdatesBuilder
 // -------------------------------------------------------------------------
 
-/// Builder for the [`getUpdates`] API method.
+/// Builder for the [`Bot::get_updates`] API method.
 pub struct GetUpdatesBuilder<'a> {
     bot: &'a Bot,
     offset: Option<i64>,
@@ -865,7 +865,7 @@ impl_into_future!(GetUpdatesBuilder, Vec<update::Update>);
 // GetWebhookInfoBuilder
 // -------------------------------------------------------------------------
 
-/// Builder for the [`getWebhookInfo`] API method.
+/// Builder for the [`Bot::get_webhook_info`] API method.
 #[derive(Serialize)]
 pub struct GetWebhookInfoBuilder<'a> {
     #[serde(skip)]
@@ -908,7 +908,7 @@ impl_into_future!(DownloadFileBuilder, Vec<u8>);
 // SendChecklistBuilder
 // -------------------------------------------------------------------------
 
-/// Builder for the [`sendChecklist`] API method.
+/// Builder for the [`Bot::send_checklist`] API method.
 pub struct SendChecklistBuilder<'a> {
     bot: &'a Bot,
     business_connection_id: String,
@@ -975,7 +975,7 @@ impl_into_future!(SendChecklistBuilder, message::Message);
 // SetPassportDataErrorsBuilder
 // -------------------------------------------------------------------------
 
-/// Builder for the [`setPassportDataErrors`] API method.
+/// Builder for the [`Bot::set_passport_data_errors`] API method.
 pub struct SetPassportDataErrorsBuilder<'a> {
     bot: &'a Bot,
     user_id: i64,
@@ -1001,7 +1001,7 @@ impl_into_future!(SetPassportDataErrorsBuilder, bool);
 // SetMessageReactionBuilder
 // -------------------------------------------------------------------------
 
-/// Builder for the [`setMessageReaction`] API method.
+/// Builder for the [`Bot::set_message_reaction`] API method.
 pub struct SetMessageReactionBuilder<'a> {
     bot: &'a Bot,
     chat_id: ChatId,
@@ -1036,7 +1036,7 @@ impl_into_future!(SetMessageReactionBuilder, bool);
 // DeleteMessageReactionBuilder
 // -------------------------------------------------------------------------
 
-/// Builder for the [`deleteMessageReaction`] API method.
+/// Builder for the [`Bot::delete_message_reaction`] API method.
 #[derive(Serialize)]
 pub struct DeleteMessageReactionBuilder<'a> {
     #[serde(skip)]
@@ -1077,7 +1077,7 @@ impl_into_future!(DeleteMessageReactionBuilder, bool);
 // DeleteAllMessageReactionsBuilder
 // -------------------------------------------------------------------------
 
-/// Builder for the [`deleteAllMessageReactions`] API method.
+/// Builder for the [`Bot::delete_all_message_reactions`] API method.
 #[derive(Serialize)]
 pub struct DeleteAllMessageReactionsBuilder<'a> {
     #[serde(skip)]
@@ -1117,7 +1117,7 @@ impl_into_future!(DeleteAllMessageReactionsBuilder, bool);
 // GetUserChatBoostsBuilder
 // -------------------------------------------------------------------------
 
-/// Builder for the [`getUserChatBoosts`] API method.
+/// Builder for the [`Bot::get_user_chat_boosts`] API method.
 pub struct GetUserChatBoostsBuilder<'a> {
     bot: &'a Bot,
     chat_id: ChatId,
@@ -1143,7 +1143,7 @@ impl_into_future!(GetUserChatBoostsBuilder, chat_boost::UserChatBoosts);
 // PostStoryBuilder
 // -------------------------------------------------------------------------
 
-/// Builder for the [`postStory`] API method.
+/// Builder for the [`Bot::post_story`] API method.
 pub struct PostStoryBuilder<'a> {
     bot: &'a Bot,
     business_connection_id: String,
@@ -1213,7 +1213,7 @@ impl_into_future!(PostStoryBuilder, story::Story);
 // EditStoryBuilder
 // -------------------------------------------------------------------------
 
-/// Builder for the [`editStory`] API method.
+/// Builder for the [`Bot::edit_story`] API method.
 pub struct EditStoryBuilder<'a> {
     bot: &'a Bot,
     business_connection_id: String,
@@ -1269,7 +1269,7 @@ impl_into_future!(EditStoryBuilder, story::Story);
 // DeleteStoryBuilder
 // -------------------------------------------------------------------------
 
-/// Builder for the [`deleteStory`] API method.
+/// Builder for the [`Bot::delete_story`] API method.
 pub struct DeleteStoryBuilder<'a> {
     bot: &'a Bot,
     business_connection_id: String,
@@ -1291,7 +1291,7 @@ impl_into_future!(DeleteStoryBuilder, bool);
 // RepostStoryBuilder
 // -------------------------------------------------------------------------
 
-/// Builder for the [`repostStory`] API method.
+/// Builder for the [`Bot::repost_story`] API method.
 pub struct RepostStoryBuilder<'a> {
     bot: &'a Bot,
     business_connection_id: String,
@@ -1339,7 +1339,7 @@ impl_into_future!(RepostStoryBuilder, story::Story);
 // ApproveSuggestedPostBuilder
 // -------------------------------------------------------------------------
 
-/// Builder for the [`approveSuggestedPost`] API method.
+/// Builder for the [`Bot::approve_suggested_post`] API method.
 pub struct ApproveSuggestedPostBuilder<'a> {
     bot: &'a Bot,
     chat_id: i64,
@@ -1368,7 +1368,7 @@ impl_into_future!(ApproveSuggestedPostBuilder, bool);
 // DeclineSuggestedPostBuilder
 // -------------------------------------------------------------------------
 
-/// Builder for the [`declineSuggestedPost`] API method.
+/// Builder for the [`Bot::decline_suggested_post`] API method.
 pub struct DeclineSuggestedPostBuilder<'a> {
     bot: &'a Bot,
     chat_id: i64,
@@ -1401,7 +1401,7 @@ impl_into_future!(DeclineSuggestedPostBuilder, bool);
 // GetUserProfilePhotosBuilder
 // -------------------------------------------------------------------------
 
-/// Builder for the [`getUserProfilePhotos`] API method.
+/// Builder for the [`Bot::get_user_profile_photos`] API method.
 pub struct GetUserProfilePhotosBuilder<'a> {
     bot: &'a Bot,
     user_id: i64,
@@ -1438,7 +1438,7 @@ impl_into_future!(
 // GetUserProfileAudiosBuilder
 // -------------------------------------------------------------------------
 
-/// Builder for the [`getUserProfileAudios`] API method.
+/// Builder for the [`Bot::get_user_profile_audios`] API method.
 pub struct GetUserProfileAudiosBuilder<'a> {
     bot: &'a Bot,
     user_id: i64,
@@ -1475,7 +1475,7 @@ impl_into_future!(
 // SetUserEmojiStatusBuilder
 // -------------------------------------------------------------------------
 
-/// Builder for the [`setUserEmojiStatus`] API method.
+/// Builder for the [`Bot::set_user_emoji_status`] API method.
 pub struct SetUserEmojiStatusBuilder<'a> {
     bot: &'a Bot,
     user_id: i64,
@@ -1513,7 +1513,7 @@ impl_into_future!(SetUserEmojiStatusBuilder, bool);
 // SetMyProfilePhotoBuilder
 // -------------------------------------------------------------------------
 
-/// Builder for the [`setMyProfilePhoto`] API method.
+/// Builder for the [`Bot::set_my_profile_photo`] API method.
 pub struct SetMyProfilePhotoBuilder<'a> {
     bot: &'a Bot,
     photo: serde_json::Value,
@@ -1532,7 +1532,7 @@ impl_into_future!(SetMyProfilePhotoBuilder, bool);
 // RemoveMyProfilePhotoBuilder
 // -------------------------------------------------------------------------
 
-/// Builder for the [`removeMyProfilePhoto`] API method.
+/// Builder for the [`Bot::remove_my_profile_photo`] API method.
 #[derive(Serialize)]
 pub struct RemoveMyProfilePhotoBuilder<'a> {
     #[serde(skip)]
@@ -1556,7 +1556,7 @@ impl_into_future!(RemoveMyProfilePhotoBuilder, bool);
 // VerifyChatBuilder
 // -------------------------------------------------------------------------
 
-/// Builder for the [`verifyChat`] API method.
+/// Builder for the [`Bot::verify_chat`] API method.
 pub struct VerifyChatBuilder<'a> {
     bot: &'a Bot,
     chat_id: ChatId,
@@ -1584,7 +1584,7 @@ impl_into_future!(VerifyChatBuilder, bool);
 // VerifyUserBuilder
 // -------------------------------------------------------------------------
 
-/// Builder for the [`verifyUser`] API method.
+/// Builder for the [`Bot::verify_user`] API method.
 pub struct VerifyUserBuilder<'a> {
     bot: &'a Bot,
     user_id: i64,
@@ -1612,7 +1612,7 @@ impl_into_future!(VerifyUserBuilder, bool);
 // RemoveChatVerificationBuilder
 // -------------------------------------------------------------------------
 
-/// Builder for the [`removeChatVerification`] API method.
+/// Builder for the [`Bot::remove_chat_verification`] API method.
 pub struct RemoveChatVerificationBuilder<'a> {
     bot: &'a Bot,
     chat_id: ChatId,
@@ -1631,7 +1631,7 @@ impl_into_future!(RemoveChatVerificationBuilder, bool);
 // RemoveUserVerificationBuilder
 // -------------------------------------------------------------------------
 
-/// Builder for the [`removeUserVerification`] API method.
+/// Builder for the [`Bot::remove_user_verification`] API method.
 pub struct RemoveUserVerificationBuilder<'a> {
     bot: &'a Bot,
     user_id: i64,

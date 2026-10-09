@@ -1,7 +1,7 @@
 //! Low-level Telegram Bot API types and methods.
 //!
 //! This crate provides a faithful Rust port of the core Telegram Bot API layer,
-//! including all request/response types, the [`Bot`](bot::Bot) client, and
+//! including all request/response types, the [`Bot`](crate::bot::Bot) client, and
 //! helper utilities.  It is designed to be used directly for low-level API
 //! access or as the foundation for the higher-level `rust-tg-bot-ext` framework.
 
@@ -14,7 +14,7 @@ mod macros;
 
 /// The Telegram Bot client and API method implementations.
 pub mod bot;
-/// Builder types for constructing a [`Bot`](bot::Bot) with custom configuration.
+/// Builder types for constructing a [`Bot`](crate::bot::Bot) with custom configuration.
 pub mod bot_builders;
 /// Builder types for Admin, Forum, and Sticker API methods.
 pub mod bot_builders_2;

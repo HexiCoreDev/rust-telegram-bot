@@ -1,4 +1,4 @@
-//! Telegram [`ChosenInlineResult`] type — ported from
+//! Telegram `ChosenInlineResult` type — ported from
 //! `python-telegram-bot/src/telegram/_choseninlineresult.py`.
 //!
 //! Only data fields are included. No Bot reference, no API shortcuts.
