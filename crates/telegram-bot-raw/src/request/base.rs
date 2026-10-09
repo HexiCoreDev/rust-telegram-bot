@@ -117,6 +117,9 @@ pub struct ResolvedTimeouts {
 /// request.shutdown().await;
 /// ```
 #[async_trait::async_trait]
+// `async_trait` puts a bare `#[must_use]` on every generated async method, and
+// these all return `Result`, which is already `#[must_use]` — hence the lint.
+#[allow(clippy::double_must_use)]
 pub trait BaseRequest: Send + Sync {
     // ------------------------------------------------------------------
     // Abstract methods

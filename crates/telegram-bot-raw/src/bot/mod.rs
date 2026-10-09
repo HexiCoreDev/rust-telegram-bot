@@ -127,12 +127,24 @@ pub struct Bot {
     local_mode: bool,
 }
 
+/// Mask the bot token inside a Bot API URL.
+///
+/// `base_url` is built as `https://api.telegram.org/bot<token>/METHOD`, so the
+/// secret is whatever follows the last `/bot`. Printing the URL verbatim in
+/// `Debug` output would leak the token into logs and panic messages.
+fn redact_bot_url(url: &str) -> String {
+    match url.rfind("/bot") {
+        Some(i) => format!("{}[REDACTED]", &url[..i + "/bot".len()]),
+        None => url.to_string(),
+    }
+}
+
 impl std::fmt::Debug for Bot {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("Bot")
             .field("token", &"[REDACTED]")
-            .field("base_url", &self.base_url)
-            .field("base_file_url", &self.base_file_url)
+            .field("base_url", &redact_bot_url(&self.base_url))
+            .field("base_file_url", &redact_bot_url(&self.base_file_url))
             .field("defaults", &self.defaults)
             .field("local_mode", &self.local_mode)
             .finish()
@@ -706,6 +718,35 @@ mod tests {
                 ..Default::default()
             }),
         )
+    }
+
+    #[test]
+    fn bot_debug_does_not_leak_token() {
+        let bot = Bot::new("super_secret_token_xyz", Arc::new(StubRequest));
+        let s = format!("{bot:?}");
+        assert!(s.contains("Bot"));
+        assert!(
+            !s.contains("super_secret_token_xyz"),
+            "Debug output must not leak the token value: {s}"
+        );
+        assert!(s.contains("[REDACTED]"), "{s}");
+    }
+
+    #[test]
+    fn redact_bot_url_masks_token_but_keeps_endpoint() {
+        assert_eq!(
+            redact_bot_url("https://api.telegram.org/bot123:ABC/getMe"),
+            "https://api.telegram.org/bot[REDACTED]"
+        );
+        // already-redacted or tokenless URLs pass through unchanged
+        assert_eq!(
+            redact_bot_url("https://api.telegram.org/bot[REDACTED]"),
+            "https://api.telegram.org/bot[REDACTED]"
+        );
+        assert_eq!(
+            redact_bot_url("http://localhost:8081"),
+            "http://localhost:8081"
+        );
     }
 
     #[test]

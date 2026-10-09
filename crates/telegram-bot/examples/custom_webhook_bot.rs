@@ -189,13 +189,13 @@ async fn handle_submit_payload(
     // Attempt to resolve the user's display name via get_chat_member.
     let bot = state.app.bot();
     let user_mention = match bot.get_chat_member(ChatId::Id(user_id), user_id).await {
-        Ok(member) => {
-            let user = extract_user_from_member(&member);
-            format!(
+        Ok(member) => match extract_user_from_member(&member) {
+            Some(user) => format!(
                 "<a href=\"tg://user?id={user_id}\">{}</a>",
                 html_escape(&user.first_name)
-            )
-        }
+            ),
+            None => format!("User {user_id}"),
+        },
         Err(_) => format!("User {user_id}"),
     };
 
@@ -230,15 +230,21 @@ async fn handle_submit_payload(
 // ---------------------------------------------------------------------------
 
 /// Extract the `User` reference from any `ChatMember` variant.
-fn extract_user_from_member(member: &ChatMember) -> &rust_tg_bot::raw::types::user::User {
-    match member {
+///
+/// `ChatMember` is `#[non_exhaustive]`, so a wildcard arm is mandatory: if
+/// Telegram adds a new member status, this returns `None` instead of failing
+/// to compile.
+fn extract_user_from_member(member: &ChatMember) -> Option<&rust_tg_bot::raw::types::user::User> {
+    let user = match member {
         ChatMember::Owner(m) => &m.user,
         ChatMember::Administrator(m) => &m.user,
         ChatMember::Member(m) => &m.user,
         ChatMember::Restricted(m) => &m.user,
         ChatMember::Left(m) => &m.user,
         ChatMember::Banned(m) => &m.user,
-    }
+        _ => return None,
+    };
+    Some(user)
 }
 
 /// Minimal HTML escaping for safe embedding in Telegram HTML messages.

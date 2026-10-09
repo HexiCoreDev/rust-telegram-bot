@@ -4,7 +4,7 @@
 
 Before you begin, make sure you have:
 
-- **Rust 1.75 or later.** Check with `rustc --version`. Install or update via [rustup](https://rustup.rs/).
+- **Rust 1.88 or later.** Check with `rustc --version`. Install or update via [rustup](https://rustup.rs/).
 - **A Telegram Bot Token.** Create a bot through [@BotFather](https://t.me/BotFather) on Telegram. You will receive a token that looks like `123456789:ABCdefGHIjklMNOpqrsTUVwxyz`.
 
 ## Adding the Dependency

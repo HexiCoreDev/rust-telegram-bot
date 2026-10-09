@@ -202,7 +202,7 @@ impl<S: Hash + Eq + Clone + Send + Sync + 'static> ConversationHandler<S> {
                 let mut hasher = std::collections::hash_map::DefaultHasher::new();
                 hasher.write(inline_id.as_bytes());
                 key.push(hasher.finish() as i64);
-            } else if let Some(ref msg) = cq.message {
+            } else if let Some(msg) = &cq.message {
                 key.push(msg.message_id());
             } else {
                 return None;
@@ -481,7 +481,7 @@ impl<S: Hash + Eq + Clone + Send + Sync + 'static> Handler for ConversationHandl
                 .as_ref()
                 .and_then(|s| self.states.get(s))
                 .and_then(|handlers| handlers.get(idx))
-                .map_or(true, |step| step.handler.block()),
+                .is_none_or(|step| step.handler.block()),
             Some(HandlerSource::Fallback(idx)) => self.fallbacks[idx].handler.block(),
             None => true,
         };

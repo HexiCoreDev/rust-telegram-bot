@@ -44,6 +44,9 @@ pub enum UpdateProcessorError {
 /// acquires the internal semaphore and then delegates to
 /// [`do_process_update`](BaseUpdateProcessor::do_process_update).
 #[async_trait::async_trait]
+// `async_trait` adds a bare `#[must_use]` to the generated async methods, and
+// they return `Result`, which is already `#[must_use]` — hence the lint.
+#[allow(clippy::double_must_use)]
 pub trait UpdateProcessor: Send + Sync {
     /// Custom implementation of how to process an update.  Must be implemented by the
     /// concrete type.

@@ -10,7 +10,7 @@
 
 [![Version: 1.0.0-rc.3](https://img.shields.io/badge/version-1.0.0--rc.3-blueviolet)](https://github.com/HexiCoreDev/rust-telegram-bot/releases)
 [![Bot API 10.3](https://img.shields.io/badge/Bot%20API-10.3-blue?logo=telegram)](https://core.telegram.org/bots/api-changelog)
-[![Rust: 1.75+](https://img.shields.io/badge/Rust-1.75%2B-orange?logo=rust)](https://www.rust-lang.org)
+[![Rust: 1.88+](https://img.shields.io/badge/Rust-1.88%2B-orange?logo=rust)](https://www.rust-lang.org)
 [![License: LGPL-3.0](https://img.shields.io/badge/License-LGPL--3.0-green.svg)](https://www.gnu.org/licenses/lgpl-3.0.html)
 [![CI](https://github.com/HexiCoreDev/rust-telegram-bot/actions/workflows/ci.yml/badge.svg?branch=dev)](https://github.com/HexiCoreDev/rust-telegram-bot/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/HexiCoreDev/rust-telegram-bot/graph/badge.svg?token=F2Y0CC4WNG)](https://codecov.io/gh/HexiCoreDev/rust-telegram-bot)
@@ -19,7 +19,7 @@
 [![Code Style: rustfmt](https://img.shields.io/badge/code%20style-rustfmt-blue)](https://github.com/rust-lang/rustfmt)
 [![Code Quality: clippy](https://img.shields.io/badge/code%20quality-clippy%20%E2%9C%93-brightgreen)](https://doc.rust-lang.org/clippy/)
 [![Unsafe: forbidden](https://img.shields.io/badge/unsafe-forbidden-success.svg)](https://github.com/rust-secure-code/safety-dance/)
-[![MSRV: 1.75](https://img.shields.io/badge/MSRV-1.75-orange)](https://blog.rust-lang.org/2023/12/28/Rust-1.75.0.html)
+[![MSRV: 1.88](https://img.shields.io/badge/MSRV-1.88-orange)](https://doc.rust-lang.org/)
 [![Issues](https://isitmaintained.com/badge/resolution/HexiCoreDev/rust-telegram-bot.svg)](https://isitmaintained.com/project/HexiCoreDev/rust-telegram-bot)
 
 </p>
@@ -480,7 +480,7 @@ rust-tg-bot = { git = "https://github.com/HexiCoreDev/rust-telegram-bot", featur
 | Memory idle (measured) | **15 MB** | 57 MB | **15 MB** |
 | Memory under load (measured) | **17 MB** | 60 MB | **17 MB** |
 | Binary size (stripped) | **6.6 MB** | Requires Python runtime | 6.6 MB |
-| Minimum version | Rust 1.75 | Python 3.10 | Rust 1.68 |
+| Minimum version | Rust 1.88 | Python 3.10 | Rust 1.68 |
 | Builder pattern | IntoFuture (directly awaitable) | Keyword args | Method chains |
 | Typed constants | `ParseMode::Html` | `ParseMode.HTML` | String-based |
 | Maturity | **v1.0.0-rc.3** (new) | Mature (10+ years) | Mature (3+ years) |
@@ -544,7 +544,7 @@ What is implemented:
 
 - 385+ tests passing, zero clippy warnings
 - 25 roundtrip serialization tests, 9 proptest filter tests, 10 persistence stress tests
-- GitHub Actions CI: check, test, clippy, format, examples, docs (stable + MSRV 1.75)
+- GitHub Actions CI: check, test, clippy, format, examples, docs (stable + MSRV 1.88)
 - Release pipeline: cross-compile binaries + crates.io publish
 - Measured performance: 6.6 MB binary (stripped, echo_bot reference), 15 MB idle / 17 MB RSS under load (release) -- matches teloxide on all three
 

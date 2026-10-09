@@ -4,9 +4,8 @@ Copyright (c) 2026 Jude Etuka and contributors
 https://github.com/HexiCoreDev/rust-telegram-bot
 
 This library is free software; you can redistribute it and/or modify it
-under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation; either version 3 of the License, or (at
-your option) any later version.
+under the terms of the GNU Lesser General Public License, version 3, as
+published by the Free Software Foundation.
 
 This library is distributed in the hope that it will be useful, but
 WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -16,13 +15,15 @@ General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this library. If not, see <https://www.gnu.org/licenses/>.
 
+The verbatim license text is bundled in LICENSE.lgpl-3.0.txt.
+
 ---
 
-SPDX-License-Identifier: LGPL-3.0-or-later
+SPDX-License-Identifier: LGPL-3.0-only
 
-Full license texts:
-  LGPL-3.0: https://www.gnu.org/licenses/lgpl-3.0.html
-  GPL-3.0:  https://www.gnu.org/licenses/gpl-3.0.html
+This matches the `license` field in Cargo.toml, which is the declaration
+already published to crates.io. Note that "LGPL-3.0-only" and
+"LGPL-3.0-or-later" are distinct licenses; the two must not disagree.
 
 ---
 

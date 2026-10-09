@@ -63,8 +63,8 @@ jobs:
           TAG="${GITHUB_REF#refs/tags/}"
           ARCHIVE_NAME="rust-telegram-bot-${TAG}-${{ matrix.target }}"
           mkdir -p "staging/${ARCHIVE_NAME}"
-          cp "target/${{ matrix.target }}/release/telegram-bot" "staging/${ARCHIVE_NAME}/" 2>/dev/null || true
-          cp LICENSE README.md CHANGELOG.md "staging/${ARCHIVE_NAME}/" 2>/dev/null || true
+          cp "target/${{ matrix.target }}/release/rust-tg-bot" "staging/${ARCHIVE_NAME}/"
+          cp LICENSE README.md CHANGELOG.md "staging/${ARCHIVE_NAME}/"
           cd staging
           tar czf "${ARCHIVE_NAME}.${{ matrix.archive }}" "${ARCHIVE_NAME}"
           echo "ASSET=staging/${ARCHIVE_NAME}.${{ matrix.archive }}" >> "$GITHUB_ENV"
@@ -111,7 +111,7 @@ jobs:
       - uses: Swatinem/rust-cache@v2
 
       - name: Publish rust-tg-bot-raw
-        run: cargo publish -p rust-tg-bot-raw --no-verify || echo "Already published, skipping"
+        run: cargo publish -p rust-tg-bot-raw
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
 
@@ -119,7 +119,7 @@ jobs:
         run: sleep 30
 
       - name: Publish rust-tg-bot-macros
-        run: cargo publish -p rust-tg-bot-macros --no-verify || echo "Already published, skipping"
+        run: cargo publish -p rust-tg-bot-macros
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
 
@@ -127,7 +127,7 @@ jobs:
         run: sleep 30
 
       - name: Publish rust-tg-bot-ext
-        run: cargo publish -p rust-tg-bot-ext --no-verify || echo "Already published, skipping"
+        run: cargo publish -p rust-tg-bot-ext
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
 
@@ -135,6 +135,6 @@ jobs:
         run: sleep 30
 
       - name: Publish rust-tg-bot
-        run: cargo publish -p rust-tg-bot --no-verify || echo "Already published, skipping"
+        run: cargo publish -p rust-tg-bot
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
