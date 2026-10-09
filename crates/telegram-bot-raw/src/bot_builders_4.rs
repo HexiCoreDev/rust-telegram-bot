@@ -558,7 +558,6 @@ pub struct SendMediaGroupBuilder<'a> {
     message_effect_id: Option<String>,
     allow_paid_broadcast: Option<bool>,
     direct_messages_topic_id: Option<i64>,
-    suggested_post_parameters: Option<suggested_post::SuggestedPostParameters>,
 }
 
 impl<'a> SendMediaGroupBuilder<'a> {
@@ -602,14 +601,6 @@ impl<'a> SendMediaGroupBuilder<'a> {
         self.direct_messages_topic_id = Some(val);
         self
     }
-    /// Sets the `suggested_post_parameters` parameter.
-    pub fn suggested_post_parameters(
-        mut self,
-        val: suggested_post::SuggestedPostParameters,
-    ) -> Self {
-        self.suggested_post_parameters = Some(val);
-        self
-    }
 
     /// Sends the request to the Telegram Bot API.
     pub async fn send(self) -> Result<Vec<message::Message>> {
@@ -625,7 +616,6 @@ impl<'a> SendMediaGroupBuilder<'a> {
                 self.message_effect_id.as_deref(),
                 self.allow_paid_broadcast,
                 self.direct_messages_topic_id,
-                self.suggested_post_parameters,
             )
             .await
     }
@@ -1826,7 +1816,6 @@ impl Bot {
             message_effect_id: None,
             allow_paid_broadcast: None,
             direct_messages_topic_id: None,
-            suggested_post_parameters: None,
         }
     }
 

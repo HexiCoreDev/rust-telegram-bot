@@ -2132,10 +2132,6 @@ pub struct SendPollBuilder<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     allow_paid_broadcast: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    direct_messages_topic_id: Option<i64>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    suggested_post_parameters: Option<suggested_post::SuggestedPostParameters>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     media: Option<poll::InputPollMedia>,
     #[serde(skip_serializing_if = "Option::is_none")]
     explanation_media: Option<poll::InputPollMedia>,
@@ -2260,19 +2256,6 @@ impl<'a> SendPollBuilder<'a> {
     /// Sets the `allow_paid_broadcast` parameter.
     pub fn allow_paid_broadcast(mut self, val: bool) -> Self {
         self.allow_paid_broadcast = Some(val);
-        self
-    }
-    /// Sets the `direct_messages_topic_id` parameter.
-    pub fn direct_messages_topic_id(mut self, val: i64) -> Self {
-        self.direct_messages_topic_id = Some(val);
-        self
-    }
-    /// Sets the `suggested_post_parameters` parameter.
-    pub fn suggested_post_parameters(
-        mut self,
-        val: suggested_post::SuggestedPostParameters,
-    ) -> Self {
-        self.suggested_post_parameters = Some(val);
         self
     }
     /// Sets the `media` parameter (media added to the poll description).
@@ -2597,7 +2580,8 @@ impl_into_future!(SendStickerBuilder, message::Message);
 pub struct EditMessageTextBuilder<'a> {
     #[serde(skip)]
     bot: &'a Bot,
-    text: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    text: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     chat_id: Option<ChatId>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -4057,8 +4041,6 @@ impl Bot {
             question_entities: None,
             message_effect_id: None,
             allow_paid_broadcast: None,
-            direct_messages_topic_id: None,
-            suggested_post_parameters: None,
             media: None,
             explanation_media: None,
             members_only: None,
@@ -4126,7 +4108,7 @@ impl Bot {
     pub fn edit_message_text(&self, text: impl Into<String>) -> EditMessageTextBuilder<'_> {
         EditMessageTextBuilder {
             bot: self,
-            text: text.into(),
+            text: Some(text.into()),
             chat_id: None,
             message_id: None,
             inline_message_id: None,
@@ -4136,6 +4118,26 @@ impl Bot {
             reply_markup: None,
             business_connection_id: None,
             rich_message: None,
+        }
+    }
+
+    /// Build an `editMessageText` request carrying only rich content.
+    pub fn edit_message_rich(
+        &self,
+        rich_message: input_rich_message::InputRichMessage,
+    ) -> EditMessageTextBuilder<'_> {
+        EditMessageTextBuilder {
+            bot: self,
+            text: None,
+            chat_id: None,
+            message_id: None,
+            inline_message_id: None,
+            parse_mode: None,
+            entities: None,
+            link_preview_options: None,
+            reply_markup: None,
+            business_connection_id: None,
+            rich_message: Some(rich_message),
         }
     }
 
@@ -4559,38 +4561,9 @@ pub struct SavePreparedKeyboardButtonBuilder<'a> {
     bot: &'a Bot,
     user_id: i64,
     button: inline::inline_keyboard_button::InlineKeyboardButton,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    allow_user_chats: Option<bool>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    allow_bot_chats: Option<bool>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    allow_group_chats: Option<bool>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    allow_channel_chats: Option<bool>,
 }
 
 impl<'a> SavePreparedKeyboardButtonBuilder<'a> {
-    /// Sets the `allow_user_chats` parameter.
-    pub fn allow_user_chats(mut self, val: bool) -> Self {
-        self.allow_user_chats = Some(val);
-        self
-    }
-    /// Sets the `allow_bot_chats` parameter.
-    pub fn allow_bot_chats(mut self, val: bool) -> Self {
-        self.allow_bot_chats = Some(val);
-        self
-    }
-    /// Sets the `allow_group_chats` parameter.
-    pub fn allow_group_chats(mut self, val: bool) -> Self {
-        self.allow_group_chats = Some(val);
-        self
-    }
-    /// Sets the `allow_channel_chats` parameter.
-    pub fn allow_channel_chats(mut self, val: bool) -> Self {
-        self.allow_channel_chats = Some(val);
-        self
-    }
-
     /// Sends the request to the Telegram Bot API.
     pub async fn send(self) -> Result<prepared_keyboard_button::PreparedKeyboardButton> {
         let payload = serde_json::to_vec(&self)?;
@@ -4658,10 +4631,6 @@ impl Bot {
             bot: self,
             user_id,
             button,
-            allow_user_chats: None,
-            allow_bot_chats: None,
-            allow_group_chats: None,
-            allow_channel_chats: None,
         }
     }
 

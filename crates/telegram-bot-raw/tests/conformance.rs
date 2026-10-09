@@ -145,6 +145,9 @@ fn all_bot_api_builder_methods_exist() {
 
     // -- Updating messages --
     let _ = bot.edit_message_text("new text");
+    let _ = bot.edit_message_rich(
+        rust_tg_bot_raw::types::input_rich_message::InputRichMessage::markdown("**hi**"),
+    );
     let _ = bot.edit_message_text("new text").rich_message(
         rust_tg_bot_raw::types::input_rich_message::InputRichMessage::markdown("**hi**"),
     );
@@ -286,7 +289,6 @@ fn all_bot_api_raw_methods_exist() {
     check!(bot.send_media_group_raw(
         1i64.into(),
         vec![],
-        None,
         None,
         None,
         None,

@@ -521,7 +521,6 @@ impl Bot {
         message_effect_id: Option<&str>,
         allow_paid_broadcast: Option<bool>,
         direct_messages_topic_id: Option<i64>,
-        suggested_post_parameters: Option<suggested_post::SuggestedPostParameters>,
     ) -> Result<Vec<message::Message>> {
         let mut params = vec![
             RequestParameter::new("chat_id", serde_json::to_value(&chat_id)?),
@@ -542,11 +541,6 @@ impl Bot {
             &mut params,
             "direct_messages_topic_id",
             &direct_messages_topic_id,
-        )?;
-        push_opt(
-            &mut params,
-            "suggested_post_parameters",
-            &suggested_post_parameters,
         )?;
         self.do_post("sendMediaGroup", params).await
     }
