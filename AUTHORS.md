@@ -3,13 +3,14 @@
 ## Creator
 
 **Jude Etuka**
-- Email: [judechinedu122@gmail.com](mailto:judechinedu122@gmail.com)
-- GitHub: [@JUDE122-MAX](https://github.com/JUDE122-MAX)
+- Email: [judechinedu122@gmail.com](mailto:etuka.judeetuka@gmail.com)
+- GitHub: [@JUDE122-MAX](https://github.com/judeetuka)
 - Telegram: [@judeetuka](https://t.me/judeetuka)
 
 ## Co-Author
 
-**Claude Code** -- AI-assisted development by Anthropic's Claude.
+**Claude Code** -- AI-assisted development.
+**OpenCode**    -- AI-assisted development.
 
 ## Acknowledgments
 
