@@ -226,6 +226,11 @@ pub struct Updater {
     last_update_id: Mutex<i64>,
     /// Sending `true` signals the polling loop to stop.
     stop_tx: watch::Sender<bool>,
+    /// Handle of the spawned polling-loop task, if one is running.
+    ///
+    /// Awaited (with a timeout) by [`stop`](Self::stop) so shutdown does not
+    /// return while an in-flight long-poll is still being torn down.
+    poll_task: Mutex<Option<tokio::task::JoinHandle<()>>>,
     /// The webhook server, if one was started.
     #[cfg(feature = "webhooks")]
     httpd: Mutex<Option<Arc<WebhookServer>>>,
@@ -257,6 +262,7 @@ impl Updater {
             initialized: false.into(),
             last_update_id: Mutex::new(0),
             stop_tx,
+            poll_task: Mutex::new(None),
             #[cfg(feature = "webhooks")]
             httpd: Mutex::new(None),
         }
@@ -346,7 +352,7 @@ impl Updater {
         let updater = Arc::clone(self);
         let stop_rx = self.stop_tx.subscribe();
 
-        tokio::spawn(async move {
+        let poll_handle = tokio::spawn(async move {
             let tx = updater.update_tx.clone();
             let timeout = config.timeout;
             let poll_interval = config.poll_interval;
@@ -404,6 +410,8 @@ impl Updater {
                 error!("Polling loop exited with error: {e}");
             }
         });
+
+        *self.poll_task.lock().await = Some(poll_handle);
 
         Ok(())
     }
@@ -535,6 +543,21 @@ impl Updater {
             let httpd = self.httpd.lock().await;
             if let Some(ref server) = *httpd {
                 server.shutdown();
+            }
+        }
+
+        // Wait for the polling-loop task to observe the stop signal and exit
+        // (it races in-flight long-polls against the signal, so this is
+        // normally immediate). Bound the wait so a wedged HTTP backend cannot
+        // hang shutdown forever; on timeout the task is aborted.
+        if let Some(mut handle) = self.poll_task.lock().await.take() {
+            match tokio::time::timeout(Duration::from_secs(5), &mut handle).await {
+                Ok(Ok(())) => {}
+                Ok(Err(e)) => warn!("Polling task ended with join error: {e}"),
+                Err(_) => {
+                    warn!("Polling task did not stop in time; aborting");
+                    handle.abort();
+                }
             }
         }
 

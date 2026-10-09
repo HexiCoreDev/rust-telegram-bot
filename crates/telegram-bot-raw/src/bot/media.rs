@@ -1,6 +1,6 @@
 use super::{input_file_param, push_opt, push_opt_file, push_opt_str, Bot, ChatId, Result};
 use crate::request::request_parameter::RequestParameter;
-use crate::types::{files, message, message_entity, reply, suggested_post};
+use crate::types::{ephemeral, files, message, message_entity, reply, suggested_post};
 
 #[allow(dead_code)]
 impl Bot {
@@ -30,6 +30,7 @@ impl Bot {
         show_caption_above_media: Option<bool>,
         direct_messages_topic_id: Option<i64>,
         suggested_post_parameters: Option<suggested_post::SuggestedPostParameters>,
+        ephemeral_message_parameters: Option<ephemeral::EphemeralMessageParameters>,
     ) -> Result<message::Message> {
         let mut params = vec![
             RequestParameter::new("chat_id", serde_json::to_value(&chat_id)?),
@@ -66,6 +67,11 @@ impl Bot {
             "suggested_post_parameters",
             &suggested_post_parameters,
         )?;
+        push_opt(
+            &mut params,
+            "ephemeral_message_parameters",
+            &ephemeral_message_parameters,
+        )?;
         self.do_post("sendPhoto", params).await
     }
 
@@ -92,6 +98,7 @@ impl Bot {
         allow_paid_broadcast: Option<bool>,
         direct_messages_topic_id: Option<i64>,
         suggested_post_parameters: Option<suggested_post::SuggestedPostParameters>,
+        ephemeral_message_parameters: Option<ephemeral::EphemeralMessageParameters>,
     ) -> Result<message::Message> {
         let mut params = vec![
             RequestParameter::new("chat_id", serde_json::to_value(&chat_id)?),
@@ -129,6 +136,11 @@ impl Bot {
             "suggested_post_parameters",
             &suggested_post_parameters,
         )?;
+        push_opt(
+            &mut params,
+            "ephemeral_message_parameters",
+            &ephemeral_message_parameters,
+        )?;
         self.do_post("sendLivePhoto", params).await
     }
 
@@ -156,6 +168,7 @@ impl Bot {
         allow_paid_broadcast: Option<bool>,
         direct_messages_topic_id: Option<i64>,
         suggested_post_parameters: Option<suggested_post::SuggestedPostParameters>,
+        ephemeral_message_parameters: Option<ephemeral::EphemeralMessageParameters>,
     ) -> Result<message::Message> {
         let mut params = vec![
             RequestParameter::new("chat_id", serde_json::to_value(&chat_id)?),
@@ -190,6 +203,11 @@ impl Bot {
             "suggested_post_parameters",
             &suggested_post_parameters,
         )?;
+        push_opt(
+            &mut params,
+            "ephemeral_message_parameters",
+            &ephemeral_message_parameters,
+        )?;
         self.do_post("sendAudio", params).await
     }
 
@@ -215,6 +233,7 @@ impl Bot {
         allow_paid_broadcast: Option<bool>,
         direct_messages_topic_id: Option<i64>,
         suggested_post_parameters: Option<suggested_post::SuggestedPostParameters>,
+        ephemeral_message_parameters: Option<ephemeral::EphemeralMessageParameters>,
     ) -> Result<message::Message> {
         let mut params = vec![
             RequestParameter::new("chat_id", serde_json::to_value(&chat_id)?),
@@ -251,6 +270,11 @@ impl Bot {
             "suggested_post_parameters",
             &suggested_post_parameters,
         )?;
+        push_opt(
+            &mut params,
+            "ephemeral_message_parameters",
+            &ephemeral_message_parameters,
+        )?;
         self.do_post("sendDocument", params).await
     }
 
@@ -283,6 +307,7 @@ impl Bot {
         allow_paid_broadcast: Option<bool>,
         direct_messages_topic_id: Option<i64>,
         suggested_post_parameters: Option<suggested_post::SuggestedPostParameters>,
+        ephemeral_message_parameters: Option<ephemeral::EphemeralMessageParameters>,
     ) -> Result<message::Message> {
         let mut params = vec![
             RequestParameter::new("chat_id", serde_json::to_value(&chat_id)?),
@@ -326,6 +351,11 @@ impl Bot {
             "suggested_post_parameters",
             &suggested_post_parameters,
         )?;
+        push_opt(
+            &mut params,
+            "ephemeral_message_parameters",
+            &ephemeral_message_parameters,
+        )?;
         self.do_post("sendVideo", params).await
     }
 
@@ -355,6 +385,7 @@ impl Bot {
         allow_paid_broadcast: Option<bool>,
         direct_messages_topic_id: Option<i64>,
         suggested_post_parameters: Option<suggested_post::SuggestedPostParameters>,
+        ephemeral_message_parameters: Option<ephemeral::EphemeralMessageParameters>,
     ) -> Result<message::Message> {
         let mut params = vec![
             RequestParameter::new("chat_id", serde_json::to_value(&chat_id)?),
@@ -395,6 +426,11 @@ impl Bot {
             "suggested_post_parameters",
             &suggested_post_parameters,
         )?;
+        push_opt(
+            &mut params,
+            "ephemeral_message_parameters",
+            &ephemeral_message_parameters,
+        )?;
         self.do_post("sendAnimation", params).await
     }
 
@@ -419,6 +455,7 @@ impl Bot {
         allow_paid_broadcast: Option<bool>,
         direct_messages_topic_id: Option<i64>,
         suggested_post_parameters: Option<suggested_post::SuggestedPostParameters>,
+        ephemeral_message_parameters: Option<ephemeral::EphemeralMessageParameters>,
     ) -> Result<message::Message> {
         let mut params = vec![
             RequestParameter::new("chat_id", serde_json::to_value(&chat_id)?),
@@ -450,6 +487,11 @@ impl Bot {
             "suggested_post_parameters",
             &suggested_post_parameters,
         )?;
+        push_opt(
+            &mut params,
+            "ephemeral_message_parameters",
+            &ephemeral_message_parameters,
+        )?;
         self.do_post("sendVoice", params).await
     }
 
@@ -473,6 +515,7 @@ impl Bot {
         allow_paid_broadcast: Option<bool>,
         direct_messages_topic_id: Option<i64>,
         suggested_post_parameters: Option<suggested_post::SuggestedPostParameters>,
+        ephemeral_message_parameters: Option<ephemeral::EphemeralMessageParameters>,
     ) -> Result<message::Message> {
         let mut params = vec![
             RequestParameter::new("chat_id", serde_json::to_value(&chat_id)?),
@@ -502,6 +545,11 @@ impl Bot {
             &mut params,
             "suggested_post_parameters",
             &suggested_post_parameters,
+        )?;
+        push_opt(
+            &mut params,
+            "ephemeral_message_parameters",
+            &ephemeral_message_parameters,
         )?;
         self.do_post("sendVideoNote", params).await
     }

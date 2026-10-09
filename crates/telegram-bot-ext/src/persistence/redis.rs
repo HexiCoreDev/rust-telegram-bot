@@ -34,7 +34,7 @@ use redis::AsyncCommands;
 use serde_json::Value;
 
 use crate::persistence::base::{
-    BasePersistence, PersistenceError, PersistenceInput, PersistenceResult,
+    validate_table_prefix, BasePersistence, PersistenceError, PersistenceInput, PersistenceResult,
 };
 use crate::utils::types::{CdcData, ConversationDict, ConversationKey, JsonMap};
 
@@ -85,10 +85,17 @@ impl RedisPersistence {
 
     /// Set a custom key prefix (default: `"rtb"`).
     ///
-    /// All Redis keys will be prefixed with `{prefix}:`.
+    /// All Redis keys will be prefixed with `{prefix}:`. Only ASCII letters,
+    /// digits, and underscores are accepted — anything else would corrupt
+    /// `SCAN MATCH` patterns (where `*?[]` are glob metacharacters).
     #[must_use]
     pub fn with_prefix(mut self, prefix: impl Into<String>) -> Self {
         self.prefix = prefix.into();
+        debug_assert!(
+            validate_table_prefix(&self.prefix).is_ok(),
+            "invalid key prefix {:?}",
+            self.prefix
+        );
         self
     }
 
@@ -195,18 +202,31 @@ impl RedisPersistence {
     }
 
     /// Scan for keys matching a pattern and collect them.
+    ///
+    /// Uses `SCAN` (cursor-based iteration) rather than `KEYS` so a large
+    /// keyspace is never blocked by a single persistence read.
     async fn scan_keys(
         conn: &mut redis::aio::MultiplexedConnection,
         pattern: &str,
     ) -> PersistenceResult<Vec<String>> {
-        // Use KEYS for simplicity. For very large datasets, SCAN would be
-        // preferable, but KEYS is simpler with the redis crate's async API
-        // and sufficient for typical bot workloads.
-        let keys: Vec<String> = redis::cmd("KEYS")
-            .arg(pattern)
-            .query_async(conn)
-            .await
-            .map_err(PersistenceError::Redis)?;
+        let mut keys = Vec::new();
+        let mut cursor: u64 = 0;
+        loop {
+            let (next, batch): (u64, Vec<String>) = redis::cmd("SCAN")
+                .arg(cursor)
+                .arg("MATCH")
+                .arg(pattern)
+                .arg("COUNT")
+                .arg(500)
+                .query_async(conn)
+                .await
+                .map_err(PersistenceError::Redis)?;
+            keys.extend(batch);
+            cursor = next;
+            if cursor == 0 {
+                break;
+            }
+        }
         Ok(keys)
     }
 }

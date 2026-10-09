@@ -51,17 +51,17 @@ async fn rich_command(update: Arc<Update>, context: Context) -> HandlerResult {
         .effective_chat()
         .map(|c| c.id)
         .expect("chat in update");
-    context
-        .bot()
-        .send_rich_message(chat_id, message)
-        .await?;
+    context.bot().send_rich_message(chat_id, message).await?;
     Ok(())
 }
 
 /// `/markdown` -- send markup through the context shortcut.
 async fn markdown_command(update: Arc<Update>, context: Context) -> HandlerResult {
     context
-        .reply_rich_message(&update, InputRichMessage::markdown("# Hello\n\n- one\n- two"))
+        .reply_rich_message(
+            &update,
+            InputRichMessage::markdown("# Hello\n\n- one\n- two"),
+        )
         .await?;
     Ok(())
 }
@@ -80,7 +80,10 @@ async fn stream_command(update: Arc<Update>, context: Context) -> HandlerResult 
         .await?;
     context
         .bot()
-        .send_rich_message(chat_id, InputRichMessage::markdown("# Done\n\nFinal answer."))
+        .send_rich_message(
+            chat_id,
+            InputRichMessage::markdown("# Done\n\nFinal answer."),
+        )
         .await?;
     Ok(())
 }

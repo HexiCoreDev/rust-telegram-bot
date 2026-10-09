@@ -65,6 +65,50 @@ pub enum PersistenceError {
 
 pub type PersistenceResult<T> = Result<T, PersistenceError>;
 
+/// Validate a table/key prefix supplied via `with_prefix`.
+///
+/// Prefixes are interpolated into SQL DDL (PostgreSQL) and key patterns
+/// (Redis `SCAN MATCH`, where `*?[]` are glob metacharacters), so only
+/// `^[A-Za-z_][A-Za-z0-9_]*$` is accepted. Callers that cannot fail (the
+/// `with_prefix` setters) enforce the same rule with `debug_assert!`; fallible
+/// constructors (`build` / `new`) return this error instead.
+pub(crate) fn validate_table_prefix(prefix: &str) -> PersistenceResult<()> {
+    let mut chars = prefix.chars();
+    let valid = match chars.next() {
+        Some(c) if c.is_ascii_alphabetic() || c == '_' => {
+            chars.all(|c| c.is_ascii_alphanumeric() || c == '_')
+        }
+        _ => false,
+    };
+    if valid {
+        Ok(())
+    } else {
+        Err(PersistenceError::Custom(format!(
+            "invalid table/key prefix {prefix:?}: must match ^[A-Za-z_][A-Za-z0-9_]*$"
+        )))
+    }
+}
+
+/// Restrict a persistence file to owner-only access.
+///
+/// Persistence files hold bot/user/chat data that may be sensitive. On Unix
+/// this sets `0o600` so group/other users cannot read them regardless of the
+/// process umask. On other platforms it is a no-op.
+#[cfg(unix)]
+pub(crate) fn restrict_file_permissions(path: &std::path::Path) -> PersistenceResult<()> {
+    use std::os::unix::fs::PermissionsExt;
+    std::fs::set_permissions(path, std::fs::Permissions::from_mode(0o600))?;
+    Ok(())
+}
+
+/// Restrict a persistence file to owner-only access.
+///
+/// No-op on non-Unix platforms (see the Unix variant for details).
+#[cfg(not(unix))]
+pub(crate) fn restrict_file_permissions(_path: &std::path::Path) -> PersistenceResult<()> {
+    Ok(())
+}
+
 // ---------------------------------------------------------------------------
 // BasePersistence trait
 // ---------------------------------------------------------------------------
@@ -197,5 +241,40 @@ pub trait BasePersistence: Send + Sync + fmt::Debug {
     /// Which data categories this persistence stores.
     fn store_data(&self) -> PersistenceInput {
         PersistenceInput::default()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn valid_prefixes_accepted() {
+        for prefix in ["rtb", "mybot", "_x", "A1_", "a"] {
+            assert!(
+                validate_table_prefix(prefix).is_ok(),
+                "{prefix} should be valid"
+            );
+        }
+    }
+
+    #[test]
+    fn invalid_prefixes_rejected() {
+        for prefix in [
+            "",
+            "has space",
+            "has-dash",
+            "has:colon",
+            "1leading-digit",
+            "semi;colon",
+            "quote\"",
+            "star*",
+            "dot.name",
+        ] {
+            assert!(
+                validate_table_prefix(prefix).is_err(),
+                "{prefix:?} should be rejected"
+            );
+        }
     }
 }

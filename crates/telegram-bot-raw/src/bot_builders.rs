@@ -2732,19 +2732,41 @@ impl_into_future!(EditEphemeralMessageTextBuilder, bool);
 // =========================================================================
 
 /// Builder for the [`editEphemeralMessageMedia`] API method.
-#[derive(Serialize)]
+///
+/// New-file uploads are supported via
+/// [`media_input`](Self::media_input): pass a typed
+/// [`InputMedia`](crate::types::files::input_media::InputMedia) carrying
+/// [`Bytes`](crate::types::files::input_file::InputFile::Bytes) or
+/// [`Path`](crate::types::files::input_file::InputFile::Path) inputs and the
+/// file bytes are attached as multipart parts automatically (Bot API 10.3).
 pub struct EditEphemeralMessageMediaBuilder<'a> {
-    #[serde(skip)]
     bot: &'a Bot,
     chat_id: ChatId,
     receiver_user_id: i64,
     ephemeral_message_id: i64,
     media: serde_json::Value,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    media_uploads: Vec<(String, files::input_file::InputFile)>,
     reply_markup: Option<serde_json::Value>,
 }
 
 impl<'a> EditEphemeralMessageMediaBuilder<'a> {
+    /// Sets the `media` parameter from a typed
+    /// [`InputMedia`](crate::types::files::input_media::InputMedia) value.
+    ///
+    /// Unlike the factory-provided JSON value, new-file uploads
+    /// (`Bytes` / `Path` inputs) are attached as multipart parts
+    /// automatically; `FileId` / `Url` inputs are sent inline as before.
+    pub fn media_input(mut self, val: files::input_media::InputMedia) -> Self {
+        let uploads = val
+            .upload_files()
+            .into_iter()
+            .map(|(name, file)| (name, file.clone()))
+            .collect();
+        self.media = serde_json::to_value(&val).expect("InputMedia is JSON-serializable");
+        self.media_uploads = uploads;
+        self
+    }
+
     /// Sets the `reply_markup` parameter.
     pub fn reply_markup(mut self, val: serde_json::Value) -> Self {
         self.reply_markup = Some(val);
@@ -2753,9 +2775,54 @@ impl<'a> EditEphemeralMessageMediaBuilder<'a> {
 
     /// Sends the request to the Telegram Bot API.
     pub async fn send(self) -> Result<bool> {
-        let payload = serde_json::to_vec(&self)?;
+        let mut params = vec![
+            RequestParameter::new("chat_id", serde_json::to_value(&self.chat_id)?),
+            RequestParameter::new(
+                "receiver_user_id",
+                serde_json::to_value(self.receiver_user_id)?,
+            ),
+            RequestParameter::new(
+                "ephemeral_message_id",
+                serde_json::to_value(self.ephemeral_message_id)?,
+            ),
+        ];
+        if self.media_uploads.is_empty() {
+            params.push(RequestParameter::new("media", self.media));
+        } else {
+            // Resolve `Path` uploads concurrently; `Bytes` are already in
+            // memory. Order of multipart parts is irrelevant (keyed by
+            // attach name), so completion order needs no preservation.
+            let mut refs: Vec<Option<InputFileRef>> = Vec::new();
+            refs.resize_with(self.media_uploads.len(), || None);
+            let mut handles = Vec::new();
+            for (i, (name, file)) in self.media_uploads.into_iter().enumerate() {
+                match file {
+                    files::input_file::InputFile::Bytes { data, .. } => {
+                        refs[i] = Some(InputFileRef::with_attach_name(name, data));
+                    }
+                    files::input_file::InputFile::Path(path) => {
+                        handles.push((
+                            i,
+                            name,
+                            tokio::spawn(async move { tokio::fs::read(&path).await }),
+                        ));
+                    }
+                    // The walker only yields `Bytes` / `Path`; the other
+                    // variants need no upload.
+                    files::input_file::InputFile::FileId(_)
+                    | files::input_file::InputFile::Url(_) => {}
+                }
+            }
+            for (i, name, handle) in handles {
+                let data = handle.await.map_err(std::io::Error::from)??;
+                refs[i] = Some(InputFileRef::with_attach_name(name, data));
+            }
+            let file_refs = refs.into_iter().flatten().collect();
+            params.push(RequestParameter::with_files("media", self.media, file_refs));
+        }
+        push_opt(&mut params, "reply_markup", &self.reply_markup)?;
         self.bot
-            .do_post_json("editEphemeralMessageMedia", &payload)
+            .do_api_request("editEphemeralMessageMedia", params)
             .await
     }
 }
@@ -4176,6 +4243,7 @@ impl Bot {
             receiver_user_id,
             ephemeral_message_id,
             media,
+            media_uploads: Vec::new(),
             reply_markup: None,
         }
     }

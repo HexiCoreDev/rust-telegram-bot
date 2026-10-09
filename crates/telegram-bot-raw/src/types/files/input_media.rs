@@ -599,6 +599,58 @@ pub enum InputMedia {
     Sticker(InputMediaSticker),
 }
 
+impl InputMedia {
+    /// Attach names and files that must be uploaded as multipart parts.
+    ///
+    /// Each name matches the `attach://` URI produced by [`InputFile`]'s
+    /// `Serialize` impl for the same file, so the JSON payload and the
+    /// multipart body agree. [`InputFile::FileId`] and [`InputFile::Url`]
+    /// inputs need no upload and are skipped.
+    pub fn upload_files(&self) -> Vec<(String, &InputFile)> {
+        fn push<'a>(out: &mut Vec<(String, &'a InputFile)>, file: &'a InputFile) {
+            match file {
+                InputFile::Bytes { filename, .. } => out.push((filename.clone(), file)),
+                InputFile::Path(path) => out.push((path.display().to_string(), file)),
+                InputFile::FileId(_) | InputFile::Url(_) => {}
+            }
+        }
+        fn push_opt<'a>(out: &mut Vec<(String, &'a InputFile)>, file: &'a Option<InputFile>) {
+            if let Some(file) = file {
+                push(out, file);
+            }
+        }
+        let mut out = Vec::new();
+        match self {
+            InputMedia::Photo(m) => push(&mut out, &m.media),
+            InputMedia::Video(m) => {
+                push(&mut out, &m.media);
+                push_opt(&mut out, &m.thumbnail);
+                push_opt(&mut out, &m.cover);
+            }
+            InputMedia::Animation(m) => {
+                push(&mut out, &m.media);
+                push_opt(&mut out, &m.thumbnail);
+            }
+            InputMedia::Audio(m) => {
+                push(&mut out, &m.media);
+                push_opt(&mut out, &m.thumbnail);
+            }
+            InputMedia::Document(m) => {
+                push(&mut out, &m.media);
+                push_opt(&mut out, &m.thumbnail);
+            }
+            InputMedia::LivePhoto(m) => {
+                push(&mut out, &m.media);
+                push(&mut out, &m.photo);
+            }
+            InputMedia::Sticker(m) => push(&mut out, &m.media),
+            // Locations and venues carry no files.
+            InputMedia::Location(_) | InputMedia::Venue(_) => {}
+        }
+        out
+    }
+}
+
 // ─── InputPaidMedia variants ──────────────────────────────────────────────────
 
 /// A paid photo media item.
@@ -693,4 +745,66 @@ pub enum InputPaidMedia {
     Video(InputPaidMediaVideo),
     /// A paid live photo.
     LivePhoto(InputPaidMediaLivePhoto),
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn upload_files_skips_file_id_and_url() {
+        let photo = InputMedia::Photo(InputMediaPhoto::new(InputFile::file_id("abc")));
+        assert!(photo.upload_files().is_empty());
+        let photo = InputMedia::Photo(InputMediaPhoto::new(InputFile::url(
+            "https://example.com/x.jpg",
+        )));
+        assert!(photo.upload_files().is_empty());
+    }
+
+    #[test]
+    fn upload_files_collects_bytes_with_filename_attach_name() {
+        let media = InputMedia::Photo(InputMediaPhoto::new(InputFile::bytes(
+            "pic.jpg",
+            vec![1, 2, 3],
+        )));
+        let files = media.upload_files();
+        assert_eq!(files.len(), 1);
+        assert_eq!(files[0].0, "pic.jpg");
+        // Attach name must match the serialized URI.
+        let value = serde_json::to_value(&media).unwrap();
+        assert_eq!(value["media"], serde_json::json!("attach://pic.jpg"));
+    }
+
+    #[test]
+    fn upload_files_collects_thumbnail_and_cover() {
+        let mut video = InputMediaVideo::new(InputFile::file_id("vid"));
+        video.thumbnail = Some(InputFile::bytes("thumb.jpg", vec![9]));
+        video.cover = Some(InputFile::bytes("cover.jpg", vec![8]));
+        let media = InputMedia::Video(video);
+        let files = media.upload_files();
+        let names: Vec<&str> = files.iter().map(|(n, _)| n.as_str()).collect();
+        assert_eq!(names, vec!["thumb.jpg", "cover.jpg"]);
+    }
+
+    #[test]
+    fn upload_files_collects_live_photo_pair() {
+        let live = InputMedia::LivePhoto(InputMediaLivePhoto::new(
+            InputFile::bytes("clip.mov", vec![1]),
+            InputFile::bytes("still.jpg", vec![2]),
+        ));
+        let files = live.upload_files();
+        let names: Vec<&str> = files.iter().map(|(n, _)| n.as_str()).collect();
+        assert_eq!(names, vec!["clip.mov", "still.jpg"]);
+    }
+
+    #[test]
+    fn upload_files_empty_for_location_and_venue() {
+        assert!(InputMedia::Location(InputMediaLocation {
+            latitude: 1.0,
+            longitude: 2.0,
+            ..Default::default()
+        })
+        .upload_files()
+        .is_empty());
+    }
 }

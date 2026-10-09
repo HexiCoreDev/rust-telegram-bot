@@ -7,12 +7,42 @@
 pub use crate::application::{Application, HandlerError};
 pub use crate::builder::ApplicationBuilder;
 pub use crate::context::{CallbackContext, DataReadGuard, DataWriteGuard};
+pub use crate::defaults::Defaults;
 pub use crate::filters::base::{Filter, FilterResult, F};
 pub use crate::handlers::base::FnHandler;
+pub use crate::handlers::business_connection::BusinessConnectionHandler;
+pub use crate::handlers::business_messages_deleted::BusinessMessagesDeletedHandler;
 pub use crate::handlers::callback_query::CallbackQueryHandler;
+pub use crate::handlers::chat_boost::ChatBoostHandler;
+pub use crate::handlers::chat_join_request::ChatJoinRequestHandler;
+pub use crate::handlers::chat_member::ChatMemberHandler;
+pub use crate::handlers::chosen_inline_result::ChosenInlineResultHandler;
 pub use crate::handlers::command::CommandHandler;
+pub use crate::handlers::conversation::ConversationHandler;
+pub use crate::handlers::inline_query::InlineQueryHandler;
 pub use crate::handlers::message::MessageHandler;
+pub use crate::handlers::message_reaction::MessageReactionHandler;
+pub use crate::handlers::paid_media_purchased::PaidMediaPurchasedHandler;
+pub use crate::handlers::poll::PollHandler;
+pub use crate::handlers::poll_answer::PollAnswerHandler;
+pub use crate::handlers::pre_checkout_query::PreCheckoutQueryHandler;
+pub use crate::handlers::prefix::PrefixHandler;
+pub use crate::handlers::shipping_query::ShippingQueryHandler;
+pub use crate::handlers::string_command::StringCommandHandler;
+pub use crate::handlers::string_regex::StringRegexHandler;
+pub use crate::handlers::type_handler::TypeHandler;
 pub use std::sync::Arc;
+
+// ---------------------------------------------------------------------------
+// Framework pieces (feature-gated to match their modules)
+// ---------------------------------------------------------------------------
+#[cfg(feature = "job-queue")]
+pub use crate::job_queue::{JobContext, JobQueue};
+
+// Update-type filters (`MESSAGE`, `GUEST_MESSAGE`, `SUBSCRIPTION`, …).
+pub use crate::filters::update_type::{
+    GUEST_MESSAGE, MESSAGE, STOPPED_MESSAGE_GENERATION, SUBSCRIPTION,
+};
 
 pub use rust_tg_bot_raw::types::message::Message;
 pub use rust_tg_bot_raw::types::update::Update;

@@ -384,12 +384,16 @@ impl BasePersistence for JsonFilePersistence {
 
 /// Write data to a temporary file and then atomically rename to the target
 /// path to avoid corruption on crash.
+///
+/// The file is restricted to owner-only access (`0o600` on Unix) before the
+/// rename, so persisted bot data is never world-readable via umask defaults.
 fn atomic_write(path: &Path, data: &[u8]) -> PersistenceResult<()> {
     if let Some(parent) = path.parent() {
         std::fs::create_dir_all(parent)?;
     }
     let tmp = path.with_extension("tmp");
     std::fs::write(&tmp, data)?;
+    super::base::restrict_file_permissions(&tmp)?;
     std::fs::rename(&tmp, path)?;
     Ok(())
 }

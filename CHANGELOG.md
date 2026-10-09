@@ -5,6 +5,46 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Security
+- Redacted bot tokens from `Debug` output (`ExtBot`, `Application`) and from
+  logged/returned reqwest errors (URL scrubbing of `/bot<token>`); redacted
+  database URLs from `PostgresPersistenceBuilder` debug output
+- Webhook: empty-string secret tokens are treated as unset (with a warning)
+  instead of matching empty headers; oversized bodies rejected with 413
+  (`MAX_WEBHOOK_BODY_BYTES`, 1 MiB)
+- Persistence: PostgreSQL table prefixes validated (`^[A-Za-z_][A-Za-z0-9_]*$`,
+  enforced in `build`); Redis key scans use cursor-based `SCAN` instead of
+  blocking `KEYS`; JSON/SQLite persistence files restricted to owner-only
+  (`0o600` on Unix)
+- `InputFile::Path` documents its trust contract (application-controlled
+  paths only, never raw user input)
+
+### Fixed
+- At-least-once dispatch across restarts: the durable update floor now
+  advances only after handlers complete (previously on dispatch start, which
+  lost in-flight updates on crash); `Updater::stop` awaits the polling task
+  (5s timeout, then abort) instead of returning while a long-poll tears down
+- `editEphemeralMessageMedia` supports new-file uploads via
+  `media_input(InputMedia)` (multipart `attach://` plumbing backed by
+  `InputMedia::upload_files`); all 13 `*_raw` send methods accept
+  `ephemeral_message_parameters`, closing the raw/builder drift
+- `BOT_API_VERSION` corrected to `10.3`
+- API errors carry the calling method (`TelegramError::with_method`,
+  applied in `do_post_inner`/`do_post_json`) without changing variants
+
+### Added
+- Prelude now re-exports all 22 handlers, `ConversationHandler`, `JobQueue`
+ /`JobContext` (feature-gated), `Defaults`, and update-type filter consts
+  (`MESSAGE`, `GUEST_MESSAGE`, `SUBSCRIPTION`, `STOPPED_MESSAGE_GENERATION`)
+- `ParseMode` documents the typed-vs-string setter contract; migration guide
+  corrected (`ConversationHandler` port, typed query handlers) with a new
+  ownership-rules section (`#[non_exhaustive]` constructors, `move`+`Arc`
+  captures, group `Stop` semantics)
+- CI gains a `cargo audit` job; `telegram-bot-macros` forbids `unsafe_code`
+  like the other crates
+
 ## [1.0.0-rc.3]
 
 ### Added

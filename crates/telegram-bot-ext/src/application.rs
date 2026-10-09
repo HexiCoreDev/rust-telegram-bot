@@ -276,7 +276,7 @@ pub struct Application {
 impl std::fmt::Debug for Application {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("Application")
-            .field("bot_token", &self.bot.token())
+            .field("bot_token", &"[REDACTED]")
             .finish()
     }
 }
@@ -1076,7 +1076,28 @@ impl Application {
         false
     }
 
+    /// Advances the high-water mark after an update's handlers ran.
+    ///
+    /// Called only on successful dispatch paths in
+    /// [`process_update`](Self::process_update); a crash before this runs
+    /// leaves the update below the floor so it is replayed after restart.
+    fn mark_update_complete(&self, update_id: i64) {
+        self.max_update_id.fetch_max(update_id, Ordering::AcqRel);
+    }
+
     /// Dispatch a single update through all registered handler groups.
+    ///
+    /// Delivery is at-least-once across restarts: the high-water mark
+    /// advances only after handlers run, so a crash mid-dispatch leaves the
+    /// update below the persisted floor and Telegram replays it (within the
+    /// server's ~24h retention). Within a run, [`mark_update_seen`](Self::mark_update_seen)
+    /// suppresses redeliveries. Notes:
+    ///
+    /// - Non-blocking handlers count as complete once spawned; a crash before
+    ///   the detached task finishes still loses that work.
+    /// - With `max_concurrent_updates() > 1`, out-of-order completion can
+    ///   advance the mark past a still-running lower id; a crash in that
+    ///   window loses the lower update. Sequential processing is exact.
     // -- Core dispatch --
     pub async fn process_update(&self, update: Arc<Update>) -> Result<(), ApplicationError> {
         self.check_initialized()?;
@@ -1084,8 +1105,6 @@ impl Application {
             tracing::debug!(update_id = update.update_id, "duplicate update skipped");
             return Ok(());
         }
-        self.max_update_id
-            .fetch_max(update.update_id, Ordering::AcqRel);
         let mut context: Option<CallbackContext> = None;
         let groups: Vec<(i32, Vec<usize>)> = {
             let h = self.handlers.read().await;
@@ -1129,10 +1148,12 @@ impl Application {
                     match cb(uc, ctx).await {
                         Ok(()) => {}
                         Err(HandlerError::HandlerStop { .. }) => {
+                            self.mark_update_complete(update.update_id);
                             return Ok(());
                         }
                         Err(HandlerError::Other(e)) => {
                             if self.process_error(Some(Arc::clone(&update)), e).await {
+                                self.mark_update_complete(update.update_id);
                                 return Ok(());
                             }
                         }
@@ -1150,6 +1171,7 @@ impl Application {
             }
             drop(guard);
         }
+        self.mark_update_complete(update.update_id);
         Ok(())
     }
 
@@ -1411,6 +1433,37 @@ mod tests {
             .await
             .unwrap();
         assert_eq!(count.load(std::sync::atomic::Ordering::SeqCst), 1);
+    }
+
+    #[tokio::test]
+    async fn floor_advances_after_dispatch_not_before() {
+        let app = make_app();
+        app.initialize().await.unwrap();
+        app.add_raw_handler(
+            Handler {
+                check_update: Arc::new(|_| true),
+                callback: Arc::new(move |_, _| Box::pin(async move { Ok(()) })),
+                block: true,
+            },
+            DEFAULT_GROUP,
+        )
+        .await;
+        let payload = serde_json::json!({"update_id":7,"message":{"message_id":1,"date":0,"chat":{"id":1,"type":"private"},"text":"hi"}});
+        app.process_update(Arc::new(make_update(payload.clone())))
+            .await
+            .unwrap();
+        assert_eq!(
+            app.max_update_id.load(std::sync::atomic::Ordering::SeqCst),
+            7
+        );
+        // Redelivery is skipped and the floor does not move.
+        app.process_update(Arc::new(make_update(payload)))
+            .await
+            .unwrap();
+        assert_eq!(
+            app.max_update_id.load(std::sync::atomic::Ordering::SeqCst),
+            7
+        );
     }
 
     #[tokio::test]

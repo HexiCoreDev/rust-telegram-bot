@@ -1,11 +1,11 @@
 // ── Version ──────────────────────────────────────────────────────────────────
 
 /// Telegram Bot API version supported by this crate.
-pub const BOT_API_VERSION: &str = "9.6";
+pub const BOT_API_VERSION: &str = "10.3";
 /// Major component of `BOT_API_VERSION`.
-pub const BOT_API_VERSION_MAJOR: u32 = 9;
+pub const BOT_API_VERSION_MAJOR: u32 = 10;
 /// Minor component of `BOT_API_VERSION`.
-pub const BOT_API_VERSION_MINOR: u32 = 6;
+pub const BOT_API_VERSION_MINOR: u32 = 3;
 
 /// Ports accepted by `set_webhook`.
 pub const SUPPORTED_WEBHOOK_PORTS: &[u16] = &[443, 80, 88, 8443];
@@ -945,6 +945,12 @@ pub enum PaidMediaType {
 }
 
 /// Available parse modes.
+///
+/// Accepts both the typed enum and raw strings wherever a `parse_mode`
+/// builder setter is used, e.g. `.parse_mode(ParseMode::Html)` or
+/// `.parse_mode("HTML")`. Prefer the typed form: it is checked at compile
+/// time and stays in sync with the Bot API. The string form remains as an
+/// escape hatch for modes a future API version may introduce.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[non_exhaustive]
 pub enum ParseMode {

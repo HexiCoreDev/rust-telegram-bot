@@ -1,6 +1,8 @@
 //! Procedural macros for the `rust-tg-bot` Telegram Bot framework.
 //!
 //! This crate provides the [`BotCommands`] derive macro, which turns an enum
+
+#![forbid(unsafe_code)]
 //! into a self-parsing command handler with automatic help-text generation and
 //! Telegram `setMyCommands` integration.
 //!

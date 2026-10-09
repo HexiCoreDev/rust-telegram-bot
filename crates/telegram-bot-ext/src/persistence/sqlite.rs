@@ -41,12 +41,18 @@ pub struct SqlitePersistence {
 
 impl SqlitePersistence {
     /// Open (or create) a SQLite database at `path` and initialise the schema.
+    ///
+    /// The database file is restricted to owner-only access (`0o600` on
+    /// Unix). Note the SQLite WAL companions (`-wal`, `-shm`) inherit the
+    /// process umask — run with a restrictive umask (e.g. `027`) if the
+    /// directory is shared.
     pub fn open(path: impl Into<PathBuf>) -> PersistenceResult<Self> {
         let path = path.into();
         if let Some(parent) = path.parent() {
             std::fs::create_dir_all(parent)?;
         }
         let conn = Connection::open(&path).map_err(PersistenceError::Sqlite)?;
+        super::base::restrict_file_permissions(&path)?;
         conn.execute_batch("PRAGMA journal_mode=WAL;")
             .map_err(PersistenceError::Sqlite)?;
         Self::init_tables(&conn)?;

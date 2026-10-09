@@ -461,7 +461,11 @@ impl Bot {
             self.resolve_file_paths(&mut params).await?;
             let url = self.api_url(method);
             let data = RequestData::from_parameters(params);
-            let result = self.request.post(&url, Some(&data), timeouts).await?;
+            let result = self
+                .request
+                .post(&url, Some(&data), timeouts)
+                .await
+                .map_err(|e| e.with_method(method))?;
             serde_json::from_value(result).map_err(Into::into)
         })
     }
@@ -480,7 +484,8 @@ impl Bot {
         let result = self
             .request
             .post_json(&url, payload, TimeoutOverride::default_none())
-            .await?;
+            .await
+            .map_err(|e| e.with_method(method))?;
         serde_json::from_value(result).map_err(Into::into)
     }
 

@@ -433,9 +433,39 @@ impl BaseRequest for ReqwestRequest {
 // Internal helpers
 // ---------------------------------------------------------------------------
 
+// Scrub a bot token from an error message before it is logged or stored.
+// `reqwest::Error`'s Display includes the request URL, which embeds the
+// token for Bot API calls.
+fn scrub_token_from_message(msg: &str) -> String {
+    let mut out = String::with_capacity(msg.len());
+    let mut rest = msg;
+    while let Some(idx) = rest.find("/bot") {
+        let after = &rest[idx + 4..];
+        let end_rel = after
+            .find(|c: char| c == '/' || c.is_whitespace() || c == '"' || c == '\'')
+            .unwrap_or(after.len());
+        let candidate = &after[..end_rel];
+        // Only redact when the segment looks like a real token (Telegram
+        // tokens always contain a colon). This avoids mangling paths such as
+        // `/bots/api` that also contain "/bot".
+        if !candidate.is_empty() && candidate.contains(':') {
+            out.push_str(&rest[..idx + 4]);
+            out.push_str("[REDACTED]");
+            rest = &after[end_rel..];
+        } else {
+            // Not a token — emit through this "/bot" and keep scanning.
+            out.push_str(&rest[..idx + 4]);
+            rest = after;
+        }
+    }
+    out.push_str(rest);
+    out
+}
+
 /// Convert a `reqwest::Error` into an appropriate [`TelegramError`].
 ///
 /// Mirrors the httpx error-mapping in `HTTPXRequest.do_request`:
+///
 /// - Timeouts → [`TelegramError::TimedOut`]
 /// - Everything else → [`TelegramError::Network`]
 fn map_reqwest_error(e: reqwest::Error) -> TelegramError {
@@ -448,10 +478,11 @@ fn map_reqwest_error(e: reqwest::Error) -> TelegramError {
         } else {
             format!("Connection error: {e}")
         };
+        let msg = scrub_token_from_message(&msg);
         warn!("{msg}");
         TelegramError::TimedOut(msg)
     } else {
-        let msg = format!("reqwest error: {e}");
+        let msg = scrub_token_from_message(&format!("reqwest error: {e}"));
         warn!("{msg}");
         TelegramError::Network(msg)
     }
@@ -686,6 +717,40 @@ mod tests {
         assert_eq!(
             resolved.write, None,
             "explicit None must win over media_write"
+        );
+    }
+
+    // ------------------------------------------------------------------
+    // scrub_token_from_message
+    // ------------------------------------------------------------------
+
+    #[test]
+    fn scrub_redacts_token_in_api_url() {
+        let msg = "reqwest error: error sending request for url \
+            (https://api.telegram.org/bot123456:ABC-DEF1234ghIkl/sendMessage)";
+        let scrubbed = scrub_token_from_message(msg);
+        assert!(
+            !scrubbed.contains("123456:ABC-DEF1234ghIkl"),
+            "token must not survive scrubbing: {scrubbed}"
+        );
+        assert!(
+            scrubbed.contains("/bot[REDACTED]/sendMessage"),
+            "method path must survive scrubbing: {scrubbed}"
+        );
+    }
+
+    #[test]
+    fn scrub_leaves_non_token_bot_paths_untouched() {
+        let msg = "see https://core.telegram.org/bots/api for docs";
+        assert_eq!(scrub_token_from_message(msg), msg);
+    }
+
+    #[test]
+    fn scrub_handles_token_at_end_of_string() {
+        let msg = "failed url https://api.telegram.org/bot1:A";
+        assert_eq!(
+            scrub_token_from_message(msg),
+            "failed url https://api.telegram.org/bot[REDACTED]"
         );
     }
 }

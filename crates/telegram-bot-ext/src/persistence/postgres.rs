@@ -76,7 +76,9 @@ pub struct PostgresPersistence {
 ///
 /// Allows configuring the connection pool size, table prefix, and persistence
 /// options before establishing the connection.
-#[derive(Debug)]
+///
+/// The database URL is redacted in `Debug` output so credentials embedded in
+/// the URL (e.g. `postgres://user:pass@host/db`) never land in logs.
 pub struct PostgresPersistenceBuilder {
     database_url: String,
     prefix: String,
@@ -85,13 +87,33 @@ pub struct PostgresPersistenceBuilder {
     update_interval: f64,
 }
 
+impl std::fmt::Debug for PostgresPersistenceBuilder {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("PostgresPersistenceBuilder")
+            .field("database_url", &"[REDACTED]")
+            .field("prefix", &self.prefix)
+            .field("pool_size", &self.pool_size)
+            .field("store_data", &self.store_data)
+            .field("update_interval", &self.update_interval)
+            .finish()
+    }
+}
+
 impl PostgresPersistenceBuilder {
     /// Set a custom table prefix (default: `"rtb"`).
     ///
-    /// All table names will be formatted as `{prefix}_user_data`, etc.
+    /// All table names will be formatted as `{prefix}_user_data`, etc. Only
+    /// ASCII letters, digits, and underscores are accepted (enforced in
+    /// [`build`](Self::build)); anything else is rejected to prevent SQL
+    /// injection through table-name interpolation.
     #[must_use]
     pub fn with_prefix(mut self, prefix: impl Into<String>) -> Self {
         self.prefix = prefix.into();
+        debug_assert!(
+            crate::persistence::base::validate_table_prefix(&self.prefix).is_ok(),
+            "invalid table prefix {:?}",
+            self.prefix
+        );
         self
     }
 
@@ -122,8 +144,10 @@ impl PostgresPersistenceBuilder {
     /// # Errors
     ///
     /// Returns a [`PersistenceError::Postgres`] if the connection or table
-    /// creation fails.
+    /// creation fails, or a [`PersistenceError::Custom`] if the table prefix
+    /// contains anything but ASCII letters, digits, and underscores.
     pub async fn build(self) -> PersistenceResult<PostgresPersistence> {
+        crate::persistence::base::validate_table_prefix(&self.prefix)?;
         let pool = PgPoolOptions::new()
             .max_connections(self.pool_size)
             .connect(&self.database_url)
@@ -182,10 +206,20 @@ impl PostgresPersistence {
 
     /// Set a custom table prefix (default: `"rtb"`).
     ///
-    /// All table names will be formatted as `{prefix}_user_data`, etc.
+    /// All table names will be formatted as `{prefix}_user_data`, etc. Only
+    /// ASCII letters, digits, and underscores are accepted; anything else is
+    /// rejected to prevent SQL injection through table-name interpolation.
+    /// Note: this setter acts on an already-initialised instance whose tables
+    /// were created with the previous prefix — prefer
+    /// [`PostgresPersistenceBuilder::with_prefix`] before [`build`](PostgresPersistenceBuilder::build).
     #[must_use]
     pub fn with_prefix(mut self, prefix: impl Into<String>) -> Self {
         self.prefix = prefix.into();
+        debug_assert!(
+            crate::persistence::base::validate_table_prefix(&self.prefix).is_ok(),
+            "invalid table prefix {:?}",
+            self.prefix
+        );
         self
     }
 

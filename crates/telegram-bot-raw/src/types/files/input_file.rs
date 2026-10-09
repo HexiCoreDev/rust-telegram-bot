@@ -25,6 +25,10 @@ pub enum InputFile {
     },
 
     /// A path on the local filesystem to be read and uploaded.
+    ///
+    /// The path is read as-is (no canonicalisation, no symlink or directory
+    /// confinement checks). Only ever pass application-controlled paths here —
+    /// never raw end-user input, which could exfiltrate arbitrary files.
     Path(PathBuf),
 }
 
@@ -48,6 +52,9 @@ impl InputFile {
     }
 
     /// Create an `InputFile` from a local filesystem path.
+    ///
+    /// See the [`Path`](Self::Path) variant docs for the security contract:
+    /// application-controlled paths only, never raw user input.
     pub fn path(path: impl Into<PathBuf>) -> Self {
         Self::Path(path.into())
     }

@@ -112,7 +112,7 @@ impl std::ops::Deref for ExtBot {
 impl std::fmt::Debug for ExtBot {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("ExtBot")
-            .field("token", &self.bot.token())
+            .field("token", &"[REDACTED]")
             .field("defaults", &self.defaults)
             .field(
                 "has_callback_data_cache",
@@ -522,11 +522,15 @@ mod tests {
 
     #[test]
     fn ext_bot_debug() {
-        let bot = Bot::new("token", mock_request());
+        let bot = Bot::new("super_secret_token_xyz", mock_request());
         let ext = ExtBot::from_bot(bot);
         let s = format!("{ext:?}");
         assert!(s.contains("ExtBot"));
-        assert!(s.contains("token"));
+        assert!(
+            !s.contains("super_secret_token_xyz"),
+            "Debug output must not leak the token value: {s}"
+        );
+        assert!(s.contains("[REDACTED]"));
     }
 
     #[test]

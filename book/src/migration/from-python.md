@@ -255,7 +255,9 @@ let value = data.get("key").and_then(|v| v.as_str());
 
 ### 9. Conversation Handlers
 
-Python has a dedicated `ConversationHandler` class. Rust models conversations as manual state machines:
+Both libraries have a dedicated `ConversationHandler` with the same mental
+model — entry points, per-state handlers, fallbacks, timeouts, and optional
+persistence:
 
 ```python
 # Python
@@ -270,22 +272,24 @@ conv_handler = ConversationHandler(
 ```
 
 ```rust
-// Rust -- use FnHandler with state predicates
-type ConvStore = Arc<RwLock<HashMap<i64, ConvState>>>;
+// Rust -- states are your own Hash + Eq + Clone + Send + Sync type
+#[derive(Clone, Hash, Eq, PartialEq)]
+enum State { Choosing, Typing }
 
-let cs = Arc::clone(&conv_store);
-let cs_check = Arc::clone(&conv_store);
-app.add_handler(
-    FnHandler::new(
-        move |u| is_in_state(u, &cs_check, ConvState::Choosing),
-        move |update, ctx| {
-            let cs = Arc::clone(&cs);
-            async move { choice(update, ctx, cs).await }
-        },
-    ),
-    1,
-).await;
+let conv = ConversationHandler::builder()
+    .entry_point(CommandHandler::new("start", start))
+    .state(State::Choosing, vec![MessageHandler::new(TEXT(), choice)])
+    .state(State::Typing, vec![MessageHandler::new(TEXT(), received)])
+    .fallback(CommandHandler::new("cancel", cancel))
+    .conversation_timeout(Duration::from_secs(300))
+    .name("onboarding".to_string())
+    .build();
+app.add_handler(conv, 0).await;
 ```
+
+(For one-off state checks outside a conversation, `FnHandler` with a shared
+`Arc<RwLock<HashMap<i64, State>>>` predicate still works, but prefer
+`ConversationHandler` for multi-step flows.)
 
 ### 10. Error Handling
 
@@ -325,7 +329,9 @@ app.add_handler(CallbackQueryHandler(button))
 ```
 
 ```rust
-// Rust
+// Rust -- typed handler (also in the prelude)
+app.add_handler(CallbackQueryHandler::new(button), 0).await;
+// ...or the FnHandler shorthand for quick prototypes:
 app.add_handler(FnHandler::on_callback_query(button), 0).await;
 ```
 
@@ -337,9 +343,48 @@ app.add_handler(InlineQueryHandler(inline_handler))
 ```
 
 ```rust
-// Rust
+// Rust -- typed handler (also in the prelude)
+app.add_handler(InlineQueryHandler::new(inline_handler), 0).await;
+// ...or the FnHandler shorthand:
 app.add_handler(FnHandler::on_inline_query(inline_handler), 0).await;
 ```
+
+### 13. Ownership Rules That Bite Newcomers
+
+Three compile-time rules have no Python equivalent. Learn them once and the
+borrow checker stops complaining:
+
+1. **Constructors, not struct literals.** Every API type is
+   `#[non_exhaustive]` for forward compatibility, so `User { id, .. }`
+   does not compile outside the crate. Use `User::new(...)`, builder
+   setters, or `serde_json::from_value()`. New fields Telegram adds later
+   are ignored on deserialization instead of breaking your build.
+
+2. **Handlers are `move` closures over `Arc`.** Callbacks must be
+   `Fn(Arc<Update>, Context) -> Future + Send + Sync + 'static`, so capture
+   state with `Arc`/`Arc<Mutex<_>>` (never `Rc`/`RefCell`) and mark the
+   closure `move`:
+
+   ```rust
+   // Rust -- shared counter across invocations
+   let hits = Arc::new(std::sync::atomic::AtomicUsize::new(0));
+   let h = Arc::clone(&hits);
+   app.add_handler(
+       FnHandler::new(
+           |u| u.effective_message().is_some(),
+           move |update, ctx| {
+               let h = Arc::clone(&h);
+               async move { count(update, ctx, h).await }
+           },
+       ),
+       0,
+   ).await;
+   ```
+
+3. **Group flow: first match wins per group, `Stop` ends everything.**
+   Returning `HandlerResult::Stop` (or `HandlerStop`) halts processing
+   across *all* groups; `Ok(())` continues to the next group. Use negative
+   groups (e.g. `-1`) for always-run bookkeeping like user tracking.
 
 ## Common Patterns
 

@@ -16,8 +16,8 @@
 //! ```
 use rust_tg_bot::ext::filters::update_type::GUEST_MESSAGE;
 use rust_tg_bot::ext::prelude::{
-    json, ApplicationBuilder, Arc, CommandHandler, Context, F, FnHandler, HandlerResult,
-    InlineKeyboardButton, InlineKeyboardMarkup, MessageHandler, Update,
+    json, ApplicationBuilder, Arc, CommandHandler, Context, FnHandler, HandlerResult,
+    InlineKeyboardButton, InlineKeyboardMarkup, MessageHandler, Update, F,
 };
 use rust_tg_bot::raw::types::update::UpdateKind;
 
@@ -87,10 +87,7 @@ async fn guest_message(update: Arc<Update>, context: Context) -> HandlerResult {
         "title": "Hello, guest",
         "input_message_content": {"message_text": "Thanks for summoning me!"},
     });
-    context
-        .bot()
-        .answer_guest_query(query_id, result)
-        .await?;
+    context.bot().answer_guest_query(query_id, result).await?;
     Ok(())
 }
 

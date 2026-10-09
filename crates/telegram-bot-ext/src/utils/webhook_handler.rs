@@ -107,6 +107,19 @@ fn internal_error_response() -> Response {
     StatusCode::INTERNAL_SERVER_ERROR.into_response()
 }
 
+/// 413 Payload Too Large -- body exceeds [`MAX_WEBHOOK_BODY_BYTES`].
+#[inline(always)]
+fn payload_too_large_response() -> Response {
+    StatusCode::PAYLOAD_TOO_LARGE.into_response()
+}
+
+/// Maximum accepted webhook body size (1 MiB).
+///
+/// Telegram update payloads are JSON and far smaller than this (tens of KiB
+/// at most). The cap bounds memory per request; axum's own default body
+/// limit (2 MiB) applies first at the extractor level.
+pub const MAX_WEBHOOK_BODY_BYTES: usize = 1024 * 1024;
+
 // ---------------------------------------------------------------------------
 // Shared state
 // ---------------------------------------------------------------------------
@@ -240,9 +253,19 @@ impl WebhookHandler {
     ///
     /// - `update_tx`: bounded channel sender for forwarding parsed updates.
     /// - `secret_token`: if `Some`, every request must carry a matching
-    ///   `X-Telegram-Bot-Api-Secret-Token` header.
+    ///   `X-Telegram-Bot-Api-Secret-Token` header. An empty string is treated
+    ///   as `None` (no secret required) with a warning, since an empty secret
+    ///   would otherwise accept requests carrying an empty header.
     pub fn new(update_tx: mpsc::Sender<Update>, secret_token: Option<String>) -> Self {
-        let secret_token = secret_token.map(|s| Arc::from(s.into_bytes().into_boxed_slice()));
+        let secret_token = secret_token
+            .filter(|s| {
+                let keep = !s.is_empty();
+                if !keep {
+                    warn!("Empty webhook secret token treated as no secret");
+                }
+                keep
+            })
+            .map(|s| Arc::from(s.into_bytes().into_boxed_slice()));
         Self {
             state: WebhookState {
                 update_tx,
@@ -552,6 +575,12 @@ async fn handle_webhook(
         }
     }
 
+    // -- bound body size -------------------------------------------------------
+    if body.len() > MAX_WEBHOOK_BODY_BYTES {
+        warn!("Rejected oversized webhook body ({} bytes)", body.len());
+        return payload_too_large_response();
+    }
+
     // -- zero-copy deserialization -------------------------------------------
     let update: Update = match serde_json::from_slice(&body) {
         Ok(v) => v,
@@ -781,6 +810,41 @@ mod tests {
         )
         .await;
         assert_eq!(resp.status(), StatusCode::INTERNAL_SERVER_ERROR);
+    }
+
+    #[tokio::test]
+    async fn rejects_oversized_body() {
+        let (tx, _rx) = mpsc::channel(1);
+        let state = WebhookState {
+            update_tx: tx,
+            secret_token: None,
+        };
+        let mut headers = HeaderMap::new();
+        headers.insert("content-type", "application/json".parse().unwrap());
+
+        let big = Bytes::from(vec![b' '; MAX_WEBHOOK_BODY_BYTES + 1]);
+        let resp = handle_webhook(State(state), headers, big).await;
+        assert_eq!(resp.status(), StatusCode::PAYLOAD_TOO_LARGE);
+    }
+
+    #[test]
+    fn empty_secret_string_means_no_secret() {
+        let (tx, _rx) = mpsc::channel(1);
+        let handler = WebhookHandler::new(tx, Some(String::new()));
+        assert!(
+            handler.state.secret_token.is_none(),
+            "empty secret must downgrade to no-secret mode"
+        );
+    }
+
+    #[test]
+    fn non_empty_secret_is_kept() {
+        let (tx, _rx) = mpsc::channel(1);
+        let handler = WebhookHandler::new(tx, Some("s3cret".to_owned()));
+        assert_eq!(
+            handler.state.secret_token.as_deref(),
+            Some(b"s3cret".as_slice())
+        );
     }
 
     #[tokio::test]

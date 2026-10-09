@@ -82,7 +82,51 @@ impl TelegramError {
             None => message.to_string(),
         }
     }
+
+    /// Attach the calling API method name to this error, if it carries a
+    /// free-form message.
+    ///
+    /// String-payload variants (`Forbidden`, `BadRequest`, …) gain a
+    /// `"[method] "` prefix so logs and user-facing errors identify the
+    /// failing call. Structured variants (`ChatMigrated`, `RetryAfter`,
+    /// `Http`, `Json`, `Io`) already carry their own context and are
+    /// returned unchanged.
+    #[must_use]
+    pub fn with_method(self, method: &str) -> Self {
+        let prefix = format!("[{method}] ");
+        match self {
+            Self::Forbidden(m) => Self::Forbidden(prefix + &m),
+            Self::InvalidToken(m) => Self::InvalidToken(prefix + &m),
+            Self::EndPointNotFound(m) => Self::EndPointNotFound(prefix + &m),
+            Self::Network(m) => Self::Network(prefix + &m),
+            Self::BadRequest(m) => Self::BadRequest(prefix + &m),
+            Self::TimedOut(m) => Self::TimedOut(prefix + &m),
+            Self::Conflict(m) => Self::Conflict(prefix + &m),
+            Self::PassportDecryption(m) => Self::PassportDecryption(prefix + &m),
+            other => other,
+        }
+    }
 }
 
 /// A type alias for `Result<T, TelegramError>`.
 pub type Result<T> = std::result::Result<T, TelegramError>;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn with_method_prefixes_string_variants() {
+        let err = TelegramError::BadRequest("chat not found".to_owned()).with_method("sendMessage");
+        assert_eq!(format!("{err}"), "[sendMessage] chat not found");
+    }
+
+    #[test]
+    fn with_method_leaves_structured_variants_untouched() {
+        let err = TelegramError::ChatMigrated { new_chat_id: 42 }.with_method("sendMessage");
+        assert!(matches!(
+            err,
+            TelegramError::ChatMigrated { new_chat_id: 42 }
+        ));
+    }
+}
