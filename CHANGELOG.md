@@ -5,6 +5,33 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- Framework update-type filters: `GUEST_MESSAGE`, `SUBSCRIPTION`,
+  `STOPPED_MESSAGE_GENERATION`
+- Context shortcuts: `reply_rich_message`, `reply_ephemeral` (auto-attaches
+  the callback query id when answering from a button press)
+- At-least-once dispatch dedup (bounded, 2048 ids) plus a durable update
+  floor persisted through `bot_data` and restored on startup; polling
+  resumes after the floor
+
+### Fixed
+- `getManagedBotToken`/`replaceManagedBotToken` sent `bot_user_id`;
+  the API expects `user_id` (calls failed live)
+- Removed parameters the API never defined: `savePreparedKeyboardButton`
+  allow_* quads, `sendMediaGroup.suggested_post_parameters`,
+  `sendPoll.direct_messages_topic_id`/`suggested_post_parameters`
+- Completed `sendPoll` builder args (`correct_option_ids`, revoting,
+  shuffle, add-options, hide-until-close, description set)
+- `EditMessageTextBuilder.text` optional with `edit_message_rich` factory
+
+### Performance
+- Dropped per-request `HashSet` allocs in the request path
+- Concurrent multi-file upload reads (order-preserving)
+- `Message` 9384 → 6280 bytes via payload boxing, with size asserts
+- Binary 6.2 → 6.6 MB measured for the full 10.3 surface
+
 ## [1.0.0-rc.2] - 2026-10-08
 
 ### Added

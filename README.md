@@ -47,7 +47,7 @@ We acknowledge and thank the python-telegram-bot maintainers and community for o
 | **Performance** | GIL-limited concurrency, interpreted | True parallelism, compiled to native code |
 | **Memory safety** | Runtime GC, potential leaks in long-running bots | Ownership system prevents leaks at compile time |
 | **Type safety** | Optional type hints, runtime errors | Enforced at compile time, no `AttributeError` at 3 AM |
-| **Deployment** | Requires Python runtime + virtualenv | Single static binary, 6.2 MB stripped |
+| **Deployment** | Requires Python runtime + virtualenv | Single static binary, 6.6 MB stripped |
 | **Resource usage** | 57 MB RSS (measured) | 15 MB idle / 17 MB load (matches teloxide, see [benchmarks](benchmarks/)) |
 | **Concurrency** | asyncio (single-threaded) | tokio (multi-threaded work-stealing) |
 
@@ -479,7 +479,7 @@ rust-tg-bot = { git = "https://github.com/HexiCoreDev/rust-telegram-bot", featur
 | Type safety | Compile-time | Runtime (optional hints) | Compile-time |
 | Memory idle (measured) | **15 MB** | 57 MB | **15 MB** |
 | Memory under load (measured) | **17 MB** | 60 MB | **17 MB** |
-| Binary size (stripped) | **6.2 MB** | Requires Python runtime | 6.6 MB |
+| Binary size (stripped) | **6.6 MB** | Requires Python runtime | 6.6 MB |
 | Minimum version | Rust 1.75 | Python 3.10 | Rust 1.68 |
 | Builder pattern | IntoFuture (directly awaitable) | Keyword args | Method chains |
 | Typed constants | `ParseMode::Html` | `ParseMode.HTML` | String-based |
@@ -546,7 +546,7 @@ What is implemented:
 - 25 roundtrip serialization tests, 9 proptest filter tests, 10 persistence stress tests
 - GitHub Actions CI: check, test, clippy, format, examples, docs (stable + MSRV 1.75)
 - Release pipeline: cross-compile binaries + crates.io publish
-- Measured performance: 6.2 MB binary (stripped), 15 MB idle / 17 MB RSS under load (release) -- matches teloxide, beats it on binary size
+- Measured performance: 6.6 MB binary (stripped, echo_bot reference), 15 MB idle / 17 MB RSS under load (release) -- matches teloxide on all three
 
 ### Forward Compatibility
 
