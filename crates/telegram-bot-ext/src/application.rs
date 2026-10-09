@@ -17,7 +17,7 @@
 use std::collections::{BTreeMap, HashMap, HashSet, VecDeque};
 use std::future::Future;
 use std::pin::Pin;
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicI64, Ordering};
 use std::sync::Arc;
 
 use serde_json::Value;
@@ -251,6 +251,15 @@ pub struct Application {
     /// [`process_update`](Application::process_update).
     seen_updates: Mutex<(HashSet<i64>, VecDeque<i64>)>,
 
+    /// Highest update id dispatched so far. Doubles as the replay floor:
+    /// any id at or below it was already processed. Restored from
+    /// persistence on startup (see [`LAST_UPDATE_ID_KEY`]).
+    max_update_id: AtomicI64,
+
+    /// Value of [`LAST_UPDATE_ID_KEY`] at the last persistence flush.
+    /// Tracks whether the floor needs rewriting into `bot_data`.
+    flushed_update_id: AtomicI64,
+
     initialized: AtomicBool,
     running: AtomicBool,
 
@@ -276,6 +285,12 @@ pub const DEFAULT_GROUP: i32 = 0;
 /// Maximum number of recently dispatched update ids retained for
 /// at-least-once delivery dedup (~64 KiB worst case).
 pub const MAX_SEEN_UPDATE_IDS: usize = 2048;
+
+/// Reserved `bot_data` key holding the highest dispatched update id.
+///
+/// Written on the periodic persistence flush and restored on startup so
+/// restart replays are skipped. Users should not read or write this key.
+pub const LAST_UPDATE_ID_KEY: &str = "__rtb_last_update_id";
 
 pub(crate) struct ApplicationConfig {
     pub(crate) bot: Arc<ExtBot>,
@@ -347,6 +362,8 @@ impl Application {
             job_queue,
             pending_tasks: Arc::new(RwLock::new(Vec::new())),
             seen_updates: Mutex::new((HashSet::new(), VecDeque::new())),
+            max_update_id: AtomicI64::new(-1),
+            flushed_update_id: AtomicI64::new(-1),
             initialized: AtomicBool::new(false),
             running: AtomicBool::new(false),
             update_tx: tx,
@@ -434,6 +451,10 @@ impl Application {
             }
             if sd.bot_data {
                 if let Ok(data) = persistence.get_bot_data().await {
+                    if let Some(floor) = data.get(LAST_UPDATE_ID_KEY).and_then(Value::as_i64) {
+                        self.max_update_id.store(floor, Ordering::Release);
+                        self.flushed_update_id.store(floor, Ordering::Release);
+                    }
                     *self.bot_data.write().await = data;
                 }
             }
@@ -618,6 +639,14 @@ impl Application {
                 }
             }
             if sd.bot_data {
+                let floor = self.max_update_id.load(Ordering::Acquire);
+                if floor != self.flushed_update_id.load(Ordering::Acquire) {
+                    self.bot_data
+                        .write()
+                        .await
+                        .insert(LAST_UPDATE_ID_KEY.to_owned(), Value::from(floor));
+                    self.flushed_update_id.store(floor, Ordering::Release);
+                }
                 let _ = persistence
                     .update_bot_data(self.bot_data.read().await.clone())
                     .await;
@@ -693,9 +722,15 @@ impl Application {
         let tx = self.update_tx.clone();
         let stop = Arc::clone(&self.stop_notify);
         let allowed = allowed_updates;
+        let restored_offset = {
+            let floor = self.max_update_id.load(Ordering::Acquire);
+            (floor >= 0).then(|| floor + 1)
+        };
 
         let poll_handle = tokio::spawn(async move {
-            let mut offset: Option<i64> = None;
+            // Resume after the highest update dispatched in a previous session,
+            // so restart replays are never even fetched.
+            let mut offset: Option<i64> = restored_offset;
             if drop_pending_updates {
                 if let Ok(updates) = bot
                     .inner()
@@ -1019,8 +1054,12 @@ impl Application {
     /// Records an update id, returning `true` if it was already dispatched.
     ///
     /// Covers redeliveries from long-polling retries, webhook retries, and
-    /// restart overlap. Bounded to [`MAX_SEEN_UPDATE_IDS`] entries.
+    /// restart overlap. Ids at or below the persisted floor were processed in
+    /// a previous session; the bounded window covers in-process redelivery.
     async fn mark_update_seen(&self, update_id: i64) -> bool {
+        if update_id <= self.max_update_id.load(Ordering::Acquire) {
+            return true;
+        }
         let mut guard = self.seen_updates.lock().await;
         let (set, order) = &mut *guard;
         if !set.insert(update_id) {
@@ -1043,6 +1082,8 @@ impl Application {
             tracing::debug!(update_id = update.update_id, "duplicate update skipped");
             return Ok(());
         }
+        self.max_update_id
+            .fetch_max(update.update_id, Ordering::AcqRel);
         let mut context: Option<CallbackContext> = None;
         let groups: Vec<(i32, Vec<usize>)> = {
             let h = self.handlers.read().await;
@@ -1364,6 +1405,116 @@ mod tests {
             .unwrap();
         // Redelivery of the same update id is skipped.
         app.process_update(Arc::new(make_update(payload)))
+            .await
+            .unwrap();
+        assert_eq!(count.load(std::sync::atomic::Ordering::SeqCst), 1);
+    }
+
+    #[tokio::test]
+    async fn update_below_restored_floor_is_skipped() {
+        let app = make_app();
+        app.initialize().await.unwrap();
+        // Simulate a floor restored from a previous session.
+        app.max_update_id
+            .store(10, std::sync::atomic::Ordering::Release);
+        let count = Arc::new(std::sync::atomic::AtomicUsize::new(0));
+        let c2 = count.clone();
+        app.add_raw_handler(
+            Handler {
+                check_update: Arc::new(|_| true),
+                callback: Arc::new(move |_, _| {
+                    let c = c2.clone();
+                    Box::pin(async move {
+                        c.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
+                        Ok(())
+                    })
+                }),
+                block: true,
+            },
+            DEFAULT_GROUP,
+        )
+        .await;
+        let old = serde_json::json!({"update_id":5,"message":{"message_id":1,"date":0,"chat":{"id":1,"type":"private"}}});
+        app.process_update(Arc::new(make_update(old)))
+            .await
+            .unwrap();
+        assert_eq!(count.load(std::sync::atomic::Ordering::SeqCst), 0);
+        let fresh = serde_json::json!({"update_id":11,"message":{"message_id":2,"date":0,"chat":{"id":1,"type":"private"}}});
+        app.process_update(Arc::new(make_update(fresh)))
+            .await
+            .unwrap();
+        assert_eq!(count.load(std::sync::atomic::Ordering::SeqCst), 1);
+    }
+
+    #[cfg(feature = "persistence")]
+    #[tokio::test]
+    async fn floor_survives_persistence_round_trip() {
+        use crate::persistence::dict::DictPersistence;
+
+        let bot = Bot::new("test_token", mock_request());
+        let ext_bot = Arc::new(ExtBot::from_bot(bot));
+        let processor = Arc::new(crate::update_processor::simple_processor(1).unwrap());
+        let mut config = ApplicationConfig::new(ext_bot, ContextTypes::default(), processor);
+        config.persistence = Some(Box::new(DictPersistence::new()));
+        let app1 = Application::new(config);
+        app1.initialize().await.unwrap();
+        app1.add_raw_handler(
+            Handler {
+                check_update: Arc::new(|_| true),
+                callback: Arc::new(|_, _| Box::pin(async move { Ok(()) })),
+                block: true,
+            },
+            DEFAULT_GROUP,
+        )
+        .await;
+        app1
+            .process_update(Arc::new(make_update(
+                serde_json::json!({"update_id":5,"message":{"message_id":1,"date":0,"chat":{"id":1,"type":"private"}}}),
+            )))
+            .await
+            .unwrap();
+        // Flush persists the floor into bot_data.
+        app1.update_persistence().await;
+        let stored = serde_json::to_string(&*app1.bot_data.read().await).unwrap();
+        assert!(stored.contains(LAST_UPDATE_ID_KEY));
+
+        // A fresh app restoring that snapshot skips the replay.
+        let bot2 = Bot::new("test_token", mock_request());
+        let ext_bot2 = Arc::new(ExtBot::from_bot(bot2));
+        let processor2 = Arc::new(crate::update_processor::simple_processor(1).unwrap());
+        let restored = DictPersistence::from_json(None, None, Some(&stored), None, None).unwrap();
+        let mut config2 = ApplicationConfig::new(ext_bot2, ContextTypes::default(), processor2);
+        config2.persistence = Some(Box::new(restored));
+        let app2 = Application::new(config2);
+        app2.initialize().await.unwrap();
+        let count = Arc::new(std::sync::atomic::AtomicUsize::new(0));
+        let c2 = count.clone();
+        app2.add_raw_handler(
+            Handler {
+                check_update: Arc::new(|_| true),
+                callback: Arc::new(move |_, _| {
+                    let c = c2.clone();
+                    Box::pin(async move {
+                        c.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
+                        Ok(())
+                    })
+                }),
+                block: true,
+            },
+            DEFAULT_GROUP,
+        )
+        .await;
+        app2
+            .process_update(Arc::new(make_update(
+                serde_json::json!({"update_id":5,"message":{"message_id":1,"date":0,"chat":{"id":1,"type":"private"}}}),
+            )))
+            .await
+            .unwrap();
+        assert_eq!(count.load(std::sync::atomic::Ordering::SeqCst), 0);
+        app2
+            .process_update(Arc::new(make_update(
+                serde_json::json!({"update_id":6,"message":{"message_id":2,"date":0,"chat":{"id":1,"type":"private"}}}),
+            )))
             .await
             .unwrap();
         assert_eq!(count.load(std::sync::atomic::Ordering::SeqCst), 1);
