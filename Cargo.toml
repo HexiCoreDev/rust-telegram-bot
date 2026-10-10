@@ -49,6 +49,9 @@ tracing-subscriber = "0.3"
 # Regex
 regex = "1"
 
+# CSPRNG for callback-data identifiers
+getrandom = "0.3"
+
 # URL handling
 url = { version = "2", features = ["serde"] }
 

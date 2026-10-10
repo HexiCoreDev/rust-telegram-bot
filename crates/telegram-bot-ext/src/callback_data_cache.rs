@@ -7,7 +7,6 @@
 //! mechanism.  Uses a simple LRU eviction strategy bounded by `maxsize`.
 
 use std::collections::{HashMap, VecDeque};
-use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use serde_json::Value;
@@ -17,19 +16,41 @@ use rust_tg_bot_raw::types::inline::inline_keyboard_button::InlineKeyboardButton
 use rust_tg_bot_raw::types::inline::inline_keyboard_markup::InlineKeyboardMarkup;
 
 // ---------------------------------------------------------------------------
-// UUID generation (SystemTime + atomic counter -- no external crate)
+// UUID generation (OS CSPRNG, 16 bytes -- matches PTB's uuid4)
 // ---------------------------------------------------------------------------
 
-static COUNTER: AtomicU64 = AtomicU64::new(0);
+const HEX_DIGITS: &[u8; 16] = b"0123456789abcdef";
 
-/// Generates a 32-hex-char unique id using the current timestamp and an atomic counter.
+/// Generates a 32-hex-char identifier from 16 bytes of OS randomness.
+///
+/// Mirrors python-telegram-bot, which draws these from `uuid.uuid4()` (also
+/// `os.urandom`). This must stay unpredictable: the value is shipped to
+/// Telegram as `callback_data` and is the *only* thing standing between a
+/// caller and another user's stored keyboard object -- the lookup in
+/// [`ArbitraryCallbackData::get_keyboard_uuid_and_button_data`] resolves a
+/// callback purely by id and performs no ownership check.
+///
+/// The previous scheme (nanosecond timestamp + a process-local counter)
+/// was enumerable: the counter ran 0, 1, 2, ... and the timestamp was
+/// knowable, so an attacker could walk sequential counters against a handful
+/// of plausible timestamps and forge a `callback_data` for a keyboard they
+/// were never shown.
+///
+/// # Panics
+///
+/// Panics if the OS entropy source is unavailable. That is deliberate: every
+/// fallback available here is predictable, and a predictable id silently
+/// reintroduces the vulnerability this replaces.
 fn generate_uuid() -> String {
-    let ts = SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .unwrap_or_default()
-        .as_nanos();
-    let seq = COUNTER.fetch_add(1, Ordering::Relaxed);
-    format!("{ts:016x}{seq:016x}")
+    let mut bytes = [0u8; 16];
+    getrandom::fill(&mut bytes).expect("OS CSPRNG unavailable");
+
+    let mut out = String::with_capacity(32);
+    for b in bytes {
+        out.push(HEX_DIGITS[usize::from(b >> 4)] as char);
+        out.push(HEX_DIGITS[usize::from(b & 0x0f)] as char);
+    }
+    out
 }
 
 // ---------------------------------------------------------------------------
@@ -464,6 +485,61 @@ mod tests {
         let b = generate_uuid();
         assert_ne!(a, b);
         assert_eq!(a.len(), 32);
+    }
+
+    #[test]
+    fn uuid_is_32_lowercase_hex_chars() {
+        let id = generate_uuid();
+        assert_eq!(id.len(), 32);
+        assert!(
+            id.bytes().all(|b| b.is_ascii_hexdigit() && !b.is_ascii_uppercase()),
+            "callback id must be lowercase hex: {id}"
+        );
+    }
+
+    /// The old scheme was `{nanos:016x}{counter:016x}`: the timestamp half was
+    /// knowable and the counter half ran 0, 1, 2, ... in order, so a caller
+    /// could enumerate another user's `callback_data` by walking counters
+    /// against a few plausible timestamps and resolve their stored object.
+    ///
+    /// Random ids cannot be shown to resist enumeration by construction, but
+    /// they can be shown not to carry the old structure: consecutive ids must
+    /// not be numerically adjacent, which is exactly what a counter leaks.
+    #[test]
+    fn uuid_is_not_sequentially_predictable() {
+        // The old counter occupied the low 16 hex chars (`{seq:016x}`), so that
+        // is the half worth checking for sequential leakage.
+        let lows: Vec<u64> = (0..256)
+            .map(|_| u64::from_str_radix(&generate_uuid()[16..], 16).unwrap())
+            .collect();
+
+        let adjacent = lows.windows(2).filter(|w| w[1] == w[0] + 1).count();
+        assert_eq!(
+            adjacent, 0,
+            "consecutive ids must not differ by 1 in the low half; a counter leaks that"
+        );
+
+        // A counter produces a contiguous run: 256 ids spanning exactly 0..=255.
+        // Random ids are spread across the whole 64-bit range.
+        let spread = lows.iter().max().unwrap() - lows.iter().min().unwrap();
+        assert!(
+            spread > u64::MAX / 1024,
+            "ids occupy a narrow range (spread {spread}); that is a counter, not randomness"
+        );
+    }
+
+    /// The counter half used to start at zero for every process, so the very
+    /// first keyboard a fresh process created was trivially guessable.
+    #[test]
+    fn uuid_does_not_start_from_a_deterministic_seed() {
+        let first = generate_uuid();
+        let second = generate_uuid();
+        assert_ne!(
+            &first[16..],
+            "0000000000000000",
+            "first id must not embed a zero counter"
+        );
+        assert_ne!(&first[..16], &second[..16]);
     }
 
     #[test]

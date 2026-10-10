@@ -37,7 +37,8 @@ use std::net::SocketAddr;
 use std::sync::Arc;
 
 use axum::body::Bytes;
-use axum::extract::State;
+use axum::extract::{FromRequestParts, State};
+use axum::http::request::Parts;
 use axum::http::{HeaderMap, StatusCode};
 use axum::response::{IntoResponse, Response};
 use axum::routing::{get, post};
@@ -81,12 +82,6 @@ fn constant_time_eq(a: &[u8], b: &[u8]) -> bool {
 #[inline(always)]
 fn ok_response() -> Response {
     StatusCode::OK.into_response()
-}
-
-/// 403 Forbidden -- content-type or secret token mismatch.
-#[inline(always)]
-fn forbidden_response() -> Response {
-    StatusCode::FORBIDDEN.into_response()
 }
 
 /// 400 Bad Request -- malformed JSON body.
@@ -254,14 +249,29 @@ impl WebhookHandler {
     /// - `update_tx`: bounded channel sender for forwarding parsed updates.
     /// - `secret_token`: if `Some`, every request must carry a matching
     ///   `X-Telegram-Bot-Api-Secret-Token` header. An empty string is treated
-    ///   as `None` (no secret required) with a warning, since an empty secret
-    ///   would otherwise accept requests carrying an empty header.
+    ///   as `None` (no secret required), matching python-telegram-bot's
+    ///   truthiness check on the same parameter.
+    ///
+    /// # Unauthenticated endpoints
+    ///
+    /// Both `None` and `Some("")` leave the endpoint accepting *any* POST that
+    /// parses as an `Update`, from anyone who can reach the URL. An empty
+    /// string is nearly always a misconfiguration -- an unset environment
+    /// variable or a missing CLI flag expanding to `""` -- so it is logged at
+    /// `error!` rather than quietly downgrading. Both cases log at `warn!`
+    /// again when the server starts, so an operator who believes the endpoint
+    /// is protected sees it plainly at boot.
     pub fn new(update_tx: mpsc::Sender<Update>, secret_token: Option<String>) -> Self {
         let secret_token = secret_token
             .filter(|s| {
                 let keep = !s.is_empty();
                 if !keep {
-                    warn!("Empty webhook secret token treated as no secret");
+                    error!(
+                        "Webhook secret token is EMPTY -- this endpoint will accept \
+                         unauthenticated updates from anyone who can reach it. \
+                         Set a non-empty secret_token, or pass None to accept this \
+                         deliberately."
+                    );
                 }
                 keep
             })
@@ -316,6 +326,9 @@ pub struct WebhookServer {
     /// enabled and a [`TlsConfig`] was provided at construction time.
     #[cfg(feature = "webhooks-tls")]
     tls: Option<TlsConfig>,
+    /// Whether a secret token was configured. `false` means the endpoint
+    /// accepts unauthenticated updates, which is reported at startup.
+    authenticated: bool,
 }
 
 impl WebhookServer {
@@ -337,6 +350,7 @@ impl WebhookServer {
         #[cfg(feature = "webhooks-tls")] tls: Option<TlsConfig>,
     ) -> Self {
         let handler = WebhookHandler::new(update_tx, secret_token);
+        let authenticated = handler.state.secret_token.is_some();
         let router = handler.into_router(url_path);
 
         Self {
@@ -345,6 +359,7 @@ impl WebhookServer {
             router,
             shutdown_notify: Arc::new(Notify::new()),
             running: std::sync::atomic::AtomicBool::new(false),
+            authenticated,
             #[cfg(feature = "webhooks-tls")]
             tls,
         }
@@ -378,6 +393,7 @@ impl WebhookServer {
         #[cfg(feature = "webhooks-tls")]
         if let Some(ref tls) = self.tls {
             info!("Webhook server (HTTPS) started on {addr}");
+            self.warn_if_unauthenticated();
             if let Some(n) = ready {
                 n.notify_one();
             }
@@ -392,6 +408,7 @@ impl WebhookServer {
         });
 
         info!("Webhook server started on {addr}");
+        self.warn_if_unauthenticated();
 
         if let Some(n) = ready {
             n.notify_one();
@@ -519,6 +536,22 @@ impl WebhookServer {
         Ok(())
     }
 
+    /// Warn at startup if the endpoint accepts unauthenticated updates.
+    ///
+    /// An operator who believes their webhook is protected but passed `None`
+    /// (or an empty string) should not have to read the source to find out.
+    fn warn_if_unauthenticated(&self) {
+        if self.authenticated {
+            return;
+        }
+        warn!(
+            "Webhook server is running WITHOUT a secret token -- it will accept and \
+             dispatch any well-formed Update posted by anyone who can reach {addr:?}. \
+             Set secret_token to the value registered with Telegram's setWebhook.",
+            addr = format_args!("{}:{}", self.listen, self.port),
+        );
+    }
+
     /// Signal the server to shut down gracefully.
     ///
     /// In-flight requests will be allowed to complete. New connections will
@@ -535,29 +568,41 @@ impl WebhookServer {
 // axum handlers
 // ---------------------------------------------------------------------------
 
-/// The POST handler that receives Telegram updates.
+/// Header-validation guard that must be listed *before* the body extractor.
 ///
-/// Hot path -- every allocation here adds latency. The body is read as raw
-/// `Bytes` and deserialized with `serde_json::from_slice` (zero-copy where
-/// the Update type allows it). The channel send is non-blocking; if the
-/// receiver cannot keep up we return 503 (backpressure) rather than blocking
-/// the HTTP task.
-async fn handle_webhook(
-    State(state): State<WebhookState>,
-    headers: HeaderMap,
-    body: Bytes,
-) -> Response {
-    // -- validate content type -----------------------------------------------
+/// This is a `FromRequestParts` extractor, which axum runs to completion before
+/// it constructs the final body extractor, and returns on the first rejection.
+/// So an unauthenticated request never reaches the `Bytes` extractor and its
+/// body is never read off the socket or buffered in memory.
+///
+/// Validating inside the handler body instead would buffer the whole request
+/// first, letting any unauthenticated caller make the server allocate up to
+/// axum's body limit before the secret token was ever checked.
+struct Authenticated;
+
+impl FromRequestParts<WebhookState> for Authenticated {
+    type Rejection = StatusCode;
+
+    async fn from_request_parts(
+        parts: &mut Parts,
+        state: &WebhookState,
+    ) -> Result<Self, Self::Rejection> {
+        validate_headers(&parts.headers, state)?;
+        Ok(Authenticated)
+    }
+}
+
+/// Validate `Content-Type` and the secret token. Returns `403` on any mismatch.
+fn validate_headers(headers: &HeaderMap, state: &WebhookState) -> Result<(), StatusCode> {
     let ct = headers
         .get("content-type")
         .and_then(|v| v.to_str().ok())
         .unwrap_or("");
     if !ct.starts_with("application/json") {
         debug!("Rejected request with Content-Type: {ct}");
-        return forbidden_response();
+        return Err(StatusCode::FORBIDDEN);
     }
 
-    // -- validate secret token (constant-time) -------------------------------
     if let Some(ref expected) = state.secret_token {
         let provided = headers
             .get("x-telegram-bot-api-secret-token")
@@ -565,16 +610,41 @@ async fn handle_webhook(
         match provided {
             None => {
                 debug!("Request missing secret token header");
-                return forbidden_response();
+                return Err(StatusCode::FORBIDDEN);
             }
             Some(tok) if !constant_time_eq(tok, expected) => {
                 debug!("Request had invalid secret token");
-                return forbidden_response();
+                return Err(StatusCode::FORBIDDEN);
             }
             Some(_) => {}
         }
     }
 
+    Ok(())
+}
+
+/// The POST handler that receives Telegram updates.
+///
+/// Authentication happens in the [`Authenticated`] extractor; this function
+/// only runs once the caller has already proven they hold the secret token,
+/// so by the time the body exists it is a body we are willing to parse.
+///
+/// `authenticated` is declared before `body` on purpose -- see [`Authenticated`].
+async fn handle_webhook(
+    State(state): State<WebhookState>,
+    _authenticated: Authenticated,
+    body: Bytes,
+) -> Response {
+    ingest_update(state, body)
+}
+
+/// Deserialize an already-authenticated update body and forward it.
+///
+/// Hot path -- every allocation here adds latency. The body is deserialized
+/// with `serde_json::from_slice` (zero-copy where the `Update` type allows it).
+/// The channel send is non-blocking; if the receiver cannot keep up we return
+/// 503 (backpressure) rather than blocking the HTTP task.
+fn ingest_update(state: WebhookState, body: Bytes) -> Response {
     // -- bound body size -------------------------------------------------------
     if body.len() > MAX_WEBHOOK_BODY_BYTES {
         warn!("Rejected oversized webhook body ({} bytes)", body.len());
@@ -680,8 +750,8 @@ mod tests {
 
     // -- handler tests -------------------------------------------------------
 
-    #[tokio::test]
-    async fn rejects_wrong_content_type() {
+    #[test]
+    fn rejects_wrong_content_type() {
         let (tx, _rx) = mpsc::channel(1);
         let state = WebhookState {
             update_tx: tx,
@@ -690,12 +760,14 @@ mod tests {
         let mut headers = HeaderMap::new();
         headers.insert("content-type", "text/plain".parse().unwrap());
 
-        let resp = handle_webhook(State(state), headers, Bytes::from_static(b"{}")).await;
-        assert_eq!(resp.status(), StatusCode::FORBIDDEN);
+        assert_eq!(
+            validate_headers(&headers, &state),
+            Err(StatusCode::FORBIDDEN)
+        );
     }
 
-    #[tokio::test]
-    async fn rejects_missing_secret_token() {
+    #[test]
+    fn rejects_missing_secret_token() {
         let (tx, _rx) = mpsc::channel(1);
         let state = WebhookState {
             update_tx: tx,
@@ -704,12 +776,14 @@ mod tests {
         let mut headers = HeaderMap::new();
         headers.insert("content-type", "application/json".parse().unwrap());
 
-        let resp = handle_webhook(State(state), headers, Bytes::from_static(b"{}")).await;
-        assert_eq!(resp.status(), StatusCode::FORBIDDEN);
+        assert_eq!(
+            validate_headers(&headers, &state),
+            Err(StatusCode::FORBIDDEN)
+        );
     }
 
-    #[tokio::test]
-    async fn rejects_wrong_secret_token() {
+    #[test]
+    fn rejects_wrong_secret_token() {
         let (tx, _rx) = mpsc::channel(1);
         let state = WebhookState {
             update_tx: tx,
@@ -719,8 +793,10 @@ mod tests {
         headers.insert("content-type", "application/json".parse().unwrap());
         headers.insert("x-telegram-bot-api-secret-token", "wrong".parse().unwrap());
 
-        let resp = handle_webhook(State(state), headers, Bytes::from_static(b"{}")).await;
-        assert_eq!(resp.status(), StatusCode::FORBIDDEN);
+        assert_eq!(
+            validate_headers(&headers, &state),
+            Err(StatusCode::FORBIDDEN)
+        );
     }
 
     #[tokio::test]
@@ -733,12 +809,7 @@ mod tests {
         let mut headers = HeaderMap::new();
         headers.insert("content-type", "application/json".parse().unwrap());
 
-        let resp = handle_webhook(
-            State(state),
-            headers,
-            Bytes::from_static(b"{\"update_id\": 1}"),
-        )
-        .await;
+        let resp = ingest_update(state, Bytes::from_static(b"{\"update_id\": 1}"));
         assert_eq!(resp.status(), StatusCode::OK);
 
         let update = rx.recv().await.unwrap();
@@ -759,20 +830,15 @@ mod tests {
             "mysecret".parse().unwrap(),
         );
 
-        let resp = handle_webhook(
-            State(state),
-            headers,
-            Bytes::from_static(b"{\"update_id\": 42}"),
-        )
-        .await;
+        let resp = ingest_update(state, Bytes::from_static(b"{\"update_id\": 42}"));
         assert_eq!(resp.status(), StatusCode::OK);
 
         let update = rx.recv().await.unwrap();
         assert_eq!(update.update_id, 42);
     }
 
-    #[tokio::test]
-    async fn returns_503_when_channel_full() {
+    #[test]
+    fn returns_503_when_channel_full() {
         // Channel capacity 1, pre-fill it.
         let (tx, _rx) = mpsc::channel(1);
         let prefill: Update = serde_json::from_str("{\"update_id\": 0}").unwrap();
@@ -785,17 +851,12 @@ mod tests {
         let mut headers = HeaderMap::new();
         headers.insert("content-type", "application/json".parse().unwrap());
 
-        let resp = handle_webhook(
-            State(state),
-            headers,
-            Bytes::from_static(b"{\"update_id\": 99}"),
-        )
-        .await;
+        let resp = ingest_update(state, Bytes::from_static(b"{\"update_id\": 99}"));
         assert_eq!(resp.status(), StatusCode::SERVICE_UNAVAILABLE);
     }
 
-    #[tokio::test]
-    async fn returns_500_when_channel_closed() {
+    #[test]
+    fn returns_500_when_channel_closed() {
         let (tx, rx) = mpsc::channel(1);
         drop(rx); // close the receiver
 
@@ -806,17 +867,12 @@ mod tests {
         let mut headers = HeaderMap::new();
         headers.insert("content-type", "application/json".parse().unwrap());
 
-        let resp = handle_webhook(
-            State(state),
-            headers,
-            Bytes::from_static(b"{\"update_id\": 1}"),
-        )
-        .await;
+        let resp = ingest_update(state, Bytes::from_static(b"{\"update_id\": 1}"));
         assert_eq!(resp.status(), StatusCode::INTERNAL_SERVER_ERROR);
     }
 
-    #[tokio::test]
-    async fn rejects_oversized_body() {
+    #[test]
+    fn rejects_oversized_body() {
         let (tx, _rx) = mpsc::channel(1);
         let state = WebhookState {
             update_tx: tx,
@@ -826,7 +882,7 @@ mod tests {
         headers.insert("content-type", "application/json".parse().unwrap());
 
         let big = Bytes::from(vec![b' '; MAX_WEBHOOK_BODY_BYTES + 1]);
-        let resp = handle_webhook(State(state), headers, big).await;
+        let resp = ingest_update(state, big);
         assert_eq!(resp.status(), StatusCode::PAYLOAD_TOO_LARGE);
     }
 
@@ -850,8 +906,8 @@ mod tests {
         );
     }
 
-    #[tokio::test]
-    async fn returns_400_on_malformed_json() {
+    #[test]
+    fn returns_400_on_malformed_json() {
         let (tx, _rx) = mpsc::channel(1);
         let state = WebhookState {
             update_tx: tx,
@@ -860,12 +916,7 @@ mod tests {
         let mut headers = HeaderMap::new();
         headers.insert("content-type", "application/json".parse().unwrap());
 
-        let resp = handle_webhook(
-            State(state),
-            headers,
-            Bytes::from_static(b"this is not json"),
-        )
-        .await;
+        let resp = ingest_update(state, Bytes::from_static(b"this is not json"));
         assert_eq!(resp.status(), StatusCode::BAD_REQUEST);
     }
 
@@ -891,5 +942,90 @@ mod tests {
         let handler = WebhookHandler::new(tx, None);
         let _router = handler.into_router("webhook");
         // Path normalization succeeded (prepends '/').
+    }
+
+    // -- auth-before-body ordering ---------------------------------------------
+
+    /// Start the webhook router on an ephemeral port and return its address.
+    async fn spawn_test_server(secret: Option<&str>) -> SocketAddr {
+        let (tx, _rx) = mpsc::channel(4);
+        let router = WebhookHandler::new(tx, secret.map(str::to_owned)).into_router("/webhook");
+        let listener = TcpListener::bind("127.0.0.1:0").await.expect("bind");
+        let addr = listener.local_addr().expect("local_addr");
+        tokio::spawn(async move {
+            let _ = axum::serve(listener, router).await;
+        });
+        addr
+    }
+
+    /// The whole point of moving auth into an extractor: a caller who fails the
+    /// secret-token check must be rejected *without* the server first reading
+    /// and buffering their body.
+    ///
+    /// The probe announces a 4 MiB `Content-Length` but sends only a few bytes
+    /// and never finishes. If the handler buffered before validating, it would
+    /// block waiting for the remaining ~4 MiB and this read would time out
+    /// instead of returning 403.
+    #[tokio::test]
+    async fn rejects_unauthenticated_request_without_reading_its_body() {
+        use tokio::io::{AsyncReadExt, AsyncWriteExt};
+
+        let addr = spawn_test_server(Some("s3cret")).await;
+        let mut stream = tokio::net::TcpStream::connect(addr).await.expect("connect");
+
+        let head = format!(
+            "POST /webhook HTTP/1.1\r\n\
+             Host: {addr}\r\n\
+             Content-Type: application/json\r\n\
+             X-Telegram-Bot-Api-Secret-Token: wrong\r\n\
+             Content-Length: 4194304\r\n\
+             \r\n\
+             {{\"update_id\":"
+        );
+        stream.write_all(head.as_bytes()).await.expect("write");
+
+        // Read the status line with a bounded wait: the server must answer on
+        // the strength of the headers alone.
+        let mut buf = [0u8; 64];
+        let read = tokio::time::timeout(std::time::Duration::from_secs(5), stream.read(&mut buf))
+            .await
+            .expect("server blocked on the unauthenticated body instead of rejecting it")
+            .expect("read");
+
+        let status = std::str::from_utf8(&buf[..read]).expect("utf8");
+        assert!(
+            status.starts_with("HTTP/1.1 403"),
+            "expected 403, got: {status}"
+        );
+    }
+
+    /// The mirror image: a valid secret with a body that is never finished must
+    /// still block, because authenticated callers *are* allowed to send a body.
+    #[tokio::test]
+    async fn authenticated_request_still_reads_its_body() {
+        use tokio::io::{AsyncReadExt, AsyncWriteExt};
+
+        let addr = spawn_test_server(Some("s3cret")).await;
+        let mut stream = tokio::net::TcpStream::connect(addr).await.expect("connect");
+
+        let head = format!(
+            "POST /webhook HTTP/1.1\r\n\
+             Host: {addr}\r\n\
+             Content-Type: application/json\r\n\
+             X-Telegram-Bot-Api-Secret-Token: s3cret\r\n\
+             Content-Length: 4194304\r\n\
+             \r\n\
+             {{\"update_id\":"
+        );
+        stream.write_all(head.as_bytes()).await.expect("write");
+
+        let mut buf = [0u8; 64];
+        let result = tokio::time::timeout(std::time::Duration::from_secs(1), stream.read(&mut buf))
+            .await;
+
+        assert!(
+            result.is_err(),
+            "an authenticated request should be waiting on its body, not answered early"
+        );
     }
 }
