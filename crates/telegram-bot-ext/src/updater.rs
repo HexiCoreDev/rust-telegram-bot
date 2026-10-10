@@ -95,6 +95,13 @@ pub struct WebhookConfig {
     ///
     /// When `None`, `set_webhook` is not called during bootstrap and the
     /// server only starts listening.
+    ///
+    /// This must be the **full** URL including the path, e.g.
+    /// `https://example.com/telegram/webhook`. It is *not* joined with
+    /// [`Self::url_path`], which only controls the local mount point -- the two
+    /// fields must agree by hand. Registering the bare host makes Telegram
+    /// probe a path that does not exist and reject the registration with
+    /// `[setWebhook] Not Found`.
     pub webhook_url: Option<String>,
     /// Secret echoed by Telegram in the `X-Telegram-Bot-Api-Secret-Token`
     /// header of every update, used to reject forged requests.

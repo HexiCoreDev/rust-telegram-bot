@@ -877,8 +877,13 @@ impl Application {
                 builder = builder.certificate(InputFile::path(cert));
             }
             if let Err(e) = builder.await {
-                error!("Failed to set webhook: {e}");
-                return Err(ApplicationError::NotInitialized);
+                // Report the actual cause. Returning NotInitialized here sent
+                // anyone debugging a failed registration looking for an
+                // initialization problem that did not occur -- the Application
+                // had been initialized successfully a few lines earlier.
+                return Err(ApplicationError::Webhook(format!(
+                    "failed to set webhook to {url}: {e}"
+                )));
             }
             info!("Webhook set to {url}");
         }
