@@ -69,18 +69,26 @@ async fn main() {
 
     let app = ApplicationBuilder::new().token(token).build();
 
-    app.add_handler(CommandHandler::new("start", start), 0).await;
-    app.add_handler(CommandHandler::new("help", help), 0).await;
-    app.add_handler(
-        MessageHandler::new(TEXT() & !COMMAND(), echo), 0,
-    ).await;
+    app.add_handler(CommandHandler::new("start", start), 0)
+        .await;
+    app.add_handler(CommandHandler::new("help", help), 0)
+        .await;
+    app.add_handler(MessageHandler::new(TEXT() & !COMMAND(), echo), 0)
+        .await;
 
     println!("Echo bot is running. Press Ctrl+C to stop.");
 
     if let Err(e) = app.run_polling().await {
         eprintln!("Error running bot: {e}");
+        std::process::exit(1);
     }
 }
+```
+
+This matches `echo_bot.rs`. Run it with:
+
+```sh
+TELEGRAM_BOT_TOKEN="your-token" cargo run -p rust-tg-bot --example echo_bot
 ```
 
 ## Line-by-Line Walkthrough

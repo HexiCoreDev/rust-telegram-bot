@@ -124,12 +124,20 @@ Note that `zrok share public` re-execs itself as a background process, so killin
 
 ### Cloudflare Tunnel
 
-Good if your bot already lives behind Cloudflare. Requires a domain on a Cloudflare account.
+Good if your bot already lives behind Cloudflare. A *quick* tunnel needs no
+account at all — just the binary — and hands you a random hostname:
 
 ```sh
 cloudflared tunnel --url http://127.0.0.1:8443
 # → https://random-words.trycloudflare.com
 ```
+
+One gotcha: `cloudflared` prints the URL **before** the hostname has resolved
+in DNS. If you register the webhook the instant it prints, Telegram's
+verification request can hit "Name or service not known" and fail. Wait until
+the tunnel answers any HTTP status before pointing your bot at it. For
+production, create a named tunnel instead of a quick one — quick tunnels have
+no uptime guarantee.
 
 ### localhost.run
 
@@ -145,8 +153,11 @@ ssh -R 80:localhost:8443 nokey@localhost.run
 |---|---|---|---|---|
 | ngrok | Yes | Paid tier | No | Free tier / paid |
 | zrok | Yes | With reservation | Yes | Free / self-host |
-| Cloudflare Tunnel | Yes (domain) | Yes | Yes | Free |
+| Cloudflare Tunnel | No (quick) / Yes (named) | Yes (named) | Yes | Free |
 | localhost.run | No | No | No | Free |
+
+The harness in the [example index](../examples.md) prefers Cloudflare Tunnel
+and falls back to zrok, so a throttled provider does not block a test run.
 
 ### Pointing the bot at the tunnel
 

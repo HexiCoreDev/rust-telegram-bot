@@ -492,7 +492,8 @@ mod tests {
         let id = generate_uuid();
         assert_eq!(id.len(), 32);
         assert!(
-            id.bytes().all(|b| b.is_ascii_hexdigit() && !b.is_ascii_uppercase()),
+            id.bytes()
+                .all(|b| b.is_ascii_hexdigit() && !b.is_ascii_uppercase()),
             "callback id must be lowercase hex: {id}"
         );
     }

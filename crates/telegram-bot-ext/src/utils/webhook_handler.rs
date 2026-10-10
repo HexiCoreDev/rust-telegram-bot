@@ -1020,8 +1020,8 @@ mod tests {
         stream.write_all(head.as_bytes()).await.expect("write");
 
         let mut buf = [0u8; 64];
-        let result = tokio::time::timeout(std::time::Duration::from_secs(1), stream.read(&mut buf))
-            .await;
+        let result =
+            tokio::time::timeout(std::time::Duration::from_secs(1), stream.read(&mut buf)).await;
 
         assert!(
             result.is_err(),

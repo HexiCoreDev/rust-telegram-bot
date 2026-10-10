@@ -792,7 +792,11 @@ mod tests {
             .await
             .expect("get_updates");
 
-        let seen = req.seen.lock().expect("poisoned").expect("no call recorded");
+        let seen = req
+            .seen
+            .lock()
+            .expect("poisoned")
+            .expect("no call recorded");
         assert_eq!(
             seen.read,
             Some(Some(Duration::from_secs(15))),
@@ -810,7 +814,11 @@ mod tests {
             .await
             .expect("get_updates");
 
-        let seen = req.seen.lock().expect("poisoned").expect("no call recorded");
+        let seen = req
+            .seen
+            .lock()
+            .expect("poisoned")
+            .expect("no call recorded");
         assert_eq!(seen.read, Some(Some(Duration::from_secs(70))));
     }
 
@@ -824,7 +832,11 @@ mod tests {
             .await
             .expect("get_updates");
 
-        let seen = req.seen.lock().expect("poisoned").expect("no call recorded");
+        let seen = req
+            .seen
+            .lock()
+            .expect("poisoned")
+            .expect("no call recorded");
         assert_eq!(seen.read, Some(Some(Duration::from_secs(5))));
     }
 

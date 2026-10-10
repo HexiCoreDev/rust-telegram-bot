@@ -144,26 +144,43 @@ def clear_webhook(token: str) -> None:
 class Tunnel:
     """A live public HTTPS URL in front of a local port."""
 
-    share_token: str
+    label: str
     base_url: str
     proc: subprocess.Popen
+    share_token: str = ""
 
 
-def zrok_available() -> bool:
-    return shutil.which("zrok2") is not None
+def _available_tunnels() -> list[str]:
+    return [name for name in TUNNEL_COMMANDS if shutil.which(name)]
 
 
-def start_tunnel(port: int, timeout: int = 60, attempts: int = 5) -> tuple[Tunnel | None, str]:
-    """Open a zrok public share onto 127.0.0.1:<port>.
+def _start_cloudflared(port: int, timeout: int = 90) -> Tunnel | None:
+    proc = subprocess.Popen(
+        ["cloudflared", "tunnel", "--url", f"http://127.0.0.1:{port}",
+         "--no-autoupdate"],
+        stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True,
+        start_new_session=True,
+    )
+    deadline = time.time() + timeout
+    url = ""
+    while time.time() < deadline:
+        line = proc.stdout.readline() if proc.stdout else ""
+        if not line:
+            if proc.poll() is not None:
+                return None
+            continue
+        m = re.search(r"https://([a-z0-9-]+\.trycloudflare\.com)", line)
+        if m:
+            url = f"https://{m.group(1)}"
+            break
+    if not url:
+        _kill_tree(proc)
+        return None
+    # The tunnel needs a moment before it serves; the caller retries anyway.
+    return Tunnel(label="cloudflared", base_url=url, proc=proc)
 
-    Returns (None, reason) if zrok2 is unavailable or the share cannot be made,
-    so the caller can skip with an explanation instead of a false failure.
-    Retries, because the zrok service sheds load with a "service is busy"
-    error and a share usually succeeds on a second attempt.
-    """
-    if not zrok_available():
-        return None, "zrok2 is not installed"
 
+def _start_zrok(port: int, attempts: int = 3) -> Tunnel | None:
     last = ""
     for attempt in range(attempts):
         # zrok2 re-execs itself as a `share public --subordinate` child, so the
@@ -176,7 +193,7 @@ def start_tunnel(port: int, timeout: int = 60, attempts: int = 5) -> tuple[Tunne
             start_new_session=True,
         )
         seen: list[str] = []
-        deadline = time.time() + timeout
+        deadline = time.time() + 60
         while time.time() < deadline:
             line = proc.stdout.readline() if proc.stdout else ""
             if not line:
@@ -191,15 +208,39 @@ def start_tunnel(port: int, timeout: int = 60, attempts: int = 5) -> tuple[Tunne
                 # serving through the local zrok agent, so the CLI exiting here
                 # is fine; cleanup is `zrok2 delete share <token>`.
                 return Tunnel(
-                    share_token=share.group(1),
+                    label="zrok",
                     base_url=f"https://{endpoint.group(1)}",
                     proc=proc,
-                ), ""
+                    share_token=share.group(1),
+                )
         _kill_tree(proc)
         last = " | ".join(seen) or "no output"
         if attempt < attempts - 1:
             time.sleep(10)
-    return None, f"could not open a zrok share after {attempts} tries: {last}"
+    print(f"      (zrok unavailable: {last})", file=sys.stderr)
+    return None
+
+
+TUNNEL_COMMANDS = ("cloudflared", "zrok2")
+
+
+def start_tunnel(port: int) -> tuple[Tunnel | None, str]:
+    """Open a public HTTPS URL onto 127.0.0.1:<port>.
+
+    Prefers cloudflared, then zrok. Both produce a URL Telegram accepts;
+    trying more than one keeps a throttled provider from blocking the run.
+    """
+    tried = _available_tunnels()
+    if not tried:
+        return None, "no tunnel provider installed (need cloudflared or zrok2)"
+
+    for name in TUNNEL_COMMANDS:
+        if name not in tried:
+            continue
+        tunnel = _start_cloudflared(port) if name == "cloudflared" else _start_zrok(port)
+        if tunnel is not None:
+            return tunnel, ""
+    return None, f"could not open a tunnel (tried: {', '.join(tried)})"
 
 
 def _kill_tree(proc: subprocess.Popen) -> None:
@@ -221,10 +262,11 @@ def _kill_tree(proc: subprocess.Popen) -> None:
 
 
 def stop_tunnel(tunnel: Tunnel) -> None:
-    subprocess.run(
-        ["zrok2", "delete", "share", tunnel.share_token],
-        cwd=ROOT, capture_output=True, timeout=90,
-    )
+    if tunnel.share_token:
+        subprocess.run(
+            ["zrok2", "delete", "share", tunnel.share_token],
+            cwd=ROOT, capture_output=True, timeout=90,
+        )
     _kill_tree(tunnel.proc)
 
 
@@ -242,6 +284,31 @@ def wait_for_http(url: str, timeout: int = 30) -> bool:
     return False
 
 
+def warm_tunnel(url: str, timeout: int = 150) -> bool:
+    """Wait until the tunnel itself is live, before the bot binds its port.
+
+    Telegram verifies a webhook registration by sending a request to the URL.
+    A freshly created tunnel hostname can take a while to appear in DNS --
+    cloudflared prints the URL before the record resolves, and a lookup that
+    fails once is not fatal, just early -- so probe patiently. Telegram gives
+    up on a slow first response, so probing first turns a flaky registration
+    into a deterministic one.
+
+    Any HTTP status counts, including the 502 a tunnel returns while nothing is
+    listening locally yet: that still proves the public path works.
+    """
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        try:
+            urllib.request.urlopen(url, timeout=10)
+            return True
+        except urllib.error.HTTPError:
+            return True
+        except (urllib.error.URLError, TimeoutError, OSError):
+            time.sleep(3)
+    return False
+
+
 def run_tunnelled(ex: Example, token: str, settle: int) -> tuple[str, str]:
     """Run a webhook example behind a real public URL and confirm Telegram
     accepted the registration."""
@@ -251,6 +318,11 @@ def run_tunnelled(ex: Example, token: str, settle: int) -> tuple[str, str]:
         return "skipped", reason
 
     try:
+        # Warm the public path before the bot registers, so Telegram's
+        # verification probe does not race the tunnel's first route.
+        if not warm_tunnel(f"{tunnel.base_url}/healthcheck"):
+            return "FAILED", "tunnel never became reachable"
+
         env = dict(os.environ)
         env["TELEGRAM_BOT_TOKEN"] = token
         env["RUST_LOG"] = env.get("RUST_LOG", "warn")
@@ -288,10 +360,15 @@ def run_tunnelled(ex: Example, token: str, settle: int) -> tuple[str, str]:
 
         # Still up. Now the part that matters: did Telegram actually register
         # the webhook against our public URL? A bot that merely starts is not
-        # proof the tunnel works.
-        time.sleep(3)
-        info = telegram_call(token, "getWebhookInfo")
-        url = info.get("result", {}).get("url", "")
+        # proof the tunnel works. Retry, because the registration and this read
+        # race each other, and a transient API hiccup must not read as failure.
+        url = ""
+        for _ in range(6):
+            time.sleep(3)
+            info = telegram_call(token, "getWebhookInfo")
+            url = info.get("result", {}).get("url", "")
+            if url.startswith(tunnel.base_url):
+                break
         if not url.startswith(tunnel.base_url):
             _kill_tree(proc)
             return "FAILED", f"Telegram did not accept the webhook URL (got {url!r})"
@@ -301,7 +378,7 @@ def run_tunnelled(ex: Example, token: str, settle: int) -> tuple[str, str]:
 
         if not reachable:
             return "FAILED", "webhook registered but the public URL never answered"
-        return "ok-server", f"registered {url}"
+        return "ok-server", f"registered {url} via {tunnel.label}"
     finally:
         clear_webhook(token)
         stop_tunnel(tunnel)

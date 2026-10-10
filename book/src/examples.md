@@ -34,9 +34,23 @@ TELEGRAM_BOT_TOKEN=… tools/examples_smoke.py
 
 It runs the examples sequentially — two bots polling one token at the same time
 make Telegram answer `409 Conflict`. Examples that register a webhook are put
-behind a real [zrok](https://github.com/openziti/zrok) tunnel and checked against
-`getWebhookInfo`, because a bot that merely starts proves nothing about whether
-Telegram can reach it. Pass `--no-tunnel` to skip those.
+behind a real public tunnel (Cloudflare Tunnel, falling back to
+[zrok](https://github.com/openziti/zrok)) and checked against `getWebhookInfo`,
+because a bot that merely starts proves nothing about whether Telegram can
+reach it. Pass `--no-tunnel` to skip those.
+
+Three tunnel gotchas are worth knowing, because each one produced a
+false failure before it was handled:
+
+- `zrok share public` re-execs itself as a background child. Killing the
+  foreground command leaves the share running until you exceed your account's
+  share limit, so delete it explicitly.
+- `cloudflared` prints its URL *before* the hostname resolves in DNS, so a
+  probe fired immediately fails with "Name or service not known". Wait until
+  the tunnel answers with any status.
+- Telegram verifies a registration by calling the URL and gives up on a slow
+  first response, so warming the tunnel before registering is what makes the
+  test deterministic.
 
 ## The examples
 
