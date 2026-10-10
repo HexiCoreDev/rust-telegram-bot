@@ -33,6 +33,24 @@ jobs:
       - name: Build book
         run: mdbook build book
 
+      # `mdbook test` is deliberately NOT run here, and cannot be made to work
+      # for this book. Its rustdoc backend runs `rustdoc --test` against a
+      # generated crate with no `--extern` linkage to the workspace, so every
+      # block referencing `rust_tg_bot` or `tokio` fails on "cannot find crate"
+      # regardless of its content, and the many fragments continuing an earlier
+      # block on the same page fail on unresolved names. The
+      # `[rust] edition = "2021"` setting in book/book.toml does fix the
+      # edition-2015 rejection of `async fn`, but not the linkage.
+      #
+      # What actually validates the code is tools/examples_smoke.py (all 26
+      # examples started against the live Bot API, in the `examples` CI job) and
+      # tools/check_book_drift.py (snippets that drifted from their example).
+      - name: Check the example index and book drift
+        run: |
+          python3 tools/check_examples_index.py
+          python3 tools/check_book_drift.py || \
+            echo "::warning::book snippets have drifted from their examples (run tools/check_book_drift.py --explain)"
+
       - name: Install Vercel CLI
         run: npm install -g vercel
 

@@ -20,12 +20,18 @@ import sys
 import tempfile
 from pathlib import Path
 
-ROOT = Path("/home/iam/devcode/projects/experiments/portfolio/rust-telegram-bot")
+ROOT = Path(__file__).resolve().parents[2]
 BOOK = ROOT / "book/src"
 FACADE = ROOT / "crates/telegram-bot"
 
 # Scratch crates are built here; override if /tmp is tight on space.
 SCRATCH = os.environ.get("BOOK_CHECK_SCRATCH", tempfile.gettempdir())
+
+# Every scratch crate shares one target directory. Without this each crate gets
+# a fresh target/, so cargo rebuilds the entire dependency tree -- axum, sqlx,
+# redis, and the rest of `features = ["full"]` -- for every block checked. The
+# scratch crates are disposable, but the compiled dependencies are not.
+TARGET = Path(os.environ.get("BOOK_CHECK_TARGET", Path(SCRATCH) / "bookcheck-target"))
 
 CARGO_TMPL = """[package]
 name = "bookcheck"
@@ -36,6 +42,9 @@ edition = "2021"
 rust-tg-bot = { path = "%s", features = ["full"] }
 tokio = { version = "1", features = ["full"] }
 serde_json = "1"
+serde = { version = "1", features = ["derive"] }
+tracing = "0.1"
+tracing-subscriber = "0.3"
 """ % FACADE
 
 # The book is deliberately fragmentary: most pages show an excerpt from the
@@ -70,13 +79,6 @@ def blocks(text: str) -> list[tuple[int, str, bool]]:
         body = text[start + 1 : end]
         out.append((text[: m.start()].count("\n") + 1, body, tag == "rust"))
     return out
-
-
-def cargo_clean(workdir: Path) -> None:
-    if (workdir / "Cargo.toml").exists():
-        subprocess.run(
-            ["cargo", "clean", "--offline"], cwd=workdir, capture_output=True
-        )
 
 
 def check_one(body: str, workdir: Path) -> tuple[bool, str]:
@@ -115,6 +117,7 @@ def check_one(body: str, workdir: Path) -> tuple[bool, str]:
         "use rust_tg_bot::ext::application::{Application, HandlerError};\n"
         "use rust_tg_bot::ext::builder::ApplicationBuilder;\n"
         "use rust_tg_bot::ext::context::{CallbackContext, DataReadGuard, DataWriteGuard};\n"
+        "use tracing_subscriber;\n"
     )
     attempts = [
         prelude + bindings + body + "\nOk(())\n}\nfn main() {}\n",
@@ -129,18 +132,12 @@ def check_one(body: str, workdir: Path) -> tuple[bool, str]:
             cwd=workdir,
             capture_output=True,
             text=True,
+            env={**os.environ, "CARGO_TARGET_DIR": str(TARGET)},
         )
         if r.returncode == 0:
             return True, ""
         last = r.stderr or r.stdout
     return False, last
-    r = subprocess.run(
-        ["cargo", "check", "--offline", "--jobs", "4", "--quiet"],
-        cwd=workdir,
-        capture_output=True,
-        text=True,
-    )
-    return r.returncode == 0, (r.stderr or r.stdout)
 
 
 def main() -> None:
@@ -158,7 +155,6 @@ def main() -> None:
             if plain and (line is None or ln == line):
                 with tempfile.TemporaryDirectory(dir=SCRATCH) as td:
                     ok, err = check_one(body, Path(td) / "page")
-                    cargo_clean(Path(td) / "page")
                 print(f"line {ln}: {'COMPILES' if ok else 'FAILS'}")
                 if not ok:
                     print("\n".join(err.splitlines()[:20]))
@@ -169,24 +165,42 @@ def main() -> None:
     if only:
         pages = [p for p in pages if only in str(p)]
 
+    # Guard by membership, not by the truthiness of the set. `if PAGES_CHECKED
+    # and ...` is falsy while the set is empty, so it skipped nothing and sent a
+    # bare run at every page -- exactly the failure the comment above warns of.
+    if not any(str(p.relative_to(BOOK)) in PAGES_CHECKED for p in pages):
+        print("No page is opted into whole-page checking (PAGES_CHECKED is empty).")
+        print()
+        print("That is deliberate. Every page still carries at least one block that")
+        print("continues a pattern introduced earlier on the page -- a store defined")
+        print("in a previous block, a #[tokio::main] block that is already a whole")
+        print("program -- so a whole-page run cannot tell a deliberate fragment from")
+        print("real breakage, and would report hundreds of false failures.")
+        print()
+        print("Check the block you actually changed:")
+        print()
+        print("  python3 tools/tg-api-docs/check_book.py \\")
+        print("      --snippet book/src/guides/conversations.md --line 12")
+        print()
+        print("For wholesale staleness, tools/check_book_drift.py compares every")
+        print("snippet against the example it was copied from.")
+        sys.exit(0)
+
     total = passed = failed = 0
     for page in pages:
         rel = page.relative_to(BOOK)
-        if PAGES_CHECKED and str(rel) not in PAGES_CHECKED:
+        if str(rel) not in PAGES_CHECKED:
             continue
         text = page.read_text(encoding="utf-8")
         todo = [(ln, b, plain) for ln, b, plain in blocks(text) if plain]
         if not todo:
             continue
         results = []
-        # One scratch dir per page, not per block: each `cargo check` otherwise
-        # recompiles the whole dependency tree and exhausts the disk quota.
         with tempfile.TemporaryDirectory(dir=SCRATCH) as td:
             page_dir = Path(td) / "page"
-            for i, (ln, body, _) in enumerate(todo):
+            for ln, body, _ in todo:
                 ok, err = check_one(body, page_dir)
                 results.append((ln, ok, err))
-            cargo_clean(page_dir)
         bad = [(ln, err) for ln, ok, err in results if not ok]
         total += len(results)
         passed += len(results) - len(bad)
