@@ -47,6 +47,7 @@ async fn help_command(update: Arc<Update>, context: Context) -> HandlerResult {
 // Inline query handler
 // ---------------------------------------------------------------------------
 
+// ANCHOR: inline_query_handler
 /// Handle inline queries by offering three text transformations.
 async fn inline_query_handler(update: Arc<Update>, context: Context) -> HandlerResult {
     let iq = match update.inline_query() {
@@ -97,6 +98,7 @@ async fn inline_query_handler(update: Arc<Update>, context: Context) -> HandlerR
 
     Ok(())
 }
+// ANCHOR_END: inline_query_handler
 
 // ---------------------------------------------------------------------------
 // Main

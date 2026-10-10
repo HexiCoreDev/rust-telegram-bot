@@ -174,7 +174,7 @@ async fn handle_top_action(
     context: Context,
     store: StateStore,
 ) -> HandlerResult {
-    let user_id = update.effective_user().unwrap().id;
+    let user_id = update.effective_user().expect("update must have a user").id;
     let cq = update.callback_query().expect("must have callback_query");
     let data = cq.data.as_deref().unwrap_or("");
 
@@ -303,8 +303,8 @@ async fn handle_text_input(
     context: Context,
     store: StateStore,
 ) -> HandlerResult {
-    let user_id = update.effective_user().unwrap().id;
-    let chat_id = update.effective_chat().unwrap().id;
+    let user_id = update.effective_user().expect("update must have a user").id;
+    let chat_id = update.effective_chat().expect("update must have a chat").id;
     let text = update
         .effective_message()
         .and_then(|m| m.text.as_deref())
@@ -345,9 +345,9 @@ use rust_tg_bot::ext::prelude::{
 async fn main() {
     tracing_subscriber::fmt::init();
 
-    let token = std::env::var("TELEGRAM_BOT_TOKEN").unwrap();
-    let app: Arc<Application> = ApplicationBuilder::new().token(token).build();
-    let store: StateStore = Arc::new(RwLock::new(HashMap::new()));
+    // Same bootstrap as nested_conversation_bot.rs: read the token, build the
+    // Application, and create the shared store that both conversation levels
+    // read through their predicates.
 
     // Top-level callback handler
     {
@@ -404,8 +404,8 @@ async fn stop_command(
     context: Context,
     store: StateStore,
 ) -> HandlerResult {
-    let chat_id = update.effective_chat().unwrap().id;
-    let user_id = update.effective_user().unwrap().id;
+    let user_id = update.effective_user().expect("update must have a user").id;
+    let chat_id = update.effective_chat().expect("update must have a chat").id;
 
     {
         let mut s = store.write().await;

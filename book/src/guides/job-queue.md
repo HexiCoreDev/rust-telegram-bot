@@ -39,8 +39,9 @@ async fn set_timer(
     context: Context,
     timer_store: TimerStore,
 ) -> HandlerResult {
-    let chat_id = update.effective_chat().unwrap().id;
-    let seconds: u64 = 30; // from user input
+    let chat_id = update.effective_chat().expect("update must have a chat").id;
+    // Hard-coded here; the runnable example parses the duration from the message.
+    let seconds: u64 = 30;
 
     // Build the callback
     let bot = Arc::clone(context.bot());
@@ -130,9 +131,9 @@ async fn unset_timer(
     context: Context,
     timer_store: TimerStore,
 ) -> HandlerResult {
-    let chat_id = update.effective_chat().unwrap().id;
+    let chat_id = update.effective_chat().expect("update must have a chat").id;
 
-    let jq = context.job_queue.as_ref().unwrap();
+    let jq = context.job_queue.as_ref().expect("job_queue should be set");
 
     let removed = {
         let mut store = timer_store.write().await;

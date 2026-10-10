@@ -78,7 +78,6 @@ pub struct TransactionPartnerUser {
     /// Number of months the gifted Telegram Premium subscription will be active for.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub premium_subscription_duration: Option<i64>,
-
 }
 
 /// Describes a transaction with an unknown partner.

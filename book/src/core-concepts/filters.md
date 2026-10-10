@@ -120,35 +120,14 @@ app.add_handler(
 
 ## Filter Composition in Practice
 
-Here is a real-world example that matches text messages in a specific conversation state:
+Here is a real-world example that matches text messages in a specific conversation state.
+This is the exact predicate from the runnable examples, included verbatim:
 
-```rust
-fn is_text_in_state(update: &Update, conv_store: &ConvStore, state: ConvState) -> bool {
-    let msg = match update.effective_message() {
-        Some(m) => m,
-        None => return false,
-    };
-    // Must have text
-    if msg.text.is_none() {
-        return false;
-    }
-    // Must NOT be a command
-    let is_cmd = msg.entities.as_ref()
-        .and_then(|ents| ents.first())
-        .map(|e| e.entity_type == MessageEntityType::BotCommand && e.offset == 0)
-        .unwrap_or(false);
-    if is_cmd {
-        return false;
-    }
-    // Must be in the expected state
-    let chat_id = msg.chat.id;
-    conv_store.try_read()
-        .map(|guard| guard.get(&chat_id) == Some(&state))
-        .unwrap_or(false)
-}
+```rust,ignore
+{{#include ../../../crates/telegram-bot/examples/conversation_bot2.rs:is_text_in_state}}
 ```
 
-Then use it with `FnHandler`:
+Then use it with `FnHandler` (state names trimmed to the example this page follows):
 
 ```rust
 let cs_check = Arc::clone(&conv_store);

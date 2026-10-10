@@ -108,6 +108,14 @@ enum ConvState {
 type ConvStore = Arc<RwLock<HashMap<i64, ConvState>>>;
 ```
 
+> This page trims the runnable example down to the states each section is
+> teaching, so the enum declares only the variants the surrounding prose uses.
+> The full
+> [`conversation_bot.rs`](https://github.com/HexiCoreDev/rust-telegram-bot/blob/main/crates/telegram-bot/examples/conversation_bot.rs)
+> names the same states `Name`, `Age`, `Location`, and `Bio` -- same shape,
+> different labels. Either version compiles on its own; only mix the spellings
+> if you rename one side.
+
 The key is the chat ID (or user ID), and the value is the current conversation state for that user.
 
 ## Complete Conversation Bot
@@ -198,28 +206,10 @@ async fn cancel(
 
 Each state handler needs a predicate that checks whether the user is in the correct state:
 
-```rust
-fn is_text_in_state(update: &Update, conv_store: &ConvStore, state: ConvState) -> bool {
-    let msg = match update.effective_message() {
-        Some(m) => m,
-        None => return false,
-    };
-    if msg.text.is_none() {
-        return false;
-    }
-    // Exclude commands
-    let is_cmd = msg.entities.as_ref()
-        .and_then(|ents| ents.first())
-        .map(|e| e.entity_type == MessageEntityType::BotCommand && e.offset == 0)
-        .unwrap_or(false);
-    if is_cmd {
-        return false;
-    }
-    let chat_id = msg.chat.id;
-    conv_store.try_read()
-        .map(|guard| guard.get(&chat_id) == Some(&state))
-        .unwrap_or(false)
-}
+The predicate is the same one used in the runnable examples, included verbatim:
+
+```rust,ignore
+{{#include ../../../crates/telegram-bot/examples/conversation_bot2.rs:is_text_in_state}}
 ```
 
 ### Wiring It Together

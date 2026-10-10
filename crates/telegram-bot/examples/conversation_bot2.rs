@@ -80,6 +80,7 @@ fn check_command(update: &Update, expected: &str) -> bool {
     })
 }
 
+// ANCHOR: is_text_in_state
 fn is_text_in_state(update: &Update, conv_store: &ConvStore, state: ConvState) -> bool {
     let msg = match update.effective_message() {
         Some(m) => m,
@@ -104,6 +105,7 @@ fn is_text_in_state(update: &Update, conv_store: &ConvStore, state: ConvState) -
         .map(|guard| guard.get(&chat_id) == Some(&state))
         .unwrap_or(false)
 }
+// ANCHOR_END: is_text_in_state
 
 fn is_text_matching_in_state(
     update: &Update,

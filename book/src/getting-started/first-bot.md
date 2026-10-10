@@ -27,9 +27,8 @@ async fn start(update: Arc<Update>, context: Context) -> HandlerResult {
         .reply_text(
             &update,
             &format!(
-                "Hi {name}! I am an echo bot. Send me any message and \
-                 I will repeat it back to you.\n\nUse /help to see \
-                 available commands."
+                "Hi {name}! I am an echo bot. Send me any message and I will repeat it back to you.\n\n\
+                 Use /help to see available commands."
             ),
         )
         .await?;

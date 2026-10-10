@@ -104,55 +104,10 @@ let markdown = InputTextMessageContent::new("*Bold* and _italic_")
 
 Most inline bots offer several options. Each result needs a unique ID within the response:
 
-```rust
-async fn inline_query_handler(update: Arc<Update>, context: Context) -> HandlerResult {
-    let iq = match update.inline_query() {
-        Some(q) => q,
-        None => return Ok(()),
-    };
+The full handler is the one from the runnable example, included verbatim:
 
-    let query = &iq.query;
-    if query.is_empty() {
-        return Ok(());
-    }
-
-    // Escape HTML special characters
-    let escaped = query
-        .replace('&', "&amp;")
-        .replace('<', "&lt;")
-        .replace('>', "&gt;");
-
-    let caps_content = InputTextMessageContent::new(query.to_uppercase());
-    let bold_content = InputTextMessageContent::new(format!("<b>{escaped}</b>"))
-        .parse_mode("HTML");
-    let italic_content = InputTextMessageContent::new(format!("<i>{escaped}</i>"))
-        .parse_mode("HTML");
-
-    let results = vec![
-        serde_json::to_value(InlineQueryResultArticle::new(
-            format!("caps-{}", iq.id),
-            "Caps",
-            InputMessageContent::Text(caps_content),
-        )).expect("serialization"),
-        serde_json::to_value(InlineQueryResultArticle::new(
-            format!("bold-{}", iq.id),
-            "Bold",
-            InputMessageContent::Text(bold_content),
-        )).expect("serialization"),
-        serde_json::to_value(InlineQueryResultArticle::new(
-            format!("italic-{}", iq.id),
-            "Italic",
-            InputMessageContent::Text(italic_content),
-        )).expect("serialization"),
-    ];
-
-    context
-        .bot()
-        .answer_inline_query(&iq.id, results)
-        .await?;
-
-    Ok(())
-}
+```rust,ignore
+{{#include ../../../crates/telegram-bot/examples/inline_bot.rs:inline_query_handler}}
 ```
 
 ## Combining with Commands
