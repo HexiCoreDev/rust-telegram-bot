@@ -77,3 +77,11 @@ Both ephemeral and guest flows are at-least-once on Telegram's side and
 best-effort on delivery. The framework deduplicates redeliveries (including
 across restarts when persistence is configured), but handlers with
 side effects should still key on `update_id`.
+
+## Next Steps
+
+Ephemeral replies are just Bot API calls, so everything in
+[Bot](../core-concepts/bot.md) applies. For the structured message format, see
+[Rich Messages](rich-messages.md); for the exact delivery semantics of each
+field, the [Bot API reference](https://core.telegram.org/bots/api#sendmessage)
+is authoritative.

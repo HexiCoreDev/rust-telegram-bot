@@ -184,7 +184,9 @@ The `Bot` (accessed via `context.bot()`) provides methods mirroring the Telegram
 // Send a message
 context.bot().send_message(chat_id, "text").await?;
 
-// Send with options
+// Send with options. Keyboard arguments take a serde_json::Value, so
+// serialise the typed markup first.
+let keyboard = serde_json::to_value(build_menu())?;
 context.bot().send_message(chat_id, "text")
     .parse_mode(ParseMode::Html)
     .reply_markup(keyboard)

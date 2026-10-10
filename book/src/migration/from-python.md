@@ -14,7 +14,7 @@ This guide helps developers migrating from [python-telegram-bot](https://python-
 | `context.bot_data` | `context.bot_data().await` | Returns `DataReadGuard` |
 | `CommandHandler("start", start)` | `CommandHandler::new("start", start)` | Typed constructor |
 | `MessageHandler(filters.TEXT & ~filters.COMMAND, echo)` | `MessageHandler::new(TEXT() & !COMMAND(), echo)` | `!` not `~`, functions not constants |
-| `ConversationHandler` | `FnHandler` with state store | Manual state machine via `Arc<RwLock<HashMap>>` |
+| `ConversationHandler` | `ConversationHandler::builder()` | Same mental model — see [Conversations](../guides/conversations.md) |
 | `CallbackQueryHandler(callback)` | `FnHandler::on_callback_query(callback)` | Factory method on `FnHandler` |
 | `InlineQueryHandler(handler)` | `FnHandler::on_inline_query(handler)` | Factory method on `FnHandler` |
 | `application.run_polling()` | `app.run_polling().await` | Explicit `.await` |
@@ -280,12 +280,20 @@ let conv = ConversationHandler::builder()
     .entry_point(CommandHandler::new("start", start))
     .state(State::Choosing, vec![MessageHandler::new(TEXT(), choice)])
     .state(State::Typing, vec![MessageHandler::new(TEXT(), received)])
-    .fallback(CommandHandler::new("cancel", cancel))
     .conversation_timeout(Duration::from_secs(300))
     .name("onboarding".to_string())
     .build();
 app.add_handler(conv, 0).await;
 ```
+
+Note the Rust shape differs from Python in two ways that are easy to trip on:
+
+- **`.fallbacks(...)`, not `.fallback(...)`** — it takes a `Vec`, and the
+  plural spelling matches `.entry_points(...)` / `.entry_point(...)`.
+- **Handlers are wrapped in `step(...)`.** Python's handler returns the next
+  state directly; in Rust the handler and the state transition are separate, so
+  each one is paired via `step(handler, ConversationResult::…)`. See the
+  [Conversations guide](../guides/conversations.md) for the `step` helper.
 
 (For one-off state checks outside a conversation, `FnHandler` with a shared
 `Arc<RwLock<HashMap<i64, State>>>` predicate still works, but prefer
@@ -329,11 +337,15 @@ app.add_handler(CallbackQueryHandler(button))
 ```
 
 ```rust
-// Rust -- typed handler (also in the prelude)
-app.add_handler(CallbackQueryHandler::new(button), 0).await;
-// ...or the FnHandler shorthand for quick prototypes:
+// Rust -- use the FnHandler factory; it accepts a plain async fn
 app.add_handler(FnHandler::on_callback_query(button), 0).await;
 ```
+
+> **Note:** `CallbackQueryHandler::new` takes a type-erased `HandlerCallback`
+> (`Arc<dyn Fn(Arc<Update>, MatchResult) -> ...>`) plus a `pattern` and a
+> `block` flag — there is no `From<async fn>` conversion, so a plain function
+> cannot be passed to it directly. Reach for `FnHandler::on_callback_query`
+> unless you specifically need `CallbackPattern` matching.
 
 ### 12. Inline Queries
 
@@ -343,11 +355,14 @@ app.add_handler(InlineQueryHandler(inline_handler))
 ```
 
 ```rust
-// Rust -- typed handler (also in the prelude)
-app.add_handler(InlineQueryHandler::new(inline_handler), 0).await;
-// ...or the FnHandler shorthand:
+// Rust -- use the FnHandler factory; it accepts a plain async fn
 app.add_handler(FnHandler::on_inline_query(inline_handler), 0).await;
 ```
+
+> **Note:** `InlineQueryHandler::new` takes four arguments — a type-erased
+> `HandlerCallback`, an `Option<Regex>` pattern, `Option<Vec<String>>` of chat
+> types, and a `block` flag. As with `CallbackQueryHandler`, a plain `async fn`
+> cannot be passed directly; use `FnHandler::on_inline_query`.
 
 ### 13. Ownership Rules That Bite Newcomers
 
@@ -382,9 +397,11 @@ borrow checker stops complaining:
    ```
 
 3. **Group flow: first match wins per group, `Stop` ends everything.**
-   Returning `HandlerResult::Stop` (or `HandlerStop`) halts processing
-   across *all* groups; `Ok(())` continues to the next group. Use negative
-   groups (e.g. `-1`) for always-run bookkeeping like user tracking.
+   Returning `Err(HandlerError::HandlerStop { state: None })` halts processing
+   across *all* groups; `Ok(())` continues to the next group. Note that the
+   prelude's `HandlerResult` is an alias for `Result<(), HandlerError>`, so
+   there is no `HandlerResult::Stop` variant — stopping is an `Err`. Use
+   negative groups (e.g. `-1`) for always-run bookkeeping like user tracking.
 
 ## Common Patterns
 

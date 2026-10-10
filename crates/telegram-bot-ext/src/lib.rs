@@ -22,7 +22,7 @@
 //!     Ok(())
 //! }
 //!
-//! let app = ApplicationBuilder::new("BOT_TOKEN").build().await;
+//! let app = ApplicationBuilder::new().token("BOT_TOKEN").build();
 //! app.add_handler(CommandHandler::new("start", start), 0).await;
 //! app.run_polling().await?;
 //! ```

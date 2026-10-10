@@ -113,9 +113,9 @@ This extracts the chat ID from the update and calls `send_message` for you.
 The bot exposes builder methods for every Telegram Bot API method. Here are some common ones:
 
 ```rust
-// Send a photo
+// Send a photo -- media arguments take an InputFile, not a bare &str
 context.bot()
-    .send_photo(chat_id, "https://example.com/photo.jpg")
+    .send_photo(chat_id, InputFile::url("https://example.com/photo.jpg"))
     .caption("A nice photo")
     .await?;
 
@@ -142,13 +142,14 @@ context.bot()
 
 ## Bot Data
 
-After the application initializes (calls `getMe`), you can access the bot's own information:
+The bot's own `User` record is fetched once during `initialize()` and cached
+internally; there is no public accessor for it. Call `get_me()` yourself if you
+need the fields:
 
 ```rust
-if let Some(bot_data) = context.bot().bot_data() {
-    let username = bot_data.username.as_deref().unwrap_or("unknown");
-    let bot_id = bot_data.id;
-}
+let me = context.bot().get_me().await?;
+let username = me.username.as_deref().unwrap_or("unknown");
+let bot_id = me.id;
 ```
 
 ## Builder Pattern
@@ -164,6 +165,52 @@ context.bot()
 ```
 
 This pattern gives you IDE autocompletion for every parameter and catches typos at compile time.
+
+## Rate Limiting
+
+With the `rate-limiter` feature, API calls are throttled at the transport
+layer — every request through `context.bot()` waits its turn, and nothing else
+in your handler changes:
+
+```rust,ignore
+use std::time::Duration;
+use rust_tg_bot::ext::rate_limiter::AioRateLimiter;
+
+// 30 messages/second overall, 1/second per chat group, up to 3 retries.
+// Pass 0 for a rate or period to disable that level.
+let limiter = AioRateLimiter::new(
+    30,
+    Duration::from_secs(1),
+    1,
+    Duration::from_secs(1),
+    3,
+);
+
+let app = ApplicationBuilder::new()
+    .token(token)
+    .rate_limiter(Arc::new(limiter))
+    .build();
+```
+
+The limiter reacts to Telegram's own `RetryAfter` responses, so a 429 from the
+server pauses every subsequent request rather than just the one that hit it.
+
+You can also handle this yourself. `TelegramError::RetryAfter { retry_after }`
+carries the duration Telegram asked for:
+
+```rust,ignore
+match context.bot().send_message(chat_id, "hi").await {
+    Ok(_) => {}
+    Err(TelegramError::RetryAfter { retry_after }) => {
+        tracing::warn!("rate limited; retrying in {retry_after:?}");
+    }
+    Err(e) => return Err(e.into()),
+}
+```
+
+Note that the error type does not expose a numeric `error_code`, and HTTP 401
+and 404 are folded into a single `InvalidToken` variant — so "revoked token"
+and "typo in the method name" are not distinguishable from the variant alone.
 
 ## Next Steps
 

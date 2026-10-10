@@ -57,15 +57,24 @@ context.set_user_data(
 
 ### Typed Data Guards
 
-The data methods return `DataReadGuard` and `DataWriteGuard` types that provide typed accessors:
+Bot-wide data is accessed through `DataReadGuard` / `DataWriteGuard`, which
+provide typed accessors:
 
 ```rust
-if let Some(guard) = context.user_data_guard().await {
-    let name: Option<&str> = guard.get_str("name");
-    let age: Option<i64> = guard.get_i64("age");
-    let score: Option<f64> = guard.get_f64("score");
-    let active: Option<bool> = guard.get_bool("active");
-    let ids: HashSet<i64> = guard.get_id_set("friend_ids");
+// bot_data() -> DataReadGuard<'_>, bot_data_mut() -> DataWriteGuard<'_>
+let guard = context.bot_data().await;
+let name: Option<&str> = guard.get_str("name");
+let age: Option<i64> = guard.get_i64("age");
+let active: Option<bool> = guard.get_bool("active");
+```
+
+Per-user and per-chat data are plain `HashMap<String, serde_json::Value>`
+(optionally absent), not guards:
+
+```rust
+// user_data() -> Option<DefaultData>, where DefaultData = HashMap<String, Value>
+if let Some(data) = context.user_data().await {
+    let name = data.get("name").and_then(|v| v.as_str());
 }
 ```
 
@@ -147,11 +156,14 @@ async fn set_timer(update: Arc<Update>, context: Context) -> HandlerResult {
 |---|---|---|
 | `bot()` | `Arc<ExtBot>` | Access the Telegram Bot API |
 | `reply_text(&update, text)` | `Result<...>` | Quick reply to the current chat |
-| `user_data()` | `Option<HashMap<String, JsonValue>>` | Per-user key-value storage |
-| `set_user_data(key, value)` | `()` | Store a value for the current user |
-| `chat_data()` | `Option<String>` | Per-chat data (debug representation) |
+| `bot_data()` | `DataReadGuard<'_>` | Bot-wide data, with typed accessors |
+| `bot_data_mut()` | `DataWriteGuard<'_>` | Bot-wide data, mutable |
+| `user_data()` | `Option<DefaultData>` | Per-user key-value storage (`HashMap<String, Value>`) |
+| `set_user_data(key, value)` | `bool` | Store a value for the current user |
+| `chat_data()` | `Option<DefaultData>` | Per-chat key-value storage |
+| `set_chat_data(key, value)` | `bool` | Store a value for the current chat |
 | `job_queue` | `Option<Arc<JobQueue>>` | Scheduled task system |
-| `error` | `Option<HandlerError>` | Error details (in error handlers) |
+| `error` | `Option<Arc<dyn Error + Send + Sync>>` | Error details (in error handlers) |
 | `args` | `Option<Vec<String>>` | Command arguments |
 
 ## Next Steps

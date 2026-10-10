@@ -70,9 +70,21 @@ async fn main() {
 
     // ... register handlers ...
 
-    app.run_webhook(&webhook_url, "0.0.0.0:8443").await.unwrap();
+    let config = WebhookConfig {
+        listen: "0.0.0.0".to_owned(),
+        port: 8443,
+        url_path: "/telegram/webhook".to_owned(),
+        webhook_url: Some(webhook_url),
+        secret_token: std::env::var("WEBHOOK_SECRET").ok(),
+        ..Default::default()
+    };
+
+    app.run_webhook(config).await.unwrap();
 }
 ```
+
+`run_webhook` takes a single `WebhookConfig`, not a URL and an address. See the
+[Webhooks guide](../guides/webhooks.md) for the full set of options.
 
 ### Custom Webhook with axum
 
@@ -104,8 +116,11 @@ You can register hooks that run at specific lifecycle stages:
 use rust_tg_bot::ext::prelude::{ApplicationBuilder, Arc};
 
 let post_init = Arc::new(|app: Arc<_>| Box::pin(async move {
-    println!("Bot initialized! Username: {:?}",
-        app.bot().bot_data().and_then(|d| d.username.clone()));
+    // `initialize()` has already called getMe, so this resolves from cache.
+    match app.bot().get_me().await {
+        Ok(me) => println!("Bot initialized! Username: {:?}", me.username),
+        Err(e) => eprintln!("getMe failed: {e}"),
+    }
 }) as std::pin::Pin<Box<dyn std::future::Future<Output = ()> + Send>>);
 
 let app = ApplicationBuilder::new()

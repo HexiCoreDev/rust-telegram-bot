@@ -31,8 +31,7 @@ async fn start_callback(update: Arc<Update>, context: Context) -> HandlerResult 
             "Use /shipping to receive an invoice with shipping, \
              or /noshipping for an invoice without shipping.",
         )
-        .await
-        .map_err(|e| HandlerError::Other(Box::new(e)))?;
+        .await?;
 
     Ok(())
 }
@@ -73,8 +72,7 @@ async fn start_with_shipping(
         .need_email(true)
         .need_shipping_address(true)
         .is_flexible(true)
-        .await
-        .map_err(|e| HandlerError::Other(Box::new(e)))?;
+        .await?;
 
     Ok(())
 }
@@ -108,8 +106,7 @@ async fn start_without_shipping(
             prices,
         )
         .provider_token(&provider_token)
-        .await
-        .map_err(|e| HandlerError::Other(Box::new(e)))?;
+        .await?;
 
     Ok(())
 }
@@ -133,8 +130,7 @@ async fn shipping_callback(update: Arc<Update>, context: Context) -> HandlerResu
             .bot()
             .answer_shipping_query(&query.id, false)
             .error_message("Something went wrong...")
-            .await
-            .map_err(|e| HandlerError::Other(Box::new(e)))?;
+            .await?;
         return Ok(());
     }
 
@@ -156,8 +152,7 @@ async fn shipping_callback(update: Arc<Update>, context: Context) -> HandlerResu
         .bot()
         .answer_shipping_query(&query.id, true)
         .shipping_options(options)
-        .await
-        .map_err(|e| HandlerError::Other(Box::new(e)))?;
+        .await?;
 
     Ok(())
 }
@@ -184,14 +179,12 @@ async fn precheckout_callback(update: Arc<Update>, context: Context) -> HandlerR
             .bot()
             .answer_pre_checkout_query(&query.id, false)
             .error_message("Something went wrong...")
-            .await
-            .map_err(|e| HandlerError::Other(Box::new(e)))?;
+            .await?;
     } else {
         context
             .bot()
             .answer_pre_checkout_query(&query.id, true)
-            .await
-            .map_err(|e| HandlerError::Other(Box::new(e)))?;
+            .await?;
     }
 
     Ok(())
@@ -218,8 +211,7 @@ async fn successful_payment_callback(
     context
         .bot()
         .send_message(chat_id, "Thank you for your payment.")
-        .await
-        .map_err(|e| HandlerError::Other(Box::new(e)))?;
+        .await?;
 
     Ok(())
 }
@@ -304,8 +296,7 @@ async fn send_stars_invoice(
             "XTR",    // Telegram Stars currency code
             prices,
         )
-        .await
-        .map_err(|e| HandlerError::Other(Box::new(e)))?;
+        .await?;
 
     Ok(())
 }

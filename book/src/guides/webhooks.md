@@ -120,8 +120,16 @@ async fn start(update: Arc<Update>, context: Context) -> HandlerResult {
 
 async fn handle_webhook(
     axum::extract::State(state): axum::extract::State<AppState>,
+    headers: axum::http::HeaderMap,
     body: axum::body::Bytes,
 ) -> impl IntoResponse {
+    // A custom server gets no secret validation for free: without this check
+    // anyone who learns the URL can inject arbitrary updates.
+    match headers.get("x-telegram-bot-api-secret-token").and_then(|v| v.to_str().ok()) {
+        Some(provided) if provided == &*state.secret_token => {}
+        _ => return StatusCode::FORBIDDEN,
+    }
+
     let update: RawUpdate = match serde_json::from_slice(&body) {
         Ok(u) => u,
         Err(_) => return StatusCode::BAD_REQUEST,
@@ -143,6 +151,8 @@ async fn healthcheck() -> &'static str {
 struct AppState {
     update_tx: mpsc::Sender<RawUpdate>,
     app: Arc<Application>,
+    /// Shared with `set_webhook`, so Telegram echoes it on every request.
+    secret_token: Arc<str>,
 }
 
 #[tokio::main]
@@ -160,10 +170,16 @@ async fn main() {
     app.initialize().await.expect("Failed to initialize");
     app.start().await.expect("Failed to start");
 
+    // A secret token is required: without one the endpoint is unauthenticated.
+    let secret_token: Arc<str> = Arc::from(
+        std::env::var("WEBHOOK_SECRET").expect("WEBHOOK_SECRET must be set"),
+    );
+
     // Set the webhook on Telegram's side
     let full_url = format!("{webhook_url}/telegram");
     app.bot()
         .set_webhook(&full_url)
+        .secret_token(secret_token.to_string())
         .await
         .expect("Failed to set webhook");
 
@@ -171,6 +187,7 @@ async fn main() {
     let state = AppState {
         update_tx: app.update_sender(),
         app: Arc::clone(&app),
+        secret_token: Arc::clone(&secret_token),
     };
 
     let router = Router::new()
@@ -182,11 +199,41 @@ async fn main() {
 
     println!("Custom webhook server listening on 0.0.0.0:8443");
 
-    axum::serve(listener, router).await.unwrap();
+    // Docker and systemd stop containers with SIGTERM, not Ctrl+C. Without this
+    // the process is killed mid-request and persistence is never flushed.
+    axum::serve(listener, router)
+        .with_graceful_shutdown(shutdown_signal())
+        .await
+        .unwrap();
 
-    // Cleanup on shutdown
     app.stop().await.ok();
     app.shutdown().await.ok();
+}
+
+async fn shutdown_signal() {
+    let ctrl_c = async {
+        let _ = tokio::signal::ctrl_c().await;
+    };
+
+    #[cfg(unix)]
+    let terminate = async {
+        match tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate()) {
+            Ok(mut s) => {
+                s.recv().await;
+            }
+            Err(_) => std::future::pending::<()>().await,
+        }
+    };
+
+    #[cfg(not(unix))]
+    let terminate = std::future::pending::<()>();
+
+    tokio::select! {
+        _ = ctrl_c => {}
+        _ = terminate => {}
+    }
+
+    println!("Shutdown signal received");
 }
 ```
 
@@ -215,7 +262,10 @@ server {
         proxy_pass http://127.0.0.1:8080/webhook;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Telegram-Bot-Api-Secret-Token $http_x_rust_tg_bot_api_secret_token;
+        # nginx lowercases incoming header names, so the variable is
+        # $http_x_telegram_bot_api_secret_token -- not $http_x_rust_tg_bot_...,
+        # which would be empty and silently blank the header, breaking validation.
+        proxy_set_header X-Telegram-Bot-Api-Secret-Token $http_x_telegram_bot_api_secret_token;
     }
 }
 ```

@@ -148,6 +148,16 @@ async fn my_handler(update: Arc<Update>, context: Context) -> HandlerResult {
 To pass additional state, use closures that capture shared data:
 
 ```rust
+// Predicate: does this update start with /save?
+fn check_command(update: &Update, command: &str) -> bool {
+    update
+        .effective_message()
+        .and_then(|m| m.text.as_deref())
+        .and_then(|t| t.strip_prefix('/'))
+        .map(|c| c.split_whitespace().next() == Some(command))
+        .unwrap_or(false)
+}
+
 let shared_state = Arc::new(RwLock::new(HashMap::new()));
 
 let state = Arc::clone(&shared_state);

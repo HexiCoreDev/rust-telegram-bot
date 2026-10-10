@@ -6,13 +6,18 @@ Persistence lets your bot remember data across restarts. Without it, all user da
 
 The framework provides a `BasePersistence` trait that defines how data is stored and loaded. You pick an implementation, pass it to `ApplicationBuilder`, and the `Application` handles the rest -- loading data at startup, flushing changes periodically, and saving on shutdown.
 
-Three backends ship out of the box:
+Five backends ship out of the box:
 
-| Backend | Feature Flag | Best For |
-|---|---|---|
-| `DictPersistence` | `persistence` | Testing, prototyping (in-memory only) |
-| `JsonFilePersistence` | `persistence-json` | Simple bots, human-readable storage |
-| `SqlitePersistence` | `persistence-sqlite` | Production bots, concurrent access |
+| Backend | Feature Flag | Constructor | Best For |
+|---|---|---|---|
+| `DictPersistence` | `persistence` | `DictPersistence::new()` | Testing, prototyping (in-memory only) |
+| `JsonFilePersistence` | `persistence-json` | `JsonFilePersistence::new(path, single_file, on_flush)` | Simple bots, human-readable storage |
+| `SqlitePersistence` | `persistence-sqlite` | `SqlitePersistence::open(path)` | Single-host production, concurrent access |
+| `RedisPersistence` | `persistence-redis` | `RedisPersistence::new(url).await?` | Multi-instance deployments, shared state |
+| `PostgresPersistence` | `persistence-postgres` | `PostgresPersistence::builder(url)…build().await?` | Multi-instance deployments, SQL tooling |
+
+The three below cover the local-file cases; Redis and PostgreSQL are documented
+in their own sections further down.
 
 ## Enabling Persistence
 
@@ -50,7 +55,7 @@ async fn start(update: Arc<Update>, context: Context) -> HandlerResult {
 async fn main() {
     let token = std::env::var("TELEGRAM_BOT_TOKEN").unwrap();
 
-    // Arguments: file prefix, single-file mode, pretty-print
+    // Arguments: file prefix, single-file mode, on_flush
     let persistence = JsonFilePersistence::new("my_bot_data", true, false);
 
     let app: Arc<Application> = ApplicationBuilder::new()
@@ -68,7 +73,9 @@ The three arguments to `JsonFilePersistence::new`:
 
 1. **File prefix** -- the base name for the JSON file(s). Single-file mode creates `my_bot_data.json`.
 2. **Single-file mode** -- `true` stores everything in one file; `false` creates separate files per data category (`my_bot_data_user_data.json`, `my_bot_data_chat_data.json`, etc.).
-3. **Pretty-print** -- `true` formats the JSON with indentation for debugging; `false` is compact.
+3. **On-flush** -- `false` (the default in the example above) writes to disk on
+   every mutation; `true` buffers writes until `flush()` is called. This is a
+   durability/performance trade-off, **not** a formatting option.
 
 ## SqlitePersistence
 
@@ -104,6 +111,36 @@ For testing, use the in-memory variant:
 let persistence = SqlitePersistence::in_memory()
     .expect("failed to create in-memory SQLite database");
 ```
+
+## Redis and PostgreSQL
+
+Both are for running more than one bot instance against shared state. They take
+a connection URL and connect eagerly.
+
+```rust
+// Redis
+let persistence = RedisPersistence::new("redis://127.0.0.1/")
+    .await
+    .expect("failed to connect to Redis");
+
+// PostgreSQL
+let persistence = PostgresPersistence::builder("postgres://localhost/mydb")
+    .with_prefix("mybot")
+    .with_pool_size(10)
+    .with_update_interval(30.0)
+    .build()
+    .await
+    .expect("failed to connect to PostgreSQL");
+```
+
+Both default to a key/table prefix of `rtb`. The prefix is validated against
+`^[A-Za-z_][A-Za-z0-9_]*$` because PostgreSQL interpolates it into table names
+(only values are bound as parameters) and Redis uses it in `SCAN MATCH` patterns
+where `*?[]` are glob metacharacters.
+
+Neither backend configures TLS or authentication for you — the URL is yours to
+control. Use `rediss://` and `?sslmode=require` respectively on anything
+reachable off-box.
 
 ## Accessing Data from Handlers
 

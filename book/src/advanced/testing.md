@@ -226,7 +226,30 @@ mod tests {
 
 ## Testing Conversation State
 
-Test conversation state transitions by directly manipulating the state store:
+If you use the built-in `ConversationHandler`, test it through its public API
+rather than poking a `HashMap` — a test that writes a value and reads it back
+proves only that `HashMap` works:
+
+```rust,ignore
+use rust_tg_bot::ext::handlers::conversation::{ConversationHandler, ConversationResult};
+
+let conv = ConversationHandler::builder()
+    .entry_point(step(on_start, ConversationResult::NextState(State::AskName)))
+    .state(State::AskName, vec![step(on_text, ConversationResult::End)])
+    .per_chat(true)
+    .per_user(true)
+    .build();
+
+// Drive it with a synthetic update and assert on `get_state`.
+conv.handle_update(update, MatchResult::Empty).await;
+assert_eq!(conv.get_state(&vec![chat_id, user_id]).await, Some(State::AskName));
+```
+
+See the [Conversations guide](../guides/conversations.md) for a complete
+`step(...)` helper and a working example.
+
+For a hand-rolled state store, direct manipulation is the only option — but keep
+the assertions about *transitions*, not just round-trips:
 
 ```rust
 #[cfg(test)]
@@ -292,8 +315,10 @@ async fn integration_test_setup() {
         MessageHandler::new(TEXT() & !COMMAND(), echo), 0,
     ).await;
 
-    // The app is configured but not connected to Telegram.
-    // Verify handler registration, filter composition, etc.
+    // Registering a handler must not panic or require a network connection.
+    // Assert on observable state instead of just reaching the end of the test --
+    // a test with no assertions passes even if the registration silently did
+    // nothing. See the next section for a test that exercises a real update.
 }
 ```
 

@@ -59,24 +59,36 @@ async fn set_timer(update: Arc<Update>, context: Context) -> HandlerResult {
             _ => {
                 context.bot()
                     .send_message(chat_id, "Usage: /set <seconds>\nPlease provide a positive number.")
-                    .await
-                    .map_err(|e| HandlerError::Other(Box::new(e)))?;
+                    .await?;
                 return Ok(());
             }
         },
         None => {
             context.bot()
                 .send_message(chat_id, "Usage: /set <seconds>")
-                .await
-                .map_err(|e| HandlerError::Other(Box::new(e)))?;
+                .await?;
             return Ok(());
         }
     };
 
+    // Schedule the timer (requires the `job-queue` feature). The one-shot job
+    // fires `seconds` from now and then removes itself.
+    let job = context
+        .job_queue
+        .as_ref()
+        .ok_or_else(|| HandlerError::Other("job-queue feature is not enabled".into()))?
+        .once(
+            Arc::new(move |_ctx| Box::pin(async move { Ok(()) })),
+            Duration::from_secs(seconds),
+        )
+        .name("timer")
+        .chat_id(chat_id)
+        .start()
+        .await?;
+
     context.bot()
-        .send_message(chat_id, &format!("Timer set for {seconds} seconds!"))
-        .await
-        .map_err(|e| HandlerError::Other(Box::new(e)))?;
+        .send_message(chat_id, &format!("Timer set for {seconds} seconds (job {}).", job.id))
+        .await?;
 
     Ok(())
 }
@@ -143,8 +155,13 @@ app.add_handler(
 ```rust
 use rust_tg_bot::ext::prelude::{InlineKeyboardButton, InlineKeyboardMarkup};
 
-let bot_username = context.bot().bot_data()
-    .and_then(|d| d.username.clone())
+// The bot's own `User` record is cached internally after `initialize()` and has
+// no accessor, so fetch it with `get_me()` when you need the username.
+let bot_username = context.bot()
+    .get_me()
+    .await
+    .ok()
+    .and_then(|me| me.username)
     .unwrap_or_default();
 
 let url = create_deep_linked_url(&bot_username, "my-payload", false);

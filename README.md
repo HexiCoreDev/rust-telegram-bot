@@ -259,7 +259,7 @@ if chat.chat_type != ChatType::Private { /* ... */ }
 
 ### Handler Groups
 
-Handlers are organized into numbered groups. Within a group, the first matching handler wins. Across groups, processing continues unless a handler returns `HandlerResult::Stop`:
+Handlers are organized into numbered groups. Within a group, the first matching handler wins. Across groups, processing continues unless a handler returns `Err(HandlerError::HandlerStop { state: None })`:
 
 ```rust,ignore
 use rust_tg_bot::ext::prelude::{

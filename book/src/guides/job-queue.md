@@ -73,8 +73,7 @@ async fn set_timer(
 
     context.bot()
         .send_message(chat_id, &format!("Timer set for {seconds} seconds!"))
-        .await
-        .map_err(|e| HandlerError::Other(Box::new(e)))?;
+        .await?;
 
     Ok(())
 }
@@ -88,7 +87,38 @@ The job builder returned by `jq.once()` supports these methods:
 |---|---|
 | `.name(name)` | Human-readable name for the job |
 | `.chat_id(id)` | Associates a chat ID with the job (passed to the callback via `JobContext`) |
+| `.user_id(id)` | Associates a user ID with the job |
+| `.data(json)` | Arbitrary JSON payload delivered on each run |
 | `.start()` | Schedules the job and returns a `Job` handle |
+
+## Recurring and Calendar Jobs
+
+`once()` fires a single time. For anything that repeats, use one of these
+instead — they take the same builder methods:
+
+```rust
+// Every 30 seconds
+jq.repeating(callback, Duration::from_secs(30))
+    .name("heartbeat")
+    .start()
+    .await?;
+
+// 09:00 Mon-Fri (days are 1=Monday .. 7=Sunday)
+jq.daily(callback, NaiveTime::from_hms_opt(9, 0, 0).unwrap(), &[1, 2, 3, 4, 5])
+    .name("morning_report")
+    .chat_id(chat_id)
+    .start()
+    .await?;
+
+// Day 1 of each month at 00:05 (`monthly` takes a single day, not a list)
+jq.monthly(callback, NaiveTime::from_hms_opt(0, 5, 0).unwrap(), 1)
+    .name("billing")
+    .start()
+    .await?;
+```
+
+The callback receives a `JobContext` on every run, so a recurring job can tell
+which invocation it is serving from `ctx.data`.
 
 ## Cancelling Jobs
 
@@ -128,8 +158,7 @@ async fn unset_timer(
 
     context.bot()
         .send_message(chat_id, reply)
-        .await
-        .map_err(|e| HandlerError::Other(Box::new(e)))?;
+        .await?;
 
     Ok(())
 }

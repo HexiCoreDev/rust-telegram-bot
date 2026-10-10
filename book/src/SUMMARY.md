@@ -26,6 +26,7 @@
 # Guides
 
 - [Command Bots](guides/command-bots.md)
+- [Command Macros](guides/command-macros.md)
 - [Inline Keyboards](guides/inline-keyboards.md)
 - [Conversations](guides/conversations.md)
 - [Job Queue](guides/job-queue.md)

@@ -14,7 +14,15 @@ let io_err = std::io::Error::new(std::io::ErrorKind::NotFound, "file missing");
 let e = HandlerError::Other(Box::new(io_err));
 ```
 
-Inside handlers, the `?` operator on Telegram API calls automatically converts errors to `HandlerError`. For other error types, use `.map_err`:
+Inside handlers, `?` on any Telegram API call converts automatically —
+`HandlerError` implements `From<TelegramError>`. Any other error type needs an
+explicit `.map_err`:
+
+```rust
+// A plain std::io::Error does not implement Into<HandlerError>.
+let _data = std::fs::read_to_string("config.toml")
+    .map_err(|e| HandlerError::Other(Box::new(e)))?;
+```
 
 ```rust
 use rust_tg_bot::ext::prelude::{Arc, Context, HandlerError, HandlerResult, Update};
@@ -22,12 +30,8 @@ use rust_tg_bot::ext::prelude::{Arc, Context, HandlerError, HandlerResult, Updat
 async fn handler(update: Arc<Update>, context: Context) -> HandlerResult {
     let chat_id = update.effective_chat().map(|c| c.id).unwrap();
 
-    // Telegram errors convert directly with ?
+    // Telegram errors convert directly with `?`
     context.reply_text(&update, "Hello!").await?;
-
-    // Other errors need .map_err
-    let _data = std::fs::read_to_string("config.toml")
-        .map_err(|e| HandlerError::Other(Box::new(e)))?;
 
     Ok(())
 }
@@ -251,7 +255,27 @@ async fn error_handler(
 
 ### Avoid unwrap in Handlers
 
-Panics inside handlers are caught by the async runtime, but they produce opaque error messages. Prefer `ok_or` and `?`:
+A panic inside a handler unwinds its own tokio task, so the bot keeps running —
+but the error handler is **not** invoked, and the update is dropped without a
+trace beyond a panic message on stderr. If you need panics routed somewhere,
+wrap the handler body yourself:
+
+```rust
+use std::panic::AssertUnwindSafe;
+
+let result = std::panic::catch_unwind(AssertUnwindSafe(|| {
+    // synchronous work that may panic
+}));
+match result {
+    Ok(Ok(())) => {}
+    Ok(Err(e)) => eprintln!("handler failed: {e}"),
+    Err(_) => eprintln!("handler panicked"),
+}
+```
+
+This is why `.unwrap()` and `expect` are worth avoiding in handlers even though
+a panic is survivable. Also keep the release profile's default
+`panic = "unwind"` — see [Deployment](./deployment.md).
 
 ```rust
 // Avoid:

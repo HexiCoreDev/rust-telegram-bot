@@ -104,3 +104,9 @@ context
 
 Up to 32768 characters, 500 blocks, 16 nesting levels, 50 media attachments,
 and 20 table columns per message.
+
+## Next Steps
+
+Rich messages cover the send side. To receive and act on them, see
+[Handlers](../core-concepts/handlers.md); for one-shot messages that should
+replace themselves, see [Ephemeral Messages](ephemeral-messages.md).

@@ -13,6 +13,7 @@ use super::files::photo_size::PhotoSize;
 use super::files::sticker::Sticker;
 use super::files::venue::Venue;
 use super::files::video::Video;
+use super::link::Link;
 use super::live_photo::LivePhoto;
 use super::message::Message;
 use super::message_entity::MessageEntity;
@@ -313,6 +314,10 @@ pub struct PollMedia {
     /// Media is a video.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub video: Option<Video>,
+
+    /// The HTTP link attached to the poll option.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub link: Option<Link>,
 }
 
 impl_new!(PollMedia {});

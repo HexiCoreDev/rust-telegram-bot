@@ -29,15 +29,23 @@ You need `tokio` with the `rt-multi-thread` and `macros` features because the fr
 
 The crate uses feature flags to keep the default build lean. Enable only what you need:
 
-| Feature | Description | Default |
-|---|---|---|
-| `webhooks` | Webhook-based update delivery (requires `axum`) | No |
-| `job-queue` | Scheduled and recurring tasks via `JobQueue` | No |
-| `persistence` | Base persistence trait | No |
-| `persistence-json` | JSON file persistence backend | No |
-| `persistence-sqlite` | SQLite persistence backend | No |
-| `rate-limiter` | Built-in rate limiting for API calls | No |
-| `full` | Enables all features | No |
+| Feature | Crate | Description | Default |
+|---|---|---|---|
+| `polling` | `ext` | Long-polling update delivery | **Yes** |
+| `webhooks` | both | Webhook-based update delivery (requires `axum`) | No |
+| `webhooks-tls` | both | HTTPS webhook server (implies `webhooks`) | No |
+| `job-queue` | both | Scheduled and recurring tasks via `JobQueue` | No |
+| `persistence` | both | Base persistence trait | No |
+| `persistence-json` | both | JSON file persistence backend | No |
+| `persistence-sqlite` | both | SQLite persistence backend | No |
+| `persistence-redis` | both | Redis persistence backend | No |
+| `persistence-postgres` | both | PostgreSQL persistence backend | No |
+| `rate-limiter` | both | Built-in rate limiting for API calls | No |
+| `macros` | facade | `#[derive(BotCommands)]` — required for that macro | No |
+| `full` | both | Enables all features | No |
+
+The `macros` feature exists only on the facade crate `rust-tg-bot`; the others
+are re-exported from `rust-tg-bot-ext`.
 
 Enable features in `Cargo.toml`:
 

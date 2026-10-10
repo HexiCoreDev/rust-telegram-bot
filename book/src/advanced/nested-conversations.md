@@ -2,6 +2,46 @@
 
 Nested conversations let you build multi-level state machines where selecting an option in one conversation enters a child conversation, and finishing the child returns control to the parent. This is useful for complex data collection flows.
 
+## Use `map_to_parent` First
+
+If you are porting from python-telegram-bot, nesting is a built-in feature of
+`ConversationHandler` rather than something you implement. Declare both levels
+as states in one handler and map the child's exit states back to the parent:
+
+```rust,ignore
+use std::collections::HashMap;
+
+ConversationHandler::builder()
+    // Level 1 — the parent
+    .entry_point(step(on_add_member, ConversationResult::NextState(State::AddMember)))
+    // Entering the child
+    .state(State::AddMember, vec![
+        step(on_add_parent, ConversationResult::NextState(State::AddParent)),
+        step(on_add_child, ConversationResult::NextState(State::AddChild)),
+        step(on_back, ConversationResult::NextState(State::Menu)),
+    ])
+    // Level 2 — the child
+    .state(State::AddParent, vec![step(on_done, ConversationResult::NextState(State::AddChild))])
+    .state(State::AddChild, vec![step(on_done, ConversationResult::NextState(State::Menu))])
+    // Finishing either child state returns to the parent menu
+    .map_to_parent(HashMap::from([
+        (State::AddChild, State::Menu),
+        (State::AddParent, State::Menu),
+    ]))
+    .build();
+```
+
+`map_to_parent` takes a `HashMap<ChildState, ParentState>`. When a
+conversation ends in a mapped state, the handler resumes the parent in the
+mapped state instead of discarding the key. Everything else — `per_chat`,
+`per_user`, timeouts, fallbacks — works exactly as in
+[Conversations](../guides/conversations.md).
+
+Only build the level-tracking store by hand if you need nesting *plus* state
+that `ConversationHandler` does not model. The rest of this page does that.
+
+## The Manual Pattern
+
 ## Architecture
 
 A nested conversation is modelled as a state machine with multiple levels:
@@ -141,8 +181,7 @@ async fn handle_top_action(
     context
         .bot()
         .answer_callback_query(&cq.id)
-        .await
-        .map_err(|e| HandlerError::Other(Box::new(e)))?;
+        .await?;
 
     let msg = cq.message.as_deref().expect("must have message");
     let chat_id = msg.chat().id;
@@ -171,8 +210,7 @@ async fn handle_top_action(
                 .chat_id(chat_id)
                 .message_id(msg.message_id())
                 .reply_markup(keyboard)
-                .await
-                .map_err(|e| HandlerError::Other(Box::new(e)))?;
+                .await?;
         }
         // ... handle other top-level actions ...
         _ => {}
@@ -200,9 +238,8 @@ When the user presses "Back" or "Done" at a child level, restore the parent stat
         .edit_message_text("Choose an action.")
         .chat_id(chat_id)
         .message_id(msg.message_id())
-        .reply_markup(top_menu_keyboard())
-        .await
-        .map_err(|e| HandlerError::Other(Box::new(e)))?;
+        .reply_markup(serde_json::to_value(top_menu_keyboard())?)
+        .await?;
 }
 ```
 
@@ -288,9 +325,8 @@ async fn handle_text_input(
     context
         .bot()
         .send_message(chat_id, "Got it! Please select a feature to update.")
-        .reply_markup(feature_keyboard())
-        .await
-        .map_err(|e| HandlerError::Other(Box::new(e)))?;
+        .reply_markup(serde_json::to_value(feature_keyboard())?)
+        .await?;
 
     Ok(())
 }
@@ -380,8 +416,7 @@ async fn stop_command(
     context
         .bot()
         .send_message(chat_id, "Okay, bye.")
-        .await
-        .map_err(|e| HandlerError::Other(Box::new(e)))?;
+        .await?;
 
     Ok(())
 }

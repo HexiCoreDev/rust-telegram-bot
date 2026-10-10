@@ -21,6 +21,16 @@ ROOT = Path(__file__).resolve().parents[2]
 DOC = ROOT / "docs/telegram-bot-api.md"
 BUILDER_FILES = sorted((ROOT / "crates/telegram-bot-raw/src").glob("bot_builders*.rs"))
 
+# Verified false positives: the spec marks the param Optional, but the Rust
+# signature is the ergonomic one because the spec's own prose defines an
+# idiom that requires the argument.
+#   sendMessageDraft.text -- "Pass an empty text to show a 'Thinking...'
+#   placeholder", so taking `impl Into<String>` positionally is required for
+#   that idiom; there is no documented use for omitting text entirely.
+KNOWN_OK: dict[str, str] = {
+    "send_message_draft": "spec documents an empty-text placeholder idiom",
+}
+
 
 # ------------------------------------------------------------------ spec side
 
@@ -119,6 +129,40 @@ def parse_constructor(src: str, snake: str) -> tuple[list[str], list[str]] | Non
     return required, optional
 
 
+def sibling_optionals(src: str, snake: str) -> set[str]:
+    """Params that ANY constructor for the same builder can leave unset.
+
+    Without this, a spec-optional param that the primary constructor takes
+    positionally looks like a modelling error even when a sibling constructor
+    (`edit_message_rich`, `send_rich_message`, ...) covers the omitted case.
+    That produced three false positives in the first 10.3 audit.
+    """
+    m = re.search(r"pub fn " + re.escape(snake) + r"\s*\(", src)
+    if not m:
+        return set()
+    sig_close = match_paren(src, src.index("(", m.end() - 1))
+    tail = src[sig_close : sig_close + 400]
+    b = re.search(r"->\s*([A-Z]\w*Builder)\b", tail)
+    if not b:
+        return set()
+    builder = b.group(1)
+
+    found: set[str] = set()
+    for cm in re.finditer(r"pub fn [a-z_][a-z0-9_]*\s*\(", src):
+        paren = src.index("(", cm.end() - 1)
+        sig_close = match_paren(src, paren)
+        tail = src[sig_close + 1 : sig_close + 400]
+        if not re.match(r"\s*->\s*" + re.escape(builder) + r"\b", tail):
+            continue
+        try:
+            body_open = src.index("{", sig_close)
+        except ValueError:
+            continue
+        body = src[body_open : match_brace(src, body_open)]
+        found |= set(re.findall(r"^\s*([a-z_][a-z0-9_]*)\s*:\s*None\s*,", body, re.M))
+    return found
+
+
 def match_paren(src: str, open_idx: int) -> int:
     depth = 0
     for k in range(open_idx, len(src)):
@@ -178,11 +222,13 @@ def main() -> None:
             missing_method.append(name)
             continue
         rust_req, rust_opt = parsed
+        # a sibling constructor for the same builder may leave a param unset
+        sibling = sibling_optionals(src, snake)
 
         spec_req = set(data["required"])
         spec_opt = set(data["optional"])
         rust_req_s = set(rust_req)
-        rust_opt_s = set(rust_opt)
+        rust_opt_s = set(rust_opt) | sibling
 
         # spec-required params missing from the Rust constructor
         miss_req = sorted(spec_req - rust_req_s - rust_opt_s)
@@ -195,7 +241,7 @@ def main() -> None:
         # required in spec but modelled as Option in Rust, and vice versa
         req_as_opt = sorted(spec_req & rust_opt_s - rust_req_s)
         opt_as_req = sorted(spec_opt & rust_req_s - rust_opt_s)
-        if req_as_opt or opt_as_req:
+        if (req_as_opt or opt_as_req) and snake not in KNOWN_OK:
             required_disagree.append((name, req_as_opt, opt_as_req))
 
         builder = re.search(

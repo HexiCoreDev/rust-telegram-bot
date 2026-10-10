@@ -33,7 +33,10 @@ This documentation takes you from zero to a production deployment:
 
 1. **Getting Started** -- Install the library, write your first bot, and run it.
 2. **Core Concepts** -- Understand the building blocks: `Update`, `Bot`, handlers, filters, context, and the `Application` lifecycle.
-3. **Guides** -- Build real features: command handling, inline keyboards, multi-step conversations, scheduled jobs, data persistence, webhooks, inline mode, and payments.
+3. **Guides** -- Build real features: command handling (hand-written or via the
+   `BotCommands` derive), inline keyboards, multi-step conversations, scheduled
+   jobs, data persistence, webhooks, inline mode, payments, rich messages, and
+   ephemeral messages.
 4. **Advanced** -- Write custom filters, handle errors gracefully, nest conversations, test your bot, and deploy to production.
 5. **Migration** -- A side-by-side reference for developers moving from python-telegram-bot to Rust.
 

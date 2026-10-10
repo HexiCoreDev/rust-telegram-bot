@@ -22,10 +22,20 @@ lto = true          # Link-time optimisation
 codegen-units = 1   # Single codegen unit for better optimisation
 strip = true        # Strip debug symbols
 opt-level = "z"     # Optimise for size (use "3" for speed)
-panic = "abort"     # Smaller binary, no unwinding overhead
 ```
 
-With these settings a typical bot binary compiles to approximately 6.2 MB (stripped) — smaller than teloxide at 6.6 MB. See the [benchmarks](../../../benchmarks/README.md) for measured numbers.
+> **Leave `panic` at its default (`unwind`).** `panic = "abort"` terminates the
+> whole process on the first panic instead of unwinding the offending task. A
+> single `.unwrap()` in one handler — yours or a dependency's — would take the
+> bot offline, whereas with `unwind` tokio keeps the other tasks alive. The
+> savings are a few hundred kilobytes; the availability risk is not worth it for
+> a long-running service.
+
+These settings trade debuggability for size. Note `opt-level = "z"` optimises for
+size rather than speed — use `"3"` if throughput matters more than binary size.
+
+The README quotes a measured 6.6 MB stripped binary (echo_bot, release); see the
+[benchmarks](../../../benchmarks/README.md) for the comparison against teloxide.
 
 ### Feature Flags
 
@@ -53,8 +63,8 @@ Available features:
 Use a multi-stage build to keep the final image small:
 
 ```dockerfile
-# Build stage
-FROM rust:1.83-slim AS builder
+# Build stage -- must be >= the crate's rust-version (1.88).
+FROM rust:1.88-slim AS builder
 
 WORKDIR /app
 COPY . .
@@ -65,14 +75,27 @@ RUN cargo build --release -p rust-tg-bot --example my_bot \
 # Runtime stage
 FROM debian:bookworm-slim
 
-RUN apt-get update && apt-get install -y ca-certificates && rm -rf /var/lib/apt/lists/*
+# curl is only needed for the compose healthcheck below; drop it if you health
+# check from outside the container.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ca-certificates curl \
+    && rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder /app/target/release/examples/my_bot /usr/local/bin/my_bot
+
+# Persistence examples write to relative paths, so give the process a writable
+# working directory (see the systemd note below).
+WORKDIR /data
 
 ENV RUST_LOG=info
 
 ENTRYPOINT ["my_bot"]
 ```
+
+The `/healthcheck` route only exists if your bot registers one — the
+[custom axum webhook](../guides/webhooks.md) example does, the built-in
+`run_webhook` server does not. Point the healthcheck at whatever endpoint your
+bot actually serves.
 
 ### Docker Compose
 
@@ -131,10 +154,16 @@ Wants=network-online.target
 Type=exec
 User=bot
 Group=bot
-WorkingDirectory=/opt/rust-tg-bot
+# Persistence examples use relative paths such as "my_bot_data", so the working
+# directory must be the writable path allowed below -- not the install directory.
+WorkingDirectory=/opt/rust-tg-bot/data
 ExecStart=/opt/rust-tg-bot/my_bot
 Restart=always
 RestartSec=5
+# systemd stops services with SIGTERM; run_polling()/run_webhook() handle it,
+# but a custom server must do so itself.
+KillSignal=SIGTERM
+TimeoutStopSec=30
 
 # Environment
 EnvironmentFile=/opt/rust-tg-bot/.env
