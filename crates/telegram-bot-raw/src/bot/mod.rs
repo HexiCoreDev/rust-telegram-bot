@@ -550,6 +550,17 @@ impl Bot {
     // ======================================================================
 
     /// Calls the Telegram `getUpdates` long-polling endpoint.
+    ///
+    /// # Read timeout
+    ///
+    /// `timeout` is the *server-side hold* time, so the client must not give up
+    /// the moment it expires -- the server still has to flush the response.
+    /// The effective read timeout is therefore the request backend's own read
+    /// timeout plus the hold, matching python-telegram-bot's `Bot.get_updates`.
+    ///
+    /// With the default [`crate::request::reqwest_impl::ReqwestRequest`] this
+    /// yields 15s for a 10s poll. Raise it on the backend for slow or distant
+    /// links: `ReqwestRequest::builder().read_timeout(Duration::from_secs(60))`.
     pub async fn get_updates_raw(
         &self,
         offset: Option<i64>,
@@ -563,10 +574,19 @@ impl Bot {
         push_opt(&mut params, "timeout", &timeout)?;
         push_opt(&mut params, "allowed_updates", &allowed_updates)?;
         self.apply_defaults(&mut params);
+        // Mirrors python-telegram-bot's `Bot.get_updates`: the read timeout is
+        // the request backend's read timeout plus the server-side hold, because
+        // a long poll has to survive past the hold while the response is
+        // flushed. PTB uses the backend's value rather than a fixed margin so
+        // that `HTTPXRequest(read_timeout=...)` is the single knob.
         let timeouts = if let Some(t) = timeout {
-            let effective = Duration::from_secs(t as u64 + 2);
+            let hold = Duration::from_secs(t.max(0) as u64);
+            let base = self
+                .request
+                .default_read_timeout()
+                .unwrap_or(Duration::ZERO);
             TimeoutOverride {
-                read: Some(Some(effective)),
+                read: Some(Some(base + hold)),
                 ..TimeoutOverride::default_none()
             }
         } else {
@@ -678,6 +698,55 @@ mod tests {
 
     struct StubRequest;
 
+    /// Records the `TimeoutOverride` that `get_updates_raw` computes, so tests
+    /// can assert on the timeout arithmetic without touching the network.
+    struct RecordingRequest {
+        read_timeout: Option<std::time::Duration>,
+        seen: std::sync::Mutex<Option<TimeoutOverride>>,
+    }
+
+    impl RecordingRequest {
+        fn new(read_timeout: Option<std::time::Duration>) -> Self {
+            Self {
+                read_timeout,
+                seen: std::sync::Mutex::new(None),
+            }
+        }
+    }
+
+    #[async_trait]
+    impl BaseRequest for RecordingRequest {
+        async fn initialize(&self) -> Result<()> {
+            Ok(())
+        }
+        async fn shutdown(&self) -> Result<()> {
+            Ok(())
+        }
+        fn default_read_timeout(&self) -> Option<std::time::Duration> {
+            self.read_timeout
+        }
+        async fn do_request(
+            &self,
+            url: &str,
+            _method: HttpMethod,
+            _data: Option<&RequestData>,
+            timeouts: TimeoutOverride,
+        ) -> Result<(u16, Bytes)> {
+            if url.ends_with("getUpdates") {
+                *self.seen.lock().expect("poisoned") = Some(timeouts);
+            }
+            Ok((200, Bytes::from_static(b"{\"ok\":true,\"result\":[]}")))
+        }
+        async fn do_request_json_bytes(
+            &self,
+            _url: &str,
+            _body: &[u8],
+            _timeouts: TimeoutOverride,
+        ) -> Result<(u16, Bytes)> {
+            unreachable!()
+        }
+    }
+
     #[async_trait]
     impl BaseRequest for StubRequest {
         async fn initialize(&self) -> Result<()> {
@@ -706,6 +775,57 @@ mod tests {
         ) -> Result<(u16, Bytes)> {
             unreachable!()
         }
+    }
+
+    /// The long-poll read timeout must be the backend's read timeout plus the
+    /// server-side hold, so a poll outlives the hold instead of being cut off
+    /// while Telegram flushes the response.
+    ///
+    /// Regression test for spurious `TimedOut` errors: a 10s hold must not be
+    /// given a 12s deadline (hold + a hardcoded 2s), because measured overhead
+    /// beyond the hold reached 3.6s from an unmodified `curl` client.
+    #[tokio::test]
+    async fn get_updates_read_timeout_covers_hold_plus_backend_read_timeout() {
+        let req = Arc::new(RecordingRequest::new(Some(Duration::from_secs(5))));
+        let bot = Bot::new("token", req.clone());
+        bot.get_updates_raw(None, Some(100), Some(10), None)
+            .await
+            .expect("get_updates");
+
+        let seen = req.seen.lock().expect("poisoned").expect("no call recorded");
+        assert_eq!(
+            seen.read,
+            Some(Some(Duration::from_secs(15))),
+            "read timeout must be backend read timeout (5s) + hold (10s)"
+        );
+    }
+
+    /// A caller-configured read timeout is the single knob for slow links, and
+    /// it must scale the long-poll deadline rather than be capped.
+    #[tokio::test]
+    async fn get_updates_read_timeout_scales_with_configured_backend() {
+        let req = Arc::new(RecordingRequest::new(Some(Duration::from_secs(60))));
+        let bot = Bot::new("token", req.clone());
+        bot.get_updates_raw(None, Some(100), Some(10), None)
+            .await
+            .expect("get_updates");
+
+        let seen = req.seen.lock().expect("poisoned").expect("no call recorded");
+        assert_eq!(seen.read, Some(Some(Duration::from_secs(70))));
+    }
+
+    /// Short polling (`timeout=0`) keeps just the backend read timeout, so it
+    /// still fails fast instead of waiting out a long-poll budget.
+    #[tokio::test]
+    async fn get_updates_short_poll_uses_backend_read_timeout_only() {
+        let req = Arc::new(RecordingRequest::new(Some(Duration::from_secs(5))));
+        let bot = Bot::new("token", req.clone());
+        bot.get_updates_raw(None, Some(100), Some(0), None)
+            .await
+            .expect("get_updates");
+
+        let seen = req.seen.lock().expect("poisoned").expect("no call recorded");
+        assert_eq!(seen.read, Some(Some(Duration::from_secs(5))));
     }
 
     fn bot_with_defaults() -> Bot {
