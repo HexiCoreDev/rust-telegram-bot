@@ -4,7 +4,7 @@
 
 **Jude Etuka**
 - Email: [judechinedu122@gmail.com](mailto:etuka.judeetuka@gmail.com)
-- GitHub: [@JUDE122-MAX](https://github.com/judeetuka)
+- GitHub: [@judeetuka](https://github.com/judeetuka)
 - Telegram: [@judeetuka](https://t.me/judeetuka)
 
 ## Co-Author
