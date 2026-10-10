@@ -106,6 +106,14 @@ def load_structs() -> tuple[dict[str, list[dict]], dict[str, dict]]:
                     "rust": fname,
                     "wire": ren.group(1) if ren else fname,
                     "skip": "skip_serializing_if" in attrs,
+                    # `#[serde(flatten)]` is not a JSON key: it inlines another
+                    # value's contents at this position. Update.kind is the
+                    # motivating case -- it holds the UpdateKind union, and the
+                    # spec lists that union's variants (message, callback_query,
+                    # ...) as siblings of update_id rather than a field called
+                    # "kind". Counting it as a wire field reported a phantom
+                    # undocumented field on every union-style type.
+                    "flatten": "flatten" in attrs,
                 })
             out[name] = fields
     return out, enums
@@ -128,6 +136,18 @@ def main() -> None:
     extra_field = []
     discrim_ok = []
 
+    # Fields absent from the 10.3 spec text that are still real and are kept on
+    # purpose, so [C] stays meaningful instead of being ignored wholesale.
+    KNOWN_WIRE_FIELDS = {
+        # Deprecated in Bot API 9.6 in favour of `correct_option_ids`, but
+        # python-telegram-bot v22.8 still declares it (src/telegram/_poll.py:
+        # present in `Poll.__init__` and the class docstring, which says "Use
+        # correct_option_ids instead"). Telegram keeps sending it to existing
+        # bots, so dropping it would lose data PTB still exposes.
+        ("Poll", "correct_option_id"),
+    }
+    known_wire = {f"{t}.{f}" for t, f in KNOWN_WIRE_FIELDS}
+
     for tname, spec_fields in sorted(types.items()):
         rust = structs.get(tname)
         if rust is None:
@@ -137,12 +157,15 @@ def main() -> None:
                 continue
             no_type.append(tname)
             continue
-        rust_wire = {f["wire"] for f in rust}
+        rust_wire = {f["wire"] for f in rust if not f["flatten"]}
         spec_set = set(spec_fields)
         if tname in tagged:
             spec_set.discard(tagged[tname])
         miss = sorted(spec_set - rust_wire)
-        extra = sorted(rust_wire - spec_set)
+        extra = sorted(
+            f for f in rust_wire - spec_set
+            if f"{tname}.{f}" not in known_wire
+        )
         if miss:
             missing_field.append((tname, miss))
         if extra:
@@ -161,6 +184,8 @@ def main() -> None:
     print(f"[C] Rust wire fields NOT in spec : {len(extra_field)}")
     for n, f in extra_field[:40]:
         print(f"      {n}: {f}")
+    if not extra_field:
+        print(f"      (none; {len(KNOWN_WIRE_FIELDS)} known-kept field(s) allowlisted)")
     print(f"[D] union types handled by tagged enum : {len(discrim_ok)}")
     for n, tag, nv in discrim_ok[:8]:
         print(f"      {n}: tag={tag} variants={nv}")

@@ -3,7 +3,6 @@ use serde::{Deserialize, Serialize};
 use crate::types::chat::Chat;
 use crate::types::gifts::Gift;
 use crate::types::paid_media::PaidMedia;
-use crate::types::unique_gift::UniqueGift;
 use crate::types::user::User;
 
 use super::affiliate_info::AffiliateInfo;
@@ -80,15 +79,6 @@ pub struct TransactionPartnerUser {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub premium_subscription_duration: Option<i64>,
 
-    /// The unique gift transferred to the bot by the user.
-    ///
-    /// **Not part of Bot API 10.3.** The `TransactionPartnerUser` object
-    /// documents `gift` (a [`Gift`]) but has no `unique_gift` field; this was
-    /// carried over from the 9.6 type port. It is skipped when `None`, so it
-    /// is inert unless explicitly set -- and if you do set it, expect the
-    /// server to reject the request with an unknown-parameter error.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub unique_gift: Option<UniqueGift>,
 }
 
 /// Describes a transaction with an unknown partner.
