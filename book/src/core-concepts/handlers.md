@@ -178,3 +178,13 @@ This pattern is covered in detail in the [Conversations](../guides/conversations
 ## Next Steps
 
 Learn how filters control which messages reach your handlers in [Filters](filters.md).
+
+## Runnable examples
+
+The code above is abridged. These run in full:
+
+| Example | What to look at |
+|---|---|
+| [`arbitrary_callback_data_bot`](https://github.com/HexiCoreDev/rust-telegram-bot/blob/main/crates/telegram-bot/examples/arbitrary_callback_data_bot.rs) | storing objects behind buttons |
+
+Every example is listed in the [example index](../examples.md).

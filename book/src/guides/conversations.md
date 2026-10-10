@@ -342,3 +342,15 @@ conv_store.try_read()
 
 - [Persistence](persistence.md) -- save conversation state across bot restarts.
 - [Nested Conversations](../advanced/nested-conversations.md) -- multi-level state machines.
+
+## Runnable examples
+
+The code above is abridged. These run in full:
+
+| Example | What to look at |
+|---|---|
+| [`conversation_bot`](https://github.com/HexiCoreDev/rust-telegram-bot/blob/main/crates/telegram-bot/examples/conversation_bot.rs) | the smallest complete state machine |
+| [`conversation_bot2`](https://github.com/HexiCoreDev/rust-telegram-bot/blob/main/crates/telegram-bot/examples/conversation_bot2.rs) | branching states and fallbacks |
+| [`nested_conversation_bot`](https://github.com/HexiCoreDev/rust-telegram-bot/blob/main/crates/telegram-bot/examples/nested_conversation_bot.rs) | a conversation nested inside another |
+
+Every example is listed in the [example index](../examples.md).

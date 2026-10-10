@@ -167,3 +167,14 @@ app.add_handler(
 ## Next Steps
 
 Learn about the `Context` object that handlers receive in [Context](context.md).
+
+## Runnable examples
+
+The code above is abridged. These run in full:
+
+| Example | What to look at |
+|---|---|
+| [`chat_member_bot`](https://github.com/HexiCoreDev/rust-telegram-bot/blob/main/crates/telegram-bot/examples/chat_member_bot.rs) | reacting to chat member changes |
+| [`context_types_bot`](https://github.com/HexiCoreDev/rust-telegram-bot/blob/main/crates/telegram-bot/examples/context_types_bot.rs) | supplying your own types through `Context` |
+
+Every example is listed in the [example index](../examples.md).

@@ -85,3 +85,13 @@ Ephemeral replies are just Bot API calls, so everything in
 [Rich Messages](rich-messages.md); for the exact delivery semantics of each
 field, the [Bot API reference](https://core.telegram.org/bots/api#sendmessage)
 is authoritative.
+
+## Runnable examples
+
+The code above is abridged. These run in full:
+
+| Example | What to look at |
+|---|---|
+| [`ephemeral_bot`](https://github.com/HexiCoreDev/rust-telegram-bot/blob/main/crates/telegram-bot/examples/ephemeral_bot.rs) | messages that delete themselves |
+
+Every example is listed in the [example index](../examples.md).

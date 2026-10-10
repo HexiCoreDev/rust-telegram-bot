@@ -75,7 +75,15 @@ jobs:
       - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
+      # --all-features matters: with default features cargo skips every example
+      # that declares required-features (webhooks, job-queue, persistence-json,
+      # macros), so a plain `--examples` build silently checks about half.
+      - run: cargo build -p rust-tg-bot --examples --all-features
+      # An example missing its [[example]] stanza is built unconditionally and
+      # breaks the default-features build, so keep that path honest too.
       - run: cargo build -p rust-tg-bot --examples
+      - name: Check the example index matches the examples on disk
+        run: python3 tools/check_examples_index.py
 
   docs:
     name: cargo doc

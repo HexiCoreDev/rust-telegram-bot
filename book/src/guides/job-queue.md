@@ -223,3 +223,13 @@ Commands:
 
 - [Persistence](persistence.md) -- persist job data across restarts.
 - [Error Handling](../advanced/error-handling.md) -- handle job callback failures.
+
+## Runnable examples
+
+The code above is abridged. These run in full:
+
+| Example | What to look at |
+|---|---|
+| [`timer_bot`](https://github.com/HexiCoreDev/rust-telegram-bot/blob/main/crates/telegram-bot/examples/timer_bot.rs) | periodic work on the job queue |
+
+Every example is listed in the [example index](../examples.md).

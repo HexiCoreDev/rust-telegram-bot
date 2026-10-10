@@ -195,3 +195,13 @@ set - Set a timer
 
 - [Inline Keyboards](inline-keyboards.md) -- add interactive buttons to your messages.
 - [Conversations](conversations.md) -- build multi-step command flows.
+
+## Runnable examples
+
+The code above is abridged. These run in full:
+
+| Example | What to look at |
+|---|---|
+| [`conversation_bot`](https://github.com/HexiCoreDev/rust-telegram-bot/blob/main/crates/telegram-bot/examples/conversation_bot.rs) | a multi-step command flow |
+
+Every example is listed in the [example index](../examples.md).

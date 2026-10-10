@@ -184,3 +184,13 @@ You now understand the fundamental pattern. Every bot you build follows the same
 4. Call `run_polling()` or `run_webhook()`.
 
 Continue to [Running Your Bot](running.md) to learn about environment configuration and the different ways to receive updates.
+
+## Runnable examples
+
+The code above is abridged. These run in full:
+
+| Example | What to look at |
+|---|---|
+| [`echo_bot`](https://github.com/HexiCoreDev/rust-telegram-bot/blob/main/crates/telegram-bot/examples/echo_bot.rs) | the smallest useful bot |
+
+Every example is listed in the [example index](../examples.md).

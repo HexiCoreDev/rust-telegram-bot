@@ -201,3 +201,14 @@ async fn main() {
 
 - [Conversations](conversations.md) -- build multi-step flows using state and keyboards.
 - [Payments](payments.md) -- inline keyboards are also used in payment flows.
+
+## Runnable examples
+
+The code above is abridged. These run in full:
+
+| Example | What to look at |
+|---|---|
+| [`inline_keyboard`](https://github.com/HexiCoreDev/rust-telegram-bot/blob/main/crates/telegram-bot/examples/inline_keyboard.rs) | building and handling inline keyboards |
+| [`inline_keyboard2`](https://github.com/HexiCoreDev/rust-telegram-bot/blob/main/crates/telegram-bot/examples/inline_keyboard2.rs) | larger layouts and callback routing |
+
+Every example is listed in the [example index](../examples.md).

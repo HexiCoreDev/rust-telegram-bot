@@ -39,6 +39,12 @@
 
 ---
 
+# Examples
+
+- [Example Index](examples.md)
+
+---
+
 # Advanced
 
 - [Custom Filters](advanced/custom-filters.md)

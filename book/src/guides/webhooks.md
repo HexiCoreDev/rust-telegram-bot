@@ -85,6 +85,112 @@ let config = WebhookConfig {
 
 Generate a strong random secret at deployment time, for example with `openssl rand -hex 32`. Always set a secret token in production to prevent third parties from sending fake updates to your endpoint.
 
+The secret check runs *before* the request body is read, so an unauthenticated caller is rejected on its headers alone and cannot make your server buffer a large body. If you write a custom handler instead (see below), keep that ordering: validating inside the handler body means the body is already in memory by the time you look at the header.
+
+## Getting a Public HTTPS URL
+
+Telegram will only deliver updates to a **publicly reachable HTTPS** endpoint. Your bot almost certainly listens on `127.0.0.1` on your own machine, so something has to forward that port to the internet with a valid certificate.
+
+In production this is just your server's DNS name. For development and testing you need a tunnel. All of the options below produce an `https://…` URL that Telegram accepts.
+
+### ngrok
+
+The most widely used option. Free accounts get a random subdomain that changes on every restart.
+
+```sh
+# install: https://ngrok.com/download
+ngrok http 8443
+# → Forwarding https://a1b2c3d4.ngrok-free.app -> http://localhost:8443
+```
+
+Set that URL as `WEBHOOK_URL`. ngrok's free tier shows an interstitial warning page in the browser, but Telegram's POST requests are unaffected. If you hit a rate limit, reserve a static subdomain in the ngrok dashboard.
+
+### zrok
+
+Open source and self-hostable, which makes it a good fit if you would rather not send traffic through a third party.
+
+```sh
+zrok share public --headless http://127.0.0.1:8443
+# → token:"sja0n87iyyab"  frontendEndpoints:"sja0n87iyyab.shares.zrok.io"
+```
+
+The URL is `https://<frontendEndpoint>`. Delete the share when you are done:
+
+```sh
+zrok delete share sja0n87iyyab
+```
+
+Note that `zrok share public` re-execs itself as a background process, so killing the foreground command does not stop the share — delete it explicitly as above.
+
+### Cloudflare Tunnel
+
+Good if your bot already lives behind Cloudflare. Requires a domain on a Cloudflare account.
+
+```sh
+cloudflared tunnel --url http://127.0.0.1:8443
+# → https://random-words.trycloudflare.com
+```
+
+### localhost.run
+
+No install and no account — useful for a one-off check.
+
+```sh
+ssh -R 80:localhost:8443 nokey@localhost.run
+```
+
+### Comparing them
+
+| Tool | Account needed | Stable URL | Self-hostable | Cost |
+|---|---|---|---|---|
+| ngrok | Yes | Paid tier | No | Free tier / paid |
+| zrok | Yes | With reservation | Yes | Free / self-host |
+| Cloudflare Tunnel | Yes (domain) | Yes | Yes | Free |
+| localhost.run | No | No | No | Free |
+
+### Pointing the bot at the tunnel
+
+`WebhookConfig` keeps the public URL and the local mount path in **separate** fields and does not join them. The registered URL must already include the path, or Telegram will probe a path that does not exist and reject the registration with `[setWebhook] Not Found`.
+
+```rust
+let path = "/telegram/webhook";
+let config = WebhookConfig {
+    listen: "127.0.0.1".into(),
+    port: 8443,
+    url_path: path.into(),
+    // base + path, not just the base
+    webhook_url: Some(format!("{}{path}", std::env::var("WEBHOOK_URL").unwrap())),
+    secret_token: Some(std::env::var("WEBHOOK_SECRET").unwrap()),
+    ..Default::default()
+};
+```
+
+A complete runnable version is in
+[`webhook_echo_bot.rs`](https://github.com/HexiCoreDev/rust-telegram-bot/blob/main/crates/telegram-bot/examples/webhook_echo_bot.rs):
+
+```sh
+export TELEGRAM_BOT_TOKEN="your-token"
+export WEBHOOK_URL="https://your-tunnel-host"
+export WEBHOOK_SECRET="$(openssl rand -hex 32)"
+export PORT=8443
+
+cargo run -p rust-tg-bot --example webhook_echo_bot --features webhooks
+```
+
+Confirm Telegram accepted it at any time:
+
+```sh
+curl "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/getWebhookInfo"
+```
+
+`url` should be your tunnel URL and `last_error_message` should be empty. Telegram never echoes the secret back, so this cannot confirm the secret is registered — only that the URL resolved.
+
+When you go back to long polling, remember to remove the webhook, or `getUpdates` will fail with `409 Conflict`:
+
+```sh
+curl "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/deleteWebhook"
+```
+
 ## Custom Webhook with Axum
 
 For bots that need custom HTTP routes alongside the Telegram webhook, bypass the built-in server and run your own axum application. This gives you full control over routing, middleware, and additional endpoints.
@@ -330,3 +436,15 @@ The boolean argument controls whether to drop pending updates (`true`) or keep t
 
 - [Deployment](../advanced/deployment.md) -- full production deployment strategies including Docker and systemd.
 - [Error Handling](../advanced/error-handling.md) -- handle webhook failures gracefully.
+
+## Runnable examples
+
+The code above is abridged. These run in full:
+
+| Example | What to look at |
+|---|---|
+| [`webhook_bot`](https://github.com/HexiCoreDev/rust-telegram-bot/blob/main/crates/telegram-bot/examples/webhook_bot.rs) | the minimal webhook deployment |
+| [`webhook_echo_bot`](https://github.com/HexiCoreDev/rust-telegram-bot/blob/main/crates/telegram-bot/examples/webhook_echo_bot.rs) | a secret-token-protected echo bot |
+| [`custom_webhook_bot`](https://github.com/HexiCoreDev/rust-telegram-bot/blob/main/crates/telegram-bot/examples/custom_webhook_bot.rs) | serving your own axum routes alongside the webhook |
+
+Every example is listed in the [example index](../examples.md).

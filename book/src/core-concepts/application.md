@@ -157,3 +157,13 @@ You now understand all the core concepts. Move on to the practical guides:
 - [Command Bots](../guides/command-bots.md) -- handle commands with arguments.
 - [Inline Keyboards](../guides/inline-keyboards.md) -- interactive button menus.
 - [Conversations](../guides/conversations.md) -- multi-step interactions.
+
+## Runnable examples
+
+The code above is abridged. These run in full:
+
+| Example | What to look at |
+|---|---|
+| [`poll_bot`](https://github.com/HexiCoreDev/rust-telegram-bot/blob/main/crates/telegram-bot/examples/poll_bot.rs) | sending a poll |
+
+Every example is listed in the [example index](../examples.md).

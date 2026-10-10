@@ -119,6 +119,7 @@ async fn main() {
 
                         if let Err(e) = bot.send_message(chat_id, &greeting).await {
                             eprintln!("Failed to send message: {e}");
+                            std::process::exit(1);
                         }
                     }
                     "photo" => {
@@ -157,6 +158,7 @@ async fn main() {
                 // Echo non-command text.
                 if let Err(e) = bot.send_message(chat_id, text).await {
                     eprintln!("Failed to echo message: {e}");
+                    std::process::exit(1);
                 }
             }
         }

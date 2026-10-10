@@ -215,3 +215,13 @@ and "typo in the method name" are not distinguishable from the variant alone.
 ## Next Steps
 
 Now learn how updates are routed to your handler functions in [Handlers](handlers.md).
+
+## Runnable examples
+
+The code above is abridged. These run in full:
+
+| Example | What to look at |
+|---|---|
+| [`raw_api_bot`](https://github.com/HexiCoreDev/rust-telegram-bot/blob/main/crates/telegram-bot/examples/raw_api_bot.rs) | calling the Bot API without the ext layer |
+
+Every example is listed in the [example index](../examples.md).

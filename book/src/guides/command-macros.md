@@ -108,3 +108,13 @@ cargo run --example commands_derive_bot --features macros
 For hand-written command parsing and argument handling, see
 [Command Bots](command-bots.md). For the underlying handler API, see
 [Handlers](../core-concepts/handlers.md).
+
+## Runnable examples
+
+The code above is abridged. These run in full:
+
+| Example | What to look at |
+|---|---|
+| [`commands_derive_bot`](https://github.com/HexiCoreDev/rust-telegram-bot/blob/main/crates/telegram-bot/examples/commands_derive_bot.rs) | the `BotCommands` derive macro |
+
+Every example is listed in the [example index](../examples.md).

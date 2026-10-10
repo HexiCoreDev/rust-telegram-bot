@@ -211,3 +211,13 @@ async fn main() {
 
 - [Payments](payments.md) -- accept payments directly through Telegram.
 - [Inline Keyboards](inline-keyboards.md) -- the related feature for buttons within messages.
+
+## Runnable examples
+
+The code above is abridged. These run in full:
+
+| Example | What to look at |
+|---|---|
+| [`inline_bot`](https://github.com/HexiCoreDev/rust-telegram-bot/blob/main/crates/telegram-bot/examples/inline_bot.rs) | answering inline queries |
+
+Every example is listed in the [example index](../examples.md).

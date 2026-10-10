@@ -67,11 +67,18 @@ async fn main() {
 
     let app = ApplicationBuilder::new().token(token).build();
 
-    app.add_handler(CommandHandler::new("start", start), 0).await;
+    app.add_handler(CommandHandler::new("start", start), 0)
+        .await;
     app.add_handler(MessageHandler::new(TEXT() & !COMMAND(), echo), 0)
         .await;
 
     println!("Webhook echo bot listening on 127.0.0.1:{port}{url_path}");
+
+    // `WebhookConfig` keeps the public URL and the local mount path in separate
+    // fields and does not join them, so the registered URL must already carry
+    // the path. Registering the bare host makes Telegram probe a path that does
+    // not exist and answer `[setWebhook] Not Found`.
+    let webhook_url = webhook_url.map(|base| format!("{}{}", base.trim_end_matches('/'), url_path));
 
     let config = rust_tg_bot::ext::updater::WebhookConfig {
         listen: "127.0.0.1".to_owned(),
@@ -84,5 +91,6 @@ async fn main() {
 
     if let Err(e) = app.run_webhook(config).await {
         eprintln!("Error running webhook bot: {e}");
+        std::process::exit(1);
     }
 }

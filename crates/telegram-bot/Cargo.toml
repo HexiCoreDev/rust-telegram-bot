@@ -136,6 +136,11 @@ path = "examples/webhook_bot.rs"
 required-features = ["webhooks"]
 
 [[example]]
+name = "webhook_echo_bot"
+path = "examples/webhook_echo_bot.rs"
+required-features = ["webhooks"]
+
+[[example]]
 name = "commands_derive_bot"
 path = "examples/commands_derive_bot.rs"
 required-features = ["macros"]

@@ -137,3 +137,13 @@ if let Some(msg) = update.effective_message() {
 ## Next Steps
 
 Now that you understand `Update`, learn how to interact with the Telegram API through the [Bot](bot.md) object.
+
+## Runnable examples
+
+The code above is abridged. These run in full:
+
+| Example | What to look at |
+|---|---|
+| [`deep_linking`](https://github.com/HexiCoreDev/rust-telegram-bot/blob/main/crates/telegram-bot/examples/deep_linking.rs) | `start` payloads and deep links |
+
+Every example is listed in the [example index](../examples.md).

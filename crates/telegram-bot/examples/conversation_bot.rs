@@ -407,5 +407,6 @@ async fn main() {
 
     if let Err(e) = app.run_polling().await {
         eprintln!("Error running bot: {e}");
+        std::process::exit(1);
     }
 }

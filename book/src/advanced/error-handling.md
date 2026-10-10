@@ -377,3 +377,13 @@ async fn main() {
 
 - [Custom Filters](custom-filters.md) -- prevent errors by filtering updates before they reach handlers.
 - [Testing](testing.md) -- assert that your error handler is invoked correctly.
+
+## Runnable examples
+
+The code above is abridged. These run in full:
+
+| Example | What to look at |
+|---|---|
+| [`error_handler_bot`](https://github.com/HexiCoreDev/rust-telegram-bot/blob/main/crates/telegram-bot/examples/error_handler_bot.rs) | forwarding handler errors to a developer chat |
+
+Every example is listed in the [example index](../examples.md).

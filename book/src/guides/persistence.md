@@ -450,3 +450,13 @@ async fn main() {
 
 - [Webhooks](webhooks.md) -- run your bot in webhook mode for production.
 - [Error Handling](../advanced/error-handling.md) -- handle persistence errors gracefully.
+
+## Runnable examples
+
+The code above is abridged. These run in full:
+
+| Example | What to look at |
+|---|---|
+| [`persistent_conversation_bot`](https://github.com/HexiCoreDev/rust-telegram-bot/blob/main/crates/telegram-bot/examples/persistent_conversation_bot.rs) | conversation state that survives a restart |
+
+Every example is listed in the [example index](../examples.md).

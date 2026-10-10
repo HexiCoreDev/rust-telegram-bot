@@ -110,3 +110,13 @@ and 20 table columns per message.
 Rich messages cover the send side. To receive and act on them, see
 [Handlers](../core-concepts/handlers.md); for one-shot messages that should
 replace themselves, see [Ephemeral Messages](ephemeral-messages.md).
+
+## Runnable examples
+
+The code above is abridged. These run in full:
+
+| Example | What to look at |
+|---|---|
+| [`rich_message_bot`](https://github.com/HexiCoreDev/rust-telegram-bot/blob/main/crates/telegram-bot/examples/rich_message_bot.rs) | HTML and Markdown formatting |
+
+Every example is listed in the [example index](../examples.md).

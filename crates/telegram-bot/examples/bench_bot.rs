@@ -106,6 +106,12 @@ async fn main() {
 
     let token = std::env::var("TELEGRAM_BOT_TOKEN").expect("TELEGRAM_BOT_TOKEN required");
     let webhook_url = std::env::var("WEBHOOK_URL").expect("WEBHOOK_URL required");
+    // Same PORT convention as the other webhook examples, so a tunnel can be
+    // pointed at a chosen port instead of colliding on a hardcoded 8000.
+    let port: u16 = std::env::var("PORT")
+        .unwrap_or_else(|_| "8000".into())
+        .parse()
+        .expect("PORT must be a number");
 
     let app = ApplicationBuilder::new().token(&token).build();
 
@@ -118,14 +124,15 @@ async fn main() {
     app.add_handler(MessageHandler::new(TEXT() & !COMMAND(), echo), 0)
         .await;
 
-    println!("RTB benchmark bot starting on port 8000. Send /start to test.");
+    println!("RTB benchmark bot starting on port {port}. Send /start to test.");
 
     let config = WebhookConfig::new(format!("{webhook_url}/telegram"))
-        .port(8000)
+        .port(port)
         .url_path("/telegram")
         .secret_token("bench-secret-token");
 
     if let Err(e) = app.run_webhook(config).await {
         eprintln!("Error: {e}");
+        std::process::exit(1);
     }
 }

@@ -406,3 +406,13 @@ async fn main() {
 
 - [Inline Mode](inline-mode.md) -- inline mode can initiate payment flows.
 - [Conversations](conversations.md) -- use a conversation handler for multi-step checkout.
+
+## Runnable examples
+
+The code above is abridged. These run in full:
+
+| Example | What to look at |
+|---|---|
+| [`payment_bot`](https://github.com/HexiCoreDev/rust-telegram-bot/blob/main/crates/telegram-bot/examples/payment_bot.rs) | sending a Star payment and handling pre-checkout |
+
+Every example is listed in the [example index](../examples.md).

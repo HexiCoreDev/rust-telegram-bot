@@ -114,5 +114,6 @@ async fn main() {
 
     if let Err(e) = app.run_webhook(config).await {
         eprintln!("Error: {e}");
+        std::process::exit(1);
     }
 }
