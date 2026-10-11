@@ -166,8 +166,10 @@ Advanced filter types beyond `TEXT()` and `COMMAND()`:
 ```rust
 use rust_tg_bot::ext::filters::base::{
     Filter, FilterResult, FnFilter, F, ALL,
-    PHOTO, VIDEO, AUDIO, VOICE, LOCATION, CONTACT,
+    VIDEO, AUDIO, VOICE, LOCATION, CONTACT,
 };
+// PHOTO lives in its own module and is re-exported from `filters`:
+use rust_tg_bot::ext::filters::PHOTO;
 
 use rust_tg_bot::ext::filters::text::{TextFilter, CaptionFilter, CAPTION};
 use rust_tg_bot::ext::filters::regex::RegexFilter;
