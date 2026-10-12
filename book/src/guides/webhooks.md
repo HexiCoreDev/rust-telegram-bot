@@ -66,7 +66,7 @@ The `WebhookConfig` struct controls all webhook behaviour:
 | `port` | `u16` | `80` | Port to listen on |
 | `url_path` | `String` | `""` | URL path for the webhook endpoint |
 | `webhook_url` | `Option<String>` | `None` | Full public URL Telegram will POST to |
-| `secret_token` | `Option<String>` | `None` | Token for validating requests from Telegram |
+| `secret_token` | `Option<String>` | `None` | Token for validating requests from Telegram. **`None` means unauthenticated** -- see below |
 | `bootstrap_retries` | `i32` | `0` | Retries when setting the webhook on Telegram |
 | `drop_pending_updates` | `bool` | `false` | Discard updates that arrived while offline |
 | `allowed_updates` | `Option<Vec<String>>` | `None` | Filter which update types you receive |
@@ -84,6 +84,23 @@ let config = WebhookConfig {
 ```
 
 Generate a strong random secret at deployment time, for example with `openssl rand -hex 32`. Always set a secret token in production to prevent third parties from sending fake updates to your endpoint.
+
+### If you leave the secret unset
+
+`secret_token: None` -- or an empty string -- means the endpoint accepts **any**
+well-formed `Update` posted by **anyone who can reach the URL**. There is no
+authentication at all in that configuration.
+
+That is the quietest way to end up exposed, because an unset environment
+variable or a missing command-line flag expands to `""` rather than to `None`.
+So the server makes it loud:
+
+- an empty secret logs at `error!` and names the remedy when the handler is built
+- a server that ends up unauthenticated says so once at startup, with its address
+
+If you see either message in production, set the secret. The behaviour itself
+matches python-telegram-bot, which treats an empty string as falsy in the same
+place.
 
 The secret check runs *before* the request body is read, so an unauthenticated caller is rejected on its headers alone and cannot make your server buffer a large body. If you write a custom handler instead (see below), keep that ordering: validating inside the handler body means the body is already in memory by the time you look at the header.
 
@@ -235,18 +252,56 @@ async fn start(update: Arc<Update>, context: Context) -> HandlerResult {
     Ok(())
 }
 
+/// Validated by axum *before* the body is read.
+///
+/// `FromRequestParts` extractors all run to completion before axum constructs
+/// the body extractor, so rejecting here means an unauthenticated request is
+/// refused on its headers alone -- its body is never pulled off the socket or
+/// buffered. Declaring `body: Bytes` as a plain argument and checking inside
+/// the handler gets this backwards: axum reads the whole request into memory
+/// first, so any caller who fails the token check has still made you allocate.
+struct Authenticated;
+
+// axum 0.8's `FromRequestParts` returns `impl Future`, so this is a plain
+// `async fn` with no `#[async_trait]` -- that was a signature change in 0.8.
+// The impl is for `S = AppState` specifically rather than generic `S`,
+// because the check needs to read the secret out of that state.
+impl axum::extract::FromRequestParts<AppState> for Authenticated {
+    type Rejection = StatusCode;
+
+    async fn from_request_parts(
+        parts: &mut axum::http::request::Parts,
+        state: &AppState,
+    ) -> Result<Self, Self::Rejection> {
+        let provided = parts
+            .headers
+            .get("x-telegram-bot-api-secret-token")
+            .map(|v| v.as_bytes());
+        let ok = match provided {
+            Some(p) => constant_time_eq(p, state.secret_token.as_bytes()),
+            None => false,
+        };
+        if !ok {
+            return Err(StatusCode::FORBIDDEN);
+        }
+        Ok(Authenticated)
+    }
+}
+
+/// Constant-time comparison, so response timing does not leak the secret.
+fn constant_time_eq(a: &[u8], b: &[u8]) -> bool {
+    if a.len() != b.len() {
+        return false;
+    }
+    let diff = a.iter().zip(b.iter()).fold(0u8, |acc, (&x, &y)| acc | (x ^ y));
+    diff == 0
+}
+
 async fn handle_webhook(
     axum::extract::State(state): axum::extract::State<AppState>,
-    headers: axum::http::HeaderMap,
+    _authenticated: Authenticated,
     body: axum::body::Bytes,
 ) -> impl IntoResponse {
-    // A custom server gets no secret validation for free: without this check
-    // anyone who learns the URL can inject arbitrary updates.
-    match headers.get("x-telegram-bot-api-secret-token").and_then(|v| v.to_str().ok()) {
-        Some(provided) if provided == &*state.secret_token => {}
-        _ => return StatusCode::FORBIDDEN,
-    }
-
     let update: RawUpdate = match serde_json::from_slice(&body) {
         Ok(u) => u,
         Err(_) => return StatusCode::BAD_REQUEST,
