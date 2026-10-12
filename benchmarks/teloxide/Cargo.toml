@@ -9,3 +9,7 @@ tokio = { version = "1", features = ["full"] }
 axum = "0.8"
 serde_json = "1"
 tracing-subscriber = "0.3"
+
+# Standalone workspace: the root Cargo.toml excludes this directory, but cargo
+# still resolves the parent workspace from the lockfile without this key.
+[workspace]

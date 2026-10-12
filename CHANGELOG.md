@@ -80,6 +80,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   0.9.18 -> 0.9.20, `h2` 0.4.13 -> 0.4.16, `quinn-proto` 0.11.14 -> 0.11.15
   (CVE severity 7.5), `rustls` 0.23.37 -> 0.23.45, and `rustls-webpki`
   0.103.12 -> 0.103.15. `cargo audit` now exits 0
+- `rand` 0.8.5 -> 0.8.6 (dev-dependency via `proptest`, RUSTSEC-2026-0097)
+- `benchmarks/teloxide`: `openssl` 0.10.76 -> 0.10.80 (five advisories),
+  `serde_with` 3.18.0 -> 3.21.0, `rand` 0.8.5 -> 0.8.6. That crate is a separate
+  excluded workspace used only for the comparison benchmark and is never
+  built by CI or published; it now carries an explicit `[workspace]` key so
+  `cargo update` works inside it at all
 - `RUSTSEC-2023-0071` (`rsa`, Marvin attack) is ignored with justification in
   `.cargo/audit.toml`: `rsa` is reachable only through `sqlx-mysql`, which the
   `persistence-postgres` feature never enables. Confirmed with the resolver --
