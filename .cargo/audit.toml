@@ -1,0 +1,34 @@
+# cargo-audit configuration
+#
+# NOTE the location: cargo-audit reads this from `.cargo/audit.toml`, not from
+# the repository root. A copy at the root is silently ignored -- no warning, no
+# error, the advisory is still reported -- which looks exactly like the ignore
+# not working. Verified: with the file in the wrong place `cargo audit` exits
+# 1; in `.cargo/` it exits 0.
+#
+# CI runs `cargo audit`, which exits non-zero on any advisory -- including ones
+# no build of this workspace can reach. Each entry below records why the
+# advisory does not apply, so the decision is auditable rather than a blanket
+# `--ignore` that hides future problems.
+
+[advisories]
+ignore = ["RUSTSEC-2023-0071"]
+
+# RUSTSEC-2023-0071 -- rsa 0.9.10, "Marvin Attack: potential key recovery
+# through timing sidechannels".
+#
+# Not reachable. `rsa` enters the lockfile only through `sqlx-mysql`, which the
+# `persistence-postgres` feature never enables. Verified with the resolver
+# rather than assumed:
+#
+#     cargo tree -i rsa                  # error: package ID 'rsa' did not match
+#     cargo tree --all-features -i rsa   # warning: nothing to print
+#
+# So no configuration of this workspace links rsa, and the Marvin attack --
+# which concerns timing sidechannels during RSA *private-key decryption* --
+# cannot be triggered. This crate also performs no RSA decryption: the Passport
+# types are plain data structures, and decrypting Passport credentials is left
+# to the application.
+#
+# There is no fixed release on the 0.9 line. Revisit if `rsa` ever becomes
+# reachable, or if a patched 0.9.x is published.

@@ -20,6 +20,11 @@ All three bots implement exactly the same features:
 | teloxide | 0.17 | Rust 1.93 | `teloxide/` (Cargo project) |
 | rust-telegram-bot (RTB) | 1.0.0-rc.3 | Rust 1.93 | `rtb/bench_bot.rs` |
 
+> The RTB rows are pinned to rc.3 because that is the build these numbers
+> were measured on. `make bump` rewrites them mechanically; they are
+> reverted deliberately, and re-measured only when a new benchmark run
+> replaces them.
+
 ## How to Run
 
 ### PTB

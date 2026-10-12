@@ -5,15 +5,33 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.0.0-rc.4] - 2026-10-12
 
 ### Security
 - Redacted bot tokens from `Debug` output (`ExtBot`, `Application`) and from
   logged/returned reqwest errors (URL scrubbing of `/bot<token>`); redacted
   database URLs from `PostgresPersistenceBuilder` debug output
-- Webhook: empty-string secret tokens are treated as unset (with a warning)
-  instead of matching empty headers; oversized bodies rejected with 413
-  (`MAX_WEBHOOK_BODY_BYTES`, 1 MiB)
+- **Webhook: the secret token is now checked before the request body is read.**
+  `handle_webhook` took `body: Bytes`, so axum read the whole request into
+  memory before the handler looked at the headers -- any caller who failed the
+  token check had already made the server allocate up to the body limit. The
+  check moved into an `Authenticated` `FromRequestParts` extractor declared
+  ahead of `Bytes`, so axum rejects on headers alone. Measured against a live
+  server announcing `Content-Length: 4194304`: bad secret -> `403` in 1 ms with
+  the body never read; valid secret -> still waits, as it should
+- **Callback-data ids are drawn from the OS CSPRNG** (`getrandom`, 16 bytes).
+  They were `SystemTime::now().as_nanos()` plus a process-local counter: the
+  timestamp half is knowable and the counter ran 0, 1, 2, ... from start. Those
+  ids ship to Telegram as `callback_data`, and the cache resolves a callback
+  purely by id with no ownership check, so an enumerable id was a path to
+  another user's stored keyboard object. Now matches PTB's `uuid4`
+- Webhook: an empty-string secret token now logs at `error!` and names the
+  remedy, instead of silently downgrading to unauthenticated behind a `warn!`
+  -- the quietest way to end up exposed is an unset env var or a missing flag.
+  A server left unauthenticated (via `None` or `""`) also says so once at
+  startup. The behaviour itself is unchanged and still matches PTB's
+  truthiness check
+- Oversized webhook bodies rejected with 413 (`MAX_WEBHOOK_BODY_BYTES`, 1 MiB)
 - Persistence: PostgreSQL table prefixes validated (`^[A-Za-z_][A-Za-z0-9_]*$`,
   enforced in `build`); Redis key scans use cursor-based `SCAN` instead of
   blocking `KEYS`; JSON/SQLite persistence files restricted to owner-only
@@ -22,6 +40,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   paths only, never raw user input)
 
 ### Fixed
+- **Long polling no longer times out on its own hold.** `get_updates_raw` set
+  the read timeout to `timeout + 2` and ignored any configured value, so a 10 s
+  poll got a 12 s deadline while the response actually took 11.0-13.6 s
+  (1.0-3.6 s of network and server overhead past the hold, reproduced with
+  plain `curl`), producing a spurious "Request timed out" roughly once every
+  third poll. The deadline is now the request backend's read timeout plus the
+  hold -- python-telegram-bot's actual formula, which this port's `+ 2`
+  predated -- so it defaults to 15 s and
+  `ReqwestRequest::builder().read_timeout(..)` scales it instead of being
+  silently discarded
+- `run_webhook` reported a failed `setWebhook` as
+  `ApplicationError::NotInitialized`, sending anyone debugging a rejected
+  registration hunting an initialization problem that had not occurred. It now
+  returns `ApplicationError::Webhook` carrying the URL and the real cause
+- Removed `TransactionPartnerUser::unique_gift`, which is absent from Bot API
+  10.3 and from python-telegram-bot; it was carried over from the 9.6 type port.
+  `Poll::correct_option_id` is kept despite being dropped from the 10.3 spec
+  text -- PTB v22.8 still declares it and Telegram keeps sending it
+- 24 of 26 examples swallowed a fatal error and exited 0, so a bot that never
+  started looked identical to a healthy one. All now exit non-zero
+- `bench_bot` honours `PORT` like every other webhook example instead of
+  hardcoding 8000; `webhook_echo_bot` registers the full URL (host *and* path),
+  which Telegram otherwise rejects with `[setWebhook] Not Found`
 - At-least-once dispatch across restarts: the durable update floor now
   advances only after handlers complete (previously on dispatch start, which
   lost in-flight updates on crash); `Updater::stop` awaits the polling task
@@ -34,9 +75,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - API errors carry the calling method (`TelegramError::with_method`,
   applied in `do_post_inner`/`do_post_json`) without changing variants
 
+### Dependencies
+- Updated past six advisories found by `cargo audit`: `crossbeam-epoch`
+  0.9.18 -> 0.9.20, `h2` 0.4.13 -> 0.4.16, `quinn-proto` 0.11.14 -> 0.11.15
+  (CVE severity 7.5), `rustls` 0.23.37 -> 0.23.45, and `rustls-webpki`
+  0.103.12 -> 0.103.15. `cargo audit` now exits 0
+- `RUSTSEC-2023-0071` (`rsa`, Marvin attack) is ignored with justification in
+  `.cargo/audit.toml`: `rsa` is reachable only through `sqlx-mysql`, which the
+  `persistence-postgres` feature never enables. Confirmed with the resolver --
+  `cargo tree --all-features -i rsa` reports "nothing to print" -- and this
+  crate performs no RSA decryption
+
 ### Added
+- `webhook_echo_bot` example: the `run_webhook` counterpart to `echo_bot`
+- `tools/examples_smoke.py` starts every example against the live Bot API and
+  asserts it reaches a steady state; webhook examples run behind a real public
+  tunnel and are verified against `getWebhookInfo`
+- Book gains an example index (`book/src/examples.md`) covering all 26
+  examples, each linked from the guide that explains it -- previously 21 of 26
+  were unreachable from the book
+- Webhook guide documents obtaining a public HTTPS URL (ngrok, zrok, Cloudflare
+  Tunnel, localhost.run), the `webhook_url`/`url_path` join requirement, and
+  the `deleteWebhook` step needed to return to polling
+- Book tooling: `tools/check_examples_index.py` keeps the index honest
+  against the filesystem and `Cargo.toml`; `tools/check_book_drift.py` flags
+  snippets that have drifted from the example they were copied from;
+  `tools/check_book_snippets.py` compiles 214 book blocks against the real
+  crates (101 compile; 113 are deliberate fragments)
 - Prelude now re-exports all 22 handlers, `ConversationHandler`, `JobQueue`
- /`JobContext` (feature-gated), `Defaults`, and update-type filter consts
+  /`JobContext` (feature-gated), `Defaults`, and update-type filter consts
   (`MESSAGE`, `GUEST_MESSAGE`, `SUBSCRIPTION`, `STOPPED_MESSAGE_GENERATION`)
 - `ParseMode` documents the typed-vs-string setter contract; migration guide
   corrected (`ConversationHandler` port, typed query handlers) with a new
@@ -44,6 +111,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   captures, group `Stop` semantics)
 - CI gains a `cargo audit` job; `telegram-bot-macros` forbids `unsafe_code`
   like the other crates
+- CI builds examples under both default and `--all-features`: with default
+  features cargo silently skipped every example declaring `required-features`
+- CI pins MSRV 1.88 and runs clippy, rustdoc and tests with
+  `--all-targets --all-features`; 184 clippy and 228 rustdoc warnings cleared
 
 ## [1.0.0-rc.3]
 
