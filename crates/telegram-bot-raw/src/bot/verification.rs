@@ -1,5 +1,6 @@
-use super::{push_opt_str, Bot, ChatId, Result};
+use super::{push_opt, push_opt_str, Bot, ChatId, Result};
 use crate::request::request_parameter::RequestParameter;
+use crate::types::message_entity;
 
 #[allow(dead_code)]
 impl Bot {
@@ -14,12 +15,24 @@ impl Bot {
         &self,
         chat_id: ChatId,
         custom_description: Option<&str>,
+        custom_description_parse_mode: Option<&str>,
+        custom_description_entities: Option<Vec<message_entity::MessageEntity>>,
     ) -> Result<bool> {
         let mut params = vec![RequestParameter::new(
             "chat_id",
             serde_json::to_value(&chat_id)?,
         )];
         push_opt_str(&mut params, "custom_description", custom_description);
+        push_opt_str(
+            &mut params,
+            "custom_description_parse_mode",
+            custom_description_parse_mode,
+        );
+        push_opt(
+            &mut params,
+            "custom_description_entities",
+            &custom_description_entities,
+        )?;
         self.do_post("verifyChat", params).await
     }
 
@@ -30,12 +43,24 @@ impl Bot {
         &self,
         user_id: i64,
         custom_description: Option<&str>,
+        custom_description_parse_mode: Option<&str>,
+        custom_description_entities: Option<Vec<message_entity::MessageEntity>>,
     ) -> Result<bool> {
         let mut params = vec![RequestParameter::new(
             "user_id",
             serde_json::to_value(user_id)?,
         )];
         push_opt_str(&mut params, "custom_description", custom_description);
+        push_opt_str(
+            &mut params,
+            "custom_description_parse_mode",
+            custom_description_parse_mode,
+        );
+        push_opt(
+            &mut params,
+            "custom_description_entities",
+            &custom_description_entities,
+        )?;
         self.do_post("verifyUser", params).await
     }
 

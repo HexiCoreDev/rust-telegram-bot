@@ -1,6 +1,6 @@
 use super::{push_opt, push_opt_str, Bot, ChatId, Result};
 use crate::request::request_parameter::RequestParameter;
-use crate::types::{gifts, message_entity, owned_gift};
+use crate::types::{gifts, message_entity, owned_gift, unique_gift};
 
 #[allow(dead_code)]
 impl Bot {
@@ -13,6 +13,17 @@ impl Bot {
     /// Calls the Telegram `getAvailableGifts` API method.
     pub async fn get_available_gifts_raw(&self) -> Result<gifts::Gifts> {
         self.do_post("getAvailableGifts", Vec::new()).await
+    }
+
+    /// Use this method to get information about a unique gift by its name.
+    ///
+    /// Calls the Telegram `getUniqueGift` API method.
+    pub async fn get_unique_gift_raw(&self, name: &str) -> Result<unique_gift::UniqueGift> {
+        let params = vec![RequestParameter::new(
+            "name",
+            serde_json::Value::String(name.to_owned()),
+        )];
+        self.do_post("getUniqueGift", params).await
     }
 
     /// Use this method to send a gift to a user or channel chat.

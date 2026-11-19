@@ -1,6 +1,8 @@
 use super::{input_file_param, push_opt, push_opt_str, Bot, ChatId, Result};
 use crate::request::request_parameter::RequestParameter;
-use crate::types::{chat_full_info, chat_invite_link, chat_member, chat_permissions, files};
+use crate::types::{
+    chat_full_info, chat_invite_link, chat_member, chat_permissions, chat_share_theme, files,
+};
 
 #[allow(dead_code)]
 impl Bot {
@@ -577,5 +579,15 @@ impl Bot {
             RequestParameter::new("user_id", serde_json::to_value(user_id)?),
         ];
         self.do_post("declineChatJoinRequest", params).await
+    }
+
+    /// Use this method to get the list of backdrops, which can be used as the background of a
+    /// theme of the screen for sharing a link to a user or a chat.
+    ///
+    /// Calls the Telegram `getChatShareThemeBackdrops` API method.
+    pub async fn get_chat_share_theme_backdrops_raw(
+        &self,
+    ) -> Result<chat_share_theme::ChatShareThemeBackdrops> {
+        self.do_post("getChatShareThemeBackdrops", Vec::new()).await
     }
 }

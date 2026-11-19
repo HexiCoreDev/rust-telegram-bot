@@ -76,4 +76,7 @@ async fn main() {
 }
 ```
 
+New to the library, or upgrading from an older release? Start with
+[What's New](whats-new.md) for the current Bot API coverage and the upgrade checklist.
+
 Ready to begin? Head to [Installation](getting-started/installation.md).

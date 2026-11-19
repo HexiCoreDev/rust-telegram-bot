@@ -38,6 +38,8 @@ pub mod chat_member_updated;
 pub mod chat_owner;
 /// Chat permissions type.
 pub mod chat_permissions;
+/// Chat share theme types.
+pub mod chat_share_theme;
 
 // Message-related types
 /// Copy text button type.
@@ -92,6 +94,8 @@ pub mod prepared_keyboard_button;
 pub mod switch_inline_query_chosen_chat;
 
 // Media & content types
+/// Area position type.
+pub mod area_position;
 /// Dice type.
 pub mod dice;
 /// Rich input block types.
@@ -116,12 +120,18 @@ pub mod rich_text;
 pub mod story;
 /// Story area types.
 pub mod story_area;
+/// TON wallet types.
+pub mod ton_wallet;
 /// Video chat types.
 pub mod video_chat;
 /// Web app data type.
 pub mod web_app_data;
 /// Web app info type.
 pub mod web_app_info;
+/// HTML widget type.
+pub mod widget;
+/// Widget query types.
+pub mod widget_query;
 
 // Business types
 /// Business connection and related types.
@@ -148,6 +158,8 @@ pub mod unique_gift;
 pub mod paid_media;
 /// Paid message price changed service type.
 pub mod paid_message_price_changed;
+/// Paid messages waived service type.
+pub mod paid_messages_waived;
 
 // User types
 /// Birthdate type.

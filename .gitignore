@@ -2,9 +2,15 @@
 /target/
 **/target/
 
+# Local, sandbox-writable cargo home (registry cache for offline builds)
+.cargo-home/
+
 # Cargo lock is committed for reproducibility (binary crate / workspace)
 # Uncomment the next line if this were a library-only crate published to crates.io
 # Cargo.lock
+
+# Local tool state (gh/gh-device state written when HOME is overridden)
+.local/
 
 # Editor and IDE files
 .idea/

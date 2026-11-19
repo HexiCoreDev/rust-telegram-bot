@@ -34,7 +34,7 @@ opt-level = "z"     # Optimise for size (use "3" for speed)
 These settings trade debuggability for size. Note `opt-level = "z"` optimises for
 size rather than speed — use `"3"` if throughput matters more than binary size.
 
-The README quotes a measured 6.6 MB stripped binary (echo_bot, release); see the
+The README quotes a measured 6.9 MB stripped binary (echo_bot, release, Bot API 10.4); see the
 [benchmarks](../../../benchmarks/README.md) for the comparison against teloxide.
 
 ### Feature Flags
@@ -43,7 +43,7 @@ Only enable the features you use. Each feature pulls in additional dependencies:
 
 ```toml
 [dependencies]
-rust-tg-bot = { version = "1.0.0-rc.4", features = ["persistence-sqlite", "webhooks"] }
+rust-tg-bot = { version = "1.0.0", features = ["persistence-sqlite", "webhooks"] }
 ```
 
 Available features:
@@ -63,8 +63,8 @@ Available features:
 Use a multi-stage build to keep the final image small:
 
 ```dockerfile
-# Build stage -- must be >= the crate's rust-version (1.88).
-FROM rust:1.88-slim AS builder
+# Build stage -- must be >= the crate's rust-version (1.94).
+FROM rust:1.94-slim AS builder
 
 WORKDIR /app
 COPY . .

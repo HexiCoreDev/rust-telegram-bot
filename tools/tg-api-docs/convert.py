@@ -343,7 +343,7 @@ def main() -> None:
     header = f"""---
 title: "Telegram Bot API"
 source: "https://core.telegram.org/bots/api"
-bot_api_version: "10.3"
+bot_api_version: "10.4"
 scraped: "{scraped}"
 converter: "tools/tg-api-docs/convert.py (BeautifulSoup + lxml, Telegram-aware)"
 ---

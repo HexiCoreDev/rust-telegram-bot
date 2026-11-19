@@ -11,12 +11,14 @@ use super::business::{BusinessIntro, BusinessLocation, BusinessOpeningHours};
 use super::chat::Chat;
 use super::chat_location::ChatLocation;
 use super::chat_permissions::ChatPermissions;
+use super::chat_share_theme::ChatShareTheme;
 use super::community::Community;
 use super::files::audio::Audio;
 use super::files::chat_photo::ChatPhoto;
 use super::gifts::AcceptedGiftTypes;
 use super::message::Message;
 use super::reaction::ReactionType;
+use super::ton_wallet::TonWalletCard;
 use super::unique_gift::UniqueGiftColors;
 use super::user::User;
 use super::user_rating::UserRating;
@@ -247,4 +249,13 @@ pub struct ChatFullInfo {
     /// The community to which the chat belongs.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub community: Option<Community>,
+
+    /// For private chats, the TON wallet card of the user, which is shown on their profile page.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub ton_wallet_card: Option<TonWalletCard>,
+
+    /// For private chats, supergroups and channels, the theme of the screen for sharing a link to
+    /// the user or the chat; omitted if the default theme is used.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub share_theme: Option<ChatShareTheme>,
 }

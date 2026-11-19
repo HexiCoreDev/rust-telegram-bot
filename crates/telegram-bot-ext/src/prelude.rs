@@ -41,7 +41,8 @@ pub use crate::job_queue::{JobContext, JobQueue};
 
 // Update-type filters (`MESSAGE`, `GUEST_MESSAGE`, `SUBSCRIPTION`, …).
 pub use crate::filters::update_type::{
-    GUEST_MESSAGE, MESSAGE, STOPPED_MESSAGE_GENERATION, SUBSCRIPTION,
+    GUEST_MESSAGE, MESSAGE, SHARED_WIDGET_QUERY, STOPPED_MESSAGE_GENERATION, SUBSCRIPTION,
+    WIDGET_QUERY,
 };
 
 pub use rust_tg_bot_raw::types::message::Message;

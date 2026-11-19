@@ -1991,3 +1991,424 @@ fn hot_types_size_bounds() {
         size_of::<ExternalReplyInfo>()
     );
 }
+
+// ===========================================================================
+// Bot API 10.4 -- HTML widgets
+// ===========================================================================
+
+#[test]
+fn roundtrip_message_widget() {
+    with_large_stack(|| {
+        let json = json!({
+            "message_id": 501,
+            "date": 1_700_000_000,
+            "chat": {"id": 42, "type": "private"},
+            "widget": {
+                "id": "shared-widget-1",
+                "width": 320,
+                "height": 120,
+                "html": "<div>hi</div>",
+                "public_data": "pub",
+                "chat_data": "chat"
+            },
+            "caption": "a widget",
+            "show_caption_above_media": true
+        });
+        let msg: Message = roundtrip_check(json);
+        let widget = msg.widget.as_ref().expect("widget should parse");
+        assert_eq!(widget.id.as_deref(), Some("shared-widget-1"));
+        assert_eq!(widget.width, Some(320));
+        assert_eq!(widget.height, Some(120));
+        assert_eq!(widget.html, "<div>hi</div>");
+        assert_eq!(widget.public_data.as_deref(), Some("pub"));
+        assert_eq!(widget.chat_data.as_deref(), Some("chat"));
+        assert_eq!(msg.caption.as_deref(), Some("a widget"));
+        assert!(msg.show_caption_above_media);
+    });
+}
+
+#[test]
+fn roundtrip_message_ton_wallet_transfer_and_waived() {
+    with_large_stack(|| {
+        let json = json!({
+            "message_id": 502,
+            "date": 1_700_000_100,
+            "chat": {"id": 42, "type": "private"},
+            "ton_wallet_transfer": {
+                "transaction_id": "tx-1",
+                "peer_address": "EQpeer",
+                "amount": "-1000000",
+                "comment": "thanks"
+            },
+            "paid_messages_waived": {}
+        });
+        let msg: Message = roundtrip_check(json);
+        let transfer = msg
+            .ton_wallet_transfer
+            .as_ref()
+            .expect("transfer should parse");
+        assert_eq!(transfer.transaction_id, "tx-1");
+        assert_eq!(transfer.peer_address, "EQpeer");
+        assert_eq!(transfer.amount, "-1000000");
+        assert_eq!(transfer.comment.as_deref(), Some("thanks"));
+        assert!(msg.paid_messages_waived.is_some());
+    });
+}
+
+#[test]
+fn roundtrip_external_reply_widget() {
+    let external: rust_tg_bot_raw::types::reply::ExternalReplyInfo = roundtrip_check(json!({
+        "origin": {"type": "user", "date": 1_700_000_000, "sender_user": {"id": 5, "is_bot": false, "first_name": "Ann"}},
+        "widget": {"html": "<div/>"}
+    }));
+    let widget = external.widget.as_ref().expect("widget should parse");
+    assert_eq!(widget.html, "<div/>");
+    assert!(widget.id.is_none());
+}
+
+// ===========================================================================
+// Bot API 10.4 -- widget queries
+// ===========================================================================
+
+#[test]
+fn roundtrip_update_widget_query() {
+    with_large_stack(|| {
+        let json = json!({
+            "update_id": 4242,
+            "widget_query": {
+                "id": "wq-1",
+                "from": {"id": 77, "is_bot": false, "first_name": "Pat"},
+                "chat": {"id": 77, "type": "private"},
+                "message_id": 10,
+                "chat_instance": "-42",
+                "type": {
+                    "type": "data",
+                    "wallet_card": {
+                        "address": "EQwallet",
+                        "amount": "1000",
+                        "stickers": []
+                    }
+                },
+                "data": "payload",
+                "widget_id": "w1"
+            }
+        });
+        let update: Update = roundtrip_check(json);
+        let query = update.widget_query().expect("widget_query should parse");
+        assert_eq!(query.id, "wq-1");
+        assert_eq!(query.data, "payload");
+        assert_eq!(query.message_id, Some(10));
+        assert_eq!(query.chat_instance, "-42");
+        assert_eq!(query.widget_id.as_deref(), Some("w1"));
+        assert_eq!(update.effective_user().unwrap().id, 77);
+        assert_eq!(update.effective_chat().unwrap().id, 77);
+        assert!(update.effective_message().is_none());
+        assert!(matches!(
+            update.kind,
+            rust_tg_bot_raw::types::update::UpdateKind::WidgetQuery(_)
+        ));
+        match &query.query_type {
+            rust_tg_bot_raw::types::widget_query::WidgetQueryType::Data(data) => {
+                let card = data.wallet_card.as_ref().expect("wallet card");
+                assert_eq!(card.address, "EQwallet");
+                assert!(card.stickers.is_empty());
+            }
+            other => panic!("expected data query type, got {other:?}"),
+        }
+    });
+}
+
+#[test]
+fn roundtrip_update_shared_widget_query() {
+    with_large_stack(|| {
+        let json = json!({
+            "update_id": 4243,
+            "shared_widget_query": {
+                "id": "swq-1",
+                "from": {"id": 78, "is_bot": false, "first_name": "Sam"},
+                "type": {"type": "sent_transaction", "wallet": {"address": "EQw", "amount": "5"}, "msg_hash": "hash"},
+                "data": "d",
+                "widget_id": "shared-1"
+            }
+        });
+        let update: Update = roundtrip_check(json);
+        let query = update.shared_widget_query().expect("shared query");
+        assert_eq!(query.widget_id, "shared-1");
+        assert_eq!(update.effective_user().unwrap().id, 78);
+        assert!(update.effective_chat().is_none());
+        match &query.query_type {
+            rust_tg_bot_raw::types::widget_query::WidgetQueryType::SentTransaction(tx) => {
+                assert_eq!(tx.msg_hash, "hash");
+                assert_eq!(tx.wallet.amount, "5");
+            }
+            other => panic!("expected sent_transaction, got {other:?}"),
+        }
+    });
+}
+
+#[test]
+fn widget_query_type_sign_data_roundtrip() {
+    use rust_tg_bot_raw::types::widget_query::{WidgetQueryType, WidgetQueryWallet};
+
+    let signed =
+        WidgetQueryType::sign_data(WidgetQueryWallet::new("EQw", "12"), "{\"signature\":\"s\"}");
+    let value = serde_json::to_value(&signed).unwrap();
+    assert_eq!(value["type"], "sign_data");
+    let back: WidgetQueryType = serde_json::from_value(value).unwrap();
+    assert!(matches!(back, WidgetQueryType::SignData(_)));
+
+    let plain: WidgetQueryType =
+        serde_json::from_value(json!({"type": "data"})).expect("bare data query type");
+    assert!(matches!(plain, WidgetQueryType::Data(_)));
+}
+
+// ===========================================================================
+// Bot API 10.4 -- TON wallet cards and chat share themes
+// ===========================================================================
+
+#[test]
+fn roundtrip_chat_full_info_ton_wallet_and_share_theme() {
+    let json = json!({
+        "id": 7,
+        "type": "private",
+        "max_reaction_count": 1,
+        "accent_color_id": 0,
+        "accepted_gift_types": {
+            "unlimited_gifts": true,
+            "limited_gifts": true,
+            "unique_gifts": true,
+            "premium_subscription": true,
+            "gifts_from_channels": true
+        },
+        "ton_wallet_card": {
+            "address": "EQcard",
+            "amount": "1000000",
+            "stickers": [
+                {
+                    "position": {
+                        "x_percentage": 50.0,
+                        "y_percentage": 50.0,
+                        "width_percentage": 20.0,
+                        "height_percentage": 20.0,
+                        "rotation_angle": 0.0,
+                        "corner_radius_percentage": 10.0
+                    },
+                    "nft": {
+                        "address": "EQnft",
+                        "index": "1",
+                        "name": "Star",
+                        "description": "A star",
+                        "attributes": [{"trait_type": "rarity", "value": "rare"}]
+                    }
+                }
+            ],
+            "background_nft_address": "EQbg"
+        },
+        "share_theme": {
+            "type": "emoji",
+            "emojis": [
+                {"type": "emoji", "emoji": "A"},
+                {"type": "custom_emoji", "custom_emoji_id": "custom_emoji_42"}
+            ],
+            "background_backdrop_id": 3
+        }
+    });
+    let info: ChatFullInfo = roundtrip_check(json);
+    let card = info.ton_wallet_card.as_ref().expect("wallet card");
+    assert_eq!(card.address, "EQcard");
+    assert_eq!(card.amount, "1000000");
+    assert_eq!(card.background_nft_address.as_deref(), Some("EQbg"));
+    assert_eq!(card.stickers.len(), 1);
+    let nft = &card.stickers[0].nft;
+    assert_eq!(nft.address, "EQnft");
+    assert_eq!(nft.name, "Star");
+    assert_eq!(nft.attributes.as_ref().unwrap()[0].trait_type, "rarity");
+    match info.share_theme.as_ref().expect("share theme") {
+        rust_tg_bot_raw::types::chat_share_theme::ChatShareTheme::Emoji(theme) => {
+            assert_eq!(theme.emojis.len(), 2);
+            assert_eq!(theme.background_backdrop_id, Some(3));
+            assert!(matches!(
+                theme.emojis[1],
+                rust_tg_bot_raw::types::chat_share_theme::EmojiType::CustomEmoji(_)
+            ));
+        }
+        other => panic!("expected emoji share theme, got {other:?}"),
+    }
+}
+
+#[test]
+fn chat_share_theme_unique_gift_and_backdrops() {
+    use rust_tg_bot_raw::types::chat_share_theme::{
+        ChatShareTheme, ChatShareThemeBackdrops, EmojiType,
+    };
+
+    // Backdrop list returned by getChatShareThemeBackdrops.
+    let backdrops: ChatShareThemeBackdrops = roundtrip_check(json!({
+        "backdrops": [{
+            "id": 12,
+            "name": "Aurora",
+            "colors": {"center_color": 1, "edge_color": 2, "symbol_color": 3, "text_color": 4}
+        }]
+    }));
+    assert_eq!(backdrops.backdrops[0].id, 12);
+    assert_eq!(backdrops.backdrops[0].colors.text_color, 4);
+
+    // Emoji helper constructors round-trip through the tagged wire format.
+    let theme = ChatShareTheme::emoji(vec![
+        EmojiType::emoji("A"),
+        EmojiType::custom_emoji("custom_emoji_42"),
+    ]);
+    let value = serde_json::to_value(&theme).unwrap();
+    assert_eq!(value["type"], "emoji");
+    assert_eq!(value["emojis"][0], json!({"type": "emoji", "emoji": "A"}));
+}
+
+// ===========================================================================
+// Bot API 10.4 -- rich text, quotes and ephemeral parameters
+// ===========================================================================
+
+#[test]
+fn rich_text_ton_address_variant() {
+    use rust_tg_bot_raw::types::rich_text::{RichText, RichTextFormatted, RichTextTonAddress};
+
+    let text: RichText =
+        roundtrip_check(json!({"type": "ton_address", "text": "EQabc", "address": "EQabc"}));
+    match &text {
+        RichText::Formatted(inner) => match inner.as_ref() {
+            RichTextFormatted::TonAddress(addr) => {
+                assert_eq!(addr.address, "EQabc");
+                assert!(matches!(addr.text.as_ref(), RichText::Text(t) if t == "EQabc"));
+            }
+            other => panic!("expected ton_address, got {other:?}"),
+        },
+        other => panic!("expected formatted rich text, got {other:?}"),
+    }
+
+    let built = RichText::Formatted(Box::new(RichTextFormatted::TonAddress(
+        RichTextTonAddress::new("EQabc", "EQabc"),
+    )));
+    let value = serde_json::to_value(&built).unwrap();
+    assert_eq!(value["type"], "ton_address");
+}
+
+#[test]
+fn text_quote_and_reply_parameters_rich_texts() {
+    use rust_tg_bot_raw::types::reply::{ReplyParameters, TextQuote};
+
+    let quote: TextQuote = roundtrip_check(json!({
+        "text": "quoted",
+        "position": 3,
+        "rich_texts": ["plain", {"type": "bold", "text": "bold"}]
+    }));
+    let rich = quote.rich_texts.as_ref().expect("rich_texts");
+    assert_eq!(rich.len(), 2);
+    assert!(matches!(
+        rich[1],
+        rust_tg_bot_raw::types::rich_text::RichText::Formatted(_)
+    ));
+
+    let params: ReplyParameters = roundtrip_check(json!({
+        "message_id": 9,
+        "quote_rich_texts": ["first", "second"]
+    }));
+    assert_eq!(params.quote_rich_texts.as_ref().unwrap().len(), 2);
+}
+
+#[test]
+fn ephemeral_message_parameters_callback_query_only() {
+    use rust_tg_bot_raw::types::ephemeral::EphemeralMessageParameters;
+
+    // 10.4: receiver_user_id is optional, so an ephemeral reply can target just the
+    // callback query (and then the method's chat_id is ignored by Telegram).
+    let params = EphemeralMessageParameters::reply_to_callback_query("cbq-1");
+    assert!(params.receiver_user_id.is_none());
+    assert_eq!(
+        serde_json::to_value(&params).unwrap(),
+        json!({"callback_query_id": "cbq-1"})
+    );
+
+    // The legacy constructor still stamps the receiver.
+    let legacy = EphemeralMessageParameters::new(7);
+    assert_eq!(
+        serde_json::to_value(&legacy).unwrap(),
+        json!({"receiver_user_id": 7})
+    );
+
+    // Both set: the reply is addressed to one user's button press.
+    let both = EphemeralMessageParameters::new(7).callback_query_id("cbq-2");
+    assert_eq!(
+        serde_json::to_value(&both).unwrap(),
+        json!({"receiver_user_id": 7, "callback_query_id": "cbq-2"})
+    );
+}
+
+#[test]
+fn story_area_position_alias_and_area_position() {
+    use rust_tg_bot_raw::types::area_position::AreaPosition;
+
+    let area: AreaPosition = roundtrip_check(json!({
+        "x_percentage": 1.0,
+        "y_percentage": 2.0,
+        "width_percentage": 3.0,
+        "height_percentage": 4.0,
+        "rotation_angle": 5.0,
+        "corner_radius_percentage": 6.0
+    }));
+    assert_eq!(area.rotation_angle, 5.0);
+
+    // The 10.3 name still resolves, but must not be used by new code.
+    #[allow(deprecated)]
+    let legacy: rust_tg_bot_raw::types::story_area::StoryAreaPosition = area.clone();
+    assert_eq!(legacy.corner_radius_percentage, 6.0);
+}
+
+#[test]
+fn roundtrip_chat_owner_service_messages() {
+    use rust_tg_bot_raw::types::chat_owner::{ChatOwnerChanged, ChatOwnerLeft};
+
+    let changed: ChatOwnerChanged = roundtrip_check(json!({
+        "new_owner": {"id": 9, "is_bot": false, "first_name": "Owner"}
+    }));
+    assert_eq!(changed.new_owner.id, 9);
+
+    // The new owner is optional here: the previous owner may return.
+    let left: ChatOwnerLeft = roundtrip_check(json!({
+        "new_owner": {"id": 10, "is_bot": false, "first_name": "Next"}
+    }));
+    assert_eq!(left.new_owner.as_ref().unwrap().id, 10);
+
+    let bare: ChatOwnerLeft = roundtrip_check(json!({}));
+    assert!(bare.new_owner.is_none());
+}
+
+#[test]
+fn input_widget_message_content_in_inline_results() {
+    use rust_tg_bot_raw::types::inline::input_message_content::InputMessageContent;
+    use rust_tg_bot_raw::types::inline::input_shared_widget_message_content::InputSharedWidgetMessageContent;
+    use rust_tg_bot_raw::types::inline::input_widget_message_content::InputWidgetMessageContent;
+
+    let widget = InputWidgetMessageContent::new("<div id=\"app\"></div>")
+        .width(320)
+        .height(180)
+        .is_shared(true)
+        .allow_queries(true)
+        .caption("Hi");
+    let value = serde_json::to_value(InputMessageContent::Widget(widget)).unwrap();
+    assert_eq!(value["html"], "<div id=\"app\"></div>");
+    assert_eq!(value["width"], json!(320));
+    assert_eq!(value["is_shared"], json!(true));
+    assert_eq!(value["allow_queries"], json!(true));
+    assert_eq!(value["caption"], json!("Hi"));
+    assert!(value.get("chat_data").is_none());
+
+    // Untagged deserialization picks the variant by its distinguishing field.
+    let back: InputMessageContent = serde_json::from_value(value).unwrap();
+    assert!(matches!(back, InputMessageContent::Widget(_)));
+
+    let shared = InputSharedWidgetMessageContent::new("widget-1").caption("again");
+    let value = serde_json::to_value(InputMessageContent::SharedWidget(shared)).unwrap();
+    assert_eq!(value["widget_id"], json!("widget-1"));
+    assert_eq!(value["caption"], json!("again"));
+    let back: InputMessageContent = serde_json::from_value(value).unwrap();
+    assert!(matches!(back, InputMessageContent::SharedWidget(_)));
+}

@@ -2,49 +2,17 @@ use serde::{Deserialize, Serialize};
 
 use super::reaction::ReactionType;
 
-/// Position of a clickable area within a story.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[non_exhaustive]
-pub struct StoryAreaPosition {
-    /// Abscissa of the area's center, as a percentage of the media width.
-    pub x_percentage: f64,
+pub use super::area_position::AreaPosition;
 
-    /// Ordinate of the area's center, as a percentage of the media height.
-    pub y_percentage: f64,
-
-    /// Width of the area's rectangle, as a percentage of the media width.
-    pub width_percentage: f64,
-
-    /// Height of the area's rectangle, as a percentage of the media height.
-    pub height_percentage: f64,
-
-    /// Clockwise rotation angle of the rectangle, in degrees.
-    pub rotation_angle: f64,
-
-    /// Radius of the rectangle corner rounding, as a percentage of the media width.
-    pub corner_radius_percentage: f64,
-}
-
-impl StoryAreaPosition {
-    /// Creates a new `StoryAreaPosition`.
-    pub fn new(
-        x_percentage: f64,
-        y_percentage: f64,
-        width_percentage: f64,
-        height_percentage: f64,
-        rotation_angle: f64,
-        corner_radius_percentage: f64,
-    ) -> Self {
-        Self {
-            x_percentage,
-            y_percentage,
-            width_percentage,
-            height_percentage,
-            rotation_angle,
-            corner_radius_percentage,
-        }
-    }
-}
+/// Deprecated alias for [`AreaPosition`].
+///
+/// The Bot API renamed `StoryAreaPosition` to [`AreaPosition`] in 10.4, because it is now also
+/// used to describe the position of stickers on TON wallet cards.
+#[deprecated(
+    since = "1.0.0",
+    note = "renamed to `AreaPosition` in Bot API 10.4; use `AreaPosition` instead"
+)]
+pub type StoryAreaPosition = AreaPosition;
 
 /// Physical address of a location.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
@@ -196,7 +164,7 @@ impl StoryAreaType {
 #[non_exhaustive]
 pub struct StoryArea {
     /// Position of the area.
-    pub position: StoryAreaPosition,
+    pub position: AreaPosition,
 
     /// Type of the area.
     #[serde(rename = "type")]
@@ -205,7 +173,7 @@ pub struct StoryArea {
 
 impl StoryArea {
     /// Creates a new `StoryArea`.
-    pub fn new(position: StoryAreaPosition, area_type: StoryAreaType) -> Self {
+    pub fn new(position: AreaPosition, area_type: StoryAreaType) -> Self {
         Self {
             position,
             area_type,

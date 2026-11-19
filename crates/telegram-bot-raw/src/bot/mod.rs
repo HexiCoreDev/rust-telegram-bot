@@ -58,6 +58,15 @@ impl From<&str> for ChatId {
     }
 }
 
+impl ChatId {
+    /// Placeholder used by `*_to_callback_query` builder constructors, which clear `chat_id`
+    /// before the request is sent.
+    ///
+    /// Bot API 10.4 makes `chat_id` optional for the main `send*` methods when the message is an
+    /// ephemeral reply to a callback query. The sentinel is never serialized.
+    pub(crate) const PLACEHOLDER: Self = Self::Id(0);
+}
+
 /// Result type for edit methods that return either a `Message`(message::Message) or a `bool`.
 ///
 /// Some Telegram API edit methods return the edited `Message` when called with `chat_id`

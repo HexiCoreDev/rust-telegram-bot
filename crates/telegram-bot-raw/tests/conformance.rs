@@ -1,4 +1,4 @@
-//! API conformance tests for the Telegram Bot API (currently 10.3).
+//! API conformance tests for the Telegram Bot API (currently 10.4).
 //!
 //! These tests verify that our crate implements every method and type defined in
 //! the official Telegram Bot API specification.
@@ -519,8 +519,8 @@ fn all_bot_api_raw_methods_exist() {
     ));
 
     // -- Verification --
-    check!(bot.verify_chat_raw(1i64.into(), None));
-    check!(bot.verify_user_raw(1, None));
+    check!(bot.verify_chat_raw(1i64.into(), None, None, None));
+    check!(bot.verify_user_raw(1, None, None, None));
     check!(bot.remove_chat_verification_raw(1i64.into()));
     check!(bot.remove_user_verification_raw(1));
 
@@ -543,10 +543,70 @@ fn all_bot_api_raw_methods_exist() {
     // -- Suggested posts --
     check!(bot.approve_suggested_post_raw(1, 1, None));
     check!(bot.decline_suggested_post_raw(1, 1, None));
+
+    // -- Widgets, TON wallet and chat share themes (Bot API 10.4) --
+    check!(bot.send_widget(1i64, "<b>hi</b>"));
+    check!(bot.send_shared_widget(1i64, "widget_id"));
+    check!(bot.answer_widget_query("query_id"));
+    check!(bot.edit_message_widget_data());
+    check!(bot.edit_shared_widget_data("widget_id", "public"));
+    check!(bot.get_chat_share_theme_backdrops_raw());
+    check!(bot.get_unique_gift_raw("gift_name"));
+    check!(bot.delete_business_account_gift_raw("bc_id", "owned_gift_id"));
+
+    // -- Ephemeral replies to callback queries (Bot API 10.4) --
+    check!(bot.send_message_to_callback_query("cbq_id", "text"));
+    check!(bot.send_photo_to_callback_query("cbq_id", dummy_file()));
+    check!(bot.send_live_photo_to_callback_query("cbq_id", dummy_file(), dummy_file()));
 }
 
 // ===========================================================================
-// Official Telegram Bot API method list (185 methods, 10.3)
+// Bot API 10.4: ephemeral replies to callback queries omit `chat_id`
+// ===========================================================================
+
+/// The 14 `send*` methods accept an ephemeral reply addressed only by `callback_query_id`.
+///
+/// Telegram ignores `chat_id` in that case, so the `*_to_callback_query` constructors drop it
+/// from the wire payload entirely. These builders serialize themselves, so the payload can be
+/// inspected directly.
+#[test]
+fn callback_query_reply_builders_omit_chat_id() {
+    let bot = make_bot();
+    let cbq = "cbq-1";
+
+    let message = bot.send_message_to_callback_query(cbq, "hi");
+    let value = serde_json::to_value(&message).unwrap();
+    assert!(
+        value.get("chat_id").is_none(),
+        "chat_id must be omitted: {value}"
+    );
+    assert_eq!(
+        value["ephemeral_message_parameters"],
+        json!({"callback_query_id": "cbq-1"})
+    );
+    assert_eq!(value["text"], "hi");
+
+    let contact = bot.send_contact_to_callback_query(cbq, "+15550100", "Ann");
+    let value = serde_json::to_value(&contact).unwrap();
+    assert!(value.get("chat_id").is_none(), "{value}");
+    assert_eq!(value["phone_number"], "+15550100");
+
+    let venue = bot.send_venue_to_callback_query(cbq, 1.5, 2.5, "Cafe", "Main St");
+    let value = serde_json::to_value(&venue).unwrap();
+    assert!(value.get("chat_id").is_none(), "{value}");
+    assert_eq!(value["title"], "Cafe");
+
+    let location = bot.send_location_to_callback_query(cbq, 1.5, 2.5);
+    let value = serde_json::to_value(&location).unwrap();
+    assert!(value.get("chat_id").is_none(), "{value}");
+
+    // The regular constructors still send chat_id.
+    let plain = serde_json::to_value(bot.send_message(7i64, "hi")).unwrap();
+    assert_eq!(plain["chat_id"], 7);
+}
+
+// ===========================================================================
+// Official Telegram Bot API method list (193 methods, 10.4)
 // ===========================================================================
 
 /// The complete list of Bot API methods mapped to our Rust snake_case names.
@@ -823,12 +883,24 @@ fn method_count_matches_spec() {
         ("sendMessageDraft", "send_message_draft"),
         ("sendRichMessage", "send_rich_message"),
         ("sendRichMessageDraft", "send_rich_message_draft"),
+        // -- Widgets and chat share themes (Bot API 10.4) --
+        ("sendWidget", "send_widget"),
+        ("sendSharedWidget", "send_shared_widget"),
+        ("answerWidgetQuery", "answer_widget_query"),
+        ("editMessageWidgetData", "edit_message_widget_data"),
+        ("editSharedWidgetData", "edit_shared_widget_data"),
+        (
+            "getChatShareThemeBackdrops",
+            "get_chat_share_theme_backdrops",
+        ),
+        ("getUniqueGift", "get_unique_gift"),
+        ("deleteBusinessAccountGift", "delete_business_account_gift"),
     ];
 
     assert_eq!(
         methods.len(),
-        185,
-        "Expected 185 Bot API methods, found {}. \
+        193,
+        "Expected 193 Bot API methods, found {}. \
          Update this list if the spec has changed.",
         methods.len()
     );

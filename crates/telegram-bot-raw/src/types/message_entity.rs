@@ -7,7 +7,8 @@ use super::user::User;
 #[non_exhaustive]
 pub struct MessageEntity {
     /// Type of the entity: `mention`, `hashtag`, `cashtag`, `bot_command`, `url`, `email`,
-    /// `phone_number`, `bold`, `italic`, `underline`, `strikethrough`, `spoiler`, `blockquote`,
+    /// `phone_number`, `bank_card_number`, `ton_address`, `bold`, `italic`, `underline`,
+    /// `strikethrough`, `spoiler`, `blockquote`,
     /// `expandable_blockquote`, `code`, `pre`, `text_link`, `text_mention`, `custom_emoji`,
     /// or `date_time`.
     #[serde(rename = "type")]

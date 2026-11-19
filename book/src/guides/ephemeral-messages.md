@@ -38,6 +38,44 @@ original message instead, use `.replace_original()` — except for callback
 queries that themselves came from ephemeral messages, which must be edited
 with the `editEphemeralMessage*` methods.
 
+## Replying without a `chat_id` (Bot API 10.4)
+
+When the reply is addressed by a callback query, the Bot API routes it without
+any `chat_id`: `receiver_user_id` is optional in `EphemeralMessageParameters`,
+and Telegram ignores `chat_id` when it is omitted. Every send method that takes
+`ephemeral_message_parameters` therefore has a dedicated constructor:
+
+```rust
+use rust_tg_bot::raw::types::ephemeral::EphemeralMessageParameters;
+
+if let Some(cbq) = update.callback_query() {
+    // No chat_id, no manual parameter object.
+    context
+        .bot()
+        .send_message_to_callback_query(cbq.id.as_str(), "Only you can see this")
+        .await?;
+
+    // Same thing, with the full builder (parse_mode, reply_markup, ...).
+    let params = EphemeralMessageParameters::reply_to_callback_query(cbq.id.as_str());
+    let chat_id = update.effective_chat().map(|chat| chat.id).unwrap_or_default();
+    context
+        .bot()
+        .send_message(chat_id, "Only you can see this")
+        .parse_mode("HTML")
+        .ephemeral_message_parameters(params)
+        .await?;
+}
+```
+
+The `*_to_callback_query` constructors exist for all fourteen send methods
+(`sendMessage`, `sendRichMessage`, `sendAnimation`, `sendAudio`, `sendContact`,
+`sendDocument`, `sendLivePhoto`, `sendLocation`, `sendPhoto`, `sendSticker`,
+`sendVenue`, `sendVideo`, `sendVideoNote`, `sendVoice`). Passing a `chat_id`
+to the ordinary constructors remains correct — it is simply ignored while
+`receiver_user_id` is unset — so existing code keeps working.
+
+The callback query still has to be answered with `answerCallbackQuery`.
+
 ## Guest mode
 
 A bot with guest support can be summoned into chats it is not a member of.

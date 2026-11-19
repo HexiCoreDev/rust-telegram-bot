@@ -1,6 +1,7 @@
 # Summary
 
 [Introduction](introduction.md)
+[What's New](whats-new.md)
 
 ---
 
@@ -36,6 +37,8 @@
 - [Payments](guides/payments.md)
 - [Rich Messages](guides/rich-messages.md)
 - [Ephemeral Messages](guides/ephemeral-messages.md)
+- [HTML Widgets](guides/widgets.md)
+- [TON Wallet and Share Themes](guides/ton-and-share-themes.md)
 
 ---
 

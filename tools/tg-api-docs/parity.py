@@ -29,6 +29,29 @@ BUILDER_FILES = sorted((ROOT / "crates/telegram-bot-raw/src").glob("bot_builders
 #   that idiom; there is no documented use for omitting text entirely.
 KNOWN_OK: dict[str, str] = {
     "send_message_draft": "spec documents an empty-text placeholder idiom",
+    # Bot API 10.4 makes chat_id Optional on the ephemeral-capable sends. The ergonomic
+    # constructor keeps it positional (passing one is still correct: Telegram ignores it when
+    # receiver_user_id is omitted) and a sibling `send*_to_callback_query` constructor omits it.
+    "send_message": "10.4: chat_id optional; *_to_callback_query omits it",
+    "send_rich_message": "10.4: chat_id optional; *_to_callback_query omits it",
+    "send_animation": "10.4: chat_id optional; *_to_callback_query omits it",
+    "send_audio": "10.4: chat_id optional; *_to_callback_query omits it",
+    "send_contact": "10.4: chat_id optional; *_to_callback_query omits it",
+    "send_document": "10.4: chat_id optional; *_to_callback_query omits it",
+    "send_live_photo": "10.4: chat_id optional; *_to_callback_query omits it",
+    "send_location": "10.4: chat_id optional; *_to_callback_query omits it",
+    "send_photo": "10.4: chat_id optional; *_to_callback_query omits it",
+    "send_sticker": "10.4: chat_id optional; *_to_callback_query omits it",
+    "send_venue": "10.4: chat_id optional; *_to_callback_query omits it",
+    "send_video": "10.4: chat_id optional; *_to_callback_query omits it",
+    "send_video_note": "10.4: chat_id optional; *_to_callback_query omits it",
+    "send_voice": "10.4: chat_id optional; *_to_callback_query omits it",
+}
+
+# Spec-optional parameters that the builder does model, under a Rust-safe name.
+# The diff compares parameter names, so `type` (a Rust keyword) cannot match `poll_type`.
+NAME_MAPPED_OPTIONAL: dict[str, dict[str, str]] = {
+    "sendPoll": {"type": "poll_type"},
 }
 
 
@@ -235,7 +258,8 @@ def main() -> None:
         if miss_req:
             missing_required.append((name, miss_req))
         # spec-optional params entirely absent
-        miss_opt = sorted(spec_opt - rust_opt_s - rust_req_s)
+        mapped = set(NAME_MAPPED_OPTIONAL.get(name, {}))
+        miss_opt = sorted(spec_opt - rust_opt_s - rust_req_s - mapped)
         if miss_opt:
             missing_optional.append((name, miss_opt))
         # required in spec but modelled as Option in Rust, and vice versa

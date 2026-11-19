@@ -48,6 +48,7 @@ use super::message_entity::MessageEntity;
 use super::message_origin::MessageOrigin;
 use super::paid_media::PaidMediaInfo;
 use super::paid_message_price_changed::PaidMessagePriceChanged;
+use super::paid_messages_waived::PaidMessagesWaived;
 use super::passport::passport_data::PassportData;
 use super::payment::invoice::Invoice;
 use super::payment::refunded_payment::RefundedPayment;
@@ -62,12 +63,14 @@ use super::suggested_post::{
     SuggestedPostApprovalFailed, SuggestedPostApproved, SuggestedPostDeclined, SuggestedPostInfo,
     SuggestedPostPaid, SuggestedPostRefunded,
 };
+use super::ton_wallet::TonWalletTransfer;
 use super::unique_gift::UniqueGiftInfo;
 use super::user::User;
 use super::video_chat::{
     VideoChatEnded, VideoChatParticipantsInvited, VideoChatScheduled, VideoChatStarted,
 };
 use super::web_app_data::WebAppData;
+use super::widget::Widget;
 use super::write_access_allowed::WriteAccessAllowed;
 
 /// This object represents a message.
@@ -284,8 +287,16 @@ pub struct Message {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub voice: Option<Voice>,
 
+    /// Message is an HTML widget, information about the widget.
+    ///
+    /// Boxed because the widget payload is large and almost never present; this keeps
+    /// `Message` (the hottest type in the crate) compact.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub widget: Option<Box<Widget>>,
+
     // ── Caption ───────────────────────────────────────────────────────────────
-    /// Caption for the animation, audio, document, paid media, photo, video or voice.
+    /// Caption for the animation, audio, document, live photo, paid media, photo, video, voice,
+    /// or widget.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub caption: Option<String>,
 
@@ -294,7 +305,7 @@ pub struct Message {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub caption_entities: Option<Vec<MessageEntity>>,
 
-    /// `true` if the caption must be shown above the message media.
+    /// `true` if the caption must be shown above the message media or the widget.
     #[serde(default, skip_serializing_if = "std::ops::Not::not")]
     pub show_caption_above_media: bool,
 
@@ -392,6 +403,11 @@ pub struct Message {
     /// Message is a service message about the paid message price changing.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub paid_message_price_changed: Option<PaidMessagePriceChanged>,
+
+    /// Service message: the sender of the message used a link of the other user, which allows
+    /// sending messages to the user without paying Telegram Stars.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub paid_messages_waived: Option<PaidMessagesWaived>,
 
     /// The number of Telegram Stars that were paid by the sender of the message to send it.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -569,6 +585,12 @@ pub struct Message {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub suggested_post_refunded: Option<SuggestedPostRefunded>,
 
+    /// Service message: a transfer with a TON wallet.
+    ///
+    /// Boxed for the same reason as [`Self::widget`].
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub ton_wallet_transfer: Option<Box<TonWalletTransfer>>,
+
     /// Information about a suggested post in the channel.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub suggested_post_info: Option<SuggestedPostInfo>,
@@ -584,11 +606,11 @@ pub struct Message {
     // ── Chat ownership changes ────────────────────────────────────────────────
     /// Service message: chat owner changed.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub chat_owner_changed: Option<ChatOwnerChanged>,
+    pub chat_owner_changed: Option<Box<ChatOwnerChanged>>,
 
     /// Service message: chat owner left.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub chat_owner_left: Option<ChatOwnerLeft>,
+    pub chat_owner_left: Option<Box<ChatOwnerLeft>>,
 
     // ── Managed bots (Bot API 9.6) ───────────────────────────────────────────
     /// Service message: user created a bot that will be managed by the current bot.

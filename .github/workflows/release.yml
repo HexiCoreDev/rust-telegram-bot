@@ -1,5 +1,13 @@
 name: Release
 
+# Two triggers, two different outcomes:
+#
+#   * a push to `main` publishes the version in `Cargo.toml` to crates.io;
+#   * a push of a `v*` tag does the same (the publish job then skips crates that
+#     are already on crates.io) and additionally opens a GitHub Release.
+#
+# The book does not go through here: `.github/workflows/docs.yml` builds and
+# deploys it to Vercel on every push to `main`.
 on:
   push:
     tags: ["v*"]
@@ -18,84 +26,23 @@ jobs:
     name: CI gate
     uses: ./.github/workflows/ci.yml
 
-  # ── Cross-compile release binaries (tag pushes only) ──────────────
-  build:
-    name: build (${{ matrix.target }})
-    needs: ci
-    if: startsWith(github.ref, 'refs/tags/v')
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - target: x86_64-unknown-linux-gnu
-            os: ubuntu-latest
-            archive: tar.gz
-          - target: aarch64-unknown-linux-gnu
-            os: ubuntu-latest
-            archive: tar.gz
-          - target: x86_64-apple-darwin
-            os: macos-latest
-            archive: tar.gz
-          - target: aarch64-apple-darwin
-            os: macos-latest
-            archive: tar.gz
-    steps:
-      - uses: actions/checkout@v6
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: ${{ matrix.target }}
-      - uses: Swatinem/rust-cache@v2
-
-      - name: Install cross-compilation tools (aarch64-linux)
-        if: matrix.target == 'aarch64-unknown-linux-gnu'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y gcc-aarch64-linux-gnu
-          echo "CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc" >> "$GITHUB_ENV"
-
-      - name: Build release binary
-        run: cargo build --release --target ${{ matrix.target }} -p rust-tg-bot
-
-      - name: Package binary
-        shell: bash
-        run: |
-          TAG="${GITHUB_REF#refs/tags/}"
-          ARCHIVE_NAME="rust-telegram-bot-${TAG}-${{ matrix.target }}"
-          mkdir -p "staging/${ARCHIVE_NAME}"
-          cp "target/${{ matrix.target }}/release/rust-tg-bot" "staging/${ARCHIVE_NAME}/"
-          cp LICENSE README.md CHANGELOG.md "staging/${ARCHIVE_NAME}/"
-          cd staging
-          tar czf "${ARCHIVE_NAME}.${{ matrix.archive }}" "${ARCHIVE_NAME}"
-          echo "ASSET=staging/${ARCHIVE_NAME}.${{ matrix.archive }}" >> "$GITHUB_ENV"
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v7
-        with:
-          name: release-${{ matrix.target }}
-          path: ${{ env.ASSET }}
-
   # ── Create GitHub Release (tag pushes only) ───────────────────────
+  # There are no binaries to attach: this is a library crate, and
+  # `cargo build -p rust-tg-bot` produces `librust_tg_bot.rlib`, not an
+  # executable. The release page carries the generated notes plus links to the
+  # published crates and the rendered book.
   release:
     name: GitHub Release
-    needs: build
+    needs: ci
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
 
-      - name: Download all artifacts
-        uses: actions/download-artifact@v8
-        with:
-          path: artifacts
-          pattern: release-*
-          merge-multiple: true
-
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           generate_release_notes: true
-          files: artifacts/*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -110,31 +57,67 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
 
+      # Publishing runs on every push to `main`, so follow-up commits (docs,
+      # chores) would otherwise fail with "crate version already uploaded".
+      # Skip the whole job when the version is already on crates.io; the tag
+      # push that usually follows a release therefore becomes a no-op here.
+      - name: Check whether this version is already published
+        id: published
+        run: |
+          version=$(cargo metadata --no-deps --format-version 1 \
+            | jq -r '.packages[] | select(.name == "rust-tg-bot") | .version')
+          # crates.io rejects requests without a User-Agent with HTTP 403, which
+          # would otherwise read as "not published" and make the guard useless.
+          status=$(curl -sS -o /dev/null -w '%{http_code}' \
+            -H 'User-Agent: rust-tg-bot-release-ci (github.com/HexiCoreDev/rust-telegram-bot)' \
+            "https://crates.io/api/v1/crates/rust-tg-bot/${version}")
+          echo "workspace version: ${version} (crates.io HTTP ${status})"
+          case "${status}" in
+            200)
+              echo "skip=true" >> "$GITHUB_OUTPUT"
+              echo "::notice::${version} is already on crates.io; skipping cargo publish."
+              ;;
+            404)
+              echo "skip=false" >> "$GITHUB_OUTPUT"
+              ;;
+            *)
+              echo "::warning::crates.io returned HTTP ${status} for ${version}; attempting publish anyway."
+              echo "skip=false" >> "$GITHUB_OUTPUT"
+              ;;
+          esac
+
       - name: Publish rust-tg-bot-raw
+        if: steps.published.outputs.skip != 'true'
         run: cargo publish -p rust-tg-bot-raw
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
 
       - name: Wait for crates.io index update
+        if: steps.published.outputs.skip != 'true'
         run: sleep 30
 
       - name: Publish rust-tg-bot-macros
+        if: steps.published.outputs.skip != 'true'
         run: cargo publish -p rust-tg-bot-macros
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
 
       - name: Wait for crates.io index update
+        if: steps.published.outputs.skip != 'true'
         run: sleep 30
 
       - name: Publish rust-tg-bot-ext
+        if: steps.published.outputs.skip != 'true'
         run: cargo publish -p rust-tg-bot-ext
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
 
       - name: Wait for crates.io index update
+        if: steps.published.outputs.skip != 'true'
         run: sleep 30
 
       - name: Publish rust-tg-bot
+        if: steps.published.outputs.skip != 'true'
         run: cargo publish -p rust-tg-bot
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}

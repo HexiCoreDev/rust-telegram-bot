@@ -337,10 +337,10 @@ mod json_file_stress {
         assert_eq!(reloaded.len(), task_count as usize);
 
         // Verify each entry has correct structure.
-        for (user_id, data) in &reloaded {
+        for data in reloaded.values() {
             assert!(
                 data.contains_key("val"),
-                "User {user_id} data is missing 'val' key"
+                "a reloaded user entry is missing the 'val' key"
             );
         }
 

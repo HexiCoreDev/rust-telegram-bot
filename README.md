@@ -8,9 +8,9 @@
 
 <p align="center">
 
-[![Version: 1.0.0-rc.4](https://img.shields.io/badge/version-1.0.0--rc.4-blueviolet)](https://github.com/HexiCoreDev/rust-telegram-bot/releases)
-[![Bot API 10.3](https://img.shields.io/badge/Bot%20API-10.3-blue?logo=telegram)](https://core.telegram.org/bots/api-changelog)
-[![Rust: 1.88+](https://img.shields.io/badge/Rust-1.88%2B-orange?logo=rust)](https://www.rust-lang.org)
+[![Version: 1.0.0](https://img.shields.io/badge/version-1.0.0-blueviolet)](https://github.com/HexiCoreDev/rust-telegram-bot/releases)
+[![Bot API 10.4](https://img.shields.io/badge/Bot%20API-10.4-blue?logo=telegram)](https://core.telegram.org/bots/api-changelog)
+[![Rust: 1.94+](https://img.shields.io/badge/Rust-1.94%2B-orange?logo=rust)](https://www.rust-lang.org)
 [![License: LGPL-3.0](https://img.shields.io/badge/License-LGPL--3.0-green.svg)](https://www.gnu.org/licenses/lgpl-3.0.html)
 [![CI](https://github.com/HexiCoreDev/rust-telegram-bot/actions/workflows/ci.yml/badge.svg?branch=dev)](https://github.com/HexiCoreDev/rust-telegram-bot/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/HexiCoreDev/rust-telegram-bot/graph/badge.svg?token=F2Y0CC4WNG)](https://codecov.io/gh/HexiCoreDev/rust-telegram-bot)
@@ -19,14 +19,14 @@
 [![Code Style: rustfmt](https://img.shields.io/badge/code%20style-rustfmt-blue)](https://github.com/rust-lang/rustfmt)
 [![Code Quality: clippy](https://img.shields.io/badge/code%20quality-clippy%20%E2%9C%93-brightgreen)](https://doc.rust-lang.org/clippy/)
 [![Unsafe: forbidden](https://img.shields.io/badge/unsafe-forbidden-success.svg)](https://github.com/rust-secure-code/safety-dance/)
-[![MSRV: 1.88](https://img.shields.io/badge/MSRV-1.88-orange)](https://doc.rust-lang.org/)
+[![MSRV: 1.94](https://img.shields.io/badge/MSRV-1.94-orange)](https://doc.rust-lang.org/)
 [![Issues](https://isitmaintained.com/badge/resolution/HexiCoreDev/rust-telegram-bot.svg)](https://isitmaintained.com/project/HexiCoreDev/rust-telegram-bot)
 
 </p>
 
 ---
 
-> **Release Candidate (v1.0.0-rc.4).** The API surface is complete and stabilizing. Minor breaking changes may still occur before v1.0.0 stable. Please report any issues.
+> **Stable (v1.0.0).** First stable release: the full Bot API 10.4 surface, semver guarantees from here on. Future Bot API releases arrive as minor version bumps. Please report any issues.
 
 ---
 
@@ -47,7 +47,7 @@ We acknowledge and thank the python-telegram-bot maintainers and community for o
 | **Performance** | GIL-limited concurrency, interpreted | True parallelism, compiled to native code |
 | **Memory safety** | Runtime GC, potential leaks in long-running bots | Ownership system prevents leaks at compile time |
 | **Type safety** | Optional type hints, runtime errors | Enforced at compile time, no `AttributeError` at 3 AM |
-| **Deployment** | Requires Python runtime + virtualenv | Single static binary, 6.6 MB stripped |
+| **Deployment** | Requires Python runtime + virtualenv | Single static binary, 6.9 MB stripped |
 | **Resource usage** | 57 MB RSS (measured) | 15 MB idle / 17 MB load (matches teloxide, see [benchmarks](benchmarks/)) |
 | **Concurrency** | asyncio (single-threaded) | tokio (multi-threaded work-stealing) |
 
@@ -66,7 +66,7 @@ rust-telegram-bot/
     telegram-bot/         # Facade crate -- re-exports all three for convenience
 ```
 
-**`rust-tg-bot-raw`** contains every type and method from Bot API 10.3: `Message`, `Update`, `User`, `Chat`, rich messages, ephemeral messages, communities, inline types, payments, passport, games, stickers, and all API methods on the `Bot` struct. It depends only on `serde`, `reqwest`, and `tokio`.
+**`rust-tg-bot-raw`** contains every type and method from Bot API 10.4: `Message`, `Update`, `User`, `Chat`, rich messages, ephemeral messages, communities, inline types, payments, passport, games, stickers, and all API methods on the `Bot` struct. It depends only on `serde`, `reqwest`, and `tokio`.
 
 **`rust-tg-bot-ext`** provides the application framework: `ApplicationBuilder`, typed handler system, composable filters, `ConversationHandler`, `JobQueue`, persistence backends (JSON file, SQLite, Redis, PostgreSQL), rate limiting, webhook support with optional TLS, and callback data caching.
 
@@ -467,7 +467,7 @@ rust-tg-bot = { git = "https://github.com/HexiCoreDev/rust-telegram-bot", featur
 
 | Feature | rust-tg-bot | python-telegram-bot | teloxide |
 |---|:---:|:---:|:---:|
-| Bot API version | **10.3** | 9.5 | 9.2 |
+| Bot API version | **10.4** | 9.5 | 9.2 |
 | Language | Rust | Python | Rust |
 | Async runtime | tokio | asyncio | tokio |
 | Handler system | 22 typed handlers + FnHandler | 22 handler types | Dispatcher + handler chains |
@@ -479,11 +479,11 @@ rust-tg-bot = { git = "https://github.com/HexiCoreDev/rust-telegram-bot", featur
 | Type safety | Compile-time | Runtime (optional hints) | Compile-time |
 | Memory idle (measured) | **15 MB** | 57 MB | **15 MB** |
 | Memory under load (measured) | **17 MB** | 60 MB | **17 MB** |
-| Binary size (stripped) | **6.6 MB** | Requires Python runtime | 6.6 MB |
-| Minimum version | Rust 1.88 | Python 3.10 | Rust 1.68 |
+| Binary size (stripped) | **6.9 MB** | Requires Python runtime | 6.6 MB |
+| Minimum version | Rust 1.94 | Python 3.10 | Rust 1.68 |
 | Builder pattern | IntoFuture (directly awaitable) | Keyword args | Method chains |
 | Typed constants | `ParseMode::Html` | `ParseMode.HTML` | String-based |
-| Maturity | **v1.0.0-rc.4** (new) | Mature (10+ years) | Mature (3+ years) |
+| Maturity | **v1.0.0** (stable) | Mature (10+ years) | Mature (3+ years) |
 
 ## Examples
 
@@ -516,11 +516,11 @@ TELEGRAM_BOT_TOKEN="your-token" WEBHOOK_URL="https://your.domain" \
 
 ## Project Status
 
-**Current: v1.0.0-rc.4 -- API complete, stabilizing**
+**Current: v1.0.0 -- API complete, stable**
 
 What is implemented:
 
-- All Bot API 10.3 types and methods (185 methods, 186 builders, 414 core types)
+- All Bot API 10.4 types and methods (193 methods, 194 builders, 440 core types)
 - `ApplicationBuilder` with typestate pattern
 - Typed handler system (`CommandHandler`, `MessageHandler`, `FnHandler`, and more)
 - 50+ composable filters with `&`, `|`, `^`, `!` operators
@@ -544,9 +544,9 @@ What is implemented:
 
 - 385+ tests passing, zero clippy warnings
 - 25 roundtrip serialization tests, 9 proptest filter tests, 10 persistence stress tests
-- GitHub Actions CI: check, test, clippy, format, examples, docs (stable + MSRV 1.88)
+- GitHub Actions CI: check, test, clippy, format, examples, docs (stable + MSRV 1.94)
 - Release pipeline: cross-compile binaries + crates.io publish
-- Measured performance: 6.6 MB binary (stripped, echo_bot reference), 15 MB idle / 17 MB RSS under load (release) -- matches teloxide on all three
+- Measured performance: 6.9 MB binary (stripped, echo_bot reference, Bot API 10.4 surface), 15 MB idle / 17 MB RSS under load (release) -- matches teloxide on memory
 
 ### Forward Compatibility
 

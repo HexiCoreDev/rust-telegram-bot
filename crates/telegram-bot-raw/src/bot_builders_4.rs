@@ -1561,6 +1561,8 @@ pub struct VerifyChatBuilder<'a> {
     bot: &'a Bot,
     chat_id: ChatId,
     custom_description: Option<String>,
+    custom_description_parse_mode: Option<String>,
+    custom_description_entities: Option<Vec<message_entity::MessageEntity>>,
 }
 
 impl<'a> VerifyChatBuilder<'a> {
@@ -1570,10 +1572,31 @@ impl<'a> VerifyChatBuilder<'a> {
         self
     }
 
+    /// Sets the `custom_description_parse_mode` parameter.
+    ///
+    /// Only `text_link` entities are supported.
+    pub fn custom_description_parse_mode(mut self, val: impl Into<String>) -> Self {
+        self.custom_description_parse_mode = Some(val.into());
+        self
+    }
+
+    /// Sets the `custom_description_entities` parameter.
+    ///
+    /// Only `text_link` entities are supported.
+    pub fn custom_description_entities(mut self, val: Vec<message_entity::MessageEntity>) -> Self {
+        self.custom_description_entities = Some(val);
+        self
+    }
+
     /// Sends the request to the Telegram Bot API.
     pub async fn send(self) -> Result<bool> {
         self.bot
-            .verify_chat_raw(self.chat_id, self.custom_description.as_deref())
+            .verify_chat_raw(
+                self.chat_id,
+                self.custom_description.as_deref(),
+                self.custom_description_parse_mode.as_deref(),
+                self.custom_description_entities,
+            )
             .await
     }
 }
@@ -1589,6 +1612,8 @@ pub struct VerifyUserBuilder<'a> {
     bot: &'a Bot,
     user_id: i64,
     custom_description: Option<String>,
+    custom_description_parse_mode: Option<String>,
+    custom_description_entities: Option<Vec<message_entity::MessageEntity>>,
 }
 
 impl<'a> VerifyUserBuilder<'a> {
@@ -1598,10 +1623,31 @@ impl<'a> VerifyUserBuilder<'a> {
         self
     }
 
+    /// Sets the `custom_description_parse_mode` parameter.
+    ///
+    /// Only `text_link` entities are supported.
+    pub fn custom_description_parse_mode(mut self, val: impl Into<String>) -> Self {
+        self.custom_description_parse_mode = Some(val.into());
+        self
+    }
+
+    /// Sets the `custom_description_entities` parameter.
+    ///
+    /// Only `text_link` entities are supported.
+    pub fn custom_description_entities(mut self, val: Vec<message_entity::MessageEntity>) -> Self {
+        self.custom_description_entities = Some(val);
+        self
+    }
+
     /// Sends the request to the Telegram Bot API.
     pub async fn send(self) -> Result<bool> {
         self.bot
-            .verify_user_raw(self.user_id, self.custom_description.as_deref())
+            .verify_user_raw(
+                self.user_id,
+                self.custom_description.as_deref(),
+                self.custom_description_parse_mode.as_deref(),
+                self.custom_description_entities,
+            )
             .await
     }
 }
@@ -2138,6 +2184,8 @@ impl Bot {
             bot: self,
             chat_id: chat_id.into(),
             custom_description: None,
+            custom_description_parse_mode: None,
+            custom_description_entities: None,
         }
     }
 
@@ -2147,6 +2195,8 @@ impl Bot {
             bot: self,
             user_id,
             custom_description: None,
+            custom_description_parse_mode: None,
+            custom_description_entities: None,
         }
     }
 

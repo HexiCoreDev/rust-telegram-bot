@@ -25,14 +25,14 @@ Add the appropriate feature to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-rust-tg-bot = { version = "1.0.0-rc.4", features = ["persistence-json"] }
+rust-tg-bot = { version = "1.0.0", features = ["persistence-json"] }
 ```
 
 Or for SQLite:
 
 ```toml
 [dependencies]
-rust-tg-bot = { version = "1.0.0-rc.4", features = ["persistence-sqlite"] }
+rust-tg-bot = { version = "1.0.0", features = ["persistence-sqlite"] }
 ```
 
 ## JsonFilePersistence

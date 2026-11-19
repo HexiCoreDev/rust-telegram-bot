@@ -27,6 +27,7 @@ use super::payment::shipping_query::ShippingQuery;
 use super::payment::stars::subscription::BotSubscriptionUpdated;
 use super::poll::{Poll, PollAnswer};
 use super::user::User;
+use super::widget_query::{SharedWidgetQuery, WidgetQuery};
 
 /// Update about a user stopping message generation via a draft stop button.
 ///
@@ -122,6 +123,10 @@ pub enum UpdateKind {
     Subscription(BotSubscriptionUpdated),
     /// A user asked the bot to stop the generation of a message.
     StoppedMessageGeneration(MessageGenerationStopped),
+    /// New incoming query from a widget in a message sent by the bot or via the bot.
+    WidgetQuery(WidgetQuery),
+    /// New incoming query from a forwarded message with a shared widget.
+    SharedWidgetQuery(SharedWidgetQuery),
     /// Unknown or unsupported update types, or an update with no payload fields.
     #[default]
     Unknown,
@@ -229,6 +234,12 @@ impl Serialize for UpdateKind {
                 "stopped_message_generation",
                 value,
             ),
+            Self::WidgetQuery(value) => {
+                serializer.serialize_newtype_variant("UpdateKind", 27, "widget_query", value)
+            }
+            Self::SharedWidgetQuery(value) => {
+                serializer.serialize_newtype_variant("UpdateKind", 28, "shared_widget_query", value)
+            }
             Self::Unknown => {
                 let map = serializer.serialize_map(Some(0))?;
                 map.end()
@@ -324,6 +335,10 @@ impl<'de> Visitor<'de> for UpdateKindVisitor {
                 "stopped_message_generation" => {
                     parse_kind!(StoppedMessageGeneration, MessageGenerationStopped)
                 }
+                "widget_query" => parse_kind!(WidgetQuery, WidgetQuery),
+                "shared_widget_query" => {
+                    parse_kind!(SharedWidgetQuery, SharedWidgetQuery)
+                }
                 "update_id" => {
                     map.next_value::<IgnoredAny>()?;
                 }
@@ -407,6 +422,8 @@ impl Update {
             StoppedMessageGeneration,
             MessageGenerationStopped
         ),
+        (widget_query, WidgetQuery, WidgetQuery),
+        (shared_widget_query, SharedWidgetQuery, SharedWidgetQuery),
     );
 
     /// Returns a reference to the `User` that sent this update, regardless of update type.
@@ -436,6 +453,8 @@ impl Update {
             UpdateKind::PurchasedPaidMedia(ppm) => Some(&ppm.from_user),
             UpdateKind::ManagedBot(mbu) => Some(&mbu.user),
             UpdateKind::Subscription(bsu) => Some(&bsu.user),
+            UpdateKind::WidgetQuery(query) => Some(&query.from),
+            UpdateKind::SharedWidgetQuery(query) => Some(&query.from),
             UpdateKind::ChannelPost(_)
             | UpdateKind::EditedChannelPost(_)
             | UpdateKind::DeletedBusinessMessages(_)
@@ -474,6 +493,8 @@ impl Update {
             UpdateKind::MessageReactionCount(mrcu) => Some(&mrcu.chat),
             UpdateKind::DeletedBusinessMessages(dbm) => Some(&dbm.chat),
             UpdateKind::StoppedMessageGeneration(smg) => Some(&smg.chat),
+            UpdateKind::WidgetQuery(query) => query.chat.as_ref(),
+            UpdateKind::SharedWidgetQuery(_) => None,
             UpdateKind::BusinessConnection(_)
             | UpdateKind::InlineQuery(_)
             | UpdateKind::ChosenInlineResult(_)
@@ -531,6 +552,8 @@ impl Update {
             | UpdateKind::ManagedBot(_)
             | UpdateKind::Subscription(_)
             | UpdateKind::StoppedMessageGeneration(_)
+            | UpdateKind::WidgetQuery(_)
+            | UpdateKind::SharedWidgetQuery(_)
             | UpdateKind::Unknown => None,
         }
     }

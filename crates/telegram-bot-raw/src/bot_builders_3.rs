@@ -16,7 +16,7 @@
 use crate::bot::{Bot, ChatId};
 use crate::error::Result;
 use crate::request::request_parameter::RequestParameter;
-use crate::types::{business, gifts, message_entity, owned_gift, payment};
+use crate::types::{business, gifts, message_entity, owned_gift, payment, unique_gift};
 use serde::Serialize;
 
 // ---------------------------------------------------------------------------
@@ -1278,6 +1278,47 @@ impl_into_future!(GetChatGiftsBuilder, owned_gift::OwnedGifts);
 // Factory methods on Bot
 // =========================================================================
 
+// =========================================================================
+// GetUniqueGiftBuilder
+// =========================================================================
+
+/// Builder for the [`Bot::get_unique_gift`] API method.
+pub struct GetUniqueGiftBuilder<'a> {
+    bot: &'a Bot,
+    name: String,
+}
+
+impl<'a> GetUniqueGiftBuilder<'a> {
+    /// Sends the request to the Telegram Bot API.
+    pub async fn send(self) -> Result<unique_gift::UniqueGift> {
+        self.bot.get_unique_gift_raw(&self.name).await
+    }
+}
+
+impl_into_future!(GetUniqueGiftBuilder, unique_gift::UniqueGift);
+
+// =========================================================================
+// DeleteBusinessAccountGiftBuilder
+// =========================================================================
+
+/// Builder for the [`Bot::delete_business_account_gift`] API method.
+pub struct DeleteBusinessAccountGiftBuilder<'a> {
+    bot: &'a Bot,
+    business_connection_id: String,
+    owned_gift_id: String,
+}
+
+impl<'a> DeleteBusinessAccountGiftBuilder<'a> {
+    /// Sends the request to the Telegram Bot API.
+    pub async fn send(self) -> Result<bool> {
+        self.bot
+            .delete_business_account_gift_raw(&self.business_connection_id, &self.owned_gift_id)
+            .await
+    }
+}
+
+impl_into_future!(DeleteBusinessAccountGiftBuilder, bool);
+
 impl Bot {
     // -- Business account management -----------------------------------------
 
@@ -1638,6 +1679,26 @@ impl Bot {
             sort_by_price: None,
             offset: None,
             limit: None,
+        }
+    }
+    /// Build a `getUniqueGift` request.
+    pub fn get_unique_gift(&self, name: impl Into<String>) -> GetUniqueGiftBuilder<'_> {
+        GetUniqueGiftBuilder {
+            bot: self,
+            name: name.into(),
+        }
+    }
+
+    /// Build a `deleteBusinessAccountGift` request.
+    pub fn delete_business_account_gift(
+        &self,
+        business_connection_id: impl Into<String>,
+        owned_gift_id: impl Into<String>,
+    ) -> DeleteBusinessAccountGiftBuilder<'_> {
+        DeleteBusinessAccountGiftBuilder {
+            bot: self,
+            business_connection_id: business_connection_id.into(),
+            owned_gift_id: owned_gift_id.into(),
         }
     }
 }

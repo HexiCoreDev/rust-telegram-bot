@@ -97,6 +97,11 @@ The Telegram Bot API defines many update types. Here are the most common:
 | Poll Answer | `poll_answer()` | User votes in a poll |
 | Chat Member | `my_chat_member()` / `chat_member()` | Bot or user's membership status changes |
 | Chat Join Request | `chat_join_request()` | User requests to join a chat |
+| Widget Query | `widget_query()` | A widget the bot sent queries it (Bot API 10.4) |
+| Shared Widget Query | `shared_widget_query()` | A forwarded shared widget queries the bot |
+| Guest Message | `guest_message()` | Message from a chat the bot never joined |
+| Subscription | `subscription()` | A user's payment subscription changed |
+| Stopped Message Generation | `stopped_message_generation()` | A draft stream was stopped by the user |
 
 ## The Arc Wrapper
 

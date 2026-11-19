@@ -1,11 +1,11 @@
 // ── Version ──────────────────────────────────────────────────────────────────
 
 /// Telegram Bot API version supported by this crate.
-pub const BOT_API_VERSION: &str = "10.3";
+pub const BOT_API_VERSION: &str = "10.4";
 /// Major component of `BOT_API_VERSION`.
 pub const BOT_API_VERSION_MAJOR: u32 = 10;
 /// Minor component of `BOT_API_VERSION`.
-pub const BOT_API_VERSION_MINOR: u32 = 3;
+pub const BOT_API_VERSION_MINOR: u32 = 4;
 
 /// Ports accepted by `set_webhook`.
 pub const SUPPORTED_WEBHOOK_PORTS: &[u16] = &[443, 80, 88, 8443];
@@ -650,6 +650,8 @@ pub enum MessageEntityType {
     Blockquote,
     /// Bold text.
     Bold,
+    /// A bank card number.
+    BankCardNumber,
     /// A bot command (e.g. `/start`).
     BotCommand,
     /// A cashtag (e.g. `$USD`).
@@ -682,6 +684,8 @@ pub enum MessageEntityType {
     TextLink,
     /// A mention of a user without a username.
     TextMention,
+    /// An address in the TON blockchain.
+    TonAddress,
     /// Underlined text.
     Underline,
     /// A URL (e.g. `https://telegram.org`).
@@ -1525,6 +1529,7 @@ impl_str_traits_snake!(ChatType {
 // ── MessageEntityType ────────────────────────────────────────────────────────
 
 impl_str_traits_snake!(MessageEntityType {
+    BankCardNumber       => "bank_card_number",
     Blockquote           => "blockquote",
     Bold                 => "bold",
     BotCommand           => "bot_command",
@@ -1543,6 +1548,7 @@ impl_str_traits_snake!(MessageEntityType {
     Strikethrough        => "strikethrough",
     TextLink             => "text_link",
     TextMention          => "text_mention",
+    TonAddress           => "ton_address",
     Underline            => "underline",
     Url                  => "url",
 });
@@ -2241,11 +2247,18 @@ pub mod sticker_set_limit {
     pub const STATIC_THUMB_DIMENSIONS: u32 = 100;
 }
 
-/// Limitations for `StoryAreaPosition`.
-pub mod story_area_position_limit {
-    /// Maximum rotation angle in degrees for a story area.
+/// Limitations for `AreaPosition`.
+pub mod area_position_limit {
+    /// Maximum rotation angle in degrees for an area.
     pub const MAX_ROTATION_ANGLE: u32 = 360;
 }
+
+/// Deprecated alias for [`area_position_limit`].
+#[deprecated(
+    since = "1.0.0",
+    note = "renamed to `area_position_limit` in Bot API 10.4; use `area_position_limit` instead"
+)]
+pub use area_position_limit as story_area_position_limit;
 
 /// Limitations for subclasses of `StoryAreaType`.
 pub mod story_area_type_limit {

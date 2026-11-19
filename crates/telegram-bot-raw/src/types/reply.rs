@@ -24,7 +24,9 @@ use super::message_origin::MessageOrigin;
 use super::paid_media::PaidMediaInfo;
 use super::payment::invoice::Invoice;
 use super::poll::Poll;
+use super::rich_text::RichText;
 use super::story::Story;
+use super::widget::Widget;
 
 /// Information about a message that is being replied to, which may come from another chat or
 /// forum topic.
@@ -86,6 +88,10 @@ pub struct ExternalReplyInfo {
     /// Message is a voice message.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub voice: Option<Voice>,
+
+    /// Message is an HTML widget.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub widget: Option<Box<Widget>>,
 
     /// `true` if the message media is covered by a spoiler animation.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -150,6 +156,10 @@ pub struct TextQuote {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub entities: Option<Vec<MessageEntity>>,
 
+    /// Rich text of the quote if it was chosen from a rich message.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub rich_texts: Option<Vec<RichText>>,
+
     /// `true` if the quote was chosen manually by the message sender.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub is_manual: Option<bool>,
@@ -190,6 +200,14 @@ pub struct ReplyParameters {
     /// Special entities that appear in the quote.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub quote_entities: Option<Vec<MessageEntity>>,
+
+    /// Quoted parts of the rich message to be replied to.
+    ///
+    /// Must contain one element for each quoted text of the message in the order of their
+    /// appearance. If non-empty, then `quote`, `quote_parse_mode` and `quote_entities` are
+    /// ignored.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub quote_rich_texts: Option<Vec<RichText>>,
 
     /// Position of the quote in the original message in UTF-16 code units.
     #[serde(skip_serializing_if = "Option::is_none")]

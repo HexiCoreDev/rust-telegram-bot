@@ -81,6 +81,8 @@ pub enum RichTextFormatted {
     PhoneNumber(RichTextPhoneNumber),
     /// Text with a bank card number.
     BankCardNumber(RichTextBankCardNumber),
+    /// Text with an address in the TON blockchain.
+    TonAddress(RichTextTonAddress),
     /// Mention by username.
     Mention(RichTextMention),
     /// Hashtag.
@@ -410,6 +412,26 @@ pub struct RichTextBankCardNumber {
     pub text: Box<RichText>,
     /// The bank card number.
     pub bank_card_number: String,
+}
+
+/// Rich text with an address in the TON blockchain.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
+pub struct RichTextTonAddress {
+    /// The text.
+    pub text: Box<RichText>,
+    /// The address.
+    pub address: String,
+}
+
+impl RichTextTonAddress {
+    /// Creates TON-address rich text.
+    pub fn new(text: impl Into<RichText>, address: impl Into<String>) -> Self {
+        Self {
+            text: Box::new(text.into()),
+            address: address.into(),
+        }
+    }
 }
 
 impl RichTextBankCardNumber {

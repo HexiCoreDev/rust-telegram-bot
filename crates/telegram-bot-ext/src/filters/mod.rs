@@ -207,6 +207,22 @@ pub mod update_type {
     /// Constant filter matching `StoppedMessageGeneration` updates.
     pub const STOPPED_MESSAGE_GENERATION: StoppedMessageGeneration = StoppedMessageGeneration;
 
+    update_type_filter!(
+        WidgetQuery,
+        UpdateKind::WidgetQuery(_),
+        "filters.UpdateType.WIDGET_QUERY"
+    );
+    /// Constant filter matching `WidgetQuery` updates (Bot API 10.4).
+    pub const WIDGET_QUERY: WidgetQuery = WidgetQuery;
+
+    update_type_filter!(
+        SharedWidgetQuery,
+        UpdateKind::SharedWidgetQuery(_),
+        "filters.UpdateType.SHARED_WIDGET_QUERY"
+    );
+    /// Constant filter matching `SharedWidgetQuery` updates (Bot API 10.4).
+    pub const SHARED_WIDGET_QUERY: SharedWidgetQuery = SharedWidgetQuery;
+
     #[cfg(test)]
     mod tests {
         use super::*;
@@ -284,6 +300,35 @@ pub mod update_type {
             );
             assert!(SUBSCRIPTION.check_update(&update).is_match());
         }
+        #[test]
+        fn widget_query_filter() {
+            let update = make_update(json!({"update_id": 1, "widget_query": {
+                "id": "wq-1",
+                "from": {"id": 1, "is_bot": false, "first_name": "W"},
+                "chat": {"id": 1, "type": "private"},
+                "message_id": 4,
+                "chat_instance": "-1",
+                "type": {"type": "data"},
+                "data": "d"
+            }}));
+            assert!(WIDGET_QUERY.check_update(&update).is_match());
+            assert!(!SHARED_WIDGET_QUERY.check_update(&update).is_match());
+            assert!(!MESSAGE.check_update(&update).is_match());
+        }
+
+        #[test]
+        fn shared_widget_query_filter() {
+            let update = make_update(json!({"update_id": 1, "shared_widget_query": {
+                "id": "swq-1",
+                "from": {"id": 1, "is_bot": false, "first_name": "W"},
+                "type": {"type": "data"},
+                "data": "d",
+                "widget_id": "shared-1"
+            }}));
+            assert!(SHARED_WIDGET_QUERY.check_update(&update).is_match());
+            assert!(!WIDGET_QUERY.check_update(&update).is_match());
+        }
+
         #[test]
         fn stopped_message_generation_filter() {
             let update = make_update(

@@ -4,7 +4,7 @@
 
 Before you begin, make sure you have:
 
-- **Rust 1.88 or later.** Check with `rustc --version`. Install or update via [rustup](https://rustup.rs/).
+- **Rust 1.94 or later.** Check with `rustc --version`. Install or update via [rustup](https://rustup.rs/).
 - **A Telegram Bot Token.** Create a bot through [@BotFather](https://t.me/BotFather) on Telegram. You will receive a token that looks like `123456789:ABCdefGHIjklMNOpqrsTUVwxyz`.
 
 ## Adding the Dependency
@@ -19,7 +19,7 @@ Or add it manually to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-rust-tg-bot = "1.0.0-rc.4"
+rust-tg-bot = "1.0.0"
 tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
 ```
 
@@ -51,14 +51,14 @@ Enable features in `Cargo.toml`:
 
 ```toml
 [dependencies]
-rust-tg-bot = { version = "1.0.0-rc.4", features = ["job-queue", "persistence-json"] }
+rust-tg-bot = { version = "1.0.0", features = ["job-queue", "persistence-json"] }
 ```
 
 Or enable everything:
 
 ```toml
 [dependencies]
-rust-tg-bot = { version = "1.0.0-rc.4", features = ["full"] }
+rust-tg-bot = { version = "1.0.0", features = ["full"] }
 ```
 
 ## Verifying the Installation

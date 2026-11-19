@@ -1,8 +1,13 @@
 //! PostgreSQL-backed persistence.
 //!
-//! Gated behind `feature = "persistence-postgres"`. Uses the `sqlx` crate with
-//! the `postgres` and `json` features for async operations and native JSONB
-//! storage.
+//! Gated behind `feature = "persistence-postgres"`. Uses the `sqlx` crate with the `postgres`
+//! and `json` features for async operations and native JSONB storage.
+//!
+//! sqlx 0.9 moved its dynamic-SQL guard into the API: `sqlx::query` accepts only `&'static str`
+//! unless the caller wraps the statement in `sqlx::AssertSqlSafe`. Every statement in this module
+//! is assembled from the table prefix, validated against `^[A-Za-z_][A-Za-z0-9_]*` in
+//! `PostgresPersistenceBuilder::build`, plus bound parameters -- no caller-supplied text is
+//! interpolated -- so the assertion is sound here and is made explicitly at each site.
 //!
 //! ## Table schema
 //!
@@ -293,7 +298,7 @@ impl PostgresPersistence {
             callback_data = self.callback_data_table(),
         );
 
-        sqlx::query(&sql)
+        sqlx::query(sqlx::AssertSqlSafe(sql))
             .execute(&self.pool)
             .await
             .map_err(PersistenceError::Postgres)?;
@@ -311,7 +316,7 @@ impl BasePersistence for PostgresPersistence {
         let table = self.user_data_table();
         let sql = format!("SELECT user_id, data FROM {table}");
 
-        let rows: Vec<(i64, Value)> = sqlx::query_as(&sql)
+        let rows: Vec<(i64, Value)> = sqlx::query_as(sqlx::AssertSqlSafe(sql))
             .fetch_all(&self.pool)
             .await
             .map_err(PersistenceError::Postgres)?;
@@ -328,7 +333,7 @@ impl BasePersistence for PostgresPersistence {
         let table = self.chat_data_table();
         let sql = format!("SELECT chat_id, data FROM {table}");
 
-        let rows: Vec<(i64, Value)> = sqlx::query_as(&sql)
+        let rows: Vec<(i64, Value)> = sqlx::query_as(sqlx::AssertSqlSafe(sql))
             .fetch_all(&self.pool)
             .await
             .map_err(PersistenceError::Postgres)?;
@@ -345,7 +350,7 @@ impl BasePersistence for PostgresPersistence {
         let table = self.bot_data_table();
         let sql = format!("SELECT key, data FROM {table}");
 
-        let rows: Vec<(String, Value)> = sqlx::query_as(&sql)
+        let rows: Vec<(String, Value)> = sqlx::query_as(sqlx::AssertSqlSafe(sql))
             .fetch_all(&self.pool)
             .await
             .map_err(PersistenceError::Postgres)?;
@@ -361,7 +366,7 @@ impl BasePersistence for PostgresPersistence {
         let table = self.callback_data_table();
         let sql = format!("SELECT data FROM {table} WHERE id = '_cdc'");
 
-        let result: Option<(Value,)> = sqlx::query_as(&sql)
+        let result: Option<(Value,)> = sqlx::query_as(sqlx::AssertSqlSafe(sql))
             .fetch_optional(&self.pool)
             .await
             .map_err(PersistenceError::Postgres)?;
@@ -376,7 +381,7 @@ impl BasePersistence for PostgresPersistence {
         let table = self.conversations_table();
         let sql = format!("SELECT key, state FROM {table} WHERE name = $1");
 
-        let rows: Vec<(String, Option<Value>)> = sqlx::query_as(&sql)
+        let rows: Vec<(String, Option<Value>)> = sqlx::query_as(sqlx::AssertSqlSafe(sql))
             .bind(name)
             .fetch_all(&self.pool)
             .await
@@ -398,7 +403,7 @@ impl BasePersistence for PostgresPersistence {
         );
         let json_value = serde_json::to_value(data)?;
 
-        sqlx::query(&sql)
+        sqlx::query(sqlx::AssertSqlSafe(sql))
             .bind(user_id)
             .bind(json_value)
             .execute(&self.pool)
@@ -416,7 +421,7 @@ impl BasePersistence for PostgresPersistence {
         );
         let json_value = serde_json::to_value(data)?;
 
-        sqlx::query(&sql)
+        sqlx::query(sqlx::AssertSqlSafe(sql))
             .bind(chat_id)
             .bind(json_value)
             .execute(&self.pool)
@@ -439,7 +444,7 @@ impl BasePersistence for PostgresPersistence {
 
         // Clear existing bot data, then re-insert.
         let delete_sql = format!("DELETE FROM {table}");
-        sqlx::query(&delete_sql)
+        sqlx::query(sqlx::AssertSqlSafe(delete_sql))
             .execute(&mut *tx)
             .await
             .map_err(PersistenceError::Postgres)?;
@@ -450,7 +455,7 @@ impl BasePersistence for PostgresPersistence {
                  ON CONFLICT (key) DO UPDATE SET data = EXCLUDED.data"
             );
             for (key, value) in data {
-                sqlx::query(&upsert_sql)
+                sqlx::query(sqlx::AssertSqlSafe(upsert_sql.as_str()))
                     .bind(key)
                     .bind(value)
                     .execute(&mut *tx)
@@ -471,7 +476,7 @@ impl BasePersistence for PostgresPersistence {
         );
         let json_value = serde_json::to_value(data)?;
 
-        sqlx::query(&sql)
+        sqlx::query(sqlx::AssertSqlSafe(sql))
             .bind(json_value)
             .execute(&self.pool)
             .await
@@ -495,7 +500,7 @@ impl BasePersistence for PostgresPersistence {
                     "INSERT INTO {table} (name, key, state) VALUES ($1, $2, $3)
                      ON CONFLICT (name, key) DO UPDATE SET state = EXCLUDED.state"
                 );
-                sqlx::query(&sql)
+                sqlx::query(sqlx::AssertSqlSafe(sql))
                     .bind(name)
                     .bind(&key_json)
                     .bind(state)
@@ -505,7 +510,7 @@ impl BasePersistence for PostgresPersistence {
             }
             None => {
                 let sql = format!("DELETE FROM {table} WHERE name = $1 AND key = $2");
-                sqlx::query(&sql)
+                sqlx::query(sqlx::AssertSqlSafe(sql))
                     .bind(name)
                     .bind(&key_json)
                     .execute(&self.pool)
@@ -521,7 +526,7 @@ impl BasePersistence for PostgresPersistence {
         let table = self.chat_data_table();
         let sql = format!("DELETE FROM {table} WHERE chat_id = $1");
 
-        sqlx::query(&sql)
+        sqlx::query(sqlx::AssertSqlSafe(sql))
             .bind(chat_id)
             .execute(&self.pool)
             .await
@@ -534,7 +539,7 @@ impl BasePersistence for PostgresPersistence {
         let table = self.user_data_table();
         let sql = format!("DELETE FROM {table} WHERE user_id = $1");
 
-        sqlx::query(&sql)
+        sqlx::query(sqlx::AssertSqlSafe(sql))
             .bind(user_id)
             .execute(&self.pool)
             .await

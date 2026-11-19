@@ -326,4 +326,29 @@ impl Bot {
         ];
         self.do_post("transferBusinessAccountStars", params).await
     }
+
+    /// Deletes a regular gift owned by a managed business account without receiving Telegram
+    /// Stars for it.
+    ///
+    /// Requires the *can_convert_gifts_to_stars* business bot right. The gift can be deleted only
+    /// if it isn't limited and wasn't refunded.
+    ///
+    /// Calls the Telegram `deleteBusinessAccountGift` API method.
+    pub async fn delete_business_account_gift_raw(
+        &self,
+        business_connection_id: &str,
+        owned_gift_id: &str,
+    ) -> Result<bool> {
+        let params = vec![
+            RequestParameter::new(
+                "business_connection_id",
+                serde_json::Value::String(business_connection_id.to_owned()),
+            ),
+            RequestParameter::new(
+                "owned_gift_id",
+                serde_json::Value::String(owned_gift_id.to_owned()),
+            ),
+        ];
+        self.do_post("deleteBusinessAccountGift", params).await
+    }
 }

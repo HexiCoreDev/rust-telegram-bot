@@ -124,7 +124,8 @@ fn input_file_param(name: &'static str, file: files::input_file::InputFile) -> R
 pub struct SendMessageBuilder<'a> {
     #[serde(skip)]
     bot: &'a Bot,
-    chat_id: ChatId,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    chat_id: Option<ChatId>,
     text: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     parse_mode: Option<String>,
@@ -251,7 +252,7 @@ impl_into_future!(SendMessageBuilder, message::Message);
 /// Builder for the [`Bot::send_photo`] API method.
 pub struct SendPhotoBuilder<'a> {
     bot: &'a Bot,
-    chat_id: ChatId,
+    chat_id: Option<ChatId>,
     photo: files::input_file::InputFile,
     caption: Option<String>,
     parse_mode: Option<String>,
@@ -362,10 +363,8 @@ impl<'a> SendPhotoBuilder<'a> {
 
     /// Sends the request to the Telegram Bot API.
     pub async fn send(self) -> Result<message::Message> {
-        let mut params = vec![
-            RequestParameter::new("chat_id", serde_json::to_value(&self.chat_id)?),
-            input_file_param("photo", self.photo),
-        ];
+        let mut params = vec![input_file_param("photo", self.photo)];
+        push_opt(&mut params, "chat_id", &self.chat_id)?;
         push_opt_str(&mut params, "caption", &self.caption);
         push_opt_str(&mut params, "parse_mode", &self.parse_mode);
         push_opt(&mut params, "caption_entities", &self.caption_entities)?;
@@ -423,7 +422,7 @@ impl_into_future!(SendPhotoBuilder, message::Message);
 /// Builder for the [`Bot::send_live_photo`] API method.
 pub struct SendLivePhotoBuilder<'a> {
     bot: &'a Bot,
-    chat_id: ChatId,
+    chat_id: Option<ChatId>,
     live_photo: files::input_file::InputFile,
     photo: files::input_file::InputFile,
     caption: Option<String>,
@@ -536,10 +535,10 @@ impl<'a> SendLivePhotoBuilder<'a> {
     /// Sends the request to the Telegram Bot API.
     pub async fn send(self) -> Result<message::Message> {
         let mut params = vec![
-            RequestParameter::new("chat_id", serde_json::to_value(&self.chat_id)?),
             input_file_param("live_photo", self.live_photo),
             input_file_param("photo", self.photo),
         ];
+        push_opt(&mut params, "chat_id", &self.chat_id)?;
         push_opt_str(&mut params, "caption", &self.caption);
         push_opt_str(&mut params, "parse_mode", &self.parse_mode);
         push_opt(&mut params, "caption_entities", &self.caption_entities)?;
@@ -597,7 +596,7 @@ impl_into_future!(SendLivePhotoBuilder, message::Message);
 /// Builder for the [`Bot::send_document`] API method.
 pub struct SendDocumentBuilder<'a> {
     bot: &'a Bot,
-    chat_id: ChatId,
+    chat_id: Option<ChatId>,
     document: files::input_file::InputFile,
     caption: Option<String>,
     parse_mode: Option<String>,
@@ -708,10 +707,8 @@ impl<'a> SendDocumentBuilder<'a> {
 
     /// Sends the request to the Telegram Bot API.
     pub async fn send(self) -> Result<message::Message> {
-        let mut params = vec![
-            RequestParameter::new("chat_id", serde_json::to_value(&self.chat_id)?),
-            input_file_param("document", self.document),
-        ];
+        let mut params = vec![input_file_param("document", self.document)];
+        push_opt(&mut params, "chat_id", &self.chat_id)?;
         push_opt_str(&mut params, "caption", &self.caption);
         push_opt_str(&mut params, "parse_mode", &self.parse_mode);
         push_opt(&mut params, "caption_entities", &self.caption_entities)?;
@@ -769,7 +766,7 @@ impl_into_future!(SendDocumentBuilder, message::Message);
 /// Builder for the [`Bot::send_video`] API method.
 pub struct SendVideoBuilder<'a> {
     bot: &'a Bot,
-    chat_id: ChatId,
+    chat_id: Option<ChatId>,
     video: files::input_file::InputFile,
     duration: Option<i64>,
     width: Option<i64>,
@@ -922,10 +919,8 @@ impl<'a> SendVideoBuilder<'a> {
 
     /// Sends the request to the Telegram Bot API.
     pub async fn send(self) -> Result<message::Message> {
-        let mut params = vec![
-            RequestParameter::new("chat_id", serde_json::to_value(&self.chat_id)?),
-            input_file_param("video", self.video),
-        ];
+        let mut params = vec![input_file_param("video", self.video)];
+        push_opt(&mut params, "chat_id", &self.chat_id)?;
         push_opt(&mut params, "duration", &self.duration)?;
         push_opt(&mut params, "width", &self.width)?;
         push_opt(&mut params, "height", &self.height)?;
@@ -990,7 +985,7 @@ impl_into_future!(SendVideoBuilder, message::Message);
 /// Builder for the [`Bot::send_audio`] API method.
 pub struct SendAudioBuilder<'a> {
     bot: &'a Bot,
-    chat_id: ChatId,
+    chat_id: Option<ChatId>,
     audio: files::input_file::InputFile,
     caption: Option<String>,
     parse_mode: Option<String>,
@@ -1113,10 +1108,8 @@ impl<'a> SendAudioBuilder<'a> {
 
     /// Sends the request to the Telegram Bot API.
     pub async fn send(self) -> Result<message::Message> {
-        let mut params = vec![
-            RequestParameter::new("chat_id", serde_json::to_value(&self.chat_id)?),
-            input_file_param("audio", self.audio),
-        ];
+        let mut params = vec![input_file_param("audio", self.audio)];
+        push_opt(&mut params, "chat_id", &self.chat_id)?;
         push_opt_str(&mut params, "caption", &self.caption);
         push_opt_str(&mut params, "parse_mode", &self.parse_mode);
         push_opt(&mut params, "caption_entities", &self.caption_entities)?;
@@ -1172,7 +1165,7 @@ impl_into_future!(SendAudioBuilder, message::Message);
 /// Builder for the [`Bot::send_animation`] API method.
 pub struct SendAnimationBuilder<'a> {
     bot: &'a Bot,
-    chat_id: ChatId,
+    chat_id: Option<ChatId>,
     animation: files::input_file::InputFile,
     duration: Option<i64>,
     width: Option<i64>,
@@ -1307,10 +1300,8 @@ impl<'a> SendAnimationBuilder<'a> {
 
     /// Sends the request to the Telegram Bot API.
     pub async fn send(self) -> Result<message::Message> {
-        let mut params = vec![
-            RequestParameter::new("chat_id", serde_json::to_value(&self.chat_id)?),
-            input_file_param("animation", self.animation),
-        ];
+        let mut params = vec![input_file_param("animation", self.animation)];
+        push_opt(&mut params, "chat_id", &self.chat_id)?;
         push_opt(&mut params, "duration", &self.duration)?;
         push_opt(&mut params, "width", &self.width)?;
         push_opt(&mut params, "height", &self.height)?;
@@ -1372,7 +1363,7 @@ impl_into_future!(SendAnimationBuilder, message::Message);
 /// Builder for the [`Bot::send_voice`] API method.
 pub struct SendVoiceBuilder<'a> {
     bot: &'a Bot,
-    chat_id: ChatId,
+    chat_id: Option<ChatId>,
     voice: files::input_file::InputFile,
     caption: Option<String>,
     parse_mode: Option<String>,
@@ -1477,10 +1468,8 @@ impl<'a> SendVoiceBuilder<'a> {
 
     /// Sends the request to the Telegram Bot API.
     pub async fn send(self) -> Result<message::Message> {
-        let mut params = vec![
-            RequestParameter::new("chat_id", serde_json::to_value(&self.chat_id)?),
-            input_file_param("voice", self.voice),
-        ];
+        let mut params = vec![input_file_param("voice", self.voice)];
+        push_opt(&mut params, "chat_id", &self.chat_id)?;
         push_opt_str(&mut params, "caption", &self.caption);
         push_opt_str(&mut params, "parse_mode", &self.parse_mode);
         push_opt(&mut params, "caption_entities", &self.caption_entities)?;
@@ -1533,7 +1522,7 @@ impl_into_future!(SendVoiceBuilder, message::Message);
 /// Builder for the [`Bot::send_video_note`] API method.
 pub struct SendVideoNoteBuilder<'a> {
     bot: &'a Bot,
-    chat_id: ChatId,
+    chat_id: Option<ChatId>,
     video_note: files::input_file::InputFile,
     duration: Option<i64>,
     length: Option<i64>,
@@ -1632,10 +1621,8 @@ impl<'a> SendVideoNoteBuilder<'a> {
 
     /// Sends the request to the Telegram Bot API.
     pub async fn send(self) -> Result<message::Message> {
-        let mut params = vec![
-            RequestParameter::new("chat_id", serde_json::to_value(&self.chat_id)?),
-            input_file_param("video_note", self.video_note),
-        ];
+        let mut params = vec![input_file_param("video_note", self.video_note)];
+        push_opt(&mut params, "chat_id", &self.chat_id)?;
         push_opt(&mut params, "duration", &self.duration)?;
         push_opt(&mut params, "length", &self.length)?;
         push_opt_file(&mut params, "thumbnail", self.thumbnail);
@@ -1689,7 +1676,8 @@ impl_into_future!(SendVideoNoteBuilder, message::Message);
 pub struct SendLocationBuilder<'a> {
     #[serde(skip)]
     bot: &'a Bot,
-    chat_id: ChatId,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    chat_id: Option<ChatId>,
     latitude: f64,
     longitude: f64,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -1826,7 +1814,8 @@ impl_into_future!(SendLocationBuilder, message::Message);
 pub struct SendVenueBuilder<'a> {
     #[serde(skip)]
     bot: &'a Bot,
-    chat_id: ChatId,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    chat_id: Option<ChatId>,
     latitude: f64,
     longitude: f64,
     title: String,
@@ -1965,7 +1954,8 @@ impl_into_future!(SendVenueBuilder, message::Message);
 pub struct SendContactBuilder<'a> {
     #[serde(skip)]
     bot: &'a Bot,
-    chat_id: ChatId,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    chat_id: Option<ChatId>,
     phone_number: String,
     first_name: String,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -2438,7 +2428,7 @@ impl_into_future!(SendDiceBuilder, message::Message);
 /// Builder for the [`Bot::send_sticker`] API method.
 pub struct SendStickerBuilder<'a> {
     bot: &'a Bot,
-    chat_id: ChatId,
+    chat_id: Option<ChatId>,
     sticker: files::input_file::InputFile,
     emoji: Option<String>,
     disable_notification: Option<bool>,
@@ -2525,10 +2515,8 @@ impl<'a> SendStickerBuilder<'a> {
 
     /// Sends the request to the Telegram Bot API.
     pub async fn send(self) -> Result<message::Message> {
-        let mut params = vec![
-            RequestParameter::new("chat_id", serde_json::to_value(&self.chat_id)?),
-            input_file_param("sticker", self.sticker),
-        ];
+        let mut params = vec![input_file_param("sticker", self.sticker)];
+        push_opt(&mut params, "chat_id", &self.chat_id)?;
         push_opt_str(&mut params, "emoji", &self.emoji);
         push_opt(
             &mut params,
@@ -3717,7 +3705,7 @@ impl Bot {
     ) -> SendMessageBuilder<'_> {
         SendMessageBuilder {
             bot: self,
-            chat_id: chat_id.into(),
+            chat_id: Some(chat_id.into()),
             text: text.into(),
             parse_mode: None,
             entities: None,
@@ -3746,7 +3734,7 @@ impl Bot {
     ) -> SendPhotoBuilder<'_> {
         SendPhotoBuilder {
             bot: self,
-            chat_id: chat_id.into(),
+            chat_id: Some(chat_id.into()),
             photo,
             caption: None,
             parse_mode: None,
@@ -3776,7 +3764,7 @@ impl Bot {
     ) -> SendLivePhotoBuilder<'_> {
         SendLivePhotoBuilder {
             bot: self,
-            chat_id: chat_id.into(),
+            chat_id: Some(chat_id.into()),
             live_photo,
             photo,
             caption: None,
@@ -3806,7 +3794,7 @@ impl Bot {
     ) -> SendDocumentBuilder<'_> {
         SendDocumentBuilder {
             bot: self,
-            chat_id: chat_id.into(),
+            chat_id: Some(chat_id.into()),
             document,
             caption: None,
             parse_mode: None,
@@ -3835,7 +3823,7 @@ impl Bot {
     ) -> SendVideoBuilder<'_> {
         SendVideoBuilder {
             bot: self,
-            chat_id: chat_id.into(),
+            chat_id: Some(chat_id.into()),
             video,
             duration: None,
             width: None,
@@ -3871,7 +3859,7 @@ impl Bot {
     ) -> SendAudioBuilder<'_> {
         SendAudioBuilder {
             bot: self,
-            chat_id: chat_id.into(),
+            chat_id: Some(chat_id.into()),
             audio,
             caption: None,
             parse_mode: None,
@@ -3902,7 +3890,7 @@ impl Bot {
     ) -> SendAnimationBuilder<'_> {
         SendAnimationBuilder {
             bot: self,
-            chat_id: chat_id.into(),
+            chat_id: Some(chat_id.into()),
             animation,
             duration: None,
             width: None,
@@ -3935,7 +3923,7 @@ impl Bot {
     ) -> SendVoiceBuilder<'_> {
         SendVoiceBuilder {
             bot: self,
-            chat_id: chat_id.into(),
+            chat_id: Some(chat_id.into()),
             voice,
             caption: None,
             parse_mode: None,
@@ -3963,7 +3951,7 @@ impl Bot {
     ) -> SendVideoNoteBuilder<'_> {
         SendVideoNoteBuilder {
             bot: self,
-            chat_id: chat_id.into(),
+            chat_id: Some(chat_id.into()),
             video_note,
             duration: None,
             length: None,
@@ -3993,7 +3981,7 @@ impl Bot {
     ) -> SendLocationBuilder<'_> {
         SendLocationBuilder {
             bot: self,
-            chat_id: chat_id.into(),
+            chat_id: Some(chat_id.into()),
             latitude,
             longitude,
             horizontal_accuracy: None,
@@ -4025,7 +4013,7 @@ impl Bot {
     ) -> SendVenueBuilder<'_> {
         SendVenueBuilder {
             bot: self,
-            chat_id: chat_id.into(),
+            chat_id: Some(chat_id.into()),
             latitude,
             longitude,
             title: title.into(),
@@ -4057,7 +4045,7 @@ impl Bot {
     ) -> SendContactBuilder<'_> {
         SendContactBuilder {
             bot: self,
-            chat_id: chat_id.into(),
+            chat_id: Some(chat_id.into()),
             phone_number: phone_number.into(),
             first_name: first_name.into(),
             last_name: None,
@@ -4152,7 +4140,7 @@ impl Bot {
     ) -> SendStickerBuilder<'_> {
         SendStickerBuilder {
             bot: self,
-            chat_id: chat_id.into(),
+            chat_id: Some(chat_id.into()),
             sticker,
             emoji: None,
             disable_notification: None,
@@ -4652,19 +4640,13 @@ impl_into_future!(
 
 impl Bot {
     /// Build a `getManagedBotToken` request.
-    pub fn get_managed_bot_token(&self, bot_user_id: i64) -> GetManagedBotTokenBuilder<'_> {
-        GetManagedBotTokenBuilder {
-            bot: self,
-            user_id: bot_user_id,
-        }
+    pub fn get_managed_bot_token(&self, user_id: i64) -> GetManagedBotTokenBuilder<'_> {
+        GetManagedBotTokenBuilder { bot: self, user_id }
     }
 
     /// Build a `replaceManagedBotToken` request.
-    pub fn replace_managed_bot_token(&self, bot_user_id: i64) -> ReplaceManagedBotTokenBuilder<'_> {
-        ReplaceManagedBotTokenBuilder {
-            bot: self,
-            user_id: bot_user_id,
-        }
+    pub fn replace_managed_bot_token(&self, user_id: i64) -> ReplaceManagedBotTokenBuilder<'_> {
+        ReplaceManagedBotTokenBuilder { bot: self, user_id }
     }
 
     /// Build a `getManagedBotAccessSettings` request.
@@ -5187,7 +5169,8 @@ impl_into_future!(SendMessageDraftBuilder, bool);
 pub struct SendRichMessageBuilder<'a> {
     #[serde(skip)]
     bot: &'a Bot,
-    chat_id: ChatId,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    chat_id: Option<ChatId>,
     rich_message: input_rich_message::InputRichMessage,
     #[serde(skip_serializing_if = "Option::is_none")]
     business_connection_id: Option<String>,
@@ -6584,7 +6567,7 @@ impl Bot {
     ) -> SendRichMessageBuilder<'_> {
         SendRichMessageBuilder {
             bot: self,
-            chat_id: chat_id.into(),
+            chat_id: Some(chat_id.into()),
             rich_message,
             business_connection_id: None,
             message_thread_id: None,
@@ -7064,5 +7047,263 @@ impl Bot {
             chat_join_request_query_id: chat_join_request_query_id.into(),
             web_app_url: web_app_url.into(),
         }
+    }
+
+    /// Build a `sendMessage` request that omits `chat_id`, for an ephemeral reply to a
+    /// callback query (Bot API 10.4).
+    ///
+    /// Telegram ignores `chat_id` for ephemeral replies addressed by `callback_query_id`
+    /// alone, so this constructor leaves the parameter out entirely and sets
+    /// [`EphemeralMessageParameters::reply_to_callback_query`](crate::types::ephemeral::EphemeralMessageParameters::reply_to_callback_query).
+    pub fn send_message_to_callback_query(
+        &self,
+        callback_query_id: impl Into<String>,
+        text: impl Into<String>,
+    ) -> SendMessageBuilder<'_> {
+        let mut builder = self.send_message(ChatId::PLACEHOLDER, text);
+        builder.chat_id = None;
+        builder.ephemeral_message_parameters =
+            Some(ephemeral::EphemeralMessageParameters::reply_to_callback_query(callback_query_id));
+        builder
+    }
+
+    /// Build a `sendRichMessage` request that omits `chat_id`, for an ephemeral reply to a
+    /// callback query (Bot API 10.4).
+    ///
+    /// Telegram ignores `chat_id` for ephemeral replies addressed by `callback_query_id`
+    /// alone, so this constructor leaves the parameter out entirely and sets
+    /// [`EphemeralMessageParameters::reply_to_callback_query`](crate::types::ephemeral::EphemeralMessageParameters::reply_to_callback_query).
+    pub fn send_rich_message_to_callback_query(
+        &self,
+        callback_query_id: impl Into<String>,
+        rich_message: input_rich_message::InputRichMessage,
+    ) -> SendRichMessageBuilder<'_> {
+        let mut builder = self.send_rich_message(ChatId::PLACEHOLDER, rich_message);
+        builder.chat_id = None;
+        builder.ephemeral_message_parameters =
+            Some(ephemeral::EphemeralMessageParameters::reply_to_callback_query(callback_query_id));
+        builder
+    }
+
+    /// Build a `sendAnimation` request that omits `chat_id`, for an ephemeral reply to a
+    /// callback query (Bot API 10.4).
+    ///
+    /// Telegram ignores `chat_id` for ephemeral replies addressed by `callback_query_id`
+    /// alone, so this constructor leaves the parameter out entirely and sets
+    /// [`EphemeralMessageParameters::reply_to_callback_query`](crate::types::ephemeral::EphemeralMessageParameters::reply_to_callback_query).
+    pub fn send_animation_to_callback_query(
+        &self,
+        callback_query_id: impl Into<String>,
+        animation: files::input_file::InputFile,
+    ) -> SendAnimationBuilder<'_> {
+        let mut builder = self.send_animation(ChatId::PLACEHOLDER, animation);
+        builder.chat_id = None;
+        builder.ephemeral_message_parameters =
+            Some(ephemeral::EphemeralMessageParameters::reply_to_callback_query(callback_query_id));
+        builder
+    }
+
+    /// Build a `sendAudio` request that omits `chat_id`, for an ephemeral reply to a
+    /// callback query (Bot API 10.4).
+    ///
+    /// Telegram ignores `chat_id` for ephemeral replies addressed by `callback_query_id`
+    /// alone, so this constructor leaves the parameter out entirely and sets
+    /// [`EphemeralMessageParameters::reply_to_callback_query`](crate::types::ephemeral::EphemeralMessageParameters::reply_to_callback_query).
+    pub fn send_audio_to_callback_query(
+        &self,
+        callback_query_id: impl Into<String>,
+        audio: files::input_file::InputFile,
+    ) -> SendAudioBuilder<'_> {
+        let mut builder = self.send_audio(ChatId::PLACEHOLDER, audio);
+        builder.chat_id = None;
+        builder.ephemeral_message_parameters =
+            Some(ephemeral::EphemeralMessageParameters::reply_to_callback_query(callback_query_id));
+        builder
+    }
+
+    /// Build a `sendContact` request that omits `chat_id`, for an ephemeral reply to a
+    /// callback query (Bot API 10.4).
+    ///
+    /// Telegram ignores `chat_id` for ephemeral replies addressed by `callback_query_id`
+    /// alone, so this constructor leaves the parameter out entirely and sets
+    /// [`EphemeralMessageParameters::reply_to_callback_query`](crate::types::ephemeral::EphemeralMessageParameters::reply_to_callback_query).
+    pub fn send_contact_to_callback_query(
+        &self,
+        callback_query_id: impl Into<String>,
+        phone_number: impl Into<String>,
+        first_name: impl Into<String>,
+    ) -> SendContactBuilder<'_> {
+        let mut builder = self.send_contact(ChatId::PLACEHOLDER, phone_number, first_name);
+        builder.chat_id = None;
+        builder.ephemeral_message_parameters =
+            Some(ephemeral::EphemeralMessageParameters::reply_to_callback_query(callback_query_id));
+        builder
+    }
+
+    /// Build a `sendDocument` request that omits `chat_id`, for an ephemeral reply to a
+    /// callback query (Bot API 10.4).
+    ///
+    /// Telegram ignores `chat_id` for ephemeral replies addressed by `callback_query_id`
+    /// alone, so this constructor leaves the parameter out entirely and sets
+    /// [`EphemeralMessageParameters::reply_to_callback_query`](crate::types::ephemeral::EphemeralMessageParameters::reply_to_callback_query).
+    pub fn send_document_to_callback_query(
+        &self,
+        callback_query_id: impl Into<String>,
+        document: files::input_file::InputFile,
+    ) -> SendDocumentBuilder<'_> {
+        let mut builder = self.send_document(ChatId::PLACEHOLDER, document);
+        builder.chat_id = None;
+        builder.ephemeral_message_parameters =
+            Some(ephemeral::EphemeralMessageParameters::reply_to_callback_query(callback_query_id));
+        builder
+    }
+
+    /// Build a `sendLivePhoto` request that omits `chat_id`, for an ephemeral reply to a
+    /// callback query (Bot API 10.4).
+    ///
+    /// Telegram ignores `chat_id` for ephemeral replies addressed by `callback_query_id`
+    /// alone, so this constructor leaves the parameter out entirely and sets
+    /// [`EphemeralMessageParameters::reply_to_callback_query`](crate::types::ephemeral::EphemeralMessageParameters::reply_to_callback_query).
+    pub fn send_live_photo_to_callback_query(
+        &self,
+        callback_query_id: impl Into<String>,
+        live_photo: files::input_file::InputFile,
+        photo: files::input_file::InputFile,
+    ) -> SendLivePhotoBuilder<'_> {
+        let mut builder = self.send_live_photo(ChatId::PLACEHOLDER, live_photo, photo);
+        builder.chat_id = None;
+        builder.ephemeral_message_parameters =
+            Some(ephemeral::EphemeralMessageParameters::reply_to_callback_query(callback_query_id));
+        builder
+    }
+
+    /// Build a `sendLocation` request that omits `chat_id`, for an ephemeral reply to a
+    /// callback query (Bot API 10.4).
+    ///
+    /// Telegram ignores `chat_id` for ephemeral replies addressed by `callback_query_id`
+    /// alone, so this constructor leaves the parameter out entirely and sets
+    /// [`EphemeralMessageParameters::reply_to_callback_query`](crate::types::ephemeral::EphemeralMessageParameters::reply_to_callback_query).
+    pub fn send_location_to_callback_query(
+        &self,
+        callback_query_id: impl Into<String>,
+        latitude: f64,
+        longitude: f64,
+    ) -> SendLocationBuilder<'_> {
+        let mut builder = self.send_location(ChatId::PLACEHOLDER, latitude, longitude);
+        builder.chat_id = None;
+        builder.ephemeral_message_parameters =
+            Some(ephemeral::EphemeralMessageParameters::reply_to_callback_query(callback_query_id));
+        builder
+    }
+
+    /// Build a `sendPhoto` request that omits `chat_id`, for an ephemeral reply to a
+    /// callback query (Bot API 10.4).
+    ///
+    /// Telegram ignores `chat_id` for ephemeral replies addressed by `callback_query_id`
+    /// alone, so this constructor leaves the parameter out entirely and sets
+    /// [`EphemeralMessageParameters::reply_to_callback_query`](crate::types::ephemeral::EphemeralMessageParameters::reply_to_callback_query).
+    pub fn send_photo_to_callback_query(
+        &self,
+        callback_query_id: impl Into<String>,
+        photo: files::input_file::InputFile,
+    ) -> SendPhotoBuilder<'_> {
+        let mut builder = self.send_photo(ChatId::PLACEHOLDER, photo);
+        builder.chat_id = None;
+        builder.ephemeral_message_parameters =
+            Some(ephemeral::EphemeralMessageParameters::reply_to_callback_query(callback_query_id));
+        builder
+    }
+
+    /// Build a `sendSticker` request that omits `chat_id`, for an ephemeral reply to a
+    /// callback query (Bot API 10.4).
+    ///
+    /// Telegram ignores `chat_id` for ephemeral replies addressed by `callback_query_id`
+    /// alone, so this constructor leaves the parameter out entirely and sets
+    /// [`EphemeralMessageParameters::reply_to_callback_query`](crate::types::ephemeral::EphemeralMessageParameters::reply_to_callback_query).
+    pub fn send_sticker_to_callback_query(
+        &self,
+        callback_query_id: impl Into<String>,
+        sticker: files::input_file::InputFile,
+    ) -> SendStickerBuilder<'_> {
+        let mut builder = self.send_sticker(ChatId::PLACEHOLDER, sticker);
+        builder.chat_id = None;
+        builder.ephemeral_message_parameters =
+            Some(ephemeral::EphemeralMessageParameters::reply_to_callback_query(callback_query_id));
+        builder
+    }
+
+    /// Build a `sendVenue` request that omits `chat_id`, for an ephemeral reply to a
+    /// callback query (Bot API 10.4).
+    ///
+    /// Telegram ignores `chat_id` for ephemeral replies addressed by `callback_query_id`
+    /// alone, so this constructor leaves the parameter out entirely and sets
+    /// [`EphemeralMessageParameters::reply_to_callback_query`](crate::types::ephemeral::EphemeralMessageParameters::reply_to_callback_query).
+    pub fn send_venue_to_callback_query(
+        &self,
+        callback_query_id: impl Into<String>,
+        latitude: f64,
+        longitude: f64,
+        title: impl Into<String>,
+        address: impl Into<String>,
+    ) -> SendVenueBuilder<'_> {
+        let mut builder = self.send_venue(ChatId::PLACEHOLDER, latitude, longitude, title, address);
+        builder.chat_id = None;
+        builder.ephemeral_message_parameters =
+            Some(ephemeral::EphemeralMessageParameters::reply_to_callback_query(callback_query_id));
+        builder
+    }
+
+    /// Build a `sendVideo` request that omits `chat_id`, for an ephemeral reply to a
+    /// callback query (Bot API 10.4).
+    ///
+    /// Telegram ignores `chat_id` for ephemeral replies addressed by `callback_query_id`
+    /// alone, so this constructor leaves the parameter out entirely and sets
+    /// [`EphemeralMessageParameters::reply_to_callback_query`](crate::types::ephemeral::EphemeralMessageParameters::reply_to_callback_query).
+    pub fn send_video_to_callback_query(
+        &self,
+        callback_query_id: impl Into<String>,
+        video: files::input_file::InputFile,
+    ) -> SendVideoBuilder<'_> {
+        let mut builder = self.send_video(ChatId::PLACEHOLDER, video);
+        builder.chat_id = None;
+        builder.ephemeral_message_parameters =
+            Some(ephemeral::EphemeralMessageParameters::reply_to_callback_query(callback_query_id));
+        builder
+    }
+
+    /// Build a `sendVideoNote` request that omits `chat_id`, for an ephemeral reply to a
+    /// callback query (Bot API 10.4).
+    ///
+    /// Telegram ignores `chat_id` for ephemeral replies addressed by `callback_query_id`
+    /// alone, so this constructor leaves the parameter out entirely and sets
+    /// [`EphemeralMessageParameters::reply_to_callback_query`](crate::types::ephemeral::EphemeralMessageParameters::reply_to_callback_query).
+    pub fn send_video_note_to_callback_query(
+        &self,
+        callback_query_id: impl Into<String>,
+        video_note: files::input_file::InputFile,
+    ) -> SendVideoNoteBuilder<'_> {
+        let mut builder = self.send_video_note(ChatId::PLACEHOLDER, video_note);
+        builder.chat_id = None;
+        builder.ephemeral_message_parameters =
+            Some(ephemeral::EphemeralMessageParameters::reply_to_callback_query(callback_query_id));
+        builder
+    }
+
+    /// Build a `sendVoice` request that omits `chat_id`, for an ephemeral reply to a
+    /// callback query (Bot API 10.4).
+    ///
+    /// Telegram ignores `chat_id` for ephemeral replies addressed by `callback_query_id`
+    /// alone, so this constructor leaves the parameter out entirely and sets
+    /// [`EphemeralMessageParameters::reply_to_callback_query`](crate::types::ephemeral::EphemeralMessageParameters::reply_to_callback_query).
+    pub fn send_voice_to_callback_query(
+        &self,
+        callback_query_id: impl Into<String>,
+        voice: files::input_file::InputFile,
+    ) -> SendVoiceBuilder<'_> {
+        let mut builder = self.send_voice(ChatId::PLACEHOLDER, voice);
+        builder.chat_id = None;
+        builder.ephemeral_message_parameters =
+            Some(ephemeral::EphemeralMessageParameters::reply_to_callback_query(callback_query_id));
+        builder
     }
 }

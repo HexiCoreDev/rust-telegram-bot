@@ -491,10 +491,13 @@ mod tests {
     fn uuid_is_32_lowercase_hex_chars() {
         let id = generate_uuid();
         assert_eq!(id.len(), 32);
+        // The failure message deliberately omits the id itself: it is not a
+        // diagnostic value (the format is what broke) and keeping it out of the
+        // panic message keeps secret scanner heuristics quiet.
         assert!(
             id.bytes()
                 .all(|b| b.is_ascii_hexdigit() && !b.is_ascii_uppercase()),
-            "callback id must be lowercase hex: {id}"
+            "callback id must be lowercase hex"
         );
     }
 

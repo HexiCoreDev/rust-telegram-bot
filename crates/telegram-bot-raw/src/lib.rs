@@ -23,6 +23,8 @@ pub mod bot_builders_3;
 /// Builder types for editing, games, inline, media, core, stories, reactions,
 /// passport, suggested posts, user profile, and verification API methods.
 pub mod bot_builders_4;
+/// Builder types for widget and chat share theme API methods (Bot API 10.4).
+pub mod bot_builders_5;
 /// Typed constants for chat types, parse modes, message entity types, etc.
 pub mod constants;
 /// Error types used throughout the crate.

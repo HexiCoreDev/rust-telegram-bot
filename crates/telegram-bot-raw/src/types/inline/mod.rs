@@ -58,9 +58,13 @@ pub mod input_location_message_content;
 pub mod input_message_content;
 /// Input rich message content type.
 pub mod input_rich_message_content;
+/// Input shared widget message content type.
+pub mod input_shared_widget_message_content;
 /// Input text message content type.
 pub mod input_text_message_content;
 /// Input venue message content type.
 pub mod input_venue_message_content;
+/// Input widget message content type.
+pub mod input_widget_message_content;
 /// Prepared inline message type.
 pub mod prepared_inline_message;
