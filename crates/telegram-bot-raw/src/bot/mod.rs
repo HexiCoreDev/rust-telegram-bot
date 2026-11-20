@@ -317,6 +317,30 @@ impl Bot {
         }
     }
 
+    /// Returns a copy of the bot pointed at a different Bot API root.
+    ///
+    /// `base` is the API root — `https://api.telegram.org` for production, or e.g.
+    /// `http://localhost:8081` for a self-hosted Bot API server. The `/bot<token>` and
+    /// `/file/bot<token>` suffixes are appended here, so pass the root only.
+    #[must_use]
+    pub fn with_base_url(mut self, base: impl AsRef<str>) -> Self {
+        let base = base.as_ref().trim_end_matches('/');
+        self.base_url = format!("{base}/bot{}", self.token).into();
+        self.base_file_url = format!("{base}/file/bot{}", self.token).into();
+        self
+    }
+
+    /// Returns a copy of the bot whose file downloads use a different root.
+    ///
+    /// Useful when the API lives on one host and file downloads on another; `base` is the
+    /// root only, the `/file/bot<token>` suffix is appended here.
+    #[must_use]
+    pub fn with_base_file_url(mut self, base: impl AsRef<str>) -> Self {
+        let base = base.as_ref().trim_end_matches('/');
+        self.base_file_url = format!("{base}/file/bot{}", self.token).into();
+        self
+    }
+
     /// Returns the bot token.
     pub fn token(&self) -> &str {
         &self.token

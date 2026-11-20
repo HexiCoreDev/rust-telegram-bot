@@ -55,7 +55,57 @@ ps -eo pid,rss,vsz,comm | grep "<bot_process_name>"
 
 RSS = Resident Set Size (actual RAM used).
 
-## Results (April 8, 2026)
+## Results (November 20, 2026) — offline re-run, latest teloxide
+
+**System:** x86_64, 14 cores, 15 GB RAM, Arch Linux (kernel 7.3.5)
+**Rust:** 1.100.0, release profile (RTB: workspace LTO / `opt-level="z"` / strip; teloxide-bench: default release)
+**teloxide:** 0.17.0 — the newest published release, so the comparison target was already current
+
+Both bots are the same benchmark bot as above (inline keyboard, `/help`, echo with typing
+action, callback query, webhook on :8000). This run needs **no bot token**: the bots point at
+`benchmarks/stub_api.py` via `TELEGRAM_API_URL`, and synthetic updates are POSTed straight to
+each bot's webhook by `benchmarks/measure_rss.sh`. There is no live Telegram traffic and no
+TLS, so these are framework footprints, not end-to-end latencies.
+
+| Framework | Idle RSS | +200 updates | +1000 updates | Binary (release) | Binary (stripped) | Crates |
+|-----------|:--------:|:------------:|:-------------:|:----------------:|:-----------------:|:------:|
+| teloxide 0.17.0 | 14.0 MB | 14.1 MB | 14.1 MB | 9.45 MB | **6.45 MB** | 208 |
+| RTB 1.0.0 | **7.2 MB** | 9.5 MB | 9.6 MB | **7.22 MB**¹ | 7.22 MB | 160 |
+
+¹ RTB's example is compiled with the workspace profile, which already strips; the "release"
+and "stripped" columns are therefore the same binary.
+
+What the numbers say:
+
+- **Idle footprint**: RTB uses about **half** the RSS of teloxide (7.2 vs 14.0 MB) with 160
+  crates in the graph instead of 208. Unlike teloxide, RTB does not keep the whole framework
+  (dispatcher, dialogues, filters, conversation state) initialized at startup.
+- **Per-update growth**: RTB rises ~2.3 MB and then **plateaus** — identical after 200 and
+  1000 updates, so it is allocator retention for the per-update buffers, not a leak.
+  teloxide's RSS is flat (+0.2 MB over 1000 updates).
+- **Binary size**: teloxide's stripped binary is ~0.8 MB smaller (6.45 vs 7.22 MB) for a
+  single-bot webhook program. RTB carries the full framework surface in the same binary.
+- **Caveat**: no live Telegram round-trips means no TLS sessions and no response payloads
+  beyond the stub's canned objects; a live run adds a few MB to both sides.
+
+Re-running it:
+
+```sh
+cargo build --release -p rust-tg-bot --example bench_bot --features webhooks
+cargo build --release --manifest-path benchmarks/teloxide/Cargo.toml
+benchmarks/measure_rss.sh 200        # or 1000
+```
+
+The harness gained three things for this run:
+
+- `benchmarks/stub_api.py` — a case-insensitive Bot API stub (`setWebhook`, `getMe`,
+  `sendMessage`, `editMessageText`, `getWebhookInfo`).
+- `benchmarks/measure_rss.sh` — starts the stub, runs each bot, sends N synthetic updates,
+  reports idle/load RSS.
+- `TELEGRAM_API_URL` support in both bench bots — RTB via `ApplicationBuilder::base_url`
+  (previously a stored-but-ignored option; fixed here), teloxide via `Bot::set_api_url`.
+
+## Results (April 8, 2026) — live API run
 
 **System:** x86_64, 4 cores, 15 GB RAM, Arch Linux
 **Rust:** 1.93.0 | **Python:** 3.14.3
@@ -83,8 +133,8 @@ RSS = Resident Set Size (actual RAM used).
 ### Analysis
 
 - **PTB** uses the most memory (57 MB idle, 60 MB under load) — Python's GC and interpreter overhead.
-- **teloxide** is lean at 15/17 MB with a 6.6 MB binary. Its focused dispatcher design avoids framework overhead.
-- **RTB** matches teloxide exactly (15/17 MB) while providing the full PTB-equivalent framework: 22 handler types, 44+ composable filters, ConversationHandler, persistence, job queue, 194 builders, 90+ type constructors. RTB's binary is **6.9 MB** stripped (echo_bot reference; Bot API 10.4 surface cost +0.3 MB over rc.2).
+- **teloxide** measured 15/17 MB (whole-MB readout) with a 6.6 MB stripped binary in the live run; the November offline harness puts it at 14.0 MB idle.
+- **RTB** measured the same 15/17 MB in the live run; the November re-run shows a **7.2 MB** idle footprint (half of teloxide's) while providing the full PTB-equivalent framework: 22 handler types, 44+ composable filters, ConversationHandler, persistence, job queue, 194 builders, 90+ type constructors. RTB's binary is **6.9 MB** stripped (echo_bot reference) and **7.2 MB** for the benchmark bot with `webhooks`.
 
 ### Why RTB matches teloxide despite the larger feature set
 
@@ -95,4 +145,4 @@ RSS = Resident Set Size (actual RAM used).
 
 ### Value proposition
 
-RTB matches teloxide on memory (15/17 MB) and beats it on binary size (6.2 vs 6.6 MB) while providing: ConversationHandler state machine, JSON/SQLite persistence, tokio-native job queue, 44+ composable filters with `&`/`|`/`!` operators, 194 directly-awaitable builders, 90+ type constructors, and a developer experience that mirrors python-telegram-bot. That is 3.5x less memory than PTB with no runtime required.
+RTB uses roughly half teloxide's idle memory (7.2 vs 14.0 MB, November 2026) while providing: ConversationHandler state machine, JSON/SQLite persistence, tokio-native job queue, 44+ composable filters with `&`/`|`/`!` operators, 194 directly-awaitable builders, 90+ type constructors, and a developer experience that mirrors python-telegram-bot. That is 4x less memory than PTB with no runtime required. teloxide's stripped binary is smaller (6.45 vs 7.22 MB) for a single-bot webhook program — that is the price of the full framework surface.

@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- `ApplicationBuilder::base_url` / `base_file_url` were stored but never applied: a bot
+  configured with a custom API root (self-hosted Bot API server, local stub) silently talked
+  to `https://api.telegram.org`. The builder now rewrites the bot's `/bot<token>` and
+  `/file/bot<token>` endpoints, and `Bot` gained `with_base_url` / `with_base_file_url`
+  for the same thing below the builder. Found while re-running the benchmarks offline.
+
+### Changed
+
+- Benchmarks: refresh against `teloxide 0.17.0` (still the newest published release) with a
+  token-free harness (`benchmarks/stub_api.py`, `benchmarks/measure_rss.sh`,
+  `TELEGRAM_API_URL` in both bench bots). Measured: RTB 7.2 MB idle / 9.6 MB after 1000
+  updates vs teloxide 14.0 / 14.1 MB; stripped binaries 7.22 vs 6.45 MB.
+
 ## [1.0.0] - 2026-11-19
 
 First stable release. Upgraded from Bot API 10.3 to **Bot API 10.4** (released

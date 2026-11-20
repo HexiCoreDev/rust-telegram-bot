@@ -113,7 +113,12 @@ async fn main() {
         .parse()
         .expect("PORT must be a number");
 
-    let app = ApplicationBuilder::new().token(&token).build();
+    // Point at a stub API to measure startup/idle memory without a live bot.
+    let mut builder = ApplicationBuilder::new().token(&token);
+    if let Ok(api_url) = std::env::var("TELEGRAM_API_URL") {
+        builder = builder.base_url(api_url);
+    }
+    let app = builder.build();
 
     app.add_handler(CommandHandler::new("start", start), 0)
         .await;

@@ -255,7 +255,15 @@ impl ApplicationBuilder<HasToken> {
         #[cfg(not(feature = "rate-limiter"))]
         let (effective_request, rate_limiter) = (request, self.rate_limiter);
 
-        let bot_raw = Bot::new(&token, effective_request);
+        // The builder's `base_url` / `base_file_url` were stored but never applied, so a
+        // custom API root (local Bot API server, test stub) silently talked to production.
+        let mut bot_raw = Bot::new(&token, effective_request);
+        if let Some(base) = self.base_url.as_deref() {
+            bot_raw = bot_raw.with_base_url(base);
+        }
+        if let Some(base) = self.base_file_url.as_deref() {
+            bot_raw = bot_raw.with_base_file_url(base);
+        }
 
         let ext_bot = Arc::new(ExtBot::new(
             bot_raw,
@@ -310,6 +318,36 @@ mod tests {
             .request(mock_request())
             .build();
         assert_eq!(app.bot().token(), "test_token");
+    }
+
+    #[test]
+    fn builder_applies_custom_base_url() {
+        let app = ApplicationBuilder::new()
+            .token("t")
+            .request(mock_request())
+            .base_url("http://127.0.0.1:8099")
+            .build();
+        assert_eq!(app.bot().base_url(), "http://127.0.0.1:8099/bott");
+        assert_eq!(app.bot().base_file_url(), "http://127.0.0.1:8099/file/bott");
+
+        // No override keeps the production endpoints.
+        let default = ApplicationBuilder::new()
+            .token("t")
+            .request(mock_request())
+            .build();
+        assert_eq!(default.bot().base_url(), "https://api.telegram.org/bott");
+
+        // A separate file root only rewrites the download URL.
+        let split = ApplicationBuilder::new()
+            .token("t")
+            .request(mock_request())
+            .base_file_url("http://127.0.0.1:9000")
+            .build();
+        assert_eq!(
+            split.bot().base_file_url(),
+            "http://127.0.0.1:9000/file/bott"
+        );
+        assert_eq!(split.bot().base_url(), "https://api.telegram.org/bott");
     }
 
     #[test]

@@ -108,7 +108,12 @@ async fn main() {
     let token = std::env::var("TELEGRAM_BOT_TOKEN").expect("TELEGRAM_BOT_TOKEN required");
     let webhook_url = std::env::var("WEBHOOK_URL").expect("WEBHOOK_URL required");
 
-    let app = ApplicationBuilder::new().token(&token).build();
+    // Point at a stub API to measure startup/idle memory without a live bot.
+    let mut builder = ApplicationBuilder::new().token(&token);
+    if let Ok(api_url) = std::env::var("TELEGRAM_API_URL") {
+        builder = builder.base_url(api_url);
+    }
+    let app = builder.build();
 
     app.add_handler(CommandHandler::new("start", start), 0)
         .await;

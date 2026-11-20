@@ -47,8 +47,8 @@ We acknowledge and thank the python-telegram-bot maintainers and community for o
 | **Performance** | GIL-limited concurrency, interpreted | True parallelism, compiled to native code |
 | **Memory safety** | Runtime GC, potential leaks in long-running bots | Ownership system prevents leaks at compile time |
 | **Type safety** | Optional type hints, runtime errors | Enforced at compile time, no `AttributeError` at 3 AM |
-| **Deployment** | Requires Python runtime + virtualenv | Single static binary, 6.9 MB stripped |
-| **Resource usage** | 57 MB RSS (measured) | 15 MB idle / 17 MB load (matches teloxide, see [benchmarks](benchmarks/)) |
+| **Deployment** | Requires Python runtime + virtualenv | Single static binary, 6.9 MB stripped (7.2 MB with `webhooks`) |
+| **Resource usage** | 57 MB RSS (measured) | 7.2 MB idle / 9.6 MB after 1k updates, teloxide 14.0 MB (see [benchmarks](benchmarks/)) |
 | **Concurrency** | asyncio (single-threaded) | tokio (multi-threaded work-stealing) |
 
 For bots that handle high volumes of updates, run on constrained hardware (VPS, Raspberry Pi, containers), or need to be deployed without a runtime, Rust is the right tool.
@@ -477,9 +477,9 @@ rust-tg-bot = { git = "https://github.com/HexiCoreDev/rust-telegram-bot", featur
 | Persistence | JSON file, SQLite, Redis, PostgreSQL, custom trait | Pickle, Dict, custom | Community crates |
 | Webhook support | axum | tornado / starlette | axum / warp |
 | Type safety | Compile-time | Runtime (optional hints) | Compile-time |
-| Memory idle (measured) | **15 MB** | 57 MB | **15 MB** |
-| Memory under load (measured) | **17 MB** | 60 MB | **17 MB** |
-| Binary size (stripped) | **6.9 MB** | Requires Python runtime | 6.6 MB |
+| Memory idle (measured) | **7.2 MB** | 57 MB | 14.0 MB |
+| Memory after 1k updates (measured) | **9.6 MB** | 60 MB | 14.1 MB |
+| Binary size (stripped) | **7.2 MB** | Requires Python runtime | 6.45 MB |
 | Minimum version | Rust 1.94 | Python 3.10 | Rust 1.68 |
 | Builder pattern | IntoFuture (directly awaitable) | Keyword args | Method chains |
 | Typed constants | `ParseMode::Html` | `ParseMode.HTML` | String-based |
@@ -545,8 +545,8 @@ What is implemented:
 - 385+ tests passing, zero clippy warnings
 - 25 roundtrip serialization tests, 9 proptest filter tests, 10 persistence stress tests
 - GitHub Actions CI: check, test, clippy, format, examples, docs (stable + MSRV 1.94)
-- Release pipeline: cross-compile binaries + crates.io publish
-- Measured performance: 6.9 MB binary (stripped, echo_bot reference, Bot API 10.4 surface), 15 MB idle / 17 MB RSS under load (release) -- matches teloxide on memory
+- Release pipeline: crates.io publish (library-only crate, no binaries) + GitHub Release on tags
+- Measured performance: 6.9 MB binary (stripped, echo_bot reference, Bot API 10.4 surface; 7.2 MB for the benchmark bot with `webhooks`), 7.2 MB idle RSS against teloxide's 14.0 MB (offline harness, November 2026 — see [benchmarks](benchmarks/))
 
 ### Forward Compatibility
 

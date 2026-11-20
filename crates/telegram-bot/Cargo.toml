@@ -10,7 +10,7 @@ authors = ["Jude Etuka <judechinedu122@gmail.com>"]
 keywords = ["telegram", "bot", "api", "async", "framework"]
 categories = ["api-bindings", "asynchronous", "web-programming"]
 documentation = "https://docs.rs/rust-tg-bot"
-homepage = "https://github.com/HexiCoreDev/rust-telegram-bot"
+homepage = "https://rust-tg-bot-docs.vercel.app/"
 readme = "../../README.md"
 exclude = ["target/", ".github/", "docs/", "examples/"]
 

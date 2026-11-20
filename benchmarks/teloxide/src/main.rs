@@ -16,7 +16,15 @@ use teloxide::update_listeners::webhooks;
 async fn main() {
     tracing_subscriber::fmt::init();
 
-    let bot = Bot::from_env();
+    let token = std::env::var("TELOXIDE_TOKEN")
+        .or_else(|_| std::env::var("TELEGRAM_BOT_TOKEN"))
+        .expect("TELOXIDE_TOKEN (or TELEGRAM_BOT_TOKEN) must be set");
+    // Point at a stub API to measure startup/idle memory without a live bot.
+    let bot = match std::env::var("TELEGRAM_API_URL") {
+        Ok(api_url) => Bot::new(token)
+            .set_api_url(api_url.parse().expect("TELEGRAM_API_URL must be a valid URL")),
+        Err(_) => Bot::new(token),
+    };
     let webhook_url = std::env::var("WEBHOOK_URL")
         .expect("WEBHOOK_URL must be set")
         .parse()
