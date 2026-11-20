@@ -78,7 +78,7 @@ false failure before it was handled:
 | [`webhook_bot`](https://github.com/HexiCoreDev/rust-telegram-bot/blob/main/crates/telegram-bot/examples/webhook_bot.rs) | The simplest webhook deployment | `webhooks` | `WEBHOOK_URL`, `PORT` |
 | [`webhook_echo_bot`](https://github.com/HexiCoreDev/rust-telegram-bot/blob/main/crates/telegram-bot/examples/webhook_echo_bot.rs) | A webhook echo bot with a secret token, end to end | `webhooks` | `WEBHOOK_URL`, `WEBHOOK_SECRET`, `PORT`, `WEBHOOK_PATH` |
 | [`custom_webhook_bot`](https://github.com/HexiCoreDev/rust-telegram-bot/blob/main/crates/telegram-bot/examples/custom_webhook_bot.rs) | Your own axum routes alongside the Telegram webhook | `webhooks` | `WEBHOOK_URL`, `ADMIN_CHAT_ID`, `PORT` |
-| [`bench_bot`](https://github.com/HexiCoreDev/rust-telegram-bot/blob/main/crates/telegram-bot/examples/bench_bot.rs) | A webhook bot for measuring update latency | `webhooks` | `WEBHOOK_URL`, `PORT` |
+| [`bench_bot`](https://github.com/HexiCoreDev/rust-telegram-bot/blob/main/crates/telegram-bot/examples/bench_bot.rs) | A webhook bot for measuring update latency; `TELEGRAM_API_URL` points it at a stub API for offline runs | `webhooks` | `WEBHOOK_URL`, `PORT`, `TELEGRAM_API_URL` |
 | [`payment_bot`](https://github.com/HexiCoreDev/rust-telegram-bot/blob/main/crates/telegram-bot/examples/payment_bot.rs) | Star payments and pre-checkout queries | — | `PAYMENT_PROVIDER_TOKEN` |
 | [`passport_bot`](https://github.com/HexiCoreDev/rust-telegram-bot/blob/main/crates/telegram-bot/examples/passport_bot.rs) | Telegram Passport decryption | — | — |
 | [`webapp_bot`](https://github.com/HexiCoreDev/rust-telegram-bot/blob/main/crates/telegram-bot/examples/webapp_bot.rs) | Launching a Mini App and answering `web_app_data` | — | — |
