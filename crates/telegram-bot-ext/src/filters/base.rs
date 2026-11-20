@@ -505,161 +505,207 @@ macro_rules! message_presence_filter {
 
 message_presence_filter!(
     /// Messages containing an animation (GIF).
-    AnimationFilter, animation, "filters.ANIMATION"
+    AnimationFilter,
+    animation,
+    "filters.ANIMATION"
 );
 /// Constant instance of [`AnimationFilter`] -- matches messages containing an animation (GIF).
 pub const ANIMATION: AnimationFilter = AnimationFilter;
 
 message_presence_filter!(
     /// Messages containing audio.
-    AudioFilter, audio, "filters.AUDIO"
+    AudioFilter,
+    audio,
+    "filters.AUDIO"
 );
 /// Constant instance of [`AudioFilter`] -- matches messages containing audio.
 pub const AUDIO: AudioFilter = AudioFilter;
 
 message_presence_filter!(
     /// Messages containing a boost_added notification.
-    BoostAdded, boost_added, "filters.BOOST_ADDED"
+    BoostAdded,
+    boost_added,
+    "filters.BOOST_ADDED"
 );
 /// Constant instance of [`BoostAdded`] -- matches messages containing a boost-added notification.
 pub const BOOST_ADDED: BoostAdded = BoostAdded;
 
 message_presence_filter!(
     /// Messages containing a checklist.
-    ChecklistFilter, checklist, "filters.CHECKLIST"
+    ChecklistFilter,
+    checklist,
+    "filters.CHECKLIST"
 );
 /// Constant instance of [`ChecklistFilter`] -- matches messages containing a checklist.
 pub const CHECKLIST: ChecklistFilter = ChecklistFilter;
 
 message_presence_filter!(
     /// Messages containing a contact.
-    ContactFilter, contact, "filters.CONTACT"
+    ContactFilter,
+    contact,
+    "filters.CONTACT"
 );
 /// Constant instance of [`ContactFilter`] -- matches messages containing a contact.
 pub const CONTACT: ContactFilter = ContactFilter;
 
 message_presence_filter!(
     /// Messages containing an effect_id.
-    EffectId, effect_id, "filters.EFFECT_ID"
+    EffectId,
+    effect_id,
+    "filters.EFFECT_ID"
 );
 /// Constant instance of [`EffectId`] -- matches messages containing an effect ID.
 pub const EFFECT_ID: EffectId = EffectId;
 
 message_presence_filter!(
     /// Messages that have a forward_origin.
-    ForwardedPresence, forward_origin, "filters.FORWARDED"
+    ForwardedPresence,
+    forward_origin,
+    "filters.FORWARDED"
 );
 /// Constant instance of [`ForwardedPresence`] -- matches messages that have a forward origin.
 pub const FORWARDED: ForwardedPresence = ForwardedPresence;
 
 message_presence_filter!(
     /// Messages containing a game.
-    GameFilter, game, "filters.GAME"
+    GameFilter,
+    game,
+    "filters.GAME"
 );
 /// Constant instance of [`GameFilter`] -- matches messages containing a game.
 pub const GAME: GameFilter = GameFilter;
 
 message_presence_filter!(
     /// Messages containing a giveaway.
-    GiveawayFilter, giveaway, "filters.GIVEAWAY"
+    GiveawayFilter,
+    giveaway,
+    "filters.GIVEAWAY"
 );
 /// Constant instance of [`GiveawayFilter`] -- matches messages containing a giveaway.
 pub const GIVEAWAY: GiveawayFilter = GiveawayFilter;
 
 message_presence_filter!(
     /// Messages containing giveaway_winners.
-    GiveawayWinners, giveaway_winners, "filters.GIVEAWAY_WINNERS"
+    GiveawayWinners,
+    giveaway_winners,
+    "filters.GIVEAWAY_WINNERS"
 );
 /// Constant instance of [`GiveawayWinners`] -- matches messages containing giveaway winners.
 pub const GIVEAWAY_WINNERS: GiveawayWinners = GiveawayWinners;
 
 message_presence_filter!(
     /// Messages containing an invoice.
-    InvoiceFilter, invoice, "filters.INVOICE"
+    InvoiceFilter,
+    invoice,
+    "filters.INVOICE"
 );
 /// Constant instance of [`InvoiceFilter`] -- matches messages containing an invoice.
 pub const INVOICE: InvoiceFilter = InvoiceFilter;
 
 message_presence_filter!(
     /// Messages containing a location.
-    LocationFilter, location, "filters.LOCATION"
+    LocationFilter,
+    location,
+    "filters.LOCATION"
 );
 /// Constant instance of [`LocationFilter`] -- matches messages containing a location.
 pub const LOCATION: LocationFilter = LocationFilter;
 
 message_presence_filter!(
     /// Messages containing paid media.
-    PaidMediaFilter, paid_media, "filters.PAID_MEDIA"
+    PaidMediaFilter,
+    paid_media,
+    "filters.PAID_MEDIA"
 );
 /// Constant instance of [`PaidMediaFilter`] -- matches messages containing paid media.
 pub const PAID_MEDIA: PaidMediaFilter = PaidMediaFilter;
 
 message_presence_filter!(
     /// Messages containing passport data.
-    PassportDataFilter, passport_data, "filters.PASSPORT_DATA"
+    PassportDataFilter,
+    passport_data,
+    "filters.PASSPORT_DATA"
 );
 /// Constant instance of [`PassportDataFilter`] -- matches messages containing passport data.
 pub const PASSPORT_DATA: PassportDataFilter = PassportDataFilter;
 
 message_presence_filter!(
     /// Messages containing a poll.
-    PollFilter, poll, "filters.POLL"
+    PollFilter,
+    poll,
+    "filters.POLL"
 );
 /// Constant instance of [`PollFilter`] -- matches messages containing a poll.
 pub const POLL: PollFilter = PollFilter;
 
 message_presence_filter!(
     /// Messages that are replies.
-    ReplyFilter, reply_to_message, "filters.REPLY"
+    ReplyFilter,
+    reply_to_message,
+    "filters.REPLY"
 );
 /// Constant instance of [`ReplyFilter`] -- matches messages that are replies.
 pub const REPLY: ReplyFilter = ReplyFilter;
 
 message_presence_filter!(
     /// Messages that are replies to a story.
-    ReplyToStory, reply_to_story, "filters.REPLY_TO_STORY"
+    ReplyToStory,
+    reply_to_story,
+    "filters.REPLY_TO_STORY"
 );
 /// Constant instance of [`ReplyToStory`] -- matches messages that are replies to a story.
 pub const REPLY_TO_STORY: ReplyToStory = ReplyToStory;
 
 message_presence_filter!(
     /// Messages containing a story.
-    StoryFilter, story, "filters.STORY"
+    StoryFilter,
+    story,
+    "filters.STORY"
 );
 /// Constant instance of [`StoryFilter`] -- matches messages containing a story.
 pub const STORY: StoryFilter = StoryFilter;
 
 message_presence_filter!(
     /// Messages containing a venue.
-    VenueFilter, venue, "filters.VENUE"
+    VenueFilter,
+    venue,
+    "filters.VENUE"
 );
 /// Constant instance of [`VenueFilter`] -- matches messages containing a venue.
 pub const VENUE: VenueFilter = VenueFilter;
 
 message_presence_filter!(
     /// Messages containing a video.
-    VideoFilter, video, "filters.VIDEO"
+    VideoFilter,
+    video,
+    "filters.VIDEO"
 );
 /// Constant instance of [`VideoFilter`] -- matches messages containing a video.
 pub const VIDEO: VideoFilter = VideoFilter;
 
 message_presence_filter!(
     /// Messages containing a video note.
-    VideoNoteFilter, video_note, "filters.VIDEO_NOTE"
+    VideoNoteFilter,
+    video_note,
+    "filters.VIDEO_NOTE"
 );
 /// Constant instance of [`VideoNoteFilter`] -- matches messages containing a video note.
 pub const VIDEO_NOTE: VideoNoteFilter = VideoNoteFilter;
 
 message_presence_filter!(
     /// Messages containing voice audio.
-    VoiceFilter, voice, "filters.VOICE"
+    VoiceFilter,
+    voice,
+    "filters.VOICE"
 );
 /// Constant instance of [`VoiceFilter`] -- matches messages containing voice audio.
 pub const VOICE: VoiceFilter = VoiceFilter;
 
 message_presence_filter!(
     /// Messages containing suggested_post_info.
-    SuggestedPostInfo, suggested_post_info, "filters.SUGGESTED_POST_INFO"
+    SuggestedPostInfo,
+    suggested_post_info,
+    "filters.SUGGESTED_POST_INFO"
 );
 /// Constant instance of [`SuggestedPostInfo`] -- matches messages containing suggested post info.
 pub const SUGGESTED_POST_INFO: SuggestedPostInfo = SuggestedPostInfo;

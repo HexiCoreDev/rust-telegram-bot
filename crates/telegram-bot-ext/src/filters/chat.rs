@@ -175,22 +175,30 @@ macro_rules! chat_type_filter {
 
 chat_type_filter!(
     /// `filters.ChatType.CHANNEL` -- updates from channels.
-    ChatTypeChannel, "channel", "filters.ChatType.CHANNEL"
+    ChatTypeChannel,
+    "channel",
+    "filters.ChatType.CHANNEL"
 );
 
 chat_type_filter!(
     /// `filters.ChatType.GROUP` -- updates from basic groups.
-    ChatTypeGroup, "group", "filters.ChatType.GROUP"
+    ChatTypeGroup,
+    "group",
+    "filters.ChatType.GROUP"
 );
 
 chat_type_filter!(
     /// `filters.ChatType.PRIVATE` -- updates from private chats.
-    ChatTypePrivate, "private", "filters.ChatType.PRIVATE"
+    ChatTypePrivate,
+    "private",
+    "filters.ChatType.PRIVATE"
 );
 
 chat_type_filter!(
     /// `filters.ChatType.SUPERGROUP` -- updates from supergroups.
-    ChatTypeSuperGroup, "supergroup", "filters.ChatType.SUPERGROUP"
+    ChatTypeSuperGroup,
+    "supergroup",
+    "filters.ChatType.SUPERGROUP"
 );
 
 /// `filters.ChatType.GROUPS` -- updates from groups *or* supergroups.
