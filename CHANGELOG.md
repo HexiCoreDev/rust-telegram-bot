@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.1] - 2026-11-20
+
 ### Fixed
 
 - `ApplicationBuilder::base_url` / `base_file_url` were stored but never applied: a bot
@@ -21,6 +23,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   token-free harness (`benchmarks/stub_api.py`, `benchmarks/measure_rss.sh`,
   `TELEGRAM_API_URL` in both bench bots). Measured: RTB 7.2 MB idle / 9.6 MB after 1000
   updates vs teloxide 14.0 / 14.1 MB; stripped binaries 7.22 vs 6.45 MB.
+- Crate `homepage` metadata points at the guide instead of repeating `repository`,
+  which also clears the cargo manifest lint.
+- `bench_bot` lists `TELEGRAM_API_URL` in the examples index, keeping the docs checker
+  and the mdBook deploy in sync.
 
 ## [1.0.0] - 2026-11-19
 

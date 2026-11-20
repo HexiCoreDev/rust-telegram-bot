@@ -51,7 +51,7 @@ Enable the `webhooks` feature:
 
 ```toml
 [dependencies]
-rust-tg-bot = { version = "1.0.0", features = ["webhooks"] }
+rust-tg-bot = { version = "1.0.1", features = ["webhooks"] }
 ```
 
 ### Simple Webhook

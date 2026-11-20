@@ -10,10 +10,24 @@ The coverage audit for the current spec is reproducible with `make tg-api-parity
 
 | Release | Bot API | What landed |
 | --- | --- | --- |
-| **1.0.0** (current) | **10.4** | HTML widgets, TON wallet cards, chat share themes, ephemeral replies without `chat_id`, rich-message quotes |
+| **1.0.1** (current) | **10.4** | patch: custom API base URL (`ApplicationBuilder::base_url`) is now applied; benchmarks refreshed offline against teloxide 0.17.0 |
+| 1.0.0 | 10.4 | HTML widgets, TON wallet cards, chat share themes, ephemeral replies without `chat_id`, rich-message quotes |
 | 1.0.0-rc.4 | 10.0 – 10.3 | live photos, guest mode, poll media, rich messages, ephemeral messages and parameters, communities, rich buttons |
 | 1.0.0-beta | 9.6 | first complete surface: 169 methods, 301 types |
 | earlier betas | 9.5 | port of python-telegram-bot v22: Application, handlers, filters, conversations, job queue, persistence |
+
+## 1.0.1 — patch release
+
+Small, but worth upgrading if you run against a self-hosted Bot API server:
+
+- **`ApplicationBuilder::base_url` / `base_file_url` now work.** The values were stored and
+  ignored, so a bot configured for a custom API root silently talked to
+  `https://api.telegram.org`. The builder now rewrites the `/bot<token>` and
+  `/file/bot<token>` endpoints; `Bot` also gained `with_base_url` / `with_base_file_url`
+  for direct use.
+- **Benchmarks re-run against teloxide 0.17.0** (still the newest published release) with a
+  token-free harness — 7.2 MB idle / 9.6 MB after 1000 updates, versus teloxide's
+  14.0 / 14.1 MB. See [benchmarks/README.md](https://github.com/HexiCoreDev/rust-telegram-bot/blob/main/benchmarks/README.md).
 
 ## 1.0.0 — Bot API 10.4
 
@@ -119,7 +133,7 @@ themes, backdrops.
 
 ```toml
 [dependencies]
-rust-tg-bot = "1.0.0"
+rust-tg-bot = "1.0.1"
 ```
 
 | Change | Action |

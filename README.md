@@ -8,7 +8,7 @@
 
 <p align="center">
 
-[![Version: 1.0.0](https://img.shields.io/badge/version-1.0.0-blueviolet)](https://github.com/HexiCoreDev/rust-telegram-bot/releases)
+[![Version: 1.0.1](https://img.shields.io/badge/version-1.0.1-blueviolet)](https://github.com/HexiCoreDev/rust-telegram-bot/releases)
 [![Bot API 10.4](https://img.shields.io/badge/Bot%20API-10.4-blue?logo=telegram)](https://core.telegram.org/bots/api-changelog)
 [![Rust: 1.94+](https://img.shields.io/badge/Rust-1.94%2B-orange?logo=rust)](https://www.rust-lang.org)
 [![License: LGPL-3.0](https://img.shields.io/badge/License-LGPL--3.0-green.svg)](https://www.gnu.org/licenses/lgpl-3.0.html)
@@ -26,7 +26,7 @@
 
 ---
 
-> **Stable (v1.0.0).** First stable release: the full Bot API 10.4 surface, semver guarantees from here on. Future Bot API releases arrive as minor version bumps. Please report any issues.
+> **Stable (v1.0.1).** First stable line: the full Bot API 10.4 surface, semver guarantees from here on. 1.0.1 is a patch over 1.0.0 (custom API base URL now applied). Future Bot API releases arrive as minor version bumps. Please report any issues.
 
 ---
 
@@ -483,7 +483,7 @@ rust-tg-bot = { git = "https://github.com/HexiCoreDev/rust-telegram-bot", featur
 | Minimum version | Rust 1.94 | Python 3.10 | Rust 1.68 |
 | Builder pattern | IntoFuture (directly awaitable) | Keyword args | Method chains |
 | Typed constants | `ParseMode::Html` | `ParseMode.HTML` | String-based |
-| Maturity | **v1.0.0** (stable) | Mature (10+ years) | Mature (3+ years) |
+| Maturity | **v1.0.1** (stable) | Mature (10+ years) | Mature (3+ years) |
 
 ## Examples
 
@@ -516,7 +516,7 @@ TELEGRAM_BOT_TOKEN="your-token" WEBHOOK_URL="https://your.domain" \
 
 ## Project Status
 
-**Current: v1.0.0 -- API complete, stable**
+**Current: v1.0.1 -- API complete, stable**
 
 What is implemented:
 

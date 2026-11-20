@@ -43,7 +43,7 @@ Only enable the features you use. Each feature pulls in additional dependencies:
 
 ```toml
 [dependencies]
-rust-tg-bot = { version = "1.0.0", features = ["persistence-sqlite", "webhooks"] }
+rust-tg-bot = { version = "1.0.1", features = ["persistence-sqlite", "webhooks"] }
 ```
 
 Available features:
